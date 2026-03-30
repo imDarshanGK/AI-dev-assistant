@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Developer Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="public/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <h1>AI Developer Assistant</h1>
+        <form id="assistant-form">
+            <textarea id="code-input" placeholder="Paste your code here..." rows="8"></textarea>
+            <select id="action">
+                <option value="explanation">Explain Code</option>
+                <option value="debugging">Debug Code</option>
+                <option value="suggestions">Improve Code</option>
+            </select>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="result"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
