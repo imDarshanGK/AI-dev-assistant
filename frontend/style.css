@@ -1,0 +1,6 @@
+body { font-family: Arial, sans-serif; background: #f7f7f7; }
+.container { max-width: 600px; margin: 40px auto; background: #fff; padding: 2em; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+h1 { text-align: center; }
+textarea { width: 100%; margin-bottom: 1em; }
+select, button { padding: 0.5em; margin-right: 0.5em; }
+#result { margin-top: 2em; background: #f0f0f0; padding: 1em; border-radius: 4px; min-height: 2em; }
