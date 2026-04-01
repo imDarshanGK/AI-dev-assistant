@@ -1,12 +1,10 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
+
+from app.schemas import CodeRequest, SuggestionsResponse
+from app.services.code_assistant import suggest_improvements
 
 router = APIRouter(prefix="/suggestions", tags=["Suggestions"])
 
-class CodeInput(BaseModel):
-    code: str
-
 @router.post("/", summary="Get code improvement suggestions")
-def suggest_code(input: CodeInput):
-    # Dummy implementation for beginners
-    return {"suggestions": ["Consider using more descriptive variable names."]}
+def suggest_code_route(payload: CodeRequest) -> SuggestionsResponse:
+    return suggest_improvements(payload.code)
