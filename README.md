@@ -2,7 +2,7 @@
 # AI Developer Assistant
 
 <p align="center">
-  <img src="screenshots/demo.png" alt="AI Developer Assistant Demo" width="400"/>
+  <img src="screenshots/demo.png" alt="AI Developer Assistant Demo" width="500"/>
 </p>
 
 <p align="center">
@@ -12,145 +12,147 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/imDarshanGK/AI-dev-assistant" alt="License"></a>
 </p>
 
----
+A beginner-friendly AI Developer Assistant built with FastAPI and a lightweight frontend. It helps users explain code, find common bugs, and get practical improvement suggestions.
 
-## 🌟 Why This Project
+## Why This Project
 
-AI Developer Assistant is designed to help beginners understand, debug, and improve code with simple, friendly explanations. It aims to make programming more accessible and collaborative for everyone.
+This project is designed for learners and new contributors:
 
----
-
-A beginner-friendly web application to help users understand, debug, and improve code using AI-powered suggestions.
+- Understand code in simple language
+- Learn debugging patterns using clear issue reports
+- Improve code quality with actionable suggestions
+- Explore a clean architecture that is ready for future LLM integration
 
 ## Features
-- Input code and get simple explanations
-- Debugging assistant to identify errors and suggest fixes
-- Code improvement suggestions
-- Beginner-friendly responses
+
+- Code explanation endpoint with language guess and key points
+- Debugging endpoint with rule-based issue detection
+- Improvement endpoint with suggestion cards and next steps
+- Input validation and beginner-friendly error messages
+- Frontend with API URL setting, clear UX states, and formatted output
+- Swagger docs available at /docs
 
 ## Tech Stack
-- **Backend:** FastAPI (Python)
-- **Frontend:** Simple HTML/CSS (React optional)
-- **API-based design** for future AI integration
+
+- Backend: FastAPI, Pydantic
+- Frontend: HTML, CSS, JavaScript
+- Testing: Pytest, FastAPI TestClient
 
 ## Project Structure
-```
+
+```text
 AI-dev-assistant/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py
-│   │   └── routers/
-│   │       ├── explanation.py
-│   │       ├── debugging.py
-│   │       └── suggestions.py
+│   │   ├── schemas.py
+│   │   ├── routers/
+│   │   │   ├── debugging.py
+│   │   │   ├── explanation.py
+│   │   │   └── suggestions.py
+│   │   └── services/
+│   │       └── code_assistant.py
 │   ├── requirements.txt
 │   └── tests/
+│       ├── test_endpoints.py
 │       └── test_ping.py
 ├── frontend/
 │   ├── index.html
+│   ├── script.js
 │   ├── style.css
-│   └── script.js
-├── README.md
-└── CONTRIBUTING.md
+│   └── public/
+│       └── favicon.ico
+├── screenshots/
+│   └── demo.png
+├── CONTRIBUTING.md
+├── LICENSE
+└── README.md
 ```
 
-## Getting Started
+## Setup Instructions
 
-### Backend (FastAPI)
-1. Navigate to `backend/`
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Run the server:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
+### 1. Start Backend
 
-### Frontend
-1. Open `frontend/index.html` in your browser.
-
-## Example API Requests
-
-### 1. Get Code Explanation
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
 ```
-POST /explanation/
+
+Backend URLs:
+
+- API root: http://localhost:8000/
+- Docs: http://localhost:8000/docs
+- Health: http://localhost:8000/health
+
+### 2. Start Frontend
+
+Open frontend/index.html in your browser and keep backend running.
+
+## API Usage
+
+### POST /explanation/
+
+Request:
+
+```json
 {
-  "code": "print('Hello, world!')"
-}
-```
-**Response:**
-```
-{
-  "explanation": "This is a simple explanation for: print('Hello, world!')..."
-}
-```
-
-### 2. Debug Code
-```
-POST /debugging/
-{
-  "code": "print('Hello, world!')"
-}
-```
-**Response:**
-```
-{
-  "errors": ["No errors found (sample)."],
-  "suggestions": ["Add more error handling."]
+  "code": "def add(a, b):\n    return a + b"
 }
 ```
 
-### 3. Code Improvement Suggestions
-```
-POST /suggestions/
+### POST /debugging/
+
+Request:
+
+```json
 {
-  "code": "x=1"
-}
-```
-**Response:**
-```
-{
-  "suggestions": ["Consider using more descriptive variable names."]
+  "code": "def broken(\n  return 1"
 }
 ```
 
+### POST /suggestions/
 
-## 📸 Screenshots
+Request:
+
+```json
+{
+  "code": "x=1\nprint(x)"
+}
+```
+
+## Running Tests
+
+```bash
+cd backend
+pytest -q
+```
+
+## Screenshots
 
 <p align="center">
-  <img src="screenshots/demo.png" alt="Demo Screenshot" width="600"/>
+  <img src="screenshots/demo.png" alt="Demo Screenshot" width="700"/>
 </p>
 
----
+## Roadmap
 
-## 🚀 Roadmap
+- Add language-specific analyzers (Python, JS, Java)
+- Add optional LLM provider adapter layer
+- Add CI workflow for lint and test checks
+- Add Docker setup for one-command run
+- Add richer frontend result cards
 
-- [ ] Add more advanced code analysis features
-- [ ] Integrate AI/LLM for smarter suggestions
-- [ ] Add user authentication (optional)
-- [ ] Improve frontend UI/UX
-- [ ] Add Docker support for easy setup
-- [ ] Write more tests and CI integration
+## How To Contribute
 
----
+See CONTRIBUTING.md for full contribution workflow.
 
-## 👨‍💻 How to Contribute
+1. Fork repository
+2. Create a feature branch
+3. Make and test changes
+4. Open a pull request
 
-We welcome all contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+## Beginner-Friendly Issues
 
-1. Fork the repository
-2. Create a new branch for your feature or bugfix
-3. Make your changes and test them
-4. Submit a pull request with a clear description
+Start with issues labeled good first issue:
 
----
-
-## 🏷️ Beginner-friendly Issues
-
-Check out [issues labeled "good first issue"](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue) to start contributing as a beginner!
-
----
-
-## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue
