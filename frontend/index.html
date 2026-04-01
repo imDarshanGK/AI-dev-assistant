@@ -8,19 +8,44 @@
     <link rel="icon" type="image/x-icon" href="public/favicon.ico">
 </head>
 <body>
-    <div class="container">
-        <h1>AI Developer Assistant</h1>
-        <form id="assistant-form">
-            <textarea id="code-input" placeholder="Paste your code here..." rows="8"></textarea>
-            <select id="action">
-                <option value="explanation">Explain Code</option>
-                <option value="debugging">Debug Code</option>
-                <option value="suggestions">Improve Code</option>
-            </select>
-            <button type="submit">Submit</button>
-        </form>
-        <div id="result"></div>
-    </div>
+    <main class="page">
+        <section class="card">
+            <h1>AI Developer Assistant</h1>
+            <p class="subtitle">Explain code, debug issues, and improve quality with beginner-friendly feedback.</p>
+
+            <div class="field-group">
+                <label for="api-base">Backend API URL</label>
+                <input id="api-base" type="text" value="http://localhost:8000" />
+            </div>
+
+            <form id="assistant-form">
+                <div class="field-group">
+                    <label for="action">Action</label>
+                    <select id="action">
+                        <option value="explanation">Explain Code</option>
+                        <option value="debugging">Debug Code</option>
+                        <option value="suggestions">Improve Code</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label for="code-input">Code Input</label>
+                    <textarea id="code-input" placeholder="Paste your code here..." rows="12"></textarea>
+                </div>
+
+                <div class="actions">
+                    <button id="submit-btn" type="submit">Run Assistant</button>
+                    <button id="clear-btn" type="button">Clear</button>
+                </div>
+            </form>
+
+            <section class="result-wrap">
+                <h2>Result</h2>
+                <div id="status" class="status">Ready</div>
+                <pre id="result" aria-live="polite">Your result will appear here.</pre>
+            </section>
+        </section>
+    </main>
     <script src="script.js"></script>
 </body>
 </html>
