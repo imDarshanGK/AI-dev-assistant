@@ -61,3 +61,29 @@ clearBtn.addEventListener('click', () => {
     resultBox.textContent = 'Your result will appear here.';
     setStatus('Ready');
 });
+
+
+const copyBtn = document.getElementById("copy-btn");
+const result = document.getElementById("result");
+const copyStatus = document.getElementById("copy-status");
+
+copyBtn.addEventListener("click", async () => {
+    const textToCopy = result.innerText;
+
+    if (!textToCopy || textToCopy === "Your result will appear here.") {
+        copyStatus.innerText = "Nothing to copy";
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(textToCopy);
+        copyStatus.innerText = "Copied!";
+    } catch (err) {
+        copyStatus.innerText = "Copy failed";
+    }
+
+    // Clear message after 2 sec
+    setTimeout(() => {
+        copyStatus.innerText = "";
+    }, 2000);
+});
