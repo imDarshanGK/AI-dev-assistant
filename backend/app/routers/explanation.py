@@ -1,12 +1,10 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
+
+from app.schemas import CodeRequest, ExplanationResponse
+from app.services.code_assistant import explain_code
 
 router = APIRouter(prefix="/explanation", tags=["Explanation"])
 
-class CodeInput(BaseModel):
-    code: str
-
 @router.post("/", summary="Get code explanation")
-def explain_code(input: CodeInput):
-    # Dummy implementation for beginners
-    return {"explanation": f"This is a simple explanation for: {input.code[:30]}..."}
+def explain_code_route(payload: CodeRequest) -> ExplanationResponse:
+    return explain_code(payload.code)
