@@ -14,6 +14,8 @@
 
 An open-source AI-powered developer assistant that helps beginners understand code, debug errors, and improve programming skills with simple explanations.
 
+The current version includes a rule-based assistant engine and an AI-provider abstraction layer, so it works today and is ready for future live LLM integration.
+
 ## Why This Project
 
 This project is designed for learners and new contributors:
@@ -28,6 +30,7 @@ This project is designed for learners and new contributors:
 - Code explanation endpoint with language guess and key points
 - Debugging endpoint with rule-based issue detection
 - Improvement endpoint with suggestion cards and next steps
+- Unified full analysis endpoint that returns explanation, debugging, and suggestions in one response
 - Input validation and beginner-friendly error messages
 - Frontend with API URL setting, clear UX states, and formatted output
 - Swagger docs available at /docs
@@ -47,10 +50,12 @@ AI-dev-assistant/
 │   │   ├── main.py
 │   │   ├── schemas.py
 │   │   ├── routers/
+│   │   │   ├── analyze.py
 │   │   │   ├── debugging.py
 │   │   │   ├── explanation.py
 │   │   │   └── suggestions.py
 │   │   └── services/
+│   │       ├── ai_provider.py
 │   │       └── code_assistant.py
 │   ├── requirements.txt
 │   └── tests/
@@ -120,6 +125,18 @@ Request:
   "code": "x=1\nprint(x)"
 }
 ```
+
+### POST /analyze/
+
+Request:
+
+```json
+{
+  "code": "def add(a, b):\n    return a + b"
+}
+```
+
+This endpoint returns provider metadata and all three analysis sections in one response.
 
 ## Running Tests
 
