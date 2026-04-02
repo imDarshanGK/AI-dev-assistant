@@ -47,6 +47,18 @@ def test_suggestions_endpoint():
     assert len(body["suggestions"]) >= 1
 
 
+def test_analyze_endpoint():
+    payload = {"code": "def add(a, b):\n    return a + b"}
+    response = client.post("/analyze/", json=payload)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provider"] == "rule-based"
+    assert body["mode"] == "ready"
+    assert body["explanation"]["language_guess"] == "Python"
+    assert isinstance(body["debugging"]["issues"], list)
+    assert isinstance(body["suggestions"]["suggestions"], list)
+
+
 def test_validation_error_on_empty_code():
     response = client.post("/explanation/", json={"code": "   "})
     assert response.status_code == 422
