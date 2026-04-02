@@ -12,7 +12,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/imDarshanGK/AI-dev-assistant" alt="License"></a>
 </p>
 
-A beginner-friendly AI Developer Assistant built with FastAPI and a lightweight frontend. It helps users explain code, find common bugs, and get practical improvement suggestions.
+An open-source AI-powered developer assistant that helps beginners understand code, debug errors, and improve programming skills with simple explanations.
 
 ## Why This Project
 
