@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import explanation, debugging, suggestions
+from app.routers import analyze, debugging, explanation, suggestions
 
 app = FastAPI(
     title="AI Developer Assistant API",
@@ -21,6 +21,7 @@ app.add_middleware(
 app.include_router(explanation.router)
 app.include_router(debugging.router)
 app.include_router(suggestions.router)
+app.include_router(analyze.router)
 
 @app.get("/ping", tags=["Test"])
 def ping():
