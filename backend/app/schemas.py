@@ -44,3 +44,12 @@ class SuggestionsResponse(BaseModel):
     language_guess: str
     suggestions: list[ImprovementSuggestion]
     next_steps: list[str]
+
+
+class AnalysisResponse(BaseModel):
+    provider: str
+    model: str
+    mode: str
+    explanation: ExplanationResponse
+    debugging: DebugResponse
+    suggestions: SuggestionsResponse
