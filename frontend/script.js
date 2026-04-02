@@ -14,6 +14,7 @@ function setStatus(message, isError = false) {
 function buildEndpoint(action) {
     if (action === 'explanation') return '/explanation/';
     if (action === 'debugging') return '/debugging/';
+    if (action === 'analyze') return '/analyze/';
     return '/suggestions/';
 }
 
