@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: ai-developer-assistant-api
+    env: docker
+    dockerfilePath: backend/Dockerfile
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+
+  - type: static
+    name: ai-developer-assistant-web
+    rootDir: frontend
+    staticPublishPath: .
+    autoDeploy: true
