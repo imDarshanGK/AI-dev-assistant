@@ -145,6 +145,32 @@ cd backend
 pytest -q
 ```
 
+## Deployment
+
+Recommended deployment setup for this project:
+
+### Backend on Render
+
+1. Connect this GitHub repository to Render.
+2. Use the `render.yaml` blueprint at the repository root.
+3. Render will build the backend from `backend/Dockerfile`.
+4. The health check endpoint is `/health`.
+
+### Frontend as a Static Site
+
+1. Deploy the `frontend/` folder to a static host such as Netlify or Render Static Site.
+2. Open the frontend and enter the deployed backend URL in the API field.
+3. The frontend remembers the last API URL in the browser for easier reuse.
+
+### Environment Variables
+
+If you want to change the provider metadata later, set these variables on the backend host:
+
+- `AI_PROVIDER`
+- `AI_MODEL`
+
+The current app uses a rule-based engine and provider abstraction so it is ready for future AI integration.
+
 ## Screenshots
 
 <p align="center">
