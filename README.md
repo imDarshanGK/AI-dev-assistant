@@ -6,6 +6,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/imDarshanGK/AI-dev-assistant/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/imDarshanGK/AI-dev-assistant/ci.yml?branch=main" alt="CI"></a>
   <a href="https://github.com/imDarshanGK/AI-dev-assistant/stargazers"><img src="https://img.shields.io/github/stars/imDarshanGK/AI-dev-assistant?style=social" alt="GitHub stars"></a>
   <a href="https://github.com/imDarshanGK/AI-dev-assistant/network/members"><img src="https://img.shields.io/github/forks/imDarshanGK/AI-dev-assistant?style=social" alt="GitHub forks"></a>
   <a href="https://github.com/imDarshanGK/AI-dev-assistant/issues"><img src="https://img.shields.io/github/issues/imDarshanGK/AI-dev-assistant" alt="GitHub issues"></a>
@@ -144,6 +145,8 @@ This endpoint returns provider metadata and all three analysis sections in one r
 cd backend
 pytest -q
 ```
+
+GitHub Actions runs the same test command automatically on every push and pull request to `main`.
 
 ## Deployment
 
