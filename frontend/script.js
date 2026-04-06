@@ -6,6 +6,15 @@ const resultBox = document.getElementById('result');
 const statusBox = document.getElementById('status');
 const clearBtn = document.getElementById('clear-btn');
 
+const savedApiBase = window.localStorage.getItem('ai-assistant-api-base');
+if (savedApiBase) {
+    apiBaseInput.value = savedApiBase;
+}
+
+apiBaseInput.addEventListener('change', () => {
+    window.localStorage.setItem('ai-assistant-api-base', apiBaseInput.value.trim());
+});
+
 function setStatus(message, isError = false) {
     statusBox.textContent = message;
     statusBox.classList.toggle('error', isError);
@@ -31,6 +40,8 @@ form.addEventListener('submit', async (event) => {
     const action = actionInput.value;
     const endpoint = buildEndpoint(action);
     const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
+
+    window.localStorage.setItem('ai-assistant-api-base', apiBase);
 
     setStatus('Running request...');
     resultBox.textContent = 'Loading...';
