@@ -1,8 +1,15 @@
 from pydantic import BaseModel, Field, field_validator
 
+from app.config import settings
+
 
 class CodeRequest(BaseModel):
-    code: str = Field(..., min_length=1, description="Code snippet entered by the user")
+    code: str = Field(
+        ...,
+        min_length=1,
+        max_length=settings.max_code_chars,
+        description="Code snippet entered by the user",
+    )
 
     @field_validator("code")
     @classmethod
