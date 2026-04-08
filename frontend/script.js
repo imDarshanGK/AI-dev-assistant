@@ -6,6 +6,7 @@ const resultBox = document.getElementById('result');
 const statusBox = document.getElementById('status');
 const clearBtn = document.getElementById('clear-btn');
 const codeFileInput = document.getElementById('code-file');
+const downloadBtn = document.getElementById('download-btn');
 const copyBtn = document.getElementById('copy-btn');
 const historyList = document.getElementById('history-list');
 const clearHistoryBtn = document.getElementById('clear-history-btn');
@@ -213,6 +214,28 @@ clearBtn.addEventListener('click', () => {
     codeInput.value = '';
     resultBox.textContent = 'Your result will appear here.';
     setStatus('Ready');
+});
+
+downloadBtn.addEventListener('click', () => {
+    const text = resultBox.textContent.trim();
+    if (!text || text === 'Your result will appear here.') {
+        setStatus('No result available to download.', true);
+        return;
+    }
+
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+    anchor.href = url;
+    anchor.download = `ai-developer-assistant-result-${timestamp}.txt`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+
+    setStatus('Result downloaded as TXT.');
 });
 
 copyBtn.addEventListener('click', async () => {
