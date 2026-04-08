@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException, Request
+from fastapi.staticfiles import StaticFiles
+
+from pathlib import Path
 
 import logging
 
@@ -23,6 +26,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("ai_assistant.api")
 init_error_tracking()
+
+FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
+FRONTEND_AVAILABLE = FRONTEND_DIR.exists() and (FRONTEND_DIR / "index.html").exists()
 
 app = FastAPI(
     title="AI Developer Assistant API",
@@ -44,6 +50,9 @@ app.add_middleware(
 app.middleware("http")(rate_limit_middleware)
 app.middleware("http")(request_size_limit_middleware)
 app.middleware("http")(request_id_and_logging_middleware)
+
+if FRONTEND_AVAILABLE:
+    app.mount("/app", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
 
 
 @app.exception_handler(RequestValidationError)
@@ -104,7 +113,10 @@ def health():
     
 @app.get("/", tags=["Root"])
 def root():
-    """Minimal root response suitable for production deployments."""
+    """Open the frontend app when available; otherwise return API status."""
+    if FRONTEND_AVAILABLE:
+        return RedirectResponse(url="/app/")
+
     payload = {
         "message": "AI Developer Assistant API is running.",
         "status": "ok",
