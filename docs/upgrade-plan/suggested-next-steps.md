@@ -13,8 +13,12 @@ Completed:
 
 Remaining optional enhancements in this sprint:
 
-1. Add drag and drop upload
-2. Add side-by-side code and output view
+Completed:
+
+1. Added drag and drop upload
+2. Added side-by-side code and output view
+3. Added keyboard shortcuts
+4. Added language auto-detect UI indicator
 
 Definition of done:
 
@@ -24,10 +28,15 @@ Definition of done:
 
 ## Sprint B (Open Source Readiness)
 
-1. Add issue templates (bug, feature)
-2. Add PR template
-3. Add CODE_OF_CONDUCT.md
-4. Replace placeholder screenshot with real screenshots
+Completed:
+
+1. Added issue templates (bug, feature)
+2. Added PR template
+3. Added CODE_OF_CONDUCT.md
+
+Remaining:
+
+1. Replace placeholder screenshot with real screenshots
 
 Definition of done:
 
