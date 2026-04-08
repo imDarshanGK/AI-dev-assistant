@@ -305,6 +305,28 @@ button {
 	margin-top: 4px;
 }
 
+.history-item-row {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 8px;
+	align-items: stretch;
+}
+
+.item-danger-btn {
+	background: #fee4e2;
+	color: #912018;
+	border: 1px solid #fecdca;
+	padding: 8px 10px;
+	border-radius: 8px;
+	height: 100%;
+}
+
+[data-theme="dark"] .item-danger-btn {
+	background: #3f1f22;
+	color: #ffb4ad;
+	border-color: #6e353b;
+}
+
 @keyframes spin {
 	to {
 		transform: rotate(360deg);
