@@ -36,6 +36,7 @@ This project is designed for learners and new contributors:
 - Frontend with API URL setting, clear UX states, and formatted output
 - Frontend dark mode toggle, file upload (.py/.js/.java), result copy button, and query history
 - Drag-drop upload, side-by-side editor/output view, language auto-detect UI, and keyboard shortcuts
+- Result download as TXT
 - Backend hardening: rate limiting, request-size limits, request-id headers, and centralized exception responses
 - Optional error tracking (Sentry DSN) and caching (Redis URL with in-memory fallback)
 - Swagger docs available at /docs
@@ -168,6 +169,11 @@ Recommended deployment setup for this project:
 1. Deploy the `frontend/` folder to a static host such as Netlify or Render Static Site.
 2. Open the frontend and enter the deployed backend URL in the API field.
 3. The frontend remembers the last API URL in the browser for easier reuse.
+
+### If Backend and Frontend Share One Service
+
+Open the service root URL in your browser. The app now redirects to the frontend page instead of showing the API JSON response.
+The frontend app is also available at `/app/`.
 
 ### Environment Variables
 
