@@ -21,6 +21,8 @@ const HISTORY_LIMIT = 10;
 const savedApiBase = window.localStorage.getItem('ai-assistant-api-base');
 if (savedApiBase) {
     apiBaseInput.value = savedApiBase;
+} else {
+    apiBaseInput.value = window.location.origin;
 }
 
 apiBaseInput.addEventListener('change', () => {
