@@ -232,10 +232,3 @@ https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue
 - .github/pull_request_template.md
 - CODE_OF_CONDUCT.md
 
-## Upgrade Planning Docs
-
-A full audited feature status and phased roadmap are stored in:
-
-- docs/upgrade-plan/current-status.md
-- docs/upgrade-plan/phased-roadmap.md
-- docs/upgrade-plan/suggested-next-steps.md
