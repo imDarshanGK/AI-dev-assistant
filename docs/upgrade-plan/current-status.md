@@ -91,8 +91,8 @@ This status is based on actual repository code and configs only.
 
 | Feature | Status | Notes |
 |---|---|---|
-| User accounts | Not Started | No user model. |
-| Progress tracking | Not Started | No progress data model. |
+| User accounts | Not Started | No backend auth/user model yet. |
+| Progress tracking | Not Started | No persistent progress data model. |
 | Learning recommendations | Not Started | No recommendation engine. |
 | Gamification (badges, streaks) | Not Started | Not implemented. |
 | Feedback system | Not Started | No feedback endpoint/form. |
