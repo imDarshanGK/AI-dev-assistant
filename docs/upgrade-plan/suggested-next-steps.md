@@ -13,11 +13,13 @@ Based on the current repository, this is the clean next path.
 - Keyboard shortcuts
 - Language auto-detect UI indicator
 - TXT result download
+- Dashboard summary cards
+- Saved favorite results in local storage
 
 ## Remaining Frontend Options
 
 1. PDF export for results
-2. Favorites / saved results
+2. Make favorites sync to the database for logged-in users
 3. Syntax highlighting for code and output
 4. Rich dashboard view for account-based usage
 
