@@ -35,6 +35,7 @@ This project is designed for learners and new contributors:
 - Input validation and beginner-friendly error messages
 - Frontend with API URL setting, clear UX states, and formatted output
 - Frontend dark mode toggle, file upload (.py/.js/.java), result copy button, and query history
+- Drag-drop upload, side-by-side editor/output view, language auto-detect UI, and keyboard shortcuts
 - Swagger docs available at /docs
 
 ## Tech Stack
@@ -203,6 +204,13 @@ See CONTRIBUTING.md for full contribution workflow.
 Start with issues labeled good first issue:
 
 https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue
+
+## Open Source Support Files
+
+- .github/ISSUE_TEMPLATE/bug_report.md
+- .github/ISSUE_TEMPLATE/feature_request.md
+- .github/pull_request_template.md
+- CODE_OF_CONDUCT.md
 
 ## Upgrade Planning Docs
 
