@@ -12,6 +12,8 @@ from app.middleware import (
     request_id_and_logging_middleware,
     request_size_limit_middleware,
 )
+from app.services.cache import cache
+from app.services.error_tracking import init_error_tracking
 from app.routers import analyze, debugging, explanation, suggestions
 
 logging.basicConfig(
@@ -19,6 +21,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
 )
 logger = logging.getLogger("ai_assistant.api")
+init_error_tracking()
 
 app = FastAPI(
     title="AI Developer Assistant API",
@@ -93,7 +96,7 @@ def ping():
 @app.get("/health", tags=["Test"])
 def health():
     """Health endpoint for uptime checks."""
-    return {"status": "ok"}
+    return {"status": "ok", "cache_backend": cache.backend}
     
 @app.get("/", tags=["Root"])
 def root():
