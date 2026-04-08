@@ -6,3 +6,4 @@ redis
 sentry-sdk
 sqlalchemy
 pyjwt
+httpx
