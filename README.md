@@ -1,8 +1,8 @@
 
-# AI Developer Assistant
+# QyverixAI
 
 <p align="center">
-  <img src="screenshots/demo.png" alt="AI Developer Assistant Demo" width="500"/>
+  <img src="screenshots/demo.png" alt="QyverixAI Demo" width="500"/>
 </p>
 
 <p align="center">
@@ -13,7 +13,9 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/imDarshanGK/AI-dev-assistant" alt="License"></a>
 </p>
 
-An open-source AI-powered developer assistant that helps beginners understand code, debug errors, and improve programming skills with simple explanations.
+QyverixAI is an open-source AI-powered developer assistant that helps beginners understand code, debug errors, and improve programming skills with simple explanations.
+
+Live deployment: https://qyverixai.onrender.com
 
 The current version includes a rule-based assistant engine and an AI-provider abstraction layer, so it works today and is ready for future live LLM integration.
 
