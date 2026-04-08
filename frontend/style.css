@@ -121,6 +121,15 @@ h1 {
 	background: var(--card);
 }
 
+.auth-panel {
+	margin-bottom: 14px;
+}
+
+.auth-panel h2 {
+	margin: 0 0 10px;
+	font-size: 18px;
+}
+
 .meta-text {
 	display: block;
 	margin-top: 8px;
