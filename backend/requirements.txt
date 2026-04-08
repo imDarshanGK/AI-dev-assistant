@@ -2,3 +2,5 @@ fastapi
 uvicorn
 pydantic
 pytest
+redis
+sentry-sdk
