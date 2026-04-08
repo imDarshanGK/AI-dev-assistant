@@ -1,4 +1,4 @@
-# Contributing to AI Developer Assistant
+# Contributing to QyverixAI
 
 Thank you for your interest in contributing! This project is designed to be beginner-friendly. Please read the guidelines below to get started.
 
