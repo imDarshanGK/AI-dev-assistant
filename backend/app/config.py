@@ -52,6 +52,10 @@ class Settings:
     sentry_traces_sample_rate: float = _float_env("SENTRY_TRACES_SAMPLE_RATE", 0.0)
     enable_docs: bool = _bool_env("ENABLE_DOCS", False)
     public_root_info: bool = _bool_env("PUBLIC_ROOT_INFO", False)
+    database_url: str = os.getenv("DATABASE_URL", "sqlite:///./assistant.db")
+    jwt_secret: str = os.getenv("JWT_SECRET", "change-this-in-production-min-32-bytes")
+    jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
+    access_token_minutes: int = _int_env("ACCESS_TOKEN_MINUTES", 720)
 
 
 settings = Settings()
