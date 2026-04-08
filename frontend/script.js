@@ -51,6 +51,10 @@ function setStatus(message, isError = false) {
     statusBox.classList.remove('loading');
 }
 
+function getApiBase() {
+    return apiBaseInput.value.trim().replace(/\/$/, '');
+}
+
 function getAuthToken() {
     return window.localStorage.getItem(TOKEN_KEY) || '';
 }
@@ -64,6 +68,12 @@ function updateAuthStatus() {
     authStatus.textContent = email ? `Logged in as ${email}` : 'Not logged in';
 }
 
+function clearAuthSession() {
+    window.localStorage.removeItem(TOKEN_KEY);
+    window.localStorage.removeItem(USER_EMAIL_KEY);
+    updateAuthStatus();
+}
+
 function buildAuthHeaders() {
     const token = getAuthToken();
     if (!token) {
@@ -71,6 +81,23 @@ function buildAuthHeaders() {
     }
 
     return { Authorization: `Bearer ${token}` };
+}
+
+async function fetchWithAuth(path, options = {}) {
+    const response = await fetch(getApiBase() + path, {
+        ...options,
+        headers: {
+            ...(options.headers || {}),
+            ...buildAuthHeaders(),
+        },
+    });
+
+    if (response.status === 401) {
+        clearAuthSession();
+        setStatus('Session expired. Please log in again.', true);
+    }
+
+    return response;
 }
 
 function setLoadingStatus(message) {
@@ -109,12 +136,7 @@ async function loadServerHistory() {
         return false;
     }
 
-    const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
-    const response = await fetch(apiBase + '/user/history', {
-        headers: {
-            ...buildAuthHeaders(),
-        },
-    });
+    const response = await fetchWithAuth('/user/history');
 
     if (!response.ok) {
         return false;
@@ -123,6 +145,7 @@ async function loadServerHistory() {
     const items = await response.json();
     saveHistoryItems(
         items.map((item) => ({
+            id: item.id,
             code: item.code,
             action: item.action,
             preview: item.code.slice(0, 80).replace(/\n/g, ' '),
@@ -156,12 +179,7 @@ async function loadServerFavorites() {
         return false;
     }
 
-    const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
-    const response = await fetch(apiBase + '/user/favorites', {
-        headers: {
-            ...buildAuthHeaders(),
-        },
-    });
+    const response = await fetchWithAuth('/user/favorites');
 
     if (!response.ok) {
         return false;
@@ -191,11 +209,14 @@ function renderHistory() {
         const empty = document.createElement('li');
         empty.textContent = 'No previous queries yet.';
         historyList.appendChild(empty);
+        historyCount.textContent = '0';
         return;
     }
 
-    items.forEach((item) => {
+    items.forEach((item, index) => {
         const li = document.createElement('li');
+        const row = document.createElement('div');
+        row.className = 'history-item-row';
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'history-item-btn';
@@ -207,7 +228,17 @@ function renderHistory() {
             setStatus('Loaded query from history.');
         });
 
-        li.appendChild(button);
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'item-danger-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', async () => {
+            await deleteHistoryEntry(index);
+        });
+
+        row.appendChild(button);
+        row.appendChild(deleteBtn);
+        li.appendChild(row);
         historyList.appendChild(li);
     });
 
@@ -228,6 +259,8 @@ function renderFavorites() {
 
     items.forEach((item, index) => {
         const li = document.createElement('li');
+        const row = document.createElement('div');
+        row.className = 'history-item-row';
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'history-item-btn';
@@ -241,14 +274,24 @@ function renderFavorites() {
             updateDetectedLanguage();
         });
 
-        li.appendChild(button);
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'item-danger-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', async () => {
+            await deleteFavoriteEntry(index);
+        });
+
+        row.appendChild(button);
+        row.appendChild(deleteBtn);
+        li.appendChild(row);
         favoritesList.appendChild(li);
     });
 
     favoritesCount.textContent = String(items.length);
 }
 
-function pushHistoryEntry(code, action) {
+async function pushHistoryEntry(code, action) {
     const now = new Date();
     const entry = {
         code,
@@ -265,23 +308,31 @@ function pushHistoryEntry(code, action) {
 
     const token = getAuthToken();
     if (token) {
-        const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
-        fetch(apiBase + '/user/history', {
+        const response = await fetchWithAuth('/user/history', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                ...buildAuthHeaders(),
             },
             body: JSON.stringify({
                 action,
                 code,
                 result_json: resultBox.textContent,
             }),
-        }).catch(() => {});
+        });
+
+        if (response.ok) {
+            const created = await response.json();
+            const updatedItems = getHistoryItems();
+            if (updatedItems[0] && !updatedItems[0].id) {
+                updatedItems[0].id = created.id;
+                saveHistoryItems(updatedItems);
+                renderHistory();
+            }
+        }
     }
 }
 
-function pushFavoriteEntry(code, action, resultText) {
+async function pushFavoriteEntry(code, action, resultText) {
     const items = getFavoriteItems();
     const fingerprint = `${action}:${code.slice(0, 120)}:${resultText.slice(0, 120)}`;
 
@@ -306,12 +357,10 @@ function pushFavoriteEntry(code, action, resultText) {
 
     const token = getAuthToken();
     if (token) {
-        const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
-        fetch(apiBase + '/user/favorites', {
+        const response = await fetchWithAuth('/user/favorites', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                ...buildAuthHeaders(),
             },
             body: JSON.stringify({
                 title: entry.title,
@@ -319,8 +368,60 @@ function pushFavoriteEntry(code, action, resultText) {
                 code,
                 result_json: resultText,
             }),
-        }).catch(() => {});
+        });
+
+        if (response.ok) {
+            const created = await response.json();
+            const updatedItems = getFavoriteItems();
+            if (updatedItems[0] && !updatedItems[0].id) {
+                updatedItems[0].id = created.id;
+                saveFavoriteItems(updatedItems);
+                renderFavorites();
+            }
+        }
     }
+}
+
+async function deleteHistoryEntry(index) {
+    const items = getHistoryItems();
+    const [removed] = items.splice(index, 1);
+    saveHistoryItems(items);
+    renderHistory();
+
+    if (!removed) {
+        return;
+    }
+
+    if (removed.id && getAuthToken()) {
+        const response = await fetchWithAuth(`/user/history/${removed.id}`, { method: 'DELETE' });
+        if (!response.ok && response.status !== 401) {
+            setStatus('Failed to delete history item from server.', true);
+            return;
+        }
+    }
+
+    setStatus('History item deleted.');
+}
+
+async function deleteFavoriteEntry(index) {
+    const items = getFavoriteItems();
+    const [removed] = items.splice(index, 1);
+    saveFavoriteItems(items);
+    renderFavorites();
+
+    if (!removed) {
+        return;
+    }
+
+    if (removed.id && getAuthToken()) {
+        const response = await fetchWithAuth(`/user/favorites/${removed.id}`, { method: 'DELETE' });
+        if (!response.ok && response.status !== 401) {
+            setStatus('Failed to delete favorite from server.', true);
+            return;
+        }
+    }
+
+    setStatus('Favorite deleted.');
 }
 
 function applyTheme(theme) {
@@ -382,10 +483,27 @@ updateDetectedLanguage();
 updateAuthStatus();
 apiModeLabel.textContent = window.location.pathname.startsWith('/app') ? 'Frontend' : 'API';
 
-Promise.allSettled([loadServerHistory(), loadServerFavorites()]).then(() => {
-    renderHistory();
-    renderFavorites();
-});
+async function bootstrapSession() {
+    if (!getAuthToken()) {
+        return;
+    }
+
+    const response = await fetchWithAuth('/auth/me');
+    if (!response.ok) {
+        return;
+    }
+
+    const profile = await response.json();
+    if (profile.email) {
+        window.localStorage.setItem(USER_EMAIL_KEY, profile.email);
+        updateAuthStatus();
+    }
+
+    await loadServerHistory();
+    await loadServerFavorites();
+}
+
+bootstrapSession().catch(() => {});
 
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -399,7 +517,7 @@ form.addEventListener('submit', async (event) => {
 
     const action = actionInput.value;
     const endpoint = buildEndpoint(action);
-    const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
+    const apiBase = getApiBase();
 
     window.localStorage.setItem('ai-assistant-api-base', apiBase);
 
@@ -422,7 +540,7 @@ form.addEventListener('submit', async (event) => {
 
         setStatus('Success');
         resultBox.textContent = JSON.stringify(data, null, 2);
-        pushHistoryEntry(code, action);
+        await pushHistoryEntry(code, action);
         updateDetectedLanguage();
         apiModeLabel.textContent = 'Ready';
     } catch (error) {
@@ -438,7 +556,7 @@ clearBtn.addEventListener('click', () => {
     setStatus('Ready');
 });
 
-favoriteBtn.addEventListener('click', () => {
+favoriteBtn.addEventListener('click', async () => {
     const code = codeInput.value.trim();
     const resultText = resultBox.textContent.trim();
     if (!code || !resultText || resultText === 'Your result will appear here.') {
@@ -446,8 +564,8 @@ favoriteBtn.addEventListener('click', () => {
         return;
     }
 
-    pushFavoriteEntry(code, actionInput.value, resultText);
-    setStatus('Favorite saved locally.');
+    await pushFavoriteEntry(code, actionInput.value, resultText);
+    setStatus(getAuthToken() ? 'Favorite saved and synced.' : 'Favorite saved locally.');
 });
 
 downloadBtn.addEventListener('click', () => {
@@ -496,15 +614,33 @@ codeFileInput.addEventListener('change', async (event) => {
     await loadFile(file);
 });
 
-clearHistoryBtn.addEventListener('click', () => {
+clearHistoryBtn.addEventListener('click', async () => {
     saveHistoryItems([]);
     renderHistory();
+
+    if (getAuthToken()) {
+        const response = await fetchWithAuth('/user/history', { method: 'DELETE' });
+        if (!response.ok && response.status !== 401) {
+            setStatus('Failed to clear server history.', true);
+            return;
+        }
+    }
+
     setStatus('History cleared.');
 });
 
-clearFavoritesBtn.addEventListener('click', () => {
+clearFavoritesBtn.addEventListener('click', async () => {
     saveFavoriteItems([]);
     renderFavorites();
+
+    if (getAuthToken()) {
+        const response = await fetchWithAuth('/user/favorites', { method: 'DELETE' });
+        if (!response.ok && response.status !== 401) {
+            setStatus('Failed to clear server favorites.', true);
+            return;
+        }
+    }
+
     setStatus('Favorites cleared.');
 });
 
@@ -517,8 +653,7 @@ async function authenticate(endpoint) {
         return;
     }
 
-    const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
-    const response = await fetch(apiBase + endpoint, {
+    const response = await fetch(getApiBase() + endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -555,9 +690,7 @@ loginBtn.addEventListener('click', async () => {
 });
 
 logoutBtn.addEventListener('click', () => {
-    window.localStorage.removeItem(TOKEN_KEY);
-    window.localStorage.removeItem(USER_EMAIL_KEY);
-    updateAuthStatus();
+    clearAuthSession();
     setStatus('Logged out. Local dashboard data remains in your browser.');
 });
 
