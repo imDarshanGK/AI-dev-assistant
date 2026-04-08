@@ -52,6 +52,9 @@ async def request_id_and_logging_middleware(request: Request, call_next):
 
 
 async def request_size_limit_middleware(request: Request, call_next):
+    if request.method not in {"POST", "PUT", "PATCH"}:
+        return await call_next(request)
+
     content_length = request.headers.get("content-length")
     if content_length:
         try:
