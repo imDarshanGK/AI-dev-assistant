@@ -169,6 +169,7 @@ button {
 
 [data-theme="dark"] #clear-btn,
 [data-theme="dark"] #theme-toggle,
+[data-theme="dark"] #download-btn,
 [data-theme="dark"] #copy-btn,
 [data-theme="dark"] #clear-history-btn {
 	background: #243246;
