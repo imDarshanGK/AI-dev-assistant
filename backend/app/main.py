@@ -33,7 +33,7 @@ FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 FRONTEND_AVAILABLE = FRONTEND_DIR.exists() and (FRONTEND_DIR / "index.html").exists()
 
 app = FastAPI(
-    title="AI Developer Assistant API",
+    title="QyverixAI API",
     description="A beginner-friendly API to explain code, detect issues, and suggest improvements.",
     version="1.0.0",
     docs_url="/docs" if settings.enable_docs else None,
