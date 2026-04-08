@@ -125,11 +125,18 @@ def test_auth_and_user_data_flow():
         },
     )
     assert history_create.status_code == 200
+    history_id = history_create.json()["id"]
 
     history_list = client.get("/user/history", headers=headers)
     assert history_list.status_code == 200
     assert isinstance(history_list.json(), list)
     assert len(history_list.json()) >= 1
+
+    history_delete = client.delete(f"/user/history/{history_id}", headers=headers)
+    assert history_delete.status_code == 200
+
+    history_clear = client.delete("/user/history", headers=headers)
+    assert history_clear.status_code == 200
 
     favorite_create = client.post(
         "/user/favorites",
@@ -151,3 +158,6 @@ def test_auth_and_user_data_flow():
 
     favorite_delete = client.delete(f"/user/favorites/{favorite_id}", headers=headers)
     assert favorite_delete.status_code == 200
+
+    favorites_clear = client.delete("/user/favorites", headers=headers)
+    assert favorites_clear.status_code == 200
