@@ -12,6 +12,7 @@ from app.middleware import (
     request_id_and_logging_middleware,
     request_size_limit_middleware,
 )
+from app.config import settings
 from app.services.cache import cache
 from app.services.error_tracking import init_error_tracking
 from app.routers import analyze, debugging, explanation, suggestions
@@ -27,6 +28,9 @@ app = FastAPI(
     title="AI Developer Assistant API",
     description="A beginner-friendly API to explain code, detect issues, and suggest improvements.",
     version="1.0.0",
+    docs_url="/docs" if settings.enable_docs else None,
+    redoc_url="/redoc" if settings.enable_docs else None,
+    openapi_url="/openapi.json" if settings.enable_docs else None,
 )
 
 app.add_middleware(
@@ -100,9 +104,13 @@ def health():
     
 @app.get("/", tags=["Root"])
 def root():
-    """Welcome message for the root endpoint."""
-    return {
-        "message": "Welcome to the AI Developer Assistant API!",
-        "docs": "/docs",
-        "openapi": "/openapi.json",
+    """Minimal root response suitable for production deployments."""
+    payload = {
+        "message": "AI Developer Assistant API is running.",
+        "status": "ok",
     }
+
+    if settings.public_root_info and settings.enable_docs:
+        payload["docs"] = "/docs"
+
+    return payload
