@@ -20,6 +20,12 @@ def test_health_endpoint():
     assert response.json() == {"status": "ok"}
 
 
+def test_request_id_header_present():
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert "x-request-id" in response.headers
+
+
 def test_explanation_endpoint():
     payload = {"code": "def add(a, b):\n    return a + b"}
     response = client.post("/explanation/", json=payload)
@@ -61,4 +67,10 @@ def test_analyze_endpoint():
 
 def test_validation_error_on_empty_code():
     response = client.post("/explanation/", json={"code": "   "})
+    assert response.status_code == 422
+
+
+def test_validation_error_on_oversized_code():
+    oversized = "a" * 20001
+    response = client.post("/explanation/", json={"code": oversized})
     assert response.status_code == 422
