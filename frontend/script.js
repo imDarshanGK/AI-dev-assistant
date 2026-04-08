@@ -2,6 +2,12 @@ const form = document.getElementById('assistant-form');
 const codeInput = document.getElementById('code-input');
 const actionInput = document.getElementById('action');
 const apiBaseInput = document.getElementById('api-base');
+const authEmailInput = document.getElementById('auth-email');
+const authPasswordInput = document.getElementById('auth-password');
+const signupBtn = document.getElementById('signup-btn');
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const authStatus = document.getElementById('auth-status');
 const resultBox = document.getElementById('result');
 const statusBox = document.getElementById('status');
 const clearBtn = document.getElementById('clear-btn');
@@ -24,6 +30,8 @@ const apiModeLabel = document.getElementById('api-mode-label');
 const HISTORY_KEY = 'ai-assistant-history';
 const FAVORITES_KEY = 'ai-assistant-favorites';
 const THEME_KEY = 'ai-assistant-theme';
+const TOKEN_KEY = 'ai-assistant-access-token';
+const USER_EMAIL_KEY = 'ai-assistant-user-email';
 const HISTORY_LIMIT = 10;
 
 const savedApiBase = window.localStorage.getItem('ai-assistant-api-base');
@@ -41,6 +49,28 @@ function setStatus(message, isError = false) {
     statusBox.textContent = message;
     statusBox.classList.toggle('error', isError);
     statusBox.classList.remove('loading');
+}
+
+function getAuthToken() {
+    return window.localStorage.getItem(TOKEN_KEY) || '';
+}
+
+function getCurrentUserEmail() {
+    return window.localStorage.getItem(USER_EMAIL_KEY) || '';
+}
+
+function updateAuthStatus() {
+    const email = getCurrentUserEmail();
+    authStatus.textContent = email ? `Logged in as ${email}` : 'Not logged in';
+}
+
+function buildAuthHeaders() {
+    const token = getAuthToken();
+    if (!token) {
+        return {};
+    }
+
+    return { Authorization: `Bearer ${token}` };
 }
 
 function setLoadingStatus(message) {
@@ -73,6 +103,36 @@ function saveHistoryItems(items) {
     window.localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
 }
 
+async function loadServerHistory() {
+    const token = getAuthToken();
+    if (!token) {
+        return false;
+    }
+
+    const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
+    const response = await fetch(apiBase + '/user/history', {
+        headers: {
+            ...buildAuthHeaders(),
+        },
+    });
+
+    if (!response.ok) {
+        return false;
+    }
+
+    const items = await response.json();
+    saveHistoryItems(
+        items.map((item) => ({
+            code: item.code,
+            action: item.action,
+            preview: item.code.slice(0, 80).replace(/\n/g, ' '),
+            timestamp: new Date(item.created_at).toLocaleString(),
+        }))
+    );
+    renderHistory();
+    return true;
+}
+
 function getFavoriteItems() {
     const raw = window.localStorage.getItem(FAVORITES_KEY);
     if (!raw) {
@@ -88,6 +148,39 @@ function getFavoriteItems() {
 
 function saveFavoriteItems(items) {
     window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(items));
+}
+
+async function loadServerFavorites() {
+    const token = getAuthToken();
+    if (!token) {
+        return false;
+    }
+
+    const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
+    const response = await fetch(apiBase + '/user/favorites', {
+        headers: {
+            ...buildAuthHeaders(),
+        },
+    });
+
+    if (!response.ok) {
+        return false;
+    }
+
+    const items = await response.json();
+    saveFavoriteItems(
+        items.map((item) => ({
+            id: item.id,
+            fingerprint: `${item.action}:${item.code.slice(0, 120)}:${item.result_json.slice(0, 120)}`,
+            code: item.code,
+            action: item.action,
+            result: item.result_json,
+            title: item.title,
+            timestamp: new Date(item.created_at).toLocaleString(),
+        }))
+    );
+    renderFavorites();
+    return true;
 }
 
 function renderHistory() {
@@ -169,6 +262,23 @@ function pushHistoryEntry(code, action) {
     const boundedItems = items.slice(0, HISTORY_LIMIT);
     saveHistoryItems(boundedItems);
     renderHistory();
+
+    const token = getAuthToken();
+    if (token) {
+        const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
+        fetch(apiBase + '/user/history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...buildAuthHeaders(),
+            },
+            body: JSON.stringify({
+                action,
+                code,
+                result_json: resultBox.textContent,
+            }),
+        }).catch(() => {});
+    }
 }
 
 function pushFavoriteEntry(code, action, resultText) {
@@ -193,6 +303,24 @@ function pushFavoriteEntry(code, action, resultText) {
 
     saveFavoriteItems(items.slice(0, HISTORY_LIMIT));
     renderFavorites();
+
+    const token = getAuthToken();
+    if (token) {
+        const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
+        fetch(apiBase + '/user/favorites', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...buildAuthHeaders(),
+            },
+            body: JSON.stringify({
+                title: entry.title,
+                action,
+                code,
+                result_json: resultText,
+            }),
+        }).catch(() => {});
+    }
 }
 
 function applyTheme(theme) {
@@ -251,7 +379,13 @@ applyTheme(savedTheme);
 renderHistory();
 renderFavorites();
 updateDetectedLanguage();
+updateAuthStatus();
 apiModeLabel.textContent = window.location.pathname.startsWith('/app') ? 'Frontend' : 'API';
+
+Promise.allSettled([loadServerHistory(), loadServerFavorites()]).then(() => {
+    renderHistory();
+    renderFavorites();
+});
 
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -372,6 +506,59 @@ clearFavoritesBtn.addEventListener('click', () => {
     saveFavoriteItems([]);
     renderFavorites();
     setStatus('Favorites cleared.');
+});
+
+async function authenticate(endpoint) {
+    const email = authEmailInput.value.trim().toLowerCase();
+    const password = authPasswordInput.value;
+
+    if (!email || !password) {
+        setStatus('Enter email and password first.', true);
+        return;
+    }
+
+    const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
+    const response = await fetch(apiBase + endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        setStatus(data.detail || 'Authentication failed.', true);
+        return;
+    }
+
+    window.localStorage.setItem(TOKEN_KEY, data.access_token);
+    window.localStorage.setItem(USER_EMAIL_KEY, data.email);
+    updateAuthStatus();
+    await loadServerHistory();
+    await loadServerFavorites();
+    setStatus('Authentication successful.');
+}
+
+signupBtn.addEventListener('click', async () => {
+    try {
+        await authenticate('/auth/signup');
+    } catch (error) {
+        setStatus('Signup request failed.', true);
+    }
+});
+
+loginBtn.addEventListener('click', async () => {
+    try {
+        await authenticate('/auth/login');
+    } catch (error) {
+        setStatus('Login request failed.', true);
+    }
+});
+
+logoutBtn.addEventListener('click', () => {
+    window.localStorage.removeItem(TOKEN_KEY);
+    window.localStorage.removeItem(USER_EMAIL_KEY);
+    updateAuthStatus();
+    setStatus('Logged out. Local dashboard data remains in your browser.');
 });
 
 themeToggleBtn.addEventListener('click', () => {
