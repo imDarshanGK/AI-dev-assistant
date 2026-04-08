@@ -6,16 +6,23 @@ const resultBox = document.getElementById('result');
 const statusBox = document.getElementById('status');
 const clearBtn = document.getElementById('clear-btn');
 const codeFileInput = document.getElementById('code-file');
+const favoriteBtn = document.getElementById('favorite-btn');
 const downloadBtn = document.getElementById('download-btn');
 const copyBtn = document.getElementById('copy-btn');
 const historyList = document.getElementById('history-list');
+const favoritesList = document.getElementById('favorites-list');
 const clearHistoryBtn = document.getElementById('clear-history-btn');
+const clearFavoritesBtn = document.getElementById('clear-favorites-btn');
 const themeToggleBtn = document.getElementById('theme-toggle');
 const languageSelect = document.getElementById('language-select');
 const detectedLanguageText = document.getElementById('detected-language');
 const dropzone = document.getElementById('code-dropzone');
+const historyCount = document.getElementById('history-count');
+const favoritesCount = document.getElementById('favorites-count');
+const apiModeLabel = document.getElementById('api-mode-label');
 
 const HISTORY_KEY = 'ai-assistant-history';
+const FAVORITES_KEY = 'ai-assistant-favorites';
 const THEME_KEY = 'ai-assistant-theme';
 const HISTORY_LIMIT = 10;
 
@@ -66,6 +73,23 @@ function saveHistoryItems(items) {
     window.localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
 }
 
+function getFavoriteItems() {
+    const raw = window.localStorage.getItem(FAVORITES_KEY);
+    if (!raw) {
+        return [];
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch (error) {
+        return [];
+    }
+}
+
+function saveFavoriteItems(items) {
+    window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(items));
+}
+
 function renderHistory() {
     const items = getHistoryItems();
     historyList.innerHTML = '';
@@ -93,6 +117,42 @@ function renderHistory() {
         li.appendChild(button);
         historyList.appendChild(li);
     });
+
+    historyCount.textContent = String(items.length);
+}
+
+function renderFavorites() {
+    const items = getFavoriteItems();
+    favoritesList.innerHTML = '';
+
+    if (items.length === 0) {
+        const empty = document.createElement('li');
+        empty.textContent = 'No saved favorite results yet.';
+        favoritesList.appendChild(empty);
+        favoritesCount.textContent = '0';
+        return;
+    }
+
+    items.forEach((item, index) => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'history-item-btn';
+        button.innerHTML = `${item.title}<small>${item.timestamp}</small>`;
+
+        button.addEventListener('click', () => {
+            codeInput.value = item.code;
+            actionInput.value = item.action;
+            resultBox.textContent = item.result;
+            setStatus('Loaded favorite result.');
+            updateDetectedLanguage();
+        });
+
+        li.appendChild(button);
+        favoritesList.appendChild(li);
+    });
+
+    favoritesCount.textContent = String(items.length);
 }
 
 function pushHistoryEntry(code, action) {
@@ -109,6 +169,30 @@ function pushHistoryEntry(code, action) {
     const boundedItems = items.slice(0, HISTORY_LIMIT);
     saveHistoryItems(boundedItems);
     renderHistory();
+}
+
+function pushFavoriteEntry(code, action, resultText) {
+    const items = getFavoriteItems();
+    const fingerprint = `${action}:${code.slice(0, 120)}:${resultText.slice(0, 120)}`;
+
+    const existingIndex = items.findIndex((item) => item.fingerprint === fingerprint);
+    const entry = {
+        fingerprint,
+        code,
+        action,
+        result: resultText,
+        title: `${action.toUpperCase()} favorite from ${new Date().toLocaleString()}`,
+        timestamp: new Date().toLocaleString(),
+    };
+
+    if (existingIndex >= 0) {
+        items[existingIndex] = entry;
+    } else {
+        items.unshift(entry);
+    }
+
+    saveFavoriteItems(items.slice(0, HISTORY_LIMIT));
+    renderFavorites();
 }
 
 function applyTheme(theme) {
@@ -165,7 +249,9 @@ async function loadFile(file) {
 const savedTheme = window.localStorage.getItem(THEME_KEY) || 'light';
 applyTheme(savedTheme);
 renderHistory();
+renderFavorites();
 updateDetectedLanguage();
+apiModeLabel.textContent = window.location.pathname.startsWith('/app') ? 'Frontend' : 'API';
 
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -204,9 +290,11 @@ form.addEventListener('submit', async (event) => {
         resultBox.textContent = JSON.stringify(data, null, 2);
         pushHistoryEntry(code, action);
         updateDetectedLanguage();
+        apiModeLabel.textContent = 'Ready';
     } catch (error) {
         setStatus('Could not connect to backend API.', true);
         resultBox.textContent = String(error);
+        apiModeLabel.textContent = 'Offline';
     }
 });
 
@@ -214,6 +302,18 @@ clearBtn.addEventListener('click', () => {
     codeInput.value = '';
     resultBox.textContent = 'Your result will appear here.';
     setStatus('Ready');
+});
+
+favoriteBtn.addEventListener('click', () => {
+    const code = codeInput.value.trim();
+    const resultText = resultBox.textContent.trim();
+    if (!code || !resultText || resultText === 'Your result will appear here.') {
+        setStatus('Run an analysis before saving a favorite.', true);
+        return;
+    }
+
+    pushFavoriteEntry(code, actionInput.value, resultText);
+    setStatus('Favorite saved locally.');
 });
 
 downloadBtn.addEventListener('click', () => {
@@ -266,6 +366,12 @@ clearHistoryBtn.addEventListener('click', () => {
     saveHistoryItems([]);
     renderHistory();
     setStatus('History cleared.');
+});
+
+clearFavoritesBtn.addEventListener('click', () => {
+    saveFavoriteItems([]);
+    renderFavorites();
+    setStatus('Favorites cleared.');
 });
 
 themeToggleBtn.addEventListener('click', () => {
