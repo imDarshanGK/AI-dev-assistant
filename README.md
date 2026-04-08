@@ -34,6 +34,7 @@ This project is designed for learners and new contributors:
 - Unified full analysis endpoint that returns explanation, debugging, and suggestions in one response
 - Input validation and beginner-friendly error messages
 - Frontend with API URL setting, clear UX states, and formatted output
+- Frontend dark mode toggle, file upload (.py/.js/.java), result copy button, and query history
 - Swagger docs available at /docs
 
 ## Tech Stack
