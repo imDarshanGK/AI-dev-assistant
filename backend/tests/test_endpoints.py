@@ -7,12 +7,15 @@ client = TestClient(app)
 
 
 def test_root_endpoint():
-    response = client.get("/")
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code in {307, 308}
+    assert response.headers["location"] == "/app/"
+
+
+def test_frontend_app_endpoint():
+    response = client.get("/app/")
     assert response.status_code == 200
-    body = response.json()
-    assert "message" in body
-    assert body["status"] == "ok"
-    assert "docs" not in body
+    assert "text/html" in response.headers["content-type"]
 
 
 def test_docs_disabled_by_default():
