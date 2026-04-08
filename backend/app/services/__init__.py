@@ -1,1 +1,1 @@
-"""Service layer for AI Developer Assistant."""
+"""Service layer for QyverixAI."""
