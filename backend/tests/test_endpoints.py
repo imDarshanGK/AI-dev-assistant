@@ -11,7 +11,13 @@ def test_root_endpoint():
     assert response.status_code == 200
     body = response.json()
     assert "message" in body
-    assert body["docs"] == "/docs"
+    assert body["status"] == "ok"
+    assert "docs" not in body
+
+
+def test_docs_disabled_by_default():
+    response = client.get("/docs")
+    assert response.status_code == 404
 
 
 def test_health_endpoint():
