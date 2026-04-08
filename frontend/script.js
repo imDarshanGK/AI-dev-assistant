@@ -13,6 +13,7 @@ const statusBox = document.getElementById('status');
 const clearBtn = document.getElementById('clear-btn');
 const codeFileInput = document.getElementById('code-file');
 const favoriteBtn = document.getElementById('favorite-btn');
+const shareBtn = document.getElementById('share-btn');
 const downloadBtn = document.getElementById('download-btn');
 const copyBtn = document.getElementById('copy-btn');
 const historyList = document.getElementById('history-list');
@@ -475,6 +476,31 @@ async function loadFile(file) {
     }
 }
 
+async function loadSharedSnippetFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('share');
+    if (!token) {
+        return;
+    }
+
+    try {
+        const response = await fetch(getApiBase() + `/share/${encodeURIComponent(token)}`);
+        if (!response.ok) {
+            setStatus('Shared result not found.', true);
+            return;
+        }
+
+        const payload = await response.json();
+        codeInput.value = payload.code;
+        actionInput.value = payload.action;
+        resultBox.textContent = payload.result_json;
+        updateDetectedLanguage();
+        setStatus('Loaded shared result.');
+    } catch (error) {
+        setStatus('Failed to load shared result.', true);
+    }
+}
+
 const savedTheme = window.localStorage.getItem(THEME_KEY) || 'light';
 applyTheme(savedTheme);
 renderHistory();
@@ -504,6 +530,7 @@ async function bootstrapSession() {
 }
 
 bootstrapSession().catch(() => {});
+loadSharedSnippetFromUrl().catch(() => {});
 
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -566,6 +593,41 @@ favoriteBtn.addEventListener('click', async () => {
 
     await pushFavoriteEntry(code, actionInput.value, resultText);
     setStatus(getAuthToken() ? 'Favorite saved and synced.' : 'Favorite saved locally.');
+});
+
+shareBtn.addEventListener('click', async () => {
+    const code = codeInput.value.trim();
+    const resultText = resultBox.textContent.trim();
+    const action = actionInput.value;
+
+    if (!code || !resultText || resultText === 'Your result will appear here.') {
+        setStatus('Run an analysis before creating a share link.', true);
+        return;
+    }
+
+    try {
+        const response = await fetch(getApiBase() + '/share/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action,
+                code,
+                result_json: resultText,
+            }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            setStatus(data.detail || 'Failed to create share link.', true);
+            return;
+        }
+
+        const shareUrl = `${window.location.origin}${window.location.pathname}?share=${encodeURIComponent(data.token)}`;
+        await navigator.clipboard.writeText(shareUrl);
+        setStatus('Share link copied to clipboard.');
+    } catch (error) {
+        setStatus('Failed to create share link.', true);
+    }
 });
 
 downloadBtn.addEventListener('click', () => {
