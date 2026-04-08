@@ -16,9 +16,11 @@ from app.middleware import (
     request_size_limit_middleware,
 )
 from app.config import settings
+from app.database import Base, engine
+from app import models  # noqa: F401 - imports models for table registration
 from app.services.cache import cache
 from app.services.error_tracking import init_error_tracking
-from app.routers import analyze, debugging, explanation, suggestions
+from app.routers import analyze, auth, debugging, explanation, suggestions, user_data
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,6 +40,8 @@ app = FastAPI(
     redoc_url="/redoc" if settings.enable_docs else None,
     openapi_url="/openapi.json" if settings.enable_docs else None,
 )
+
+Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -99,6 +103,8 @@ app.include_router(explanation.router)
 app.include_router(debugging.router)
 app.include_router(suggestions.router)
 app.include_router(analyze.router)
+app.include_router(auth.router)
+app.include_router(user_data.router)
 
 @app.get("/ping", tags=["Test"])
 def ping():
