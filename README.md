@@ -37,6 +37,7 @@ This project is designed for learners and new contributors:
 - Frontend dark mode toggle, file upload (.py/.js/.java), result copy button, and query history
 - Drag-drop upload, side-by-side editor/output view, language auto-detect UI, and keyboard shortcuts
 - Result download as TXT
+- Dashboard summary cards and saved favorite results stored locally in the browser
 - Backend hardening: rate limiting, request-size limits, request-id headers, and centralized exception responses
 - Optional error tracking (Sentry DSN) and caching (Redis URL with in-memory fallback)
 - Swagger docs available at /docs
@@ -174,6 +175,10 @@ Recommended deployment setup for this project:
 
 Open the service root URL in your browser. The app now redirects to the frontend page instead of showing the API JSON response.
 The frontend app is also available at `/app/`.
+
+### Dashboard Data
+
+Saved favorites and query history currently use browser local storage. This is the foundation for a later database-backed dashboard and user accounts.
 
 ### Environment Variables
 
