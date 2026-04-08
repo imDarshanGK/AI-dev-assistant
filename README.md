@@ -202,3 +202,11 @@ See CONTRIBUTING.md for full contribution workflow.
 Start with issues labeled good first issue:
 
 https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue
+
+## Upgrade Planning Docs
+
+A full audited feature status and phased roadmap are stored in:
+
+- docs/upgrade-plan/current-status.md
+- docs/upgrade-plan/phased-roadmap.md
+- docs/upgrade-plan/suggested-next-steps.md
