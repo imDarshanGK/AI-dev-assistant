@@ -86,6 +86,50 @@ def test_analyze_endpoint_cache_hit_mode():
     assert second.json()["mode"].endswith("+cache")
 
 
+def test_versioned_analyze_endpoint():
+    payload = {"code": "def add(a, b):\n    return a + b"}
+    response = client.post("/api/v1/analyze/", json=payload)
+    assert response.status_code == 200
+    body = response.json()
+    assert "provider" in body
+    assert "explanation" in body
+
+
+def test_stream_analyze_endpoint():
+    payload = {"code": "def add(a, b):\n    return a + b"}
+    response = client.post("/analyze/stream", json=payload)
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["content-type"]
+    assert "event: status" in response.text
+    assert "event: result" in response.text
+
+
+def test_websocket_analyze_endpoint():
+    with client.websocket_connect("/analyze/ws") as websocket:
+        websocket.send_json({"code": "def add(a, b):\n    return a + b"})
+        data = websocket.receive_json()
+        assert data["explanation"]["language_guess"] == "Python"
+
+
+def test_share_create_and_get():
+    create = client.post(
+        "/share/",
+        json={
+            "action": "analyze",
+            "code": "print('hello')",
+            "result_json": "{\"status\":\"ok\"}",
+        },
+    )
+    assert create.status_code == 200
+    token = create.json()["token"]
+
+    get_result = client.get(f"/share/{token}")
+    assert get_result.status_code == 200
+    payload = get_result.json()
+    assert payload["action"] == "analyze"
+    assert payload["code"] == "print('hello')"
+
+
 def test_validation_error_on_empty_code():
     response = client.post("/explanation/", json={"code": "   "})
     assert response.status_code == 422
