@@ -4,10 +4,17 @@ Based on current implementation and effort-to-impact ratio, start with this sequ
 
 ## Sprint A (Frontend UX)
 
-1. Add copy-to-clipboard button for results
-2. Add file upload support for .py, .js, .java
-3. Add simple query history list in local storage
-4. Add dark mode toggle with saved preference
+Completed:
+
+1. Added copy-to-clipboard button for results
+2. Added file upload support for .py, .js, .java
+3. Added query history list in local storage
+4. Added dark mode toggle with saved preference
+
+Remaining optional enhancements in this sprint:
+
+1. Add drag and drop upload
+2. Add side-by-side code and output view
 
 Definition of done:
 
