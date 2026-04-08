@@ -13,16 +13,16 @@ This status is based on actual repository code and configs only.
 | Loading animation / spinner | Done | Loading state now displays a spinner animation in status UI. |
 | Error message UI improvements | Partial | Status messages exist, but no structured alert component. |
 | Responsive mobile design | Done | Mobile media query in CSS. |
-| Drag and drop code upload | Not Started | No drag-drop handlers. |
+| Drag and drop code upload | Done | Dropzone supports .py, .js, .java drag-and-drop loading. |
 | File upload (.py, .js, .java) | Done | File input supports .py, .js, .java and loads content into textarea. |
 | History of previous queries | Done | Recent query history stored in local storage and reloadable from UI. |
 | Save favorite results | Not Started | No favorites model/UI. |
-| Side-by-side code and output view | Not Started | Single-column layout. |
+| Side-by-side code and output view | Done | Editor and output now render in two panels on desktop. |
 | Syntax highlighting for results | Not Started | Results shown as plain JSON text. |
-| Language selector | Not Started | Action selector exists, language selector does not. |
+| Language selector | Partial | UI selector added; backend does not use explicit language field yet. |
 | Theme customization | Not Started | No theme settings panel. |
-| Keyboard shortcuts | Not Started | No shortcut bindings. |
-| Auto-detect code language UI | Not Started | Backend detects language, frontend does not show dedicated detector UI. |
+| Keyboard shortcuts | Done | Ctrl+Enter submits, Ctrl+Shift+C copies result. |
+| Auto-detect code language UI | Done | Frontend shows detected language when set to auto mode. |
 | Share result (link) | Not Started | No permalink/share endpoint. |
 | Authentication (login/signup) | Not Started | No auth flow in frontend. |
 | Dashboard UI | Not Started | No dashboard page. |
@@ -107,9 +107,9 @@ This status is based on actual repository code and configs only.
 | Feature | Status | Notes |
 |---|---|---|
 | More good first issues | Partial | Link exists; issue curation is ongoing process. |
-| Issue templates | Not Started | No issue template files yet. |
-| PR templates | Not Started | No PR template yet. |
-| Code of Conduct | Not Started | No CODE_OF_CONDUCT.md found. |
+| Issue templates | Done | Bug and feature request templates added. |
+| PR templates | Done | PR template added under .github. |
+| Code of Conduct | Done | CODE_OF_CONDUCT.md added. |
 | Contributor leaderboard | Not Started | Not configured. |
 | Demo video (GIF) | Not Started | Placeholder screenshot exists only. |
 | Real screenshots | Not Started | Placeholder screenshot file currently used. |
