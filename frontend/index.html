@@ -16,6 +16,21 @@
             </div>
             <p class="subtitle">Explain code, debug issues, and improve quality with beginner-friendly feedback.</p>
 
+            <section class="dashboard-summary">
+                <div class="summary-card">
+                    <span class="summary-label">Recent Queries</span>
+                    <strong id="history-count">0</strong>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-label">Favorite Results</span>
+                    <strong id="favorites-count">0</strong>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-label">API Mode</span>
+                    <strong id="api-mode-label">Ready</strong>
+                </div>
+            </section>
+
             <div class="field-group">
                 <label for="api-base">Backend API URL</label>
                 <input id="api-base" type="text" value="http://localhost:8000" placeholder="https://your-backend.onrender.com" />
@@ -66,6 +81,7 @@
                     <h2>Result</h2>
                     <div id="status" class="status">Ready</div>
                     <div class="result-actions">
+                        <button id="favorite-btn" type="button">Save Favorite</button>
                         <button id="download-btn" type="button">Download TXT</button>
                         <button id="copy-btn" type="button">Copy Result</button>
                     </div>
@@ -79,6 +95,14 @@
                     <button id="clear-history-btn" type="button">Clear History</button>
                 </div>
                 <ul id="history-list" class="history-list"></ul>
+            </section>
+
+            <section class="history-wrap favorites-wrap">
+                <div class="history-header">
+                    <h2>Favorite Results</h2>
+                    <button id="clear-favorites-btn" type="button">Clear Favorites</button>
+                </div>
+                <ul id="favorites-list" class="history-list"></ul>
             </section>
         </section>
     </main>
