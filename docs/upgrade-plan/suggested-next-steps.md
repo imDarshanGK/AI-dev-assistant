@@ -1,80 +1,61 @@
 # Suggested Next Steps
 
-Based on current implementation and effort-to-impact ratio, start with this sequence.
+Based on the current repository, this is the clean next path.
 
-## Sprint A (Frontend UX)
+## Completed Frontend Work
 
-Completed:
+- Copy-to-clipboard button
+- File upload for `.py`, `.js`, `.java`
+- Query history in local storage
+- Dark mode toggle with saved preference
+- Drag-and-drop upload
+- Side-by-side code and output view
+- Keyboard shortcuts
+- Language auto-detect UI indicator
+- TXT result download
 
-1. Added copy-to-clipboard button for results
-2. Added file upload support for .py, .js, .java
-3. Added query history list in local storage
-4. Added dark mode toggle with saved preference
+## Remaining Frontend Options
 
-Remaining optional enhancements in this sprint:
+1. PDF export for results
+2. Favorites / saved results
+3. Syntax highlighting for code and output
+4. Rich dashboard view for account-based usage
 
-Completed:
+## Completed Open Source Work
 
-1. Added drag and drop upload
-2. Added side-by-side code and output view
-3. Added keyboard shortcuts
-4. Added language auto-detect UI indicator
+- Issue templates
+- PR template
+- Code of Conduct
+- README guidance for contributors
 
-Definition of done:
+## Remaining Open Source Options
 
-- All features accessible in UI
-- Mobile layout remains usable
-- No regression in existing explain/debug/suggest/analyze flows
+1. Real screenshots instead of placeholder demo image
+2. Architecture diagram
+3. Release tags and changelog workflow
+4. Demo GIF or short product video
 
-## Sprint B (Open Source Readiness)
+## Completed Backend Hardening
 
-Completed:
+- Input size limits
+- Rate limiting
+- Structured logging and request IDs
+- Centralized exception handlers
+- Optional Sentry init hook
+- Optional Redis cache with in-memory fallback
 
-1. Added issue templates (bug, feature)
-2. Added PR template
-3. Added CODE_OF_CONDUCT.md
+## Remaining Backend Options
 
-Remaining:
+1. Persistent Redis deployment and cache invalidation strategy
+2. External alert routing to email or Slack
+3. API key protection for private deployments
+4. Persistent user history and favorites in a database
 
-1. Replace placeholder screenshot with real screenshots
+## Best Next Build Choices
 
-Definition of done:
+If you want the most useful next improvements, the best order is:
 
-- New contributors can open well-formed issues and PRs
-- Repository includes community standards and clearer visuals
-
-## Sprint C (Backend Hardening)
-
-Completed:
-
-1. Added request size limits
-2. Added rate limiting
-3. Added structured logging and request IDs
-4. Added centralized exception handlers
-
-Next backend hardening options:
-
-Completed:
-
-1. Added optional Sentry error tracking initialization
-2. Added optional Redis caching with in-memory fallback
-
-Remaining backend hardening options:
-
-1. Add persistent Redis deployment and cache invalidation strategy
-2. Add external error alert routing (email or Slack)
-
-Definition of done:
-
-- API rejects oversized payloads safely
-- Basic abuse resistance in place
-- Logs are usable for debugging incidents
-
-## Questions to Confirm Before Building Next Features
-
-Please confirm these choices so implementation can start immediately:
-
-1. LLM provider first: OpenAI, Gemini, or local model?
-2. Database first: PostgreSQL or MongoDB?
-3. Auth first: email/password only, or OAuth too?
-4. Deployment target for production: Render only, or Render plus another cloud?
+1. Favorites / saved results
+2. PDF export
+3. Real screenshots
+4. Database-backed user history
