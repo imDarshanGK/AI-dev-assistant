@@ -112,3 +112,17 @@ class FavoriteRecord(BaseModel):
     code: str
     result_json: str
     created_at: str
+
+
+class ShareCreateRequest(BaseModel):
+    action: str = Field(..., min_length=3, max_length=50)
+    code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
+    result_json: str = Field(..., min_length=1, max_length=100000)
+
+
+class ShareRecord(BaseModel):
+    token: str
+    action: str
+    code: str
+    result_json: str
+    created_at: str
