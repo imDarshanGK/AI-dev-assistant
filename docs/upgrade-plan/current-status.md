@@ -35,10 +35,10 @@ This status is based on actual repository code and configs only.
 | LLM integration (OpenAI / Gemini / local) | Partial | Provider abstraction exists, live LLM call is not implemented. |
 | Language-specific analyzers (Python, JS, Java) | Partial | Heuristic language detection and Python syntax parsing exist. |
 | Code execution sandbox | Not Started | No sandbox runtime. |
-| Rate limiting | Not Started | No limiter middleware/package configured. |
+| Rate limiting | Done | In-memory rate limiting middleware added with configurable limits. |
 | Authentication (JWT) | Not Started | No auth endpoints or JWT middleware. |
 | User session management | Not Started | No sessions or identity model. |
-| Logging system | Partial | Default server logs only; no structured app logger setup. |
+| Logging system | Done | Request lifecycle logging with request IDs and timings added. |
 | Error tracking system | Not Started | No Sentry or equivalent integration. |
 | Caching (Redis) | Not Started | No Redis integration. |
 | Async processing | Partial | FastAPI supports it, but current handlers are sync. |
@@ -46,7 +46,7 @@ This status is based on actual repository code and configs only.
 | Database integration (PostgreSQL / MongoDB) | Not Started | No database layer in repo. |
 | Store user history | Not Started | No persistent history model. |
 | API versioning | Not Started | No v1/v2 path namespace. |
-| Input size limits | Not Started | No max payload guard configured. |
+| Input size limits | Done | Request body byte limit and code max-length validation added. |
 | Security validation (malicious code detection) | Not Started | No static security scanner or policy checks. |
 | Performance optimization | Partial | Lightweight rule engine; no profiling/caching strategy. |
 | Streaming responses | Not Started | No streaming endpoints. |
