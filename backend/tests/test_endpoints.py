@@ -17,7 +17,9 @@ def test_root_endpoint():
 def test_health_endpoint():
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    body = response.json()
+    assert body["status"] == "ok"
+    assert "cache_backend" in body
 
 
 def test_request_id_header_present():
@@ -63,6 +65,16 @@ def test_analyze_endpoint():
     assert body["explanation"]["language_guess"] == "Python"
     assert isinstance(body["debugging"]["issues"], list)
     assert isinstance(body["suggestions"]["suggestions"], list)
+
+
+def test_analyze_endpoint_cache_hit_mode():
+    payload = {"code": "def add(a, b):\n    return a + b"}
+    first = client.post("/analyze/", json=payload)
+    assert first.status_code == 200
+
+    second = client.post("/analyze/", json=payload)
+    assert second.status_code == 200
+    assert second.json()["mode"].endswith("+cache")
 
 
 def test_validation_error_on_empty_code():
