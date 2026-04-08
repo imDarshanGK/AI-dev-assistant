@@ -29,8 +29,13 @@ logging.basicConfig(
 logger = logging.getLogger("ai_assistant.api")
 init_error_tracking()
 
-FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
-FRONTEND_AVAILABLE = FRONTEND_DIR.exists() and (FRONTEND_DIR / "index.html").exists()
+_CURRENT_FILE = Path(__file__).resolve()
+_FRONTEND_CANDIDATES = [
+    _CURRENT_FILE.parents[1] / "frontend",  # Docker image layout: /app/frontend
+    _CURRENT_FILE.parents[2] / "frontend",  # Local workspace layout
+]
+FRONTEND_DIR = next((path for path in _FRONTEND_CANDIDATES if (path / "index.html").exists()), _FRONTEND_CANDIDATES[0])
+FRONTEND_AVAILABLE = (FRONTEND_DIR / "index.html").exists()
 
 app = FastAPI(
     title="QyverixAI API",
@@ -134,7 +139,7 @@ def root():
         return RedirectResponse(url="/app/")
 
     payload = {
-        "message": "AI Developer Assistant API is running.",
+        "message": "QyverixAI API is running.",
         "status": "ok",
     }
 
