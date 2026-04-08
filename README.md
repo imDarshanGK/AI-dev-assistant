@@ -37,6 +37,7 @@ This project is designed for learners and new contributors:
 - Frontend dark mode toggle, file upload (.py/.js/.java), result copy button, and query history
 - Drag-drop upload, side-by-side editor/output view, language auto-detect UI, and keyboard shortcuts
 - Backend hardening: rate limiting, request-size limits, request-id headers, and centralized exception responses
+- Optional error tracking (Sentry DSN) and caching (Redis URL with in-memory fallback)
 - Swagger docs available at /docs
 
 ## Tech Stack
@@ -174,6 +175,11 @@ If you want to change the provider metadata later, set these variables on the ba
 
 - `AI_PROVIDER`
 - `AI_MODEL`
+- `CACHE_ENABLED`
+- `CACHE_TTL_SECONDS`
+- `REDIS_URL` (optional)
+- `SENTRY_DSN` (optional)
+- `SENTRY_TRACES_SAMPLE_RATE` (optional)
 
 The current app uses a rule-based engine and provider abstraction so it is ready for future AI integration.
 
