@@ -9,7 +9,7 @@ This status is based on actual repository code and configs only.
 | Dark mode toggle | Done | Theme toggle with persisted user preference in local storage. |
 | Code editor (Monaco / syntax highlighting) | Not Started | Uses plain textarea. |
 | Copy-to-clipboard button | Done | Result panel includes copy button using clipboard API. |
-| Download result (PDF / TXT) | Not Started | No export action exists. |
+| Download result (PDF / TXT) | Partial | TXT download added; PDF export not implemented. |
 | Loading animation / spinner | Done | Loading state now displays a spinner animation in status UI. |
 | Error message UI improvements | Partial | Status messages exist, but no structured alert component. |
 | Responsive mobile design | Done | Mobile media query in CSS. |
