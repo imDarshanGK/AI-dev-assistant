@@ -6,6 +6,14 @@ def _int_env(name: str, default: int) -> int:
     if raw_value is None:
         return default
 
+    try:
+        value = int(raw_value)
+        if value <= 0:
+            return default
+        return value
+    except ValueError:
+        return default
+
 
 def _float_env(name: str, default: float) -> float:
     raw_value = os.getenv(name)
@@ -27,14 +35,6 @@ def _bool_env(name: str, default: bool) -> bool:
         return default
     return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
-    try:
-        value = int(raw_value)
-        if value <= 0:
-            return default
-        return value
-    except ValueError:
-        return default
-
 
 class Settings:
     """Application settings loaded from environment variables."""
@@ -50,6 +50,8 @@ class Settings:
     redis_url: str | None = os.getenv("REDIS_URL")
     sentry_dsn: str | None = os.getenv("SENTRY_DSN")
     sentry_traces_sample_rate: float = _float_env("SENTRY_TRACES_SAMPLE_RATE", 0.0)
+    enable_docs: bool = _bool_env("ENABLE_DOCS", False)
+    public_root_info: bool = _bool_env("PUBLIC_ROOT_INFO", False)
 
 
 settings = Settings()
