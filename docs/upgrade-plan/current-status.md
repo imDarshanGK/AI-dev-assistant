@@ -39,8 +39,8 @@ This status is based on actual repository code and configs only.
 | Authentication (JWT) | Not Started | No auth endpoints or JWT middleware. |
 | User session management | Not Started | No sessions or identity model. |
 | Logging system | Done | Request lifecycle logging with request IDs and timings added. |
-| Error tracking system | Not Started | No Sentry or equivalent integration. |
-| Caching (Redis) | Not Started | No Redis integration. |
+| Error tracking system | Partial | Sentry integration hook added; requires SENTRY_DSN to activate. |
+| Caching (Redis) | Partial | Redis cache integration added with in-memory fallback when unavailable. |
 | Async processing | Partial | FastAPI supports it, but current handlers are sync. |
 | Background jobs (Celery / RQ) | Not Started | No worker setup. |
 | Database integration (PostgreSQL / MongoDB) | Not Started | No database layer in repo. |
