@@ -71,6 +71,33 @@ h1 {
 	color: var(--muted);
 }
 
+.dashboard-summary {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 10px;
+	margin-bottom: 18px;
+}
+
+.summary-card {
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: var(--surface);
+	padding: 14px;
+	display: grid;
+	gap: 6px;
+}
+
+.summary-label {
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--muted);
+}
+
+.summary-card strong {
+	font-size: 20px;
+}
+
 .field-group {
 	margin-bottom: 14px;
 }
@@ -184,6 +211,8 @@ button {
 	margin-bottom: 8px;
 	display: flex;
 	justify-content: flex-end;
+	flex-wrap: wrap;
+	gap: 8px;
 }
 
 .status {
@@ -224,6 +253,10 @@ button {
 	margin-top: 20px;
 	border-top: 1px solid var(--border);
 	padding-top: 16px;
+}
+
+.favorites-wrap {
+	margin-top: 16px;
 }
 
 .history-header {
@@ -272,6 +305,10 @@ button {
 @media (max-width: 700px) {
 	.card {
 		padding: 16px;
+	}
+
+	.dashboard-summary {
+		grid-template-columns: 1fr;
 	}
 
 	.workspace-grid,
