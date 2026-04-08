@@ -10,6 +10,9 @@ const copyBtn = document.getElementById('copy-btn');
 const historyList = document.getElementById('history-list');
 const clearHistoryBtn = document.getElementById('clear-history-btn');
 const themeToggleBtn = document.getElementById('theme-toggle');
+const languageSelect = document.getElementById('language-select');
+const detectedLanguageText = document.getElementById('detected-language');
+const dropzone = document.getElementById('code-dropzone');
 
 const HISTORY_KEY = 'ai-assistant-history';
 const THEME_KEY = 'ai-assistant-theme';
@@ -120,9 +123,46 @@ function detectActionFromFilename(filename) {
     return actionInput.value;
 }
 
+function guessLanguage(code) {
+    const normalized = code.toLowerCase();
+    if (normalized.includes('def ') || normalized.includes('import ')) {
+        return 'Python';
+    }
+    if (normalized.includes('function ') || normalized.includes('console.log(')) {
+        return 'JavaScript';
+    }
+    if (normalized.includes('public static void main') || normalized.includes('class ')) {
+        return 'Java';
+    }
+    return 'Unknown';
+}
+
+function updateDetectedLanguage() {
+    if (languageSelect.value !== 'auto') {
+        detectedLanguageText.textContent = `Selected language: ${languageSelect.options[languageSelect.selectedIndex].text}`;
+        return;
+    }
+
+    const guessed = guessLanguage(codeInput.value);
+    detectedLanguageText.textContent = `Detected language: ${guessed}`;
+}
+
+async function loadFile(file) {
+    try {
+        const content = await file.text();
+        codeInput.value = content;
+        actionInput.value = detectActionFromFilename(file.name);
+        setStatus(`Loaded file: ${file.name}`);
+        updateDetectedLanguage();
+    } catch (error) {
+        setStatus('Failed to read selected file.', true);
+    }
+}
+
 const savedTheme = window.localStorage.getItem(THEME_KEY) || 'light';
 applyTheme(savedTheme);
 renderHistory();
+updateDetectedLanguage();
 
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -160,6 +200,7 @@ form.addEventListener('submit', async (event) => {
         setStatus('Success');
         resultBox.textContent = JSON.stringify(data, null, 2);
         pushHistoryEntry(code, action);
+        updateDetectedLanguage();
     } catch (error) {
         setStatus('Could not connect to backend API.', true);
         resultBox.textContent = String(error);
@@ -193,14 +234,7 @@ codeFileInput.addEventListener('change', async (event) => {
         return;
     }
 
-    try {
-        const content = await file.text();
-        codeInput.value = content;
-        actionInput.value = detectActionFromFilename(file.name);
-        setStatus(`Loaded file: ${file.name}`);
-    } catch (error) {
-        setStatus('Failed to read selected file.', true);
-    }
+    await loadFile(file);
 });
 
 clearHistoryBtn.addEventListener('click', () => {
@@ -212,4 +246,51 @@ clearHistoryBtn.addEventListener('click', () => {
 themeToggleBtn.addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme') || 'light';
     applyTheme(current === 'light' ? 'dark' : 'light');
+});
+
+languageSelect.addEventListener('change', updateDetectedLanguage);
+codeInput.addEventListener('input', updateDetectedLanguage);
+
+document.addEventListener('keydown', async (event) => {
+    if (event.ctrlKey && event.key === 'Enter') {
+        event.preventDefault();
+        form.requestSubmit();
+    }
+
+    if (event.ctrlKey && event.shiftKey && (event.key === 'C' || event.key === 'c')) {
+        event.preventDefault();
+        await copyBtn.click();
+    }
+});
+
+['dragenter', 'dragover'].forEach((eventName) => {
+    dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        dropzone.classList.add('dragover');
+    });
+});
+
+['dragleave', 'drop'].forEach((eventName) => {
+    dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        dropzone.classList.remove('dragover');
+    });
+});
+
+dropzone.addEventListener('drop', async (event) => {
+    const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+    if (!file) {
+        return;
+    }
+
+    const supported = ['.py', '.js', '.java'];
+    const isSupported = supported.some((ext) => file.name.toLowerCase().endsWith(ext));
+    if (!isSupported) {
+        setStatus('Unsupported file type. Use .py, .js, or .java.', true);
+        return;
+    }
+
+    await loadFile(file);
 });
