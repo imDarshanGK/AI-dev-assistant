@@ -56,6 +56,11 @@ class Settings:
     jwt_secret: str = os.getenv("JWT_SECRET", "change-this-in-production-min-32-bytes")
     jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_minutes: int = _int_env("ACCESS_TOKEN_MINUTES", 720)
+    llm_enabled: bool = _bool_env("LLM_ENABLED", False)
+    llm_api_key: str | None = os.getenv("LLM_API_KEY")
+    llm_base_url: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
+    llm_model: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
+    llm_timeout_seconds: int = _int_env("LLM_TIMEOUT_SECONDS", 30)
 
 
 settings = Settings()
