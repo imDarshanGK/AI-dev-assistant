@@ -34,12 +34,15 @@ const THEME_KEY = 'ai-assistant-theme';
 const TOKEN_KEY = 'ai-assistant-access-token';
 const USER_EMAIL_KEY = 'ai-assistant-user-email';
 const HISTORY_LIMIT = 10;
+const DEFAULT_API_BASE = 'https://qyverixai.onrender.com';
 
 const savedApiBase = window.localStorage.getItem('ai-assistant-api-base');
 if (savedApiBase) {
     apiBaseInput.value = savedApiBase;
 } else {
-    apiBaseInput.value = window.location.origin;
+    apiBaseInput.value = window.location.origin.startsWith('http') && !window.location.origin.includes('file://')
+        ? window.location.origin
+        : DEFAULT_API_BASE;
 }
 
 apiBaseInput.addEventListener('change', () => {
