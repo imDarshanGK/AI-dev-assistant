@@ -4,3 +4,5 @@ pydantic
 pytest
 redis
 sentry-sdk
+sqlalchemy
+pyjwt
