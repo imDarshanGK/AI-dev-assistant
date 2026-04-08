@@ -36,6 +36,7 @@ This project is designed for learners and new contributors:
 - Frontend with API URL setting, clear UX states, and formatted output
 - Frontend dark mode toggle, file upload (.py/.js/.java), result copy button, and query history
 - Drag-drop upload, side-by-side editor/output view, language auto-detect UI, and keyboard shortcuts
+- Backend hardening: rate limiting, request-size limits, request-id headers, and centralized exception responses
 - Swagger docs available at /docs
 
 ## Tech Stack
