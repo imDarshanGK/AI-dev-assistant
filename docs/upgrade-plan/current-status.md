@@ -6,16 +6,16 @@ This status is based on actual repository code and configs only.
 
 | Feature | Status | Notes |
 |---|---|---|
-| Dark mode toggle | Not Started | No theme toggle in UI logic. |
+| Dark mode toggle | Done | Theme toggle with persisted user preference in local storage. |
 | Code editor (Monaco / syntax highlighting) | Not Started | Uses plain textarea. |
-| Copy-to-clipboard button | Not Started | No copy action/button exists. |
+| Copy-to-clipboard button | Done | Result panel includes copy button using clipboard API. |
 | Download result (PDF / TXT) | Not Started | No export action exists. |
-| Loading animation / spinner | Partial | Shows "Loading..." text, not spinner animation. |
+| Loading animation / spinner | Done | Loading state now displays a spinner animation in status UI. |
 | Error message UI improvements | Partial | Status messages exist, but no structured alert component. |
 | Responsive mobile design | Done | Mobile media query in CSS. |
 | Drag and drop code upload | Not Started | No drag-drop handlers. |
-| File upload (.py, .js, .java) | Not Started | No file input in current UI. |
-| History of previous queries | Not Started | No query history storage. |
+| File upload (.py, .js, .java) | Done | File input supports .py, .js, .java and loads content into textarea. |
+| History of previous queries | Done | Recent query history stored in local storage and reloadable from UI. |
 | Save favorite results | Not Started | No favorites model/UI. |
 | Side-by-side code and output view | Not Started | Single-column layout. |
 | Syntax highlighting for results | Not Started | Results shown as plain JSON text. |
