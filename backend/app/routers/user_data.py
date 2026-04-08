@@ -58,6 +58,33 @@ def create_history(
     )
 
 
+@router.delete("/history/{history_id}")
+def delete_history(
+    history_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    record = db.execute(
+        select(QueryHistory).where(QueryHistory.id == history_id, QueryHistory.user_id == current_user.id)
+    ).scalar_one_or_none()
+    if record is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="History record not found")
+
+    db.execute(delete(QueryHistory).where(QueryHistory.id == history_id))
+    db.commit()
+    return {"status": "deleted", "history_id": history_id}
+
+
+@router.delete("/history")
+def clear_history(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    result = db.execute(delete(QueryHistory).where(QueryHistory.user_id == current_user.id))
+    db.commit()
+    return {"status": "cleared", "deleted": result.rowcount or 0}
+
+
 @router.get("/favorites", response_model=list[FavoriteRecord])
 def list_favorites(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     records = db.execute(
@@ -119,3 +146,13 @@ def delete_favorite(
     db.execute(delete(FavoriteResult).where(FavoriteResult.id == favorite_id))
     db.commit()
     return {"status": "deleted", "favorite_id": favorite_id}
+
+
+@router.delete("/favorites")
+def clear_favorites(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    result = db.execute(delete(FavoriteResult).where(FavoriteResult.user_id == current_user.id))
+    db.commit()
+    return {"status": "cleared", "deleted": result.rowcount or 0}
