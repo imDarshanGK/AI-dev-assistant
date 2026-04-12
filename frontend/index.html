@@ -34,10 +34,28 @@
                 </div>
             </section>
 
-            <div class="field-group">
-                <label for="api-base">Backend API URL</label>
-                <input id="api-base" type="text" value="https://qyverixai.onrender.com" placeholder="https://qyverixai.onrender.com" />
-            </div>
+            <section class="panel examples-panel">
+                <div class="panel-heading">
+                    <h2>Quick Start Examples</h2>
+                    <p class="panel-subtitle">Load a sample to test the assistant without typing from scratch.</p>
+                </div>
+                <div class="example-chips" id="example-chips">
+                    <button type="button" class="example-chip" data-example="fibonacci">Fibonacci</button>
+                    <button type="button" class="example-chip" data-example="palindrome">Palindrome</button>
+                    <button type="button" class="example-chip" data-example="factorial">Factorial</button>
+                </div>
+            </section>
+
+            <details class="panel auth-panel connection-panel">
+                <summary>Connection settings</summary>
+                <div class="auth-panel-body">
+                    <p class="auth-note">Use this only if you want to switch the backend URL from the deployed default.</p>
+                    <div class="field-group">
+                        <label for="api-base">Backend API URL</label>
+                        <input id="api-base" type="text" value="https://qyverixai.onrender.com" placeholder="https://qyverixai.onrender.com" />
+                    </div>
+                </div>
+            </details>
 
             <details class="panel auth-panel">
                 <summary>Optional account sync</summary>
