@@ -184,13 +184,48 @@ h1 {
 }
 
 .auth-panel {
-	margin-bottom: 16px;
+	margin-bottom: 14px;
+	padding: 0;
+	overflow: hidden;
 }
 
-.auth-panel h2 {
-	margin: 0 0 10px;
-	font-size: 20px;
-	letter-spacing: -0.02em;
+.auth-panel summary {
+	list-style: none;
+	cursor: pointer;
+	padding: 14px 16px;
+	font-weight: 700;
+	font-size: 14px;
+	letter-spacing: -0.01em;
+	color: var(--text);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.auth-panel summary::-webkit-details-marker {
+	display: none;
+}
+
+.auth-panel summary::after {
+	content: "+";
+	font-size: 18px;
+	color: var(--muted);
+}
+
+.auth-panel[open] summary::after {
+	content: "–";
+}
+
+.auth-panel-body {
+	padding: 0 16px 16px;
+	border-top: 1px solid var(--border);
+}
+
+.auth-note {
+	margin: 12px 0 14px;
+	color: var(--muted);
+	font-size: 13px;
+	line-height: 1.5;
 }
 
 .meta-text {

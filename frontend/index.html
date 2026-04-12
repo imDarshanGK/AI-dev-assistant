@@ -39,25 +39,28 @@
                 <input id="api-base" type="text" value="https://qyverixai.onrender.com" placeholder="https://qyverixai.onrender.com" />
             </div>
 
-            <section class="panel auth-panel">
-                <h2>Account</h2>
-                <div class="field-row">
-                    <div class="field-group">
-                        <label for="auth-email">Email</label>
-                        <input id="auth-email" type="email" placeholder="you@example.com" />
+            <details class="panel auth-panel">
+                <summary>Optional account sync</summary>
+                <div class="auth-panel-body">
+                    <p class="auth-note">Use this only if you want login, synced history, and saved favorites across devices.</p>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="auth-email">Email</label>
+                            <input id="auth-email" type="email" placeholder="you@example.com" />
+                        </div>
+                        <div class="field-group">
+                            <label for="auth-password">Password</label>
+                            <input id="auth-password" type="password" placeholder="Minimum 8 characters" />
+                        </div>
                     </div>
-                    <div class="field-group">
-                        <label for="auth-password">Password</label>
-                        <input id="auth-password" type="password" placeholder="Minimum 8 characters" />
+                    <div class="actions">
+                        <button id="signup-btn" type="button">Sign Up</button>
+                        <button id="login-btn" type="button">Login</button>
+                        <button id="logout-btn" type="button">Logout</button>
                     </div>
+                    <small id="auth-status" class="meta-text">Not logged in</small>
                 </div>
-                <div class="actions">
-                    <button id="signup-btn" type="button">Sign Up</button>
-                    <button id="login-btn" type="button">Login</button>
-                    <button id="logout-btn" type="button">Logout</button>
-                </div>
-                <small id="auth-status" class="meta-text">Not logged in</small>
-            </section>
+            </details>
 
             <div class="workspace-grid">
                 <form id="assistant-form" class="panel">
