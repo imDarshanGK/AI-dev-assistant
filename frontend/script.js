@@ -27,6 +27,7 @@ const dropzone = document.getElementById('code-dropzone');
 const historyCount = document.getElementById('history-count');
 const favoritesCount = document.getElementById('favorites-count');
 const apiModeLabel = document.getElementById('api-mode-label');
+const exampleChips = document.getElementById('example-chips');
 
 const HISTORY_KEY = 'ai-assistant-history';
 const FAVORITES_KEY = 'ai-assistant-favorites';
@@ -35,14 +36,42 @@ const TOKEN_KEY = 'ai-assistant-access-token';
 const USER_EMAIL_KEY = 'ai-assistant-user-email';
 const HISTORY_LIMIT = 10;
 const DEFAULT_API_BASE = 'https://qyverixai.onrender.com';
+const QUICK_START_EXAMPLES = {
+    fibonacci: {
+        action: 'explanation',
+        code: `def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+print(fibonacci(10))`,
+    },
+    palindrome: {
+        action: 'analyze',
+        code: `def is_palindrome(text):
+    cleaned = text.lower().replace(" ", "")
+    return cleaned == cleaned[::-1]
+
+word = "Level"
+print(is_palindrome(word))`,
+    },
+    factorial: {
+        action: 'debugging',
+        code: `def factorial(n):
+    result = 1
+    for value in range(1, n + 1):
+        result *= value
+    return result
+
+print(factorial(5))`,
+    },
+};
 
 const savedApiBase = window.localStorage.getItem('ai-assistant-api-base');
 if (savedApiBase) {
     apiBaseInput.value = savedApiBase;
 } else {
-    apiBaseInput.value = window.location.origin.startsWith('http') && !window.location.origin.includes('file://')
-        ? window.location.origin
-        : DEFAULT_API_BASE;
+    apiBaseInput.value = DEFAULT_API_BASE;
 }
 
 apiBaseInput.addEventListener('change', () => {
@@ -53,6 +82,18 @@ function setStatus(message, isError = false) {
     statusBox.textContent = message;
     statusBox.classList.toggle('error', isError);
     statusBox.classList.remove('loading');
+}
+
+function loadExample(exampleName) {
+    const example = QUICK_START_EXAMPLES[exampleName];
+    if (!example) {
+        return;
+    }
+
+    codeInput.value = example.code;
+    actionInput.value = example.action;
+    updateDetectedLanguage();
+    setStatus(`Loaded ${exampleName} example.`);
 }
 
 function getApiBase() {
@@ -708,6 +749,22 @@ clearFavoritesBtn.addEventListener('click', async () => {
 
     setStatus('Favorites cleared.');
 });
+
+if (exampleChips) {
+    exampleChips.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
+
+        const exampleName = target.getAttribute('data-example');
+        if (!exampleName) {
+            return;
+        }
+
+        loadExample(exampleName);
+    });
+}
 
 async function authenticate(endpoint) {
     const email = authEmailInput.value.trim().toLowerCase();
