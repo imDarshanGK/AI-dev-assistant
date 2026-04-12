@@ -118,6 +118,49 @@ h1 {
 	line-height: 1.55;
 }
 
+.examples-panel {
+	margin-bottom: 14px;
+}
+
+.panel-heading {
+	display: grid;
+	gap: 4px;
+	margin-bottom: 12px;
+}
+
+.panel-heading h2 {
+	margin: 0;
+	font-size: 18px;
+	letter-spacing: -0.02em;
+}
+
+.panel-subtitle {
+	margin: 0;
+	color: var(--muted);
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.example-chips {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.example-chip {
+	border: 1px solid var(--border);
+	background: linear-gradient(180deg, var(--surface) 0%, var(--surface-strong) 100%);
+	color: var(--text);
+	padding: 9px 12px;
+	border-radius: 999px;
+	font-size: 13px;
+}
+
+.example-chip:hover {
+	border-color: var(--accent);
+	color: var(--accent-strong);
+}
+
 .dashboard-summary {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -187,6 +230,10 @@ h1 {
 	margin-bottom: 14px;
 	padding: 0;
 	overflow: hidden;
+}
+
+.connection-panel {
+	margin-bottom: 14px;
 }
 
 .auth-panel summary {
