@@ -504,8 +504,8 @@ async function loadSharedSnippetFromUrl() {
     }
 }
 
-const savedTheme = window.localStorage.getItem(THEME_KEY) || 'light';
-applyTheme(savedTheme);
+const savedTheme = window.localStorage.getItem(THEME_KEY);
+applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
 renderHistory();
 renderFavorites();
 updateDetectedLanguage();

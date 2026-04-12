@@ -1,26 +1,26 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
 
 :root {
-	--bg: #0b1210;
-	--bg-deep: #12211d;
-	--card: #101916;
-	--card-strong: #15231f;
-	--text: #edf5f1;
-	--muted: #93aaa3;
-	--accent: #4ac8a4;
-	--accent-strong: #1e9d7d;
-	--border: #233731;
-	--surface: #0f1a17;
-	--surface-strong: #172823;
-	--warning: #f2b36b;
-	--error: #ff8c8c;
-	--shadow-soft: rgba(0, 0, 0, 0.22);
-	--shadow-hard: rgba(0, 0, 0, 0.42);
+	--bg: #f6f1e8;
+	--bg-deep: #dfe6de;
+	--card: #fffdf8;
+	--card-strong: #f6f0e5;
+	--text: #10211b;
+	--muted: #5d6f68;
+	--accent: #125d6f;
+	--accent-strong: #0b4554;
+	--border: #d7d0c3;
+	--surface: #faf7f0;
+	--surface-strong: #efe8dc;
+	--warning: #b8681d;
+	--error: #b64545;
+	--shadow-soft: rgba(16, 33, 27, 0.08);
+	--shadow-hard: rgba(16, 33, 27, 0.16);
 }
 
 [data-theme="dark"] {
-	--bg: #0b1210;
-	--bg-deep: #12211d;
+	--bg: #0c1211;
+	--bg-deep: #14231f;
 	--card: #101916;
 	--card-strong: #15231f;
 	--text: #edf5f1;
@@ -44,36 +44,35 @@ body {
 	margin: 0;
 	font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
 	background:
-		radial-gradient(1100px 540px at 10% 0%, rgba(74, 200, 164, 0.12) 0%, transparent 60%),
-		radial-gradient(900px 560px at 100% 100%, rgba(242, 179, 107, 0.08) 0%, transparent 56%),
-		linear-gradient(155deg, #08100e 0%, var(--bg) 42%, #09110f 100%);
+		radial-gradient(900px 420px at 18% 0%, rgba(18, 93, 111, 0.12) 0%, transparent 65%),
+		radial-gradient(840px 540px at 100% 100%, rgba(184, 104, 29, 0.08) 0%, transparent 60%),
+		linear-gradient(155deg, #fffaf1 0%, var(--bg) 52%, #f2ede3 100%);
 	color: var(--text);
 }
 
 [data-theme="dark"] body {
 	background:
-		radial-gradient(1100px 540px at 10% 0%, rgba(74, 200, 164, 0.12) 0%, transparent 60%),
-		radial-gradient(900px 560px at 100% 100%, rgba(242, 179, 107, 0.08) 0%, transparent 56%),
-		linear-gradient(155deg, #08100e 0%, var(--bg) 42%, #09110f 100%);
+		radial-gradient(900px 420px at 18% 0%, rgba(74, 200, 164, 0.1) 0%, transparent 65%),
+		radial-gradient(840px 540px at 100% 100%, rgba(242, 179, 107, 0.07) 0%, transparent 60%),
+		linear-gradient(155deg, #07100e 0%, var(--bg) 52%, #08110f 100%);
 }
 
 .page {
 	min-height: 100vh;
 	display: grid;
 	place-items: center;
-	padding: 24px 18px;
+	padding: 28px 18px;
 }
 
 .card {
-	width: min(1080px, 100%);
+	width: min(1160px, 100%);
 	background: var(--card);
 	border: 1px solid var(--border);
-	border-radius: 28px;
+	border-radius: 24px;
 	box-shadow:
-		0 18px 34px var(--shadow-soft),
-		0 40px 100px var(--shadow-hard),
-		inset 0 1px 0 rgba(255, 255, 255, 0.02);
-	padding: 28px;
+		0 14px 28px var(--shadow-soft),
+		0 34px 70px var(--shadow-hard);
+	padding: 30px;
 	position: relative;
 	overflow: hidden;
 }
@@ -81,10 +80,10 @@ body {
 .card::before {
 	content: "";
 	position: absolute;
-	inset: -120px auto auto -140px;
-	width: 340px;
-	height: 340px;
-	background: radial-gradient(circle, rgba(74, 200, 164, 0.22) 0%, transparent 72%);
+	inset: -140px auto auto -160px;
+	width: 380px;
+	height: 380px;
+	background: radial-gradient(circle, rgba(18, 93, 111, 0.13) 0%, transparent 72%);
 	pointer-events: none;
 }
 
@@ -112,7 +111,7 @@ h1 {
 }
 
 .subtitle {
-	margin: 10px 0 26px;
+	margin: 10px 0 22px;
 	color: var(--muted);
 	max-width: 72ch;
 	font-size: 16px;
@@ -123,7 +122,7 @@ h1 {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 12px;
-	margin-bottom: 22px;
+	margin-bottom: 18px;
 }
 
 .summary-card {
@@ -152,7 +151,7 @@ h1 {
 	font-size: 12px;
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
-	color: color-mix(in srgb, var(--muted) 84%, white 16%);
+	color: var(--muted);
 }
 
 .summary-card strong {
@@ -172,16 +171,16 @@ h1 {
 
 .workspace-grid {
 	display: grid;
-	grid-template-columns: 1.08fr 0.92fr;
-	gap: 18px;
+	grid-template-columns: 1.12fr 0.88fr;
+	gap: 16px;
 }
 
 .panel {
 	border: 1px solid var(--border);
-	border-radius: 20px;
+	border-radius: 18px;
 	padding: 14px;
-	background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, #ffffff 8%) 0%, var(--card-strong) 100%);
-	box-shadow: 0 10px 24px var(--shadow-soft);
+	background: linear-gradient(180deg, var(--card) 0%, color-mix(in srgb, var(--card) 88%, var(--surface-strong) 12%) 100%);
+	box-shadow: 0 8px 20px var(--shadow-soft);
 }
 
 .auth-panel {
@@ -277,7 +276,7 @@ button:hover {
 #submit-btn {
 	background: linear-gradient(160deg, var(--accent) 0%, var(--accent-strong) 100%);
 	color: #fff;
-	box-shadow: 0 10px 20px color-mix(in srgb, var(--accent) 35%, transparent);
+	box-shadow: 0 10px 20px color-mix(in srgb, var(--accent) 24%, transparent);
 }
 
 #submit-btn:hover {
@@ -285,7 +284,7 @@ button:hover {
 }
 
 #clear-btn {
-	background: color-mix(in srgb, var(--surface) 85%, #ffffff 15%);
+	background: color-mix(in srgb, var(--surface) 90%, #ffffff 10%);
 	color: var(--text);
 	border-color: var(--border);
 }
@@ -311,7 +310,7 @@ button:hover {
 #signup-btn,
 #login-btn,
 #logout-btn {
-	background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 76%, #ffffff 24%) 0%, color-mix(in srgb, var(--surface-strong) 70%, #ffffff 30%) 100%);
+	background: linear-gradient(180deg, var(--surface) 0%, var(--surface-strong) 100%);
 	color: var(--text);
 	border-color: var(--border);
 }
@@ -323,7 +322,7 @@ button:hover {
 .result-actions {
 	margin-bottom: 8px;
 	display: flex;
-	justify-content: flex-end;
+	justify-content: flex-start;
 	flex-wrap: wrap;
 	gap: 8px;
 }
@@ -367,9 +366,9 @@ button:hover {
 }
 
 .history-wrap {
-	margin-top: 20px;
+	margin-top: 18px;
 	border-top: 1px solid var(--border);
-	padding-top: 18px;
+	padding-top: 16px;
 }
 
 .favorites-wrap {
@@ -385,7 +384,7 @@ button:hover {
 
 .history-header h2 {
 	margin: 0;
-	font-size: 19px;
+	font-size: 18px;
 }
 
 .history-list {
@@ -421,9 +420,9 @@ button:hover {
 }
 
 .item-danger-btn {
-	background: linear-gradient(180deg, rgba(242, 102, 102, 0.18) 0%, rgba(242, 102, 102, 0.08) 100%);
-	color: #ffb4b4;
-	border: 1px solid rgba(242, 102, 102, 0.28);
+	background: linear-gradient(180deg, rgba(182, 69, 69, 0.15) 0%, rgba(182, 69, 69, 0.08) 100%);
+	color: var(--error);
+	border: 1px solid rgba(182, 69, 69, 0.22);
 	padding: 8px 10px;
 	border-radius: 14px;
 	height: 100%;
@@ -444,7 +443,7 @@ button:hover {
 @media (max-width: 700px) {
 	.card {
 		padding: 16px;
-		border-radius: 22px;
+		border-radius: 20px;
 	}
 
 	.dashboard-summary {
