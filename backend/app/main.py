@@ -20,7 +20,7 @@ from app.database import Base, engine
 from app import models  # noqa: F401 - imports models for table registration
 from app.services.cache import cache
 from app.services.error_tracking import init_error_tracking
-from app.routers import analyze, auth, debugging, explanation, share, suggestions, user_data
+from app.routers import analyze, auth, chat, debugging, explanation, share, suggestions, user_data
 
 logging.basicConfig(
     level=logging.INFO,
@@ -111,6 +111,7 @@ app.include_router(analyze.router)
 app.include_router(auth.router)
 app.include_router(user_data.router)
 app.include_router(share.router)
+app.include_router(chat.router)
 
 # API v1 namespace while preserving existing routes for backward compatibility.
 app.include_router(explanation.router, prefix="/api/v1")
@@ -120,6 +121,7 @@ app.include_router(analyze.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(user_data.router, prefix="/api/v1")
 app.include_router(share.router, prefix="/api/v1")
+app.include_router(chat.router, prefix="/api/v1")
 
 @app.get("/ping", tags=["Test"])
 def ping():
