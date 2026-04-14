@@ -44,7 +44,10 @@ const THEME_KEY = 'ai-assistant-theme';
 const TOKEN_KEY = 'ai-assistant-access-token';
 const USER_EMAIL_KEY = 'ai-assistant-user-email';
 const HISTORY_LIMIT = 10;
-const DEFAULT_API_BASE = 'https://qyverixai.onrender.com';
+const LEGACY_RENDER_API_BASE = 'https://qyverixai.onrender.com';
+const DEFAULT_API_BASE = window.location.origin && window.location.origin !== 'null'
+    ? window.location.origin
+    : LEGACY_RENDER_API_BASE;
 const QUICK_START_EXAMPLES = {
     fibonacci: {
         action: 'analyze',
@@ -80,7 +83,13 @@ let chatHistory = [];
 
 const savedApiBase = window.localStorage.getItem('ai-assistant-api-base');
 if (savedApiBase) {
-    apiBaseInput.value = savedApiBase;
+    const currentOrigin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : '';
+    if (savedApiBase === LEGACY_RENDER_API_BASE && currentOrigin) {
+        apiBaseInput.value = currentOrigin;
+        window.localStorage.setItem('ai-assistant-api-base', currentOrigin);
+    } else {
+        apiBaseInput.value = savedApiBase;
+    }
 } else {
     apiBaseInput.value = DEFAULT_API_BASE;
 }
