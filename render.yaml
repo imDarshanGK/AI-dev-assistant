@@ -6,6 +6,17 @@ services:
     plan: free
     healthCheckPath: /health
     autoDeploy: true
+    envVars:
+      - key: LLM_ENABLED
+        value: "false"
+      - key: LLM_BASE_URL
+        value: "https://api.openai.com/v1"
+      - key: LLM_MODEL
+        value: "gpt-4o-mini"
+      - key: LLM_TIMEOUT_SECONDS
+        value: "30"
+      - key: LLM_API_KEY
+        sync: false
 
   - type: static
     name: ai-developer-assistant-web
