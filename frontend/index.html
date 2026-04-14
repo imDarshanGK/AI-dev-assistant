@@ -10,6 +10,7 @@
 <body>
     <main class="page">
         <section class="card">
+            <header class="app-header">
             <div class="top-bar">
                 <div>
                     <p class="eyebrow">AI Developer Copilot</p>
@@ -18,6 +19,7 @@
                 <button id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark mode</button>
             </div>
             <p class="subtitle">Ship cleaner code faster with guided explanations, practical debugging insights, and smart upgrade suggestions.</p>
+            </header>
 
             <section class="dashboard-summary">
                 <div class="summary-card">
@@ -112,23 +114,24 @@
                     <div class="field-group">
                         <label for="code-file">Upload Code File (.py, .js, .java)</label>
                         <input id="code-file" type="file" accept=".py,.js,.java,text/plain" />
+                        <small id="selected-file-name" class="meta-text">No file selected</small>
                     </div>
 
                     <div class="actions">
-                        <button id="submit-btn" type="submit">Run Assistant</button>
-                        <button id="clear-btn" type="button">Clear</button>
+                        <button id="submit-btn" type="submit"><span class="btn-icon">[>]</span> Run Assistant</button>
+                        <button id="clear-btn" type="button"><span class="btn-icon">[x]</span> Clear</button>
                     </div>
                     <small class="meta-text">Shortcut: Ctrl+Enter run, Ctrl+Shift+C copy result.</small>
                 </form>
 
-                <section class="result-wrap panel">
+                <section id="result-panel" class="result-wrap panel">
                     <h2>Result</h2>
                     <div id="status" class="status">Ready</div>
                     <div class="result-actions">
-                        <button id="favorite-btn" type="button">Save Favorite</button>
-                        <button id="share-btn" type="button">Share Link</button>
-                        <button id="download-btn" type="button">Download TXT</button>
-                        <button id="copy-btn" type="button">Copy Result</button>
+                        <button id="favorite-btn" type="button"><span class="btn-icon">[+]</span> Save Favorite</button>
+                        <button id="share-btn" type="button"><span class="btn-icon">[lnk]</span> Share Link</button>
+                        <button id="download-btn" type="button"><span class="btn-icon">[dl]</span> Download TXT</button>
+                        <button id="copy-btn" type="button"><span class="btn-icon">[cp]</span> Copy Result</button>
                     </div>
                     <pre id="result" aria-live="polite">Your result will appear here.</pre>
                 </section>
@@ -149,8 +152,15 @@
                 </div>
                 <ul id="favorites-list" class="history-list"></ul>
             </section>
+
+            <footer class="app-footer">
+                <span>QyverixAI</span>
+                <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a href="/health" target="_blank" rel="noopener noreferrer">Health</a>
+            </footer>
         </section>
     </main>
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
     <script src="script.js"></script>
 </body>
 </html>
