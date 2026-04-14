@@ -133,9 +133,27 @@
                         <button id="download-btn" type="button"><span class="btn-icon">[dl]</span> Download TXT</button>
                         <button id="copy-btn" type="button"><span class="btn-icon">[cp]</span> Copy Result</button>
                     </div>
+                    <div id="result-formatted" class="result-formatted">Formatted result will appear here.</div>
                     <pre id="result" aria-live="polite">Your result will appear here.</pre>
                 </section>
             </div>
+
+            <section class="panel chat-panel">
+                <div class="panel-heading">
+                    <h2>Chat Assistant</h2>
+                    <p class="panel-subtitle">Ask follow-up questions about your current code and result.</p>
+                </div>
+                <div id="chat-messages" class="chat-messages"></div>
+                <div class="chat-controls">
+                    <select id="chat-level">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="expert">Expert</option>
+                    </select>
+                    <input id="chat-input" type="text" placeholder="Ask a follow-up question..." />
+                    <button id="chat-send-btn" type="button"><span class="btn-icon">[>>]</span> Send</button>
+                </div>
+            </section>
 
             <section class="history-wrap">
                 <div class="history-header">
