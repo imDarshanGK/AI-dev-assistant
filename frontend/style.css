@@ -72,9 +72,18 @@ body {
 	box-shadow:
 		0 14px 28px var(--shadow-soft),
 		0 34px 70px var(--shadow-hard);
-	padding: 30px;
+	padding: 20px 24px 24px;
 	position: relative;
 	overflow: hidden;
+}
+
+.app-header {
+	position: sticky;
+	top: 0;
+	z-index: 5;
+	padding: 8px 0 10px;
+	background: color-mix(in srgb, var(--card) 96%, transparent 4%);
+	backdrop-filter: blur(6px);
 }
 
 .card::before {
@@ -111,7 +120,7 @@ h1 {
 }
 
 .subtitle {
-	margin: 10px 0 22px;
+	margin: 8px 0 14px;
 	color: var(--muted);
 	max-width: 72ch;
 	font-size: 16px;
@@ -119,7 +128,7 @@ h1 {
 }
 
 .examples-panel {
-	margin-bottom: 14px;
+	margin-bottom: 10px;
 }
 
 .panel-heading {
@@ -165,7 +174,7 @@ h1 {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 12px;
-	margin-bottom: 18px;
+	margin-bottom: 12px;
 }
 
 .summary-card {
@@ -203,7 +212,7 @@ h1 {
 }
 
 .field-group {
-	margin-bottom: 14px;
+	margin-bottom: 10px;
 }
 
 .field-row {
@@ -221,13 +230,13 @@ h1 {
 .panel {
 	border: 1px solid var(--border);
 	border-radius: 18px;
-	padding: 14px;
+	padding: 12px;
 	background: linear-gradient(180deg, var(--card) 0%, color-mix(in srgb, var(--card) 88%, var(--surface-strong) 12%) 100%);
 	box-shadow: 0 8px 20px var(--shadow-soft);
 }
 
 .auth-panel {
-	margin-bottom: 14px;
+	margin-bottom: 10px;
 	padding: 0;
 	overflow: hidden;
 }
@@ -355,6 +364,24 @@ button:hover {
 	transform: translateY(-1px);
 }
 
+button:active {
+	transform: translateY(0);
+	filter: brightness(0.96);
+}
+
+button:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+	transform: none;
+}
+
+.btn-icon {
+	font-family: "IBM Plex Mono", monospace;
+	font-size: 11px;
+	margin-right: 6px;
+	color: var(--muted);
+}
+
 #submit-btn {
 	background: linear-gradient(160deg, var(--accent) 0%, var(--accent-strong) 100%);
 	color: #fff;
@@ -448,13 +475,13 @@ button:hover {
 }
 
 .history-wrap {
-	margin-top: 18px;
+	margin-top: 12px;
 	border-top: 1px solid var(--border);
 	padding-top: 16px;
 }
 
 .favorites-wrap {
-	margin-top: 16px;
+	margin-top: 10px;
 }
 
 .history-header {
@@ -516,6 +543,63 @@ button:hover {
 	border-color: rgba(242, 102, 102, 0.3);
 }
 
+.app-footer {
+	margin-top: 14px;
+	padding-top: 10px;
+	border-top: 1px solid var(--border);
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.app-footer a {
+	color: var(--accent);
+	text-decoration: none;
+}
+
+.app-footer a:hover {
+	text-decoration: underline;
+}
+
+.toast-container {
+	position: fixed;
+	right: 16px;
+	bottom: 16px;
+	display: grid;
+	gap: 8px;
+	z-index: 999;
+}
+
+.toast {
+	min-width: 220px;
+	max-width: 320px;
+	padding: 10px 12px;
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	background: var(--card);
+	color: var(--text);
+	box-shadow: 0 8px 20px var(--shadow-soft);
+	font-size: 13px;
+	animation: toast-in 0.2s ease;
+}
+
+.toast.error {
+	border-color: color-mix(in srgb, var(--error) 45%, var(--border) 55%);
+}
+
+@keyframes toast-in {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 @keyframes spin {
 	to {
 		transform: rotate(360deg);
@@ -524,8 +608,13 @@ button:hover {
 
 @media (max-width: 700px) {
 	.card {
-		padding: 16px;
+		padding: 14px;
 		border-radius: 20px;
+	}
+
+	.app-header {
+		position: static;
+		backdrop-filter: none;
 	}
 
 	.dashboard-summary {
