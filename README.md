@@ -17,6 +17,16 @@ QyverixAI is an open-source AI-powered developer assistant that helps beginners 
 
 Live deployment: https://qyverixai.onrender.com
 
+## Best Free Setup (No Paid Domain)
+
+If you want to run QyverixAI with zero cost:
+
+1. Deploy one Render Web Service only (this repo already serves frontend at `/app/` from the backend service).
+2. Use the free Render URL like `https://your-service.onrender.com`.
+3. Do not buy a domain yet; Render URL is enough.
+4. For persistent user data, use a free PostgreSQL provider (Neon or Supabase free tier).
+5. Keep optional features (Redis, Sentry, LLM) disabled until you are ready.
+
 The current version includes a rule-based assistant engine and an AI-provider abstraction layer, so it works today and is ready for future live LLM integration.
 
 ## Why This Project
@@ -164,19 +174,14 @@ Recommended deployment setup for this project:
 
 1. Connect this GitHub repository to Render.
 2. Use the `render.yaml` blueprint at the repository root.
-3. Render will build the backend from `backend/Dockerfile`.
-4. The health check endpoint is `/health`.
+3. Render will build one web service from `backend/Dockerfile`.
+4. The same service serves frontend at `/app/` and API routes from `/`.
+5. The health check endpoint is `/health`.
 
-### Frontend as a Static Site
+### One-Service Mode (Recommended for Free Tier)
 
-1. Deploy the `frontend/` folder to a static host such as Netlify or Render Static Site.
-2. Open the frontend and enter the deployed backend URL in the API field.
-3. The frontend remembers the last API URL in the browser for easier reuse.
-
-### If Backend and Frontend Share One Service
-
-Open the service root URL in your browser. The app now redirects to the frontend page instead of showing the API JSON response.
-The frontend app is also available at `/app/`.
+Open the service root URL in your browser. It redirects to `/app/`.
+The frontend and backend run on the same Render service.
 
 ### Dashboard Data
 
