@@ -194,6 +194,20 @@ If you want to change the provider metadata later, set these variables on the ba
 - `SENTRY_DSN` (optional)
 - `SENTRY_TRACES_SAMPLE_RATE` (optional)
 
+### Optional Live LLM Setup (OpenAI-Compatible)
+
+QyverixAI can use a live OpenAI-compatible model for richer summaries while keeping rule-based fallback.
+
+Set these on your backend host:
+
+- `LLM_ENABLED` (`true` or `false`)
+- `LLM_API_KEY` (secret; never commit)
+- `LLM_BASE_URL` (default: `https://api.openai.com/v1`)
+- `LLM_MODEL` (example: `gpt-4o-mini`)
+- `LLM_TIMEOUT_SECONDS` (default: `30`)
+
+Security note: never store API keys in frontend code, HTML, JavaScript, or git history.
+
 The current app uses a rule-based engine and provider abstraction so it is ready for future AI integration.
 
 ## Screenshots
