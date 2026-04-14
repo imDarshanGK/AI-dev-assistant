@@ -11,11 +11,14 @@ const authStatus = document.getElementById('auth-status');
 const resultBox = document.getElementById('result');
 const statusBox = document.getElementById('status');
 const clearBtn = document.getElementById('clear-btn');
+const submitBtn = document.getElementById('submit-btn');
 const codeFileInput = document.getElementById('code-file');
+const selectedFileName = document.getElementById('selected-file-name');
 const favoriteBtn = document.getElementById('favorite-btn');
 const shareBtn = document.getElementById('share-btn');
 const downloadBtn = document.getElementById('download-btn');
 const copyBtn = document.getElementById('copy-btn');
+const resultPanel = document.getElementById('result-panel');
 const historyList = document.getElementById('history-list');
 const favoritesList = document.getElementById('favorites-list');
 const clearHistoryBtn = document.getElementById('clear-history-btn');
@@ -28,6 +31,7 @@ const historyCount = document.getElementById('history-count');
 const favoritesCount = document.getElementById('favorites-count');
 const apiModeLabel = document.getElementById('api-mode-label');
 const exampleChips = document.getElementById('example-chips');
+const toastContainer = document.getElementById('toast-container');
 
 const HISTORY_KEY = 'ai-assistant-history';
 const FAVORITES_KEY = 'ai-assistant-favorites';
@@ -82,6 +86,26 @@ function setStatus(message, isError = false) {
     statusBox.textContent = message;
     statusBox.classList.toggle('error', isError);
     statusBox.classList.remove('loading');
+}
+
+function showToast(message, isError = false) {
+    if (!toastContainer) {
+        return;
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast${isError ? ' error' : ''}`;
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+
+    window.setTimeout(() => {
+        toast.remove();
+    }, 2600);
+}
+
+function setRunLoading(isLoading) {
+    submitBtn.disabled = isLoading;
+    submitBtn.innerHTML = isLoading ? '<span class="btn-icon">[..]</span> Running...' : '<span class="btn-icon">[>]</span> Run Assistant';
 }
 
 function loadExample(exampleName) {
@@ -594,6 +618,7 @@ form.addEventListener('submit', async (event) => {
 
     setLoadingStatus('Running request...');
     resultBox.textContent = 'Loading...';
+    setRunLoading(true);
 
     try {
         const response = await fetch(apiBase + endpoint, {
@@ -606,18 +631,24 @@ form.addEventListener('submit', async (event) => {
         if (!response.ok) {
             setStatus('Request failed. Check input or backend logs.', true);
             resultBox.textContent = JSON.stringify(data, null, 2);
+            showToast('Request failed. Please check your input.', true);
             return;
         }
 
         setStatus('Success');
+        showToast('Analysis completed successfully.');
         resultBox.textContent = JSON.stringify(data, null, 2);
         await pushHistoryEntry(code, action);
         updateDetectedLanguage();
         apiModeLabel.textContent = 'Ready';
+        resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
         setStatus('Could not connect to backend API.', true);
         resultBox.textContent = String(error);
         apiModeLabel.textContent = 'Offline';
+        showToast('Backend connection failed.', true);
+    } finally {
+        setRunLoading(false);
     }
 });
 
@@ -625,6 +656,7 @@ clearBtn.addEventListener('click', () => {
     codeInput.value = '';
     resultBox.textContent = 'Your result will appear here.';
     setStatus('Ready');
+    showToast('Editor cleared.');
 });
 
 favoriteBtn.addEventListener('click', async () => {
@@ -718,9 +750,16 @@ codeFileInput.addEventListener('change', async (event) => {
     }
 
     await loadFile(file);
+    if (selectedFileName) {
+        selectedFileName.textContent = `Selected file: ${file.name}`;
+    }
 });
 
 clearHistoryBtn.addEventListener('click', async () => {
+    if (!window.confirm('Clear all query history?')) {
+        return;
+    }
+
     saveHistoryItems([]);
     renderHistory();
 
@@ -733,9 +772,14 @@ clearHistoryBtn.addEventListener('click', async () => {
     }
 
     setStatus('History cleared.');
+    showToast('History cleared.');
 });
 
 clearFavoritesBtn.addEventListener('click', async () => {
+    if (!window.confirm('Clear all favorite results?')) {
+        return;
+    }
+
     saveFavoriteItems([]);
     renderFavorites();
 
@@ -748,6 +792,7 @@ clearFavoritesBtn.addEventListener('click', async () => {
     }
 
     setStatus('Favorites cleared.');
+    showToast('Favorites cleared.');
 });
 
 if (exampleChips) {
