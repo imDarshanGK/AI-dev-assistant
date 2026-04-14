@@ -9,6 +9,7 @@ const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const authStatus = document.getElementById('auth-status');
 const resultBox = document.getElementById('result');
+const formattedResultBox = document.getElementById('result-formatted');
 const statusBox = document.getElementById('status');
 const clearBtn = document.getElementById('clear-btn');
 const submitBtn = document.getElementById('submit-btn');
@@ -32,6 +33,10 @@ const favoritesCount = document.getElementById('favorites-count');
 const apiModeLabel = document.getElementById('api-mode-label');
 const exampleChips = document.getElementById('example-chips');
 const toastContainer = document.getElementById('toast-container');
+const chatMessages = document.getElementById('chat-messages');
+const chatLevel = document.getElementById('chat-level');
+const chatInput = document.getElementById('chat-input');
+const chatSendBtn = document.getElementById('chat-send-btn');
 
 const HISTORY_KEY = 'ai-assistant-history';
 const FAVORITES_KEY = 'ai-assistant-favorites';
@@ -71,6 +76,8 @@ print(factorial(5))`,
     },
 };
 
+let chatHistory = [];
+
 const savedApiBase = window.localStorage.getItem('ai-assistant-api-base');
 if (savedApiBase) {
     apiBaseInput.value = savedApiBase;
@@ -106,6 +113,245 @@ function showToast(message, isError = false) {
 function setRunLoading(isLoading) {
     submitBtn.disabled = isLoading;
     submitBtn.innerHTML = isLoading ? '<span class="btn-icon">[..]</span> Running...' : '<span class="btn-icon">[>]</span> Run Assistant';
+}
+
+function setChatLoading(isLoading) {
+    if (!chatSendBtn) {
+        return;
+    }
+
+    chatSendBtn.disabled = isLoading;
+    chatSendBtn.innerHTML = isLoading ? '<span class="btn-icon">[..]</span> Sending...' : '<span class="btn-icon">[>>]</span> Send';
+}
+
+function createResultSection(title) {
+    const section = document.createElement('section');
+    section.className = 'result-section';
+
+    const heading = document.createElement('h3');
+    heading.textContent = title;
+    section.appendChild(heading);
+
+    return section;
+}
+
+function appendParagraph(container, text) {
+    const value = String(text || '').trim();
+    if (!value) {
+        return;
+    }
+
+    const paragraph = document.createElement('p');
+    paragraph.textContent = value;
+    container.appendChild(paragraph);
+}
+
+function appendList(container, items) {
+    if (!Array.isArray(items) || items.length === 0) {
+        return;
+    }
+
+    const list = document.createElement('ul');
+    items.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = String(item);
+        list.appendChild(li);
+    });
+    container.appendChild(list);
+}
+
+function appendCodeBlock(container, title, code) {
+    const value = String(code || '').trim();
+    if (!value) {
+        return;
+    }
+
+    const label = document.createElement('p');
+    label.textContent = title;
+    container.appendChild(label);
+
+    const pre = document.createElement('pre');
+    pre.textContent = value;
+    container.appendChild(pre);
+}
+
+function resetFormattedResult() {
+    if (!formattedResultBox) {
+        return;
+    }
+
+    formattedResultBox.textContent = 'Formatted result will appear here.';
+}
+
+function renderFormattedResult(action, data) {
+    if (!formattedResultBox) {
+        return;
+    }
+
+    formattedResultBox.innerHTML = '';
+
+    if (!data || typeof data !== 'object') {
+        resetFormattedResult();
+        return;
+    }
+
+    if (action === 'analyze' && data.explanation && data.debugging && data.suggestions) {
+        const summary = createResultSection('Summary');
+        appendParagraph(summary, data.explanation.summary);
+        appendList(summary, data.explanation.key_points);
+        appendParagraph(summary, `Beginner tip: ${data.explanation.beginner_tip || 'n/a'}`);
+        formattedResultBox.appendChild(summary);
+
+        const debug = createResultSection('Debugging Insights');
+        const issues = Array.isArray(data.debugging.issues) ? data.debugging.issues : [];
+        if (issues.length === 0) {
+            appendParagraph(debug, 'No major issues detected.');
+        } else {
+            issues.forEach((issue, index) => {
+                const card = document.createElement('div');
+                card.className = 'result-item';
+                appendParagraph(card, `Issue ${index + 1}: ${issue.issue_type || 'Issue'}`);
+                appendParagraph(card, issue.message);
+                appendParagraph(card, `Why: ${issue.why_it_happens || 'n/a'}`);
+                appendParagraph(card, `Fix: ${issue.fix_suggestion || 'n/a'}`);
+                debug.appendChild(card);
+            });
+        }
+        appendList(debug, data.debugging.quick_checks);
+        formattedResultBox.appendChild(debug);
+
+        const improve = createResultSection('Improvements');
+        const suggestions = Array.isArray(data.suggestions.suggestions) ? data.suggestions.suggestions : [];
+        if (suggestions.length === 0) {
+            appendParagraph(improve, 'No improvement suggestions were returned.');
+        } else {
+            suggestions.forEach((suggestion) => {
+                const card = document.createElement('div');
+                card.className = 'result-item';
+                appendParagraph(card, suggestion.title || 'Suggestion');
+                appendParagraph(card, suggestion.reason || '');
+                appendCodeBlock(card, 'Before', suggestion.before || '');
+                appendCodeBlock(card, 'After', suggestion.after || '');
+                improve.appendChild(card);
+            });
+        }
+        appendList(improve, data.suggestions.next_steps);
+        formattedResultBox.appendChild(improve);
+
+        const meta = document.createElement('p');
+        meta.className = 'meta-text';
+        meta.textContent = `Provider: ${data.provider || 'unknown'} | Model: ${data.model || 'unknown'} | Mode: ${data.mode || 'unknown'}`;
+        formattedResultBox.appendChild(meta);
+        return;
+    }
+
+    if (action === 'explanation' && data.summary) {
+        const summary = createResultSection('Code Explanation');
+        appendParagraph(summary, data.summary);
+        appendList(summary, data.key_points);
+        appendParagraph(summary, `Beginner tip: ${data.beginner_tip || 'n/a'}`);
+        formattedResultBox.appendChild(summary);
+        return;
+    }
+
+    if (action === 'debugging' && data.issues) {
+        const debug = createResultSection('Debugging Report');
+        const issues = Array.isArray(data.issues) ? data.issues : [];
+        if (issues.length === 0) {
+            appendParagraph(debug, 'No issues found.');
+        } else {
+            issues.forEach((issue, index) => {
+                appendParagraph(debug, `Issue ${index + 1}: ${issue.issue_type || 'Issue'} - ${issue.message || ''}`);
+            });
+        }
+        appendList(debug, data.quick_checks);
+        formattedResultBox.appendChild(debug);
+        return;
+    }
+
+    if (action === 'suggestions' && data.suggestions) {
+        const improve = createResultSection('Improvement Suggestions');
+        const suggestions = Array.isArray(data.suggestions) ? data.suggestions : [];
+        if (suggestions.length === 0) {
+            appendParagraph(improve, 'No suggestions were returned.');
+        } else {
+            suggestions.forEach((suggestion) => {
+                appendParagraph(improve, `${suggestion.title || 'Suggestion'}: ${suggestion.reason || ''}`);
+            });
+        }
+        appendList(improve, data.next_steps);
+        formattedResultBox.appendChild(improve);
+        return;
+    }
+
+    const fallback = createResultSection('Result');
+    appendParagraph(fallback, 'Raw result is available below in JSON format.');
+    formattedResultBox.appendChild(fallback);
+}
+
+function parseResultText(text) {
+    try {
+        return JSON.parse(text);
+    } catch (error) {
+        return null;
+    }
+}
+
+function appendChatMessage(role, text) {
+    if (!chatMessages) {
+        return;
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = `chat-message ${role}`;
+    bubble.textContent = text;
+    chatMessages.appendChild(bubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function sendChatMessage() {
+    if (!chatInput) {
+        return;
+    }
+
+    const message = (chatInput && chatInput.value ? chatInput.value : '').trim();
+    if (!message) {
+        return;
+    }
+
+    appendChatMessage('user', message);
+    chatHistory.push(`User: ${message}`);
+    chatInput.value = '';
+    setChatLoading(true);
+
+    try {
+        const response = await fetch(getApiBase() + '/chat/message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message,
+                code: codeInput.value.trim() || null,
+                history: chatHistory.slice(-20),
+                level: (chatLevel && chatLevel.value) || 'beginner',
+            }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            appendChatMessage('assistant', data.detail || 'Chat request failed.');
+            setStatus('Chat request failed.', true);
+            return;
+        }
+
+        const reply = String(data.reply || 'No response available.');
+        appendChatMessage('assistant', reply);
+        chatHistory.push(`Assistant: ${reply}`);
+    } catch (error) {
+        appendChatMessage('assistant', 'Could not connect to chat endpoint.');
+        setStatus('Could not connect to chat endpoint.', true);
+    } finally {
+        setChatLoading(false);
+    }
 }
 
 function loadExample(exampleName) {
@@ -339,6 +585,7 @@ function renderFavorites() {
             codeInput.value = item.code;
             actionInput.value = item.action;
             resultBox.textContent = item.result;
+            renderFormattedResult(item.action, parseResultText(item.result));
             setStatus('Loaded favorite result.');
             updateDetectedLanguage();
         });
@@ -562,6 +809,7 @@ async function loadSharedSnippetFromUrl() {
         codeInput.value = payload.code;
         actionInput.value = payload.action;
         resultBox.textContent = payload.result_json;
+        renderFormattedResult(payload.action, parseResultText(payload.result_json));
         updateDetectedLanguage();
         setStatus('Loaded shared result.');
     } catch (error) {
@@ -576,6 +824,7 @@ renderFavorites();
 updateDetectedLanguage();
 updateAuthStatus();
 apiModeLabel.textContent = window.location.pathname.startsWith('/app') ? 'Frontend' : 'API';
+appendChatMessage('assistant', 'Ask a follow-up question after you run an analysis.');
 
 async function bootstrapSession() {
     if (!getAuthToken()) {
@@ -617,6 +866,9 @@ form.addEventListener('submit', async (event) => {
     window.localStorage.setItem('ai-assistant-api-base', apiBase);
 
     setLoadingStatus('Running request...');
+    if (formattedResultBox) {
+        formattedResultBox.textContent = 'Analyzing and formatting result...';
+    }
     resultBox.textContent = 'Loading...';
     setRunLoading(true);
 
@@ -638,6 +890,7 @@ form.addEventListener('submit', async (event) => {
         setStatus('Success');
         showToast('Analysis completed successfully.');
         resultBox.textContent = JSON.stringify(data, null, 2);
+        renderFormattedResult(action, data);
         await pushHistoryEntry(code, action);
         updateDetectedLanguage();
         apiModeLabel.textContent = 'Ready';
@@ -655,6 +908,7 @@ form.addEventListener('submit', async (event) => {
 clearBtn.addEventListener('click', () => {
     codeInput.value = '';
     resultBox.textContent = 'Your result will appear here.';
+    resetFormattedResult();
     setStatus('Ready');
     showToast('Editor cleared.');
 });
@@ -808,6 +1062,21 @@ if (exampleChips) {
         }
 
         loadExample(exampleName);
+    });
+}
+
+if (chatSendBtn) {
+    chatSendBtn.addEventListener('click', async () => {
+        await sendChatMessage();
+    });
+}
+
+if (chatInput) {
+    chatInput.addEventListener('keydown', async (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            await sendChatMessage();
+        }
     });
 }
 
