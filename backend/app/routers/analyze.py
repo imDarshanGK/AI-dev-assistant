@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 
 from app.config import settings
-from app.schemas import AnalysisResponse, CodeRequest
+from app.schemas import AnalysisResponse, CodeRequest, DebugIssue, ImprovementSuggestion
 from app.services.cache import cache
 from app.services.ai_provider import get_provider_metadata
 from app.services.code_assistant import debug_code, explain_code, suggest_improvements
@@ -32,12 +32,71 @@ async def build_analysis_response(code: str, model_override: str | None = None) 
     provider_name = settings.ai_provider
     if llm_analysis_client.enabled:
         try:
-            llm_summary = await llm_analysis_client.summarize_code(code=code, language_guess=explanation.language_guess)
-            explanation.summary = llm_summary
-            explanation.key_points = [
-                "Summary generated using live LLM provider.",
-                *explanation.key_points,
-            ]
+            structured = await llm_analysis_client.analyze_code_structured(code=code, language_guess=explanation.language_guess)
+            llm_explanation = structured.get("explanation", {})
+            llm_debugging = structured.get("debugging", {})
+            llm_suggestions = structured.get("suggestions", {})
+            llm_complexity = structured.get("complexity", {})
+            llm_optimized = structured.get("optimized_version")
+
+            if isinstance(llm_explanation.get("summary"), str):
+                explanation.summary = llm_explanation["summary"]
+
+            llm_key_points = llm_explanation.get("key_points")
+            if isinstance(llm_key_points, list) and llm_key_points:
+                explanation.key_points = [str(item) for item in llm_key_points]
+
+            if isinstance(llm_explanation.get("beginner_tip"), str):
+                explanation.beginner_tip = llm_explanation["beginner_tip"]
+
+            time_complexity = llm_complexity.get("time")
+            space_complexity = llm_complexity.get("space")
+            if isinstance(time_complexity, str) and isinstance(space_complexity, str):
+                explanation.key_points.append(f"Complexity estimate: time {time_complexity}, space {space_complexity}.")
+
+            llm_issues = llm_debugging.get("issues")
+            if isinstance(llm_issues, list) and llm_issues:
+                debugging.issues = [
+                    DebugIssue(
+                        line=issue.get("line") if isinstance(issue, dict) else None,
+                        issue_type=str(issue.get("issue_type", "Issue")) if isinstance(issue, dict) else "Issue",
+                        message=str(issue.get("message", "")) if isinstance(issue, dict) else "",
+                        why_it_happens=str(issue.get("why_it_happens", "")) if isinstance(issue, dict) else "",
+                        fix_suggestion=str(issue.get("fix_suggestion", "")) if isinstance(issue, dict) else "",
+                    )
+                    for issue in llm_issues
+                ]
+
+            llm_checks = llm_debugging.get("quick_checks")
+            if isinstance(llm_checks, list) and llm_checks:
+                debugging.quick_checks = [str(item) for item in llm_checks]
+
+            llm_suggestion_items = llm_suggestions.get("suggestions")
+            if isinstance(llm_suggestion_items, list) and llm_suggestion_items:
+                suggestions.suggestions = [
+                    ImprovementSuggestion(
+                        title=str(item.get("title", "Suggestion")) if isinstance(item, dict) else "Suggestion",
+                        reason=str(item.get("reason", "")) if isinstance(item, dict) else "",
+                        before=str(item.get("before", "")) if isinstance(item, dict) else "",
+                        after=str(item.get("after", "")) if isinstance(item, dict) else "",
+                    )
+                    for item in llm_suggestion_items
+                ]
+
+            llm_next_steps = llm_suggestions.get("next_steps")
+            if isinstance(llm_next_steps, list) and llm_next_steps:
+                suggestions.next_steps = [str(item) for item in llm_next_steps]
+
+            if isinstance(llm_optimized, str) and llm_optimized.strip():
+                suggestions.suggestions.append(
+                    ImprovementSuggestion(
+                        title="Fix Code (Optimized Version)",
+                        reason="Generated optimized version based on your input.",
+                        before=code,
+                        after=llm_optimized,
+                    )
+                )
+
             mode = "live-llm"
             provider_name = "openai-compatible"
             selected_model = model_override or llm_analysis_client.model
@@ -70,7 +129,7 @@ async def analyze_code_stream(payload: CodeRequest, model: str | None = Query(de
 
         response = await build_analysis_response(payload.code, model_override=model)
         yield "event: status\ndata: analysis_complete\n\n"
-        yield f"event: result\\ndata: {json.dumps(response.model_dump())}\\n\\n"
+        yield f"event: result\ndata: {json.dumps(response.model_dump())}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
