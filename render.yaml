@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ai-developer-assistant-api
+    name: qyverixai
     env: docker
     dockerfilePath: backend/Dockerfile
     plan: free
@@ -17,9 +17,3 @@ services:
         value: "30"
       - key: LLM_API_KEY
         sync: false
-
-  - type: static
-    name: ai-developer-assistant-web
-    rootDir: frontend
-    staticPublishPath: .
-    autoDeploy: true
