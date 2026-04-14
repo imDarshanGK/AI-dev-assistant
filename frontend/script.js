@@ -42,7 +42,7 @@ const HISTORY_LIMIT = 10;
 const DEFAULT_API_BASE = 'https://qyverixai.onrender.com';
 const QUICK_START_EXAMPLES = {
     fibonacci: {
-        action: 'explanation',
+        action: 'analyze',
         code: `def fibonacci(n):
     if n <= 1:
         return n
