@@ -3,182 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QyverixAI</title>
+    <title>QyverixAI - Code Chat</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <link rel="icon" type="image/x-icon" href="public/favicon.ico">
 </head>
 <body>
-    <main class="page">
-        <section class="card">
-            <header class="app-header">
-            <div class="top-bar">
-                <div>
-                    <p class="eyebrow">AI Developer Copilot</p>
-                    <h1>QyverixAI</h1>
-                </div>
-                <button id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark mode</button>
+    <div class="app-shell">
+        <header class="top-nav">
+            <div class="brand">
+                <span class="brand-kicker">AI Coding Copilot</span>
+                <h1>QyverixAI</h1>
             </div>
-            <p class="subtitle">Ship cleaner code faster with guided explanations, practical debugging insights, and smart upgrade suggestions.</p>
-            </header>
-
-            <section class="dashboard-summary">
-                <div class="summary-card">
-                    <span class="summary-label">Recent Queries</span>
-                    <strong id="history-count">0</strong>
-                </div>
-                <div class="summary-card">
-                    <span class="summary-label">Favorite Results</span>
-                    <strong id="favorites-count">0</strong>
-                </div>
-                <div class="summary-card">
-                    <span class="summary-label">API Mode</span>
-                    <strong id="api-mode-label">Ready</strong>
-                </div>
-            </section>
-
-            <section class="panel examples-panel">
-                <div class="panel-heading">
-                    <h2>Quick Start Examples</h2>
-                    <p class="panel-subtitle">Load a sample to test the assistant without typing from scratch.</p>
-                </div>
-                <div class="example-chips" id="example-chips">
-                    <button type="button" class="example-chip" data-example="fibonacci">Fibonacci</button>
-                    <button type="button" class="example-chip" data-example="palindrome">Palindrome</button>
-                    <button type="button" class="example-chip" data-example="factorial">Factorial</button>
-                </div>
-            </section>
-
-            <details class="panel auth-panel connection-panel">
-                <summary>Connection settings</summary>
-                <div class="auth-panel-body">
-                    <p class="auth-note">Use this only if you want to switch the backend URL from the deployed default.</p>
-                    <div class="field-group">
-                        <label for="api-base">Backend API URL</label>
-                        <input id="api-base" type="text" value="https://qyverixai.onrender.com" placeholder="https://qyverixai.onrender.com" />
-                    </div>
-                </div>
-            </details>
-
-            <details class="panel auth-panel">
-                <summary>Optional account sync</summary>
-                <div class="auth-panel-body">
-                    <p class="auth-note">Use this only if you want login, synced history, and saved favorites across devices.</p>
-                    <div class="field-row">
-                        <div class="field-group">
-                            <label for="auth-email">Email</label>
-                            <input id="auth-email" type="email" placeholder="you@example.com" />
-                        </div>
-                        <div class="field-group">
-                            <label for="auth-password">Password</label>
-                            <input id="auth-password" type="password" placeholder="Minimum 8 characters" />
-                        </div>
-                    </div>
-                    <div class="actions">
-                        <button id="signup-btn" type="button">Sign Up</button>
-                        <button id="login-btn" type="button">Login</button>
-                        <button id="logout-btn" type="button">Logout</button>
-                    </div>
-                    <small id="auth-status" class="meta-text">Not logged in</small>
-                </div>
-            </details>
-
-            <div class="workspace-grid">
-                <form id="assistant-form" class="panel">
-                    <div class="field-row">
-                        <div class="field-group">
-                            <label for="action">Action</label>
-                            <select id="action">
-                                <option value="explanation">Explain Code</option>
-                                <option value="debugging">Debug Code</option>
-                                <option value="suggestions">Improve Code</option>
-                                <option value="analyze" selected>Full Analysis</option>
-                            </select>
-                        </div>
-                        <div class="field-group">
-                            <label for="language-select">Language</label>
-                            <select id="language-select">
-                                <option value="auto">Auto Detect</option>
-                                <option value="python">Python</option>
-                                <option value="javascript">JavaScript</option>
-                                <option value="java">Java</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="field-group" id="code-dropzone">
-                        <label for="code-input">Code Input</label>
-                        <textarea id="code-input" placeholder="Paste your code here or drag and drop a file..." rows="12"></textarea>
-                        <small id="detected-language" class="meta-text">Detected language: Unknown</small>
-                    </div>
-
-                    <div class="field-group">
-                        <label for="code-file">Upload Code File (.py, .js, .java)</label>
-                        <input id="code-file" type="file" accept=".py,.js,.java,text/plain" />
-                        <small id="selected-file-name" class="meta-text">No file selected</small>
-                    </div>
-
-                    <div class="actions">
-                        <button id="submit-btn" type="submit"><span class="btn-icon">[>]</span> Run Assistant</button>
-                        <button id="clear-btn" type="button"><span class="btn-icon">[x]</span> Clear</button>
-                    </div>
-                    <small class="meta-text">Shortcut: Ctrl+Enter run, Ctrl+Shift+C copy result.</small>
-                </form>
-
-                <section id="result-panel" class="result-wrap panel">
-                    <h2>Result</h2>
-                    <div id="status" class="status">Ready</div>
-                    <div class="result-actions">
-                        <button id="favorite-btn" type="button"><span class="btn-icon">[+]</span> Save Favorite</button>
-                        <button id="share-btn" type="button"><span class="btn-icon">[lnk]</span> Share Link</button>
-                        <button id="download-btn" type="button"><span class="btn-icon">[dl]</span> Download TXT</button>
-                        <button id="copy-btn" type="button"><span class="btn-icon">[cp]</span> Copy Result</button>
-                    </div>
-                    <div id="result-formatted" class="result-formatted">Formatted result will appear here.</div>
-                    <pre id="result" aria-live="polite">Your result will appear here.</pre>
-                </section>
+            <div class="nav-actions">
+                <label class="api-field" for="api-base">API</label>
+                <input id="api-base" type="text" placeholder="http://localhost:8000" />
+                <button id="theme-toggle" type="button">Dark</button>
             </div>
+        </header>
 
-            <section class="panel chat-panel">
-                <div class="panel-heading">
-                    <h2>Chat Assistant</h2>
-                    <p class="panel-subtitle">Ask follow-up questions about your current code and result.</p>
-                </div>
-                <div id="chat-messages" class="chat-messages"></div>
-                <div class="chat-controls">
-                    <select id="chat-level">
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="expert">Expert</option>
-                    </select>
-                    <input id="chat-input" type="text" placeholder="Ask a follow-up question..." />
-                    <button id="chat-send-btn" type="button"><span class="btn-icon">[>>]</span> Send</button>
-                </div>
+        <main class="chat-layout">
+            <section id="chat-thread" class="chat-thread" aria-live="polite">
+                <article class="message assistant">
+                    <div class="message-header">
+                        <span>QyverixAI</span>
+                    </div>
+                    <div class="message-body">
+                        <p>I am your code copilot. Paste code, ask a question, and I will explain, fix, or optimize it.</p>
+                    </div>
+                </article>
             </section>
 
-            <section class="history-wrap">
-                <div class="history-header">
-                    <h2>Recent Queries</h2>
-                    <button id="clear-history-btn" type="button">Clear History</button>
+            <form id="chat-form" class="composer">
+                <div class="composer-row">
+                    <textarea id="code-input" rows="6" placeholder="Paste code (optional)..."></textarea>
+                    <textarea id="message-input" rows="3" placeholder="Ask: Explain this code / Fix this code / Optimize this code..."></textarea>
                 </div>
-                <ul id="history-list" class="history-list"></ul>
-            </section>
-
-            <section class="history-wrap favorites-wrap">
-                <div class="history-header">
-                    <h2>Favorite Results</h2>
-                    <button id="clear-favorites-btn" type="button">Clear Favorites</button>
+                <div class="composer-actions">
+                    <div class="quick-actions">
+                        <button type="button" class="quick-btn" data-prompt="Explain this code">Explain</button>
+                        <button type="button" class="quick-btn" data-prompt="Fix this code">Fix</button>
+                        <button type="button" class="quick-btn" data-prompt="Optimize this code">Optimize</button>
+                    </div>
+                    <span id="status" class="status">Ready</span>
+                    <button id="send-btn" type="submit">Send</button>
                 </div>
-                <ul id="favorites-list" class="history-list"></ul>
-            </section>
+            </form>
+        </main>
+    </div>
 
-            <footer class="app-footer">
-                <span>QyverixAI</span>
-                <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" rel="noopener noreferrer">GitHub</a>
-                <a href="/health" target="_blank" rel="noopener noreferrer">Health</a>
-            </footer>
-        </section>
-    </main>
-    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

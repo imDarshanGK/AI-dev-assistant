@@ -1,1192 +1,239 @@
-const form = document.getElementById('assistant-form');
+const chatForm = document.getElementById('chat-form');
+const chatThread = document.getElementById('chat-thread');
+const messageInput = document.getElementById('message-input');
 const codeInput = document.getElementById('code-input');
-const actionInput = document.getElementById('action');
-const apiBaseInput = document.getElementById('api-base');
-const authEmailInput = document.getElementById('auth-email');
-const authPasswordInput = document.getElementById('auth-password');
-const signupBtn = document.getElementById('signup-btn');
-const loginBtn = document.getElementById('login-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const authStatus = document.getElementById('auth-status');
-const resultBox = document.getElementById('result');
-const formattedResultBox = document.getElementById('result-formatted');
+const sendBtn = document.getElementById('send-btn');
 const statusBox = document.getElementById('status');
-const clearBtn = document.getElementById('clear-btn');
-const submitBtn = document.getElementById('submit-btn');
-const codeFileInput = document.getElementById('code-file');
-const selectedFileName = document.getElementById('selected-file-name');
-const favoriteBtn = document.getElementById('favorite-btn');
-const shareBtn = document.getElementById('share-btn');
-const downloadBtn = document.getElementById('download-btn');
-const copyBtn = document.getElementById('copy-btn');
-const resultPanel = document.getElementById('result-panel');
-const historyList = document.getElementById('history-list');
-const favoritesList = document.getElementById('favorites-list');
-const clearHistoryBtn = document.getElementById('clear-history-btn');
-const clearFavoritesBtn = document.getElementById('clear-favorites-btn');
-const themeToggleBtn = document.getElementById('theme-toggle');
-const languageSelect = document.getElementById('language-select');
-const detectedLanguageText = document.getElementById('detected-language');
-const dropzone = document.getElementById('code-dropzone');
-const historyCount = document.getElementById('history-count');
-const favoritesCount = document.getElementById('favorites-count');
-const apiModeLabel = document.getElementById('api-mode-label');
-const exampleChips = document.getElementById('example-chips');
-const toastContainer = document.getElementById('toast-container');
-const chatMessages = document.getElementById('chat-messages');
-const chatLevel = document.getElementById('chat-level');
-const chatInput = document.getElementById('chat-input');
-const chatSendBtn = document.getElementById('chat-send-btn');
+const apiBaseInput = document.getElementById('api-base');
+const themeToggle = document.getElementById('theme-toggle');
 
-const HISTORY_KEY = 'ai-assistant-history';
-const FAVORITES_KEY = 'ai-assistant-favorites';
+const API_BASE_KEY = 'ai-assistant-api-base';
 const THEME_KEY = 'ai-assistant-theme';
-const TOKEN_KEY = 'ai-assistant-access-token';
-const USER_EMAIL_KEY = 'ai-assistant-user-email';
-const HISTORY_LIMIT = 10;
 const LEGACY_RENDER_API_BASE = 'https://qyverixai.onrender.com';
 const DEFAULT_API_BASE = window.location.origin && window.location.origin !== 'null'
     ? window.location.origin
     : LEGACY_RENDER_API_BASE;
-const QUICK_START_EXAMPLES = {
-    fibonacci: {
-        action: 'analyze',
-        code: `def fibonacci(n):
-    if n <= 1:
-        return n
-    return fibonacci(n - 1) + fibonacci(n - 2)
 
-print(fibonacci(10))`,
-    },
-    palindrome: {
-        action: 'analyze',
-        code: `def is_palindrome(text):
-    cleaned = text.lower().replace(" ", "")
-    return cleaned == cleaned[::-1]
-
-word = "Level"
-print(is_palindrome(word))`,
-    },
-    factorial: {
-        action: 'debugging',
-        code: `def factorial(n):
-    result = 1
-    for value in range(1, n + 1):
-        result *= value
-    return result
-
-print(factorial(5))`,
-    },
-};
-
-let chatHistory = [];
-
-const savedApiBase = window.localStorage.getItem('ai-assistant-api-base');
-if (savedApiBase) {
-    const currentOrigin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : '';
-    if (savedApiBase === LEGACY_RENDER_API_BASE && currentOrigin) {
-        apiBaseInput.value = currentOrigin;
-        window.localStorage.setItem('ai-assistant-api-base', currentOrigin);
-    } else {
-        apiBaseInput.value = savedApiBase;
-    }
-} else {
-    apiBaseInput.value = DEFAULT_API_BASE;
-}
-
-apiBaseInput.addEventListener('change', () => {
-    window.localStorage.setItem('ai-assistant-api-base', apiBaseInput.value.trim());
-});
+let history = [];
 
 function setStatus(message, isError = false) {
     statusBox.textContent = message;
     statusBox.classList.toggle('error', isError);
-    statusBox.classList.remove('loading');
 }
 
-function showToast(message, isError = false) {
-    if (!toastContainer) {
-        return;
-    }
-
-    const toast = document.createElement('div');
-    toast.className = `toast${isError ? ' error' : ''}`;
-    toast.textContent = message;
-    toastContainer.appendChild(toast);
-
-    window.setTimeout(() => {
-        toast.remove();
-    }, 2600);
+function setLoading(isLoading) {
+    sendBtn.disabled = isLoading;
+    sendBtn.textContent = isLoading ? 'Thinking...' : 'Send';
 }
 
-function setRunLoading(isLoading) {
-    submitBtn.disabled = isLoading;
-    submitBtn.innerHTML = isLoading ? '<span class="btn-icon">[..]</span> Running...' : '<span class="btn-icon">[>]</span> Run Assistant';
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? 'Light' : 'Dark';
+    window.localStorage.setItem(THEME_KEY, theme);
 }
 
-function setChatLoading(isLoading) {
-    if (!chatSendBtn) {
-        return;
-    }
+function initApiBase() {
+    const saved = window.localStorage.getItem(API_BASE_KEY);
+    const currentOrigin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : '';
 
-    chatSendBtn.disabled = isLoading;
-    chatSendBtn.innerHTML = isLoading ? '<span class="btn-icon">[..]</span> Sending...' : '<span class="btn-icon">[>>]</span> Send';
-}
-
-function createResultSection(title) {
-    const section = document.createElement('section');
-    section.className = 'result-section';
-
-    const heading = document.createElement('h3');
-    heading.textContent = title;
-    section.appendChild(heading);
-
-    return section;
-}
-
-function appendParagraph(container, text) {
-    const value = String(text || '').trim();
-    if (!value) {
-        return;
-    }
-
-    const paragraph = document.createElement('p');
-    paragraph.textContent = value;
-    container.appendChild(paragraph);
-}
-
-function appendList(container, items) {
-    if (!Array.isArray(items) || items.length === 0) {
-        return;
-    }
-
-    const list = document.createElement('ul');
-    items.forEach((item) => {
-        const li = document.createElement('li');
-        li.textContent = String(item);
-        list.appendChild(li);
-    });
-    container.appendChild(list);
-}
-
-function appendCodeBlock(container, title, code) {
-    const value = String(code || '').trim();
-    if (!value) {
-        return;
-    }
-
-    const label = document.createElement('p');
-    label.textContent = title;
-    container.appendChild(label);
-
-    const pre = document.createElement('pre');
-    pre.textContent = value;
-    container.appendChild(pre);
-}
-
-function resetFormattedResult() {
-    if (!formattedResultBox) {
-        return;
-    }
-
-    formattedResultBox.textContent = 'Formatted result will appear here.';
-}
-
-function renderFormattedResult(action, data) {
-    if (!formattedResultBox) {
-        return;
-    }
-
-    formattedResultBox.innerHTML = '';
-
-    if (!data || typeof data !== 'object') {
-        resetFormattedResult();
-        return;
-    }
-
-    if (action === 'analyze' && data.explanation && data.debugging && data.suggestions) {
-        const summary = createResultSection('Summary');
-        appendParagraph(summary, data.explanation.summary);
-        appendList(summary, data.explanation.key_points);
-        appendParagraph(summary, `Beginner tip: ${data.explanation.beginner_tip || 'n/a'}`);
-        formattedResultBox.appendChild(summary);
-
-        const debug = createResultSection('Debugging Insights');
-        const issues = Array.isArray(data.debugging.issues) ? data.debugging.issues : [];
-        if (issues.length === 0) {
-            appendParagraph(debug, 'No major issues detected.');
+    if (saved) {
+        if (saved === LEGACY_RENDER_API_BASE && currentOrigin) {
+            apiBaseInput.value = currentOrigin;
+            window.localStorage.setItem(API_BASE_KEY, currentOrigin);
         } else {
-            issues.forEach((issue, index) => {
-                const card = document.createElement('div');
-                card.className = 'result-item';
-                appendParagraph(card, `Issue ${index + 1}: ${issue.issue_type || 'Issue'}`);
-                appendParagraph(card, issue.message);
-                appendParagraph(card, `Why: ${issue.why_it_happens || 'n/a'}`);
-                appendParagraph(card, `Fix: ${issue.fix_suggestion || 'n/a'}`);
-                debug.appendChild(card);
-            });
+            apiBaseInput.value = saved;
         }
-        appendList(debug, data.debugging.quick_checks);
-        formattedResultBox.appendChild(debug);
-
-        const improve = createResultSection('Improvements');
-        const suggestions = Array.isArray(data.suggestions.suggestions) ? data.suggestions.suggestions : [];
-        if (suggestions.length === 0) {
-            appendParagraph(improve, 'No improvement suggestions were returned.');
-        } else {
-            suggestions.forEach((suggestion) => {
-                const card = document.createElement('div');
-                card.className = 'result-item';
-                appendParagraph(card, suggestion.title || 'Suggestion');
-                appendParagraph(card, suggestion.reason || '');
-                appendCodeBlock(card, 'Before', suggestion.before || '');
-                appendCodeBlock(card, 'After', suggestion.after || '');
-                improve.appendChild(card);
-            });
-        }
-        appendList(improve, data.suggestions.next_steps);
-        formattedResultBox.appendChild(improve);
-
-        const meta = document.createElement('p');
-        meta.className = 'meta-text';
-        meta.textContent = `Provider: ${data.provider || 'unknown'} | Model: ${data.model || 'unknown'} | Mode: ${data.mode || 'unknown'}`;
-        formattedResultBox.appendChild(meta);
-        return;
+    } else {
+        apiBaseInput.value = DEFAULT_API_BASE;
     }
-
-    if (action === 'explanation' && data.summary) {
-        const summary = createResultSection('Code Explanation');
-        appendParagraph(summary, data.summary);
-        appendList(summary, data.key_points);
-        appendParagraph(summary, `Beginner tip: ${data.beginner_tip || 'n/a'}`);
-        formattedResultBox.appendChild(summary);
-        return;
-    }
-
-    if (action === 'debugging' && data.issues) {
-        const debug = createResultSection('Debugging Report');
-        const issues = Array.isArray(data.issues) ? data.issues : [];
-        if (issues.length === 0) {
-            appendParagraph(debug, 'No issues found.');
-        } else {
-            issues.forEach((issue, index) => {
-                appendParagraph(debug, `Issue ${index + 1}: ${issue.issue_type || 'Issue'} - ${issue.message || ''}`);
-            });
-        }
-        appendList(debug, data.quick_checks);
-        formattedResultBox.appendChild(debug);
-        return;
-    }
-
-    if (action === 'suggestions' && data.suggestions) {
-        const improve = createResultSection('Improvement Suggestions');
-        const suggestions = Array.isArray(data.suggestions) ? data.suggestions : [];
-        if (suggestions.length === 0) {
-            appendParagraph(improve, 'No suggestions were returned.');
-        } else {
-            suggestions.forEach((suggestion) => {
-                appendParagraph(improve, `${suggestion.title || 'Suggestion'}: ${suggestion.reason || ''}`);
-            });
-        }
-        appendList(improve, data.next_steps);
-        formattedResultBox.appendChild(improve);
-        return;
-    }
-
-    const fallback = createResultSection('Result');
-    appendParagraph(fallback, 'Raw result is available below in JSON format.');
-    formattedResultBox.appendChild(fallback);
-}
-
-function parseResultText(text) {
-    try {
-        return JSON.parse(text);
-    } catch (error) {
-        return null;
-    }
-}
-
-function appendChatMessage(role, text) {
-    if (!chatMessages) {
-        return;
-    }
-
-    const bubble = document.createElement('div');
-    bubble.className = `chat-message ${role}`;
-    bubble.textContent = text;
-    chatMessages.appendChild(bubble);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-async function sendChatMessage() {
-    if (!chatInput) {
-        return;
-    }
-
-    const message = (chatInput && chatInput.value ? chatInput.value : '').trim();
-    if (!message) {
-        return;
-    }
-
-    appendChatMessage('user', message);
-    chatHistory.push(`User: ${message}`);
-    chatInput.value = '';
-    setChatLoading(true);
-
-    try {
-        const response = await fetch(getApiBase() + '/chat/message', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message,
-                code: codeInput.value.trim() || null,
-                history: chatHistory.slice(-20),
-                level: (chatLevel && chatLevel.value) || 'beginner',
-            }),
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-            appendChatMessage('assistant', data.detail || 'Chat request failed.');
-            setStatus('Chat request failed.', true);
-            return;
-        }
-
-        const reply = String(data.reply || 'No response available.');
-        appendChatMessage('assistant', reply);
-        chatHistory.push(`Assistant: ${reply}`);
-    } catch (error) {
-        appendChatMessage('assistant', 'Could not connect to chat endpoint.');
-        setStatus('Could not connect to chat endpoint.', true);
-    } finally {
-        setChatLoading(false);
-    }
-}
-
-function loadExample(exampleName) {
-    const example = QUICK_START_EXAMPLES[exampleName];
-    if (!example) {
-        return;
-    }
-
-    codeInput.value = example.code;
-    actionInput.value = example.action;
-    updateDetectedLanguage();
-    setStatus(`Loaded ${exampleName} example.`);
 }
 
 function getApiBase() {
     return apiBaseInput.value.trim().replace(/\/$/, '');
 }
 
-function getAuthToken() {
-    return window.localStorage.getItem(TOKEN_KEY) || '';
-}
+function parseMessageBody(text) {
+    const content = String(text || '');
+    const nodes = [];
+    const codeFencePattern = /```([a-zA-Z0-9_-]+)?\n?([\s\S]*?)```/g;
 
-function getCurrentUserEmail() {
-    return window.localStorage.getItem(USER_EMAIL_KEY) || '';
-}
+    let cursor = 0;
+    let match;
 
-function updateAuthStatus() {
-    const email = getCurrentUserEmail();
-    authStatus.textContent = email ? `Logged in as ${email}` : 'Not logged in';
-}
+    while ((match = codeFencePattern.exec(content)) !== null) {
+        const before = content.slice(cursor, match.index).trim();
+        if (before) {
+            before
+                .split(/\n{2,}/)
+                .map((part) => part.trim())
+                .filter(Boolean)
+                .forEach((paragraph) => {
+                    nodes.push({ type: 'paragraph', text: paragraph });
+                });
+        }
 
-function clearAuthSession() {
-    window.localStorage.removeItem(TOKEN_KEY);
-    window.localStorage.removeItem(USER_EMAIL_KEY);
-    updateAuthStatus();
-}
-
-function buildAuthHeaders() {
-    const token = getAuthToken();
-    if (!token) {
-        return {};
+        nodes.push({ type: 'code', language: (match[1] || '').toLowerCase(), text: match[2].trim() });
+        cursor = match.index + match[0].length;
     }
 
-    return { Authorization: `Bearer ${token}` };
-}
-
-async function fetchWithAuth(path, options = {}) {
-    const response = await fetch(getApiBase() + path, {
-        ...options,
-        headers: {
-            ...(options.headers || {}),
-            ...buildAuthHeaders(),
-        },
-    });
-
-    if (response.status === 401) {
-        clearAuthSession();
-        setStatus('Session expired. Please log in again.', true);
+    const trailing = content.slice(cursor).trim();
+    if (trailing) {
+        trailing
+            .split(/\n{2,}/)
+            .map((part) => part.trim())
+            .filter(Boolean)
+            .forEach((paragraph) => {
+                nodes.push({ type: 'paragraph', text: paragraph });
+            });
     }
 
-    return response;
-}
-
-function setLoadingStatus(message) {
-    statusBox.textContent = message;
-    statusBox.classList.remove('error');
-    statusBox.classList.add('loading');
-}
-
-function buildEndpoint(action) {
-    if (action === 'explanation') return '/explanation/';
-    if (action === 'debugging') return '/debugging/';
-    if (action === 'analyze') return '/analyze/';
-    return '/suggestions/';
-}
-
-function getHistoryItems() {
-    const raw = window.localStorage.getItem(HISTORY_KEY);
-    if (!raw) {
-        return [];
+    if (nodes.length === 0) {
+        nodes.push({ type: 'paragraph', text: content });
     }
 
-    try {
-        return JSON.parse(raw);
-    } catch (error) {
-        return [];
-    }
+    return nodes;
 }
 
-function saveHistoryItems(items) {
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
-}
+function appendMessage(role, text) {
+    const article = document.createElement('article');
+    article.className = `message ${role}`;
 
-async function loadServerHistory() {
-    const token = getAuthToken();
-    if (!token) {
-        return false;
-    }
+    const header = document.createElement('div');
+    header.className = 'message-header';
 
-    const response = await fetchWithAuth('/user/history');
+    const author = document.createElement('span');
+    author.textContent = role === 'user' ? 'You' : 'QyverixAI';
+    header.appendChild(author);
 
-    if (!response.ok) {
-        return false;
-    }
-
-    const items = await response.json();
-    saveHistoryItems(
-        items.map((item) => ({
-            id: item.id,
-            code: item.code,
-            action: item.action,
-            preview: item.code.slice(0, 80).replace(/\n/g, ' '),
-            timestamp: new Date(item.created_at).toLocaleString(),
-        }))
-    );
-    renderHistory();
-    return true;
-}
-
-function getFavoriteItems() {
-    const raw = window.localStorage.getItem(FAVORITES_KEY);
-    if (!raw) {
-        return [];
-    }
-
-    try {
-        return JSON.parse(raw);
-    } catch (error) {
-        return [];
-    }
-}
-
-function saveFavoriteItems(items) {
-    window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(items));
-}
-
-async function loadServerFavorites() {
-    const token = getAuthToken();
-    if (!token) {
-        return false;
-    }
-
-    const response = await fetchWithAuth('/user/favorites');
-
-    if (!response.ok) {
-        return false;
-    }
-
-    const items = await response.json();
-    saveFavoriteItems(
-        items.map((item) => ({
-            id: item.id,
-            fingerprint: `${item.action}:${item.code.slice(0, 120)}:${item.result_json.slice(0, 120)}`,
-            code: item.code,
-            action: item.action,
-            result: item.result_json,
-            title: item.title,
-            timestamp: new Date(item.created_at).toLocaleString(),
-        }))
-    );
-    renderFavorites();
-    return true;
-}
-
-function renderHistory() {
-    const items = getHistoryItems();
-    historyList.innerHTML = '';
-
-    if (items.length === 0) {
-        const empty = document.createElement('li');
-        empty.textContent = 'No previous queries yet.';
-        historyList.appendChild(empty);
-        historyCount.textContent = '0';
-        return;
-    }
-
-    items.forEach((item, index) => {
-        const li = document.createElement('li');
-        const row = document.createElement('div');
-        row.className = 'history-item-row';
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'history-item-btn';
-        button.innerHTML = `${item.action.toUpperCase()}: ${item.preview}<small>${item.timestamp}</small>`;
-
-        button.addEventListener('click', () => {
-            codeInput.value = item.code;
-            actionInput.value = item.action;
-            setStatus('Loaded query from history.');
-        });
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'item-danger-btn';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', async () => {
-            await deleteHistoryEntry(index);
-        });
-
-        row.appendChild(button);
-        row.appendChild(deleteBtn);
-        li.appendChild(row);
-        historyList.appendChild(li);
-    });
-
-    historyCount.textContent = String(items.length);
-}
-
-function renderFavorites() {
-    const items = getFavoriteItems();
-    favoritesList.innerHTML = '';
-
-    if (items.length === 0) {
-        const empty = document.createElement('li');
-        empty.textContent = 'No saved favorite results yet.';
-        favoritesList.appendChild(empty);
-        favoritesCount.textContent = '0';
-        return;
-    }
-
-    items.forEach((item, index) => {
-        const li = document.createElement('li');
-        const row = document.createElement('div');
-        row.className = 'history-item-row';
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'history-item-btn';
-        button.innerHTML = `${item.title}<small>${item.timestamp}</small>`;
-
-        button.addEventListener('click', () => {
-            codeInput.value = item.code;
-            actionInput.value = item.action;
-            resultBox.textContent = item.result;
-            renderFormattedResult(item.action, parseResultText(item.result));
-            setStatus('Loaded favorite result.');
-            updateDetectedLanguage();
-        });
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'item-danger-btn';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', async () => {
-            await deleteFavoriteEntry(index);
-        });
-
-        row.appendChild(button);
-        row.appendChild(deleteBtn);
-        li.appendChild(row);
-        favoritesList.appendChild(li);
-    });
-
-    favoritesCount.textContent = String(items.length);
-}
-
-async function pushHistoryEntry(code, action) {
-    const now = new Date();
-    const entry = {
-        code,
-        action,
-        preview: code.slice(0, 80).replace(/\n/g, ' '),
-        timestamp: now.toLocaleString(),
-    };
-
-    const items = getHistoryItems();
-    items.unshift(entry);
-    const boundedItems = items.slice(0, HISTORY_LIMIT);
-    saveHistoryItems(boundedItems);
-    renderHistory();
-
-    const token = getAuthToken();
-    if (token) {
-        const response = await fetchWithAuth('/user/history', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action,
-                code,
-                result_json: resultBox.textContent,
-            }),
-        });
-
-        if (response.ok) {
-            const created = await response.json();
-            const updatedItems = getHistoryItems();
-            if (updatedItems[0] && !updatedItems[0].id) {
-                updatedItems[0].id = created.id;
-                saveHistoryItems(updatedItems);
-                renderHistory();
+    if (role === 'assistant') {
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'copy-btn';
+        copyBtn.textContent = 'Copy';
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(text);
+                setStatus('Copied response.');
+            } catch (error) {
+                setStatus('Failed to copy response.', true);
             }
-        }
-    }
-}
-
-async function pushFavoriteEntry(code, action, resultText) {
-    const items = getFavoriteItems();
-    const fingerprint = `${action}:${code.slice(0, 120)}:${resultText.slice(0, 120)}`;
-
-    const existingIndex = items.findIndex((item) => item.fingerprint === fingerprint);
-    const entry = {
-        fingerprint,
-        code,
-        action,
-        result: resultText,
-        title: `${action.toUpperCase()} favorite from ${new Date().toLocaleString()}`,
-        timestamp: new Date().toLocaleString(),
-    };
-
-    if (existingIndex >= 0) {
-        items[existingIndex] = entry;
-    } else {
-        items.unshift(entry);
-    }
-
-    saveFavoriteItems(items.slice(0, HISTORY_LIMIT));
-    renderFavorites();
-
-    const token = getAuthToken();
-    if (token) {
-        const response = await fetchWithAuth('/user/favorites', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                title: entry.title,
-                action,
-                code,
-                result_json: resultText,
-            }),
         });
+        header.appendChild(copyBtn);
+    }
 
-        if (response.ok) {
-            const created = await response.json();
-            const updatedItems = getFavoriteItems();
-            if (updatedItems[0] && !updatedItems[0].id) {
-                updatedItems[0].id = created.id;
-                saveFavoriteItems(updatedItems);
-                renderFavorites();
+    article.appendChild(header);
+
+    const body = document.createElement('div');
+    body.className = 'message-body';
+
+    parseMessageBody(text).forEach((block) => {
+        if (block.type === 'code') {
+            const pre = document.createElement('pre');
+            const code = document.createElement('code');
+            code.textContent = block.text;
+            if (block.language) {
+                code.className = `language-${block.language}`;
             }
-        }
-    }
-}
-
-async function deleteHistoryEntry(index) {
-    const items = getHistoryItems();
-    const [removed] = items.splice(index, 1);
-    saveHistoryItems(items);
-    renderHistory();
-
-    if (!removed) {
-        return;
-    }
-
-    if (removed.id && getAuthToken()) {
-        const response = await fetchWithAuth(`/user/history/${removed.id}`, { method: 'DELETE' });
-        if (!response.ok && response.status !== 401) {
-            setStatus('Failed to delete history item from server.', true);
-            return;
-        }
-    }
-
-    setStatus('History item deleted.');
-}
-
-async function deleteFavoriteEntry(index) {
-    const items = getFavoriteItems();
-    const [removed] = items.splice(index, 1);
-    saveFavoriteItems(items);
-    renderFavorites();
-
-    if (!removed) {
-        return;
-    }
-
-    if (removed.id && getAuthToken()) {
-        const response = await fetchWithAuth(`/user/favorites/${removed.id}`, { method: 'DELETE' });
-        if (!response.ok && response.status !== 401) {
-            setStatus('Failed to delete favorite from server.', true);
-            return;
-        }
-    }
-
-    setStatus('Favorite deleted.');
-}
-
-function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    themeToggleBtn.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
-    window.localStorage.setItem(THEME_KEY, theme);
-}
-
-function detectActionFromFilename(filename) {
-    const lower = filename.toLowerCase();
-    if (lower.endsWith('.py') || lower.endsWith('.java') || lower.endsWith('.js')) {
-        return 'analyze';
-    }
-
-    return actionInput.value;
-}
-
-function guessLanguage(code) {
-    const normalized = code.toLowerCase();
-    if (normalized.includes('def ') || normalized.includes('import ')) {
-        return 'Python';
-    }
-    if (normalized.includes('function ') || normalized.includes('console.log(')) {
-        return 'JavaScript';
-    }
-    if (normalized.includes('public static void main') || normalized.includes('class ')) {
-        return 'Java';
-    }
-    return 'Unknown';
-}
-
-function updateDetectedLanguage() {
-    if (languageSelect.value !== 'auto') {
-        detectedLanguageText.textContent = `Selected language: ${languageSelect.options[languageSelect.selectedIndex].text}`;
-        return;
-    }
-
-    const guessed = guessLanguage(codeInput.value);
-    detectedLanguageText.textContent = `Detected language: ${guessed}`;
-}
-
-async function loadFile(file) {
-    try {
-        const content = await file.text();
-        codeInput.value = content;
-        actionInput.value = detectActionFromFilename(file.name);
-        setStatus(`Loaded file: ${file.name}`);
-        updateDetectedLanguage();
-    } catch (error) {
-        setStatus('Failed to read selected file.', true);
-    }
-}
-
-async function loadSharedSnippetFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('share');
-    if (!token) {
-        return;
-    }
-
-    try {
-        const response = await fetch(getApiBase() + `/share/${encodeURIComponent(token)}`);
-        if (!response.ok) {
-            setStatus('Shared result not found.', true);
+            pre.appendChild(code);
+            body.appendChild(pre);
+            if (window.hljs) {
+                window.hljs.highlightElement(code);
+            }
             return;
         }
 
-        const payload = await response.json();
-        codeInput.value = payload.code;
-        actionInput.value = payload.action;
-        resultBox.textContent = payload.result_json;
-        renderFormattedResult(payload.action, parseResultText(payload.result_json));
-        updateDetectedLanguage();
-        setStatus('Loaded shared result.');
-    } catch (error) {
-        setStatus('Failed to load shared result.', true);
-    }
+        const p = document.createElement('p');
+        p.textContent = block.text;
+        body.appendChild(p);
+    });
+
+    article.appendChild(body);
+    chatThread.appendChild(article);
+    chatThread.scrollTop = chatThread.scrollHeight;
 }
 
-const savedTheme = window.localStorage.getItem(THEME_KEY);
-applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
-renderHistory();
-renderFavorites();
-updateDetectedLanguage();
-updateAuthStatus();
-apiModeLabel.textContent = window.location.pathname.startsWith('/app') ? 'Frontend' : 'API';
-appendChatMessage('assistant', 'Ask a follow-up question after you run an analysis.');
-
-async function bootstrapSession() {
-    if (!getAuthToken()) {
-        return;
-    }
-
-    const response = await fetchWithAuth('/auth/me');
-    if (!response.ok) {
-        return;
-    }
-
-    const profile = await response.json();
-    if (profile.email) {
-        window.localStorage.setItem(USER_EMAIL_KEY, profile.email);
-        updateAuthStatus();
-    }
-
-    await loadServerHistory();
-    await loadServerFavorites();
-}
-
-bootstrapSession().catch(() => {});
-loadSharedSnippetFromUrl().catch(() => {});
-
-form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
+async function sendMessage() {
+    const message = messageInput.value.trim();
     const code = codeInput.value.trim();
-    if (!code) {
-        setStatus('Please enter code before submitting.', true);
-        resultBox.textContent = 'No code submitted.';
+
+    if (!message) {
+        setStatus('Enter a message first.', true);
         return;
     }
 
-    const action = actionInput.value;
-    const endpoint = buildEndpoint(action);
-    const apiBase = getApiBase();
-
-    window.localStorage.setItem('ai-assistant-api-base', apiBase);
-
-    setLoadingStatus('Running request...');
-    if (formattedResultBox) {
-        formattedResultBox.textContent = 'Analyzing and formatting result...';
-    }
-    resultBox.textContent = 'Loading...';
-    setRunLoading(true);
+    appendMessage('user', code ? `${message}\n\nCode:\n\n\`\`\`\n${code}\n\`\`\`` : message);
+    messageInput.value = '';
+    setStatus('Sending...');
+    setLoading(true);
 
     try {
-        const response = await fetch(apiBase + endpoint, {
+        const apiBase = getApiBase();
+        window.localStorage.setItem(API_BASE_KEY, apiBase);
+
+        const response = await fetch(`${apiBase}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code }),
+            body: JSON.stringify({
+                message,
+                code: code || null,
+                history: history.slice(-12),
+            }),
         });
 
         const data = await response.json();
         if (!response.ok) {
-            setStatus('Request failed. Check input or backend logs.', true);
-            resultBox.textContent = JSON.stringify(data, null, 2);
-            showToast('Request failed. Please check your input.', true);
+            const errorText = data.detail || data.error || 'Request failed.';
+            appendMessage('assistant', `Request failed: ${errorText}`);
+            setStatus('Request failed.', true);
             return;
         }
 
-        setStatus('Success');
-        showToast('Analysis completed successfully.');
-        resultBox.textContent = JSON.stringify(data, null, 2);
-        renderFormattedResult(action, data);
-        await pushHistoryEntry(code, action);
-        updateDetectedLanguage();
-        apiModeLabel.textContent = 'Ready';
-        resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const assistantText = String(data.response || '').trim() || 'No response returned.';
+        appendMessage('assistant', assistantText);
+        history.push(`User: ${message}`);
+        history.push(`Assistant: ${assistantText}`);
+        setStatus('Ready');
     } catch (error) {
-        setStatus('Could not connect to backend API.', true);
-        resultBox.textContent = String(error);
-        apiModeLabel.textContent = 'Offline';
-        showToast('Backend connection failed.', true);
+        appendMessage('assistant', 'Cannot connect to backend. Check API URL and server status.');
+        setStatus('Connection error.', true);
     } finally {
-        setRunLoading(false);
+        setLoading(false);
     }
-});
-
-clearBtn.addEventListener('click', () => {
-    codeInput.value = '';
-    resultBox.textContent = 'Your result will appear here.';
-    resetFormattedResult();
-    setStatus('Ready');
-    showToast('Editor cleared.');
-});
-
-favoriteBtn.addEventListener('click', async () => {
-    const code = codeInput.value.trim();
-    const resultText = resultBox.textContent.trim();
-    if (!code || !resultText || resultText === 'Your result will appear here.') {
-        setStatus('Run an analysis before saving a favorite.', true);
-        return;
-    }
-
-    await pushFavoriteEntry(code, actionInput.value, resultText);
-    setStatus(getAuthToken() ? 'Favorite saved and synced.' : 'Favorite saved locally.');
-});
-
-shareBtn.addEventListener('click', async () => {
-    const code = codeInput.value.trim();
-    const resultText = resultBox.textContent.trim();
-    const action = actionInput.value;
-
-    if (!code || !resultText || resultText === 'Your result will appear here.') {
-        setStatus('Run an analysis before creating a share link.', true);
-        return;
-    }
-
-    try {
-        const response = await fetch(getApiBase() + '/share/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action,
-                code,
-                result_json: resultText,
-            }),
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-            setStatus(data.detail || 'Failed to create share link.', true);
-            return;
-        }
-
-        const shareUrl = `${window.location.origin}${window.location.pathname}?share=${encodeURIComponent(data.token)}`;
-        await navigator.clipboard.writeText(shareUrl);
-        setStatus('Share link copied to clipboard.');
-    } catch (error) {
-        setStatus('Failed to create share link.', true);
-    }
-});
-
-downloadBtn.addEventListener('click', () => {
-    const text = resultBox.textContent.trim();
-    if (!text || text === 'Your result will appear here.') {
-        setStatus('No result available to download.', true);
-        return;
-    }
-
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-
-    anchor.href = url;
-    anchor.download = `ai-developer-assistant-result-${timestamp}.txt`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
-
-    setStatus('Result downloaded as TXT.');
-});
-
-copyBtn.addEventListener('click', async () => {
-    const text = resultBox.textContent.trim();
-    if (!text || text === 'Your result will appear here.') {
-        setStatus('No result available to copy.', true);
-        return;
-    }
-
-    try {
-        await navigator.clipboard.writeText(text);
-        setStatus('Result copied to clipboard.');
-    } catch (error) {
-        setStatus('Failed to copy result.', true);
-    }
-});
-
-codeFileInput.addEventListener('change', async (event) => {
-    const file = event.target.files && event.target.files[0];
-    if (!file) {
-        return;
-    }
-
-    await loadFile(file);
-    if (selectedFileName) {
-        selectedFileName.textContent = `Selected file: ${file.name}`;
-    }
-});
-
-clearHistoryBtn.addEventListener('click', async () => {
-    if (!window.confirm('Clear all query history?')) {
-        return;
-    }
-
-    saveHistoryItems([]);
-    renderHistory();
-
-    if (getAuthToken()) {
-        const response = await fetchWithAuth('/user/history', { method: 'DELETE' });
-        if (!response.ok && response.status !== 401) {
-            setStatus('Failed to clear server history.', true);
-            return;
-        }
-    }
-
-    setStatus('History cleared.');
-    showToast('History cleared.');
-});
-
-clearFavoritesBtn.addEventListener('click', async () => {
-    if (!window.confirm('Clear all favorite results?')) {
-        return;
-    }
-
-    saveFavoriteItems([]);
-    renderFavorites();
-
-    if (getAuthToken()) {
-        const response = await fetchWithAuth('/user/favorites', { method: 'DELETE' });
-        if (!response.ok && response.status !== 401) {
-            setStatus('Failed to clear server favorites.', true);
-            return;
-        }
-    }
-
-    setStatus('Favorites cleared.');
-    showToast('Favorites cleared.');
-});
-
-if (exampleChips) {
-    exampleChips.addEventListener('click', (event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLElement)) {
-            return;
-        }
-
-        const exampleName = target.getAttribute('data-example');
-        if (!exampleName) {
-            return;
-        }
-
-        loadExample(exampleName);
-    });
 }
 
-if (chatSendBtn) {
-    chatSendBtn.addEventListener('click', async () => {
-        await sendChatMessage();
-    });
-}
+chatForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    await sendMessage();
+});
 
-if (chatInput) {
-    chatInput.addEventListener('keydown', async (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            await sendChatMessage();
-        }
-    });
-}
-
-async function authenticate(endpoint) {
-    const email = authEmailInput.value.trim().toLowerCase();
-    const password = authPasswordInput.value;
-
-    if (!email || !password) {
-        setStatus('Enter email and password first.', true);
-        return;
-    }
-
-    const response = await fetch(getApiBase() + endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-        setStatus(data.detail || 'Authentication failed.', true);
-        return;
-    }
-
-    window.localStorage.setItem(TOKEN_KEY, data.access_token);
-    window.localStorage.setItem(USER_EMAIL_KEY, data.email);
-    updateAuthStatus();
-    await loadServerHistory();
-    await loadServerFavorites();
-    setStatus('Authentication successful.');
-}
-
-signupBtn.addEventListener('click', async () => {
-    try {
-        await authenticate('/auth/signup');
-    } catch (error) {
-        setStatus('Signup request failed.', true);
+messageInput.addEventListener('keydown', async (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        await sendMessage();
     }
 });
 
-loginBtn.addEventListener('click', async () => {
-    try {
-        await authenticate('/auth/login');
-    } catch (error) {
-        setStatus('Login request failed.', true);
-    }
-});
-
-logoutBtn.addEventListener('click', () => {
-    clearAuthSession();
-    setStatus('Logged out. Local dashboard data remains in your browser.');
-});
-
-themeToggleBtn.addEventListener('click', () => {
+themeToggle.addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme') || 'light';
     applyTheme(current === 'light' ? 'dark' : 'light');
 });
 
-languageSelect.addEventListener('change', updateDetectedLanguage);
-codeInput.addEventListener('input', updateDetectedLanguage);
-
-document.addEventListener('keydown', async (event) => {
-    if (event.ctrlKey && event.key === 'Enter') {
-        event.preventDefault();
-        form.requestSubmit();
-    }
-
-    if (event.ctrlKey && event.shiftKey && (event.key === 'C' || event.key === 'c')) {
-        event.preventDefault();
-        await copyBtn.click();
-    }
+apiBaseInput.addEventListener('change', () => {
+    window.localStorage.setItem(API_BASE_KEY, getApiBase());
 });
 
-['dragenter', 'dragover'].forEach((eventName) => {
-    dropzone.addEventListener(eventName, (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        dropzone.classList.add('dragover');
+const savedTheme = window.localStorage.getItem(THEME_KEY);
+applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+initApiBase();
+setStatus('Ready');
+
+// Wire quick-action buttons
+document.querySelectorAll('.quick-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (codeInput.value.trim()) {
+            messageInput.value = btn.dataset.prompt;
+            messageInput.focus();
+        }
     });
-});
-
-['dragleave', 'drop'].forEach((eventName) => {
-    dropzone.addEventListener(eventName, (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        dropzone.classList.remove('dragover');
-    });
-});
-
-dropzone.addEventListener('drop', async (event) => {
-    const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
-    if (!file) {
-        return;
-    }
-
-    const supported = ['.py', '.js', '.java'];
-    const isSupported = supported.some((ext) => file.name.toLowerCase().endsWith(ext));
-    if (!isSupported) {
-        setStatus('Unsupported file type. Use .py, .js, or .java.', true);
-        return;
-    }
-
-    await loadFile(file);
 });

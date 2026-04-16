@@ -140,3 +140,13 @@ class ChatMessageResponse(BaseModel):
     model: str
     mode: str
     reply: str
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(..., min_length=1, max_length=4000)
+    code: str | None = Field(default=None, max_length=settings.max_code_chars)
+    history: list[str] = Field(default_factory=list, max_length=20)
+
+
+class ChatResponse(BaseModel):
+    response: str

@@ -95,6 +95,60 @@ def test_versioned_analyze_endpoint():
     assert "explanation" in body
 
 
+def test_chat_endpoint_has_rule_based_fallback_response():
+    response = client.post(
+        "/chat/message",
+        json={
+            "message": "add two number",
+            "history": [],
+            "level": "beginner",
+            "code": "",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["mode"] == "ready+chat_fallback"
+    assert "add two numbers" in body["reply"].lower() or "python" in body["reply"].lower()
+
+
+def test_chat_endpoint_handles_add_2_number_prompt():
+    response = client.post(
+        "/chat/message",
+        json={
+            "message": "add 2 number",
+            "history": [],
+            "level": "beginner",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert "result = a + b" in body["reply"].lower()
+
+
+def test_chat_endpoint_handles_simple_code_prompt():
+    response = client.post(
+        "/chat/message",
+        json={
+            "message": "hello give me simple code",
+            "history": [],
+            "level": "beginner",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert "simple python example" in body["reply"].lower()
+
+
+def test_explanation_summary_is_contextual_for_input_print_code():
+    payload = {
+        "code": "name = input(\"Enter your name: \")\nprint(\"Hello\", name)",
+    }
+    response = client.post("/explanation/", json=payload)
+    assert response.status_code == 200
+    body = response.json()
+    assert "asks the user for input" in body["summary"].lower()
+
+
 def test_stream_analyze_endpoint():
     payload = {"code": "def add(a, b):\n    return a + b"}
     response = client.post("/analyze/stream", json=payload)
