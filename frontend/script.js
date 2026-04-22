@@ -6,6 +6,7 @@ const sendBtn = document.getElementById('send-btn');
 const statusBox = document.getElementById('status');
 const apiBaseInput = document.getElementById('api-base');
 const themeToggle = document.getElementById('theme-toggle');
+const clearChatBtn = document.getElementById('clear-chat');
 
 const API_BASE_KEY = 'ai-assistant-api-base';
 const THEME_KEY = 'ai-assistant-theme';
@@ -15,6 +16,15 @@ const DEFAULT_API_BASE = window.location.origin && window.location.origin !== 'n
     : LEGACY_RENDER_API_BASE;
 
 let history = [];
+let pendingMessageNode = null;
+let requestInFlight = false;
+const REQUEST_TIMEOUT_MS = 25000;
+
+const CODE_SAMPLES = {
+    'python-function': `def calculate_discount(price, percent):\n    if percent < 0 or percent > 100:\n        raise ValueError("percent must be between 0 and 100")\n    return round(price * (1 - percent / 100), 2)\n\nprint(calculate_discount(199.99, 15))`,
+    'javascript-async': `async function fetchUserProfile(userId) {\n  const response = await fetch(\`/api/users/\${userId}\`);\n  if (!response.ok) {\n    throw new Error('Failed to load user profile');\n  }\n  return response.json();\n}\n\nfetchUserProfile(42).then(console.log).catch(console.error);`,
+    'sql-query': `SELECT\n    customer_id,\n    COUNT(*) AS total_orders,\n    ROUND(AVG(order_total), 2) AS avg_order_value\nFROM orders\nWHERE created_at >= CURRENT_DATE - INTERVAL '30 days'\nGROUP BY customer_id\nORDER BY total_orders DESC\nLIMIT 10;`,
+};
 
 function setStatus(message, isError = false) {
     statusBox.textContent = message;
@@ -23,7 +33,7 @@ function setStatus(message, isError = false) {
 
 function setLoading(isLoading) {
     sendBtn.disabled = isLoading;
-    sendBtn.textContent = isLoading ? 'Thinking...' : 'Send';
+    sendBtn.textContent = isLoading ? 'Thinking...' : 'Send Message';
 }
 
 function applyTheme(theme) {
@@ -49,7 +59,16 @@ function initApiBase() {
 }
 
 function getApiBase() {
-    return apiBaseInput.value.trim().replace(/\/$/, '');
+    const raw = apiBaseInput.value.trim();
+    if (!raw) {
+        return DEFAULT_API_BASE;
+    }
+
+    const normalized = raw
+        .replace(/\/$/, '')
+        .replace(/\/app$/, '');
+
+    return normalized || DEFAULT_API_BASE;
 }
 
 function parseMessageBody(text) {
@@ -150,9 +169,58 @@ function appendMessage(role, text) {
     article.appendChild(body);
     chatThread.appendChild(article);
     chatThread.scrollTop = chatThread.scrollHeight;
+
+    return article;
+}
+
+function showThinkingMessage() {
+    pendingMessageNode = appendMessage('assistant', 'Thinking through your request...');
+    pendingMessageNode.classList.add('thinking');
+}
+
+function clearThinkingMessage() {
+    if (pendingMessageNode && pendingMessageNode.parentNode) {
+        pendingMessageNode.parentNode.removeChild(pendingMessageNode);
+    }
+    pendingMessageNode = null;
+}
+
+async function updateQuickPrompt(promptText, autoSend = false) {
+    messageInput.value = promptText;
+    messageInput.focus();
+    if (autoSend) {
+        if (!codeInput.value.trim()) {
+            setStatus('Paste code first, then tap the action again.', true);
+            return;
+        }
+        await sendMessage();
+        return;
+    }
+    setStatus('Prompt inserted.');
+}
+
+function resetChat() {
+    const initialMessage = `
+        <article class="message assistant">
+            <div class="message-header">
+                <span>QyverixAI</span>
+            </div>
+            <div class="message-body">
+                <p>Welcome to your code intelligence workspace. Paste code, ask for fixes, optimizations, tests, or architecture decisions.</p>
+            </div>
+        </article>
+    `;
+    chatThread.innerHTML = initialMessage;
+    history = [];
+    setStatus('Conversation cleared.');
 }
 
 async function sendMessage() {
+    if (requestInFlight) {
+        setStatus('Please wait for the current response.', true);
+        return;
+    }
+
     const message = messageInput.value.trim();
     const code = codeInput.value.trim();
 
@@ -164,11 +232,17 @@ async function sendMessage() {
     appendMessage('user', code ? `${message}\n\nCode:\n\n\`\`\`\n${code}\n\`\`\`` : message);
     messageInput.value = '';
     setStatus('Sending...');
+    requestInFlight = true;
     setLoading(true);
+    showThinkingMessage();
+    let timeoutId = null;
 
     try {
         const apiBase = getApiBase();
         window.localStorage.setItem(API_BASE_KEY, apiBase);
+
+        const abortController = new AbortController();
+        timeoutId = window.setTimeout(() => abortController.abort(), REQUEST_TIMEOUT_MS);
 
         const response = await fetch(`${apiBase}/chat`, {
             method: 'POST',
@@ -178,25 +252,37 @@ async function sendMessage() {
                 code: code || null,
                 history: history.slice(-12),
             }),
+            signal: abortController.signal,
         });
-
         const data = await response.json();
         if (!response.ok) {
+            clearThinkingMessage();
             const errorText = data.detail || data.error || 'Request failed.';
             appendMessage('assistant', `Request failed: ${errorText}`);
             setStatus('Request failed.', true);
             return;
         }
 
+        clearThinkingMessage();
         const assistantText = String(data.response || '').trim() || 'No response returned.';
         appendMessage('assistant', assistantText);
         history.push(`User: ${message}`);
         history.push(`Assistant: ${assistantText}`);
         setStatus('Ready');
     } catch (error) {
-        appendMessage('assistant', 'Cannot connect to backend. Check API URL and server status.');
-        setStatus('Connection error.', true);
+        clearThinkingMessage();
+        if (error instanceof DOMException && error.name === 'AbortError') {
+            appendMessage('assistant', 'Request timed out. Please retry or verify API endpoint.');
+            setStatus('Request timed out.', true);
+        } else {
+            appendMessage('assistant', 'Cannot connect to backend. Check API URL and server status.');
+            setStatus('Connection error.', true);
+        }
     } finally {
+        if (timeoutId !== null) {
+            window.clearTimeout(timeoutId);
+        }
+        requestInFlight = false;
         setLoading(false);
     }
 }
@@ -213,6 +299,19 @@ messageInput.addEventListener('keydown', async (event) => {
     }
 });
 
+codeInput.addEventListener('keydown', async (event) => {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        await sendMessage();
+    }
+});
+
+codeInput.addEventListener('input', () => {
+    if (codeInput.value.length > 0) {
+        setStatus('Code context ready.');
+    }
+});
+
 themeToggle.addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme') || 'light';
     applyTheme(current === 'light' ? 'dark' : 'light');
@@ -220,6 +319,7 @@ themeToggle.addEventListener('click', () => {
 
 apiBaseInput.addEventListener('change', () => {
     window.localStorage.setItem(API_BASE_KEY, getApiBase());
+    setStatus('API endpoint updated.');
 });
 
 const savedTheme = window.localStorage.getItem(THEME_KEY);
@@ -227,13 +327,30 @@ applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
 initApiBase();
 setStatus('Ready');
 
-// Wire quick-action buttons
-document.querySelectorAll('.quick-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (codeInput.value.trim()) {
-            messageInput.value = btn.dataset.prompt;
-            messageInput.focus();
-        }
+document.querySelectorAll('.prompt-chip').forEach((btn) => {
+    btn.addEventListener('click', async (event) => {
+        event.preventDefault();
+        await updateQuickPrompt(String(btn.dataset.prompt || '').trim(), true);
     });
 });
+
+document.querySelectorAll('.sample-chip').forEach((btn) => {
+    btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        const sampleKey = String(btn.dataset.sample || '').trim();
+        const snippet = CODE_SAMPLES[sampleKey];
+        if (!snippet) {
+            return;
+        }
+        codeInput.value = snippet;
+        codeInput.focus();
+        setStatus('Sample code loaded.');
+    });
+});
+
+if (clearChatBtn) {
+    clearChatBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        resetChat();
+    });
+}
