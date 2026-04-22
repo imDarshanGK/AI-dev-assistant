@@ -3,56 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QyverixAI - Code Chat</title>
-    <link rel="stylesheet" href="style.css">
+    <title>QyverixAI | Code Intelligence Workspace</title>
+    <link rel="stylesheet" href="style.css?v=20260422b">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <link rel="icon" type="image/x-icon" href="public/favicon.ico">
 </head>
 <body>
-    <div class="app-shell">
-        <header class="top-nav">
-            <div class="brand">
-                <span class="brand-kicker">AI Coding Copilot</span>
+    <div class="ambient ambient-1"></div>
+    <div class="ambient ambient-2"></div>
+    <div class="ambient-lines"></div>
+
+    <div class="workspace-shell">
+        <header class="workspace-topbar">
+            <div class="logo-block">
+                <p class="kicker">Code Intelligence Workspace</p>
                 <h1>QyverixAI</h1>
             </div>
-            <div class="nav-actions">
-                <label class="api-field" for="api-base">API</label>
-                <input id="api-base" type="text" placeholder="http://localhost:8000" />
-                <button id="theme-toggle" type="button">Dark</button>
+            <div class="topbar-controls">
+                <div class="api-wrap">
+                    <label for="api-base">API</label>
+                    <input id="api-base" type="text" placeholder="http://localhost:8000" autocomplete="off">
+                </div>
+                <button id="theme-toggle" type="button" class="ghost-btn">Dark</button>
             </div>
         </header>
 
-        <main class="chat-layout">
-            <section id="chat-thread" class="chat-thread" aria-live="polite">
-                <article class="message assistant">
-                    <div class="message-header">
-                        <span>QyverixAI</span>
+        <main class="workspace-main">
+            <aside class="control-panel">
+                <section class="panel-card">
+                    <h2>Mission Control</h2>
+                    <p>Choose a mode, paste code, and ship cleaner output faster.</p>
+                    <div class="chip-grid">
+                        <button type="button" class="prompt-chip" data-prompt="Explain this code line by line, then summarize the algorithm and complexity.">Deep Explain</button>
+                        <button type="button" class="prompt-chip" data-prompt="Find bugs, security issues, and edge cases. Return a corrected version.">Fix and Secure</button>
+                        <button type="button" class="prompt-chip" data-prompt="Optimize this implementation for performance and readability with before vs after analysis.">Performance Pass</button>
+                        <button type="button" class="prompt-chip" data-prompt="Write robust unit tests covering happy path, edge cases, and failure cases.">Build Tests</button>
                     </div>
-                    <div class="message-body">
-                        <p>I am your code copilot. Paste code, ask a question, and I will explain, fix, or optimize it.</p>
-                    </div>
-                </article>
-            </section>
+                </section>
 
-            <form id="chat-form" class="composer">
-                <div class="composer-row">
-                    <textarea id="code-input" rows="6" placeholder="Paste code (optional)..."></textarea>
-                    <textarea id="message-input" rows="3" placeholder="Ask: Explain this code / Fix this code / Optimize this code..."></textarea>
-                </div>
-                <div class="composer-actions">
-                    <div class="quick-actions">
-                        <button type="button" class="quick-btn" data-prompt="Explain this code">Explain</button>
-                        <button type="button" class="quick-btn" data-prompt="Fix this code">Fix</button>
-                        <button type="button" class="quick-btn" data-prompt="Optimize this code">Optimize</button>
+                <section class="panel-card">
+                    <h3>Starter Snippets</h3>
+                    <div class="sample-grid">
+                        <button type="button" class="sample-chip" data-sample="python-function">Python Function</button>
+                        <button type="button" class="sample-chip" data-sample="javascript-async">JS Async</button>
+                        <button type="button" class="sample-chip" data-sample="sql-query">SQL Query</button>
                     </div>
-                    <span id="status" class="status">Ready</span>
-                    <button id="send-btn" type="submit">Send</button>
+                </section>
+
+                <section class="panel-card panel-tip">
+                    <h3>Shortcut</h3>
+                    <p>Press Ctrl/Cmd + Enter in either input to send instantly.</p>
+                </section>
+            </aside>
+
+            <section class="conversation-stage">
+                <div class="stage-head">
+                    <h2>Conversation</h2>
+                    <button type="button" id="clear-chat" class="clear-btn">Clear</button>
                 </div>
-            </form>
+
+                <div id="chat-thread" class="chat-thread" aria-live="polite">
+                    <article class="message assistant">
+                        <div class="message-header">
+                            <span>QyverixAI</span>
+                        </div>
+                        <div class="message-body">
+                            <p>Welcome to your code intelligence workspace. Paste code, ask for fixes, optimizations, tests, or architecture decisions.</p>
+                        </div>
+                    </article>
+                </div>
+
+                <form id="chat-form" class="composer-shell">
+                    <div class="composer-grid">
+                        <div class="input-stack">
+                            <label for="code-input">Code Context</label>
+                            <textarea id="code-input" rows="8" placeholder="Paste code here (optional)"></textarea>
+                        </div>
+                        <div class="input-stack">
+                            <label for="message-input">Your Prompt</label>
+                            <textarea id="message-input" rows="8" placeholder="Ask for explanation, fix, optimization, tests, refactor..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="composer-footer">
+                        <span id="status" class="status">Ready</span>
+                        <div class="footer-actions">
+                            <button id="send-btn" type="submit" class="send-btn">Send Message</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
         </main>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=20260422b"></script>
 </body>
 </html>
