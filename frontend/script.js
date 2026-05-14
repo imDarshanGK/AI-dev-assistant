@@ -23,6 +23,7 @@ const API_URL_STORAGE_KEY = 'qyverix_api_url';
 // ── Theme ──
 const savedTheme = localStorage.getItem('qyverix_theme') || 'dark';
 if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+
 themeToggle.addEventListener('click', () => {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
@@ -54,9 +55,11 @@ codeInput.addEventListener('keydown', (e) => {
 
 // ── File upload ──
 document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
+
 fileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
+
   const reader = new FileReader();
   reader.onload = (ev) => {
     codeInput.value = ev.target.result;
@@ -72,7 +75,7 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   resetOutput();
 });
 
-// ── Copy ──
+// ── Copy full result ──
 document.getElementById('copyBtn').addEventListener('click', () => {
   if (!lastResult) return;
   navigator.clipboard.writeText(lastResult);
@@ -82,6 +85,7 @@ document.getElementById('copyBtn').addEventListener('click', () => {
 // ── Download ──
 document.getElementById('downloadBtn').addEventListener('click', () => {
   if (!lastResult) return;
+
   const blob = new Blob([lastResult], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -92,6 +96,7 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
 // ── Save favorite ──
 document.getElementById('saveBtn').addEventListener('click', () => {
   if (!lastResult) return;
+
   const entry = {
     id: Date.now(),
     code: codeInput.value.slice(0, 100),
@@ -99,8 +104,10 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     mode: currentMode,
     time: new Date().toLocaleString()
   };
+
   favorites.unshift(entry);
   if (favorites.length > 20) favorites = favorites.slice(0, 20);
+
   localStorage.setItem('qyverix_favorites', JSON.stringify(favorites));
   renderFavorites();
   showToast('Saved to favorites ♡');
@@ -124,10 +131,13 @@ window.scrollToApp = scrollToApp;
 // ── Connection check ──
 async function checkConnection() {
   statusDot.className = 'status-dot checking';
+
   const currentApi = getApiUrl();
   const suggestedApi = normalizeApiUrl(getSuggestedApiUrl());
+
   try {
     const resp = await fetch(`${currentApi}/health`, { signal: AbortSignal.timeout(3000) });
+
     if (!resp.ok) {
       statusDot.className = 'status-dot offline';
       setEngineBadge('unknown');
@@ -141,6 +151,7 @@ async function checkConnection() {
     if (suggestedApi && suggestedApi !== currentApi) {
       try {
         const fallbackResp = await fetch(`${suggestedApi}/health`, { signal: AbortSignal.timeout(3000) });
+
         if (fallbackResp.ok) {
           const fallbackHealth = await fallbackResp.json().catch(() => ({}));
           apiUrlInput.value = suggestedApi;
@@ -151,7 +162,7 @@ async function checkConnection() {
           return;
         }
       } catch {
-        // Keep offline state below if fallback fails.
+        // keep offline
       }
     }
 
@@ -180,6 +191,7 @@ function getSuggestedApiUrl() {
   if (window.location.protocol === 'file:') {
     return 'http://localhost:8000';
   }
+
   return `${window.location.protocol}//${window.location.host}`;
 }
 
@@ -263,16 +275,19 @@ function getUserFriendlyError(err, responseStatus) {
 }
 
 initializeApiUrl();
+
 apiUrlInput.addEventListener('change', () => {
   localStorage.setItem(API_URL_STORAGE_KEY, getApiUrl());
   updateDocsLink();
   checkConnection();
 });
+
 checkConnection();
 
 // ── Main Analysis ──
 async function runAnalysis() {
   const code = codeInput.value.trim();
+
   if (!code) {
     showError('Please paste some code first.');
     return;
@@ -287,11 +302,13 @@ async function runAnalysis() {
 
   try {
     let responseStatus = 0;
+
     const resp = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code })
     });
+
     responseStatus = resp.status;
 
     if (!resp.ok) {
@@ -314,16 +331,50 @@ async function runAnalysis() {
   }
 }
 
+// ── Copyable Code Block Helper ──
+function createCopyableCodeBlock(code) {
+  return `
+    <div class="code-block-wrapper">
+      <button class="copy-code-btn" type="button">Copy</button>
+      <pre><code>${escHtml(code)}</code></pre>
+    </div>
+  `;
+}
+
+function attachCodeCopyHandlers() {
+  document.querySelectorAll('.copy-code-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const codeBlock = btn.parentElement.querySelector('code');
+      const code = codeBlock ? codeBlock.innerText : '';
+
+      if (!code) return;
+
+      try {
+        await navigator.clipboard.writeText(code);
+        btn.textContent = 'Copied!';
+        showToast('Code copied');
+      } catch {
+        btn.textContent = 'Failed';
+      }
+
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+      }, 1500);
+    });
+  });
+}
+
 // ── Render Output ──
 function renderResult(data, mode) {
   let html = '';
   let text = '';
 
   if (mode === 'analyze') {
-    // Full analysis
     if (data.explanation) {
       const ex = data.explanation;
+
       text += `=== EXPLANATION ===\n`;
+
       html += `<div class="result-section">
         <h4>Explanation</h4>
         <div class="result-text">
@@ -332,12 +383,16 @@ function renderResult(data, mode) {
           ${(ex.key_points || []).map(p => `<p>• ${p}</p>`).join('')}
         </div>
       </div>`;
+
       text += `Language: ${ex.language}\n${ex.summary}\n${(ex.key_points || []).join('\n')}\n\n`;
     }
+
     if (data.debugging) {
       const dg = data.debugging;
-      text += `=== DEBUGGING ===\n`;
       const issues = dg.issues || [];
+
+      text += `=== DEBUGGING ===\n`;
+
       html += `<div class="result-section">
         <h4>Debugging</h4>
         <div class="result-text">
@@ -347,24 +402,31 @@ function renderResult(data, mode) {
                 <span class="result-tag tag-error">${i.type || 'Issue'}</span>
                 <p style="margin-top:4px">${i.description || ''}</p>
                 ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${i.suggestion}</p>` : ''}
+                ${i.example ? createCopyableCodeBlock(i.example) : ''}
               </div>`).join('')}
         </div>
       </div>`;
+
       text += issues.map(i => `${i.type}: ${i.description}\nFix: ${i.suggestion}`).join('\n') + '\n\n';
     }
+
     if (data.suggestions) {
       const sg = data.suggestions;
       const cards = sg.suggestions || [];
+
       text += `=== SUGGESTIONS ===\n`;
+
       html += `<div class="result-section">
         <h4>Improvements</h4>
         <div class="result-text">
           ${cards.map(c => `<div style="margin-bottom:10px">
             <span class="result-tag tag-info">${c.category || 'Tip'}</span>
             <p style="margin-top:4px">${c.description || ''}</p>
+            ${c.example ? createCopyableCodeBlock(c.example) : ''}
           </div>`).join('')}
         </div>
       </div>`;
+
       text += cards.map(c => `[${c.category}] ${c.description}`).join('\n');
     }
   } else if (mode === 'explanation') {
@@ -380,9 +442,11 @@ function renderResult(data, mode) {
       <h4>Key Points</h4>
       <div class="result-text">${(data.key_points || []).map(p => `<p>• ${p}</p>`).join('')}</div>
     </div>`;
+
     text = `Language: ${data.language}\n${data.summary}\n${(data.key_points || []).join('\n')}`;
   } else if (mode === 'debugging') {
     const issues = data.issues || [];
+
     html += `<div class="result-section">
       <h4>Issues Found (${issues.length})</h4>
       <div class="result-text">
@@ -393,27 +457,32 @@ function renderResult(data, mode) {
               ${i.line ? `<span class="result-tag tag-info">Line ${i.line}</span>` : ''}
               <p style="margin-top:8px">${i.description || ''}</p>
               ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${i.suggestion}</p>` : ''}
+              ${i.example ? createCopyableCodeBlock(i.example) : ''}
             </div>`).join('')}
       </div>
     </div>`;
+
     text = issues.map(i => `[${i.type}] Line ${i.line}: ${i.description}\nFix: ${i.suggestion}`).join('\n');
   } else if (mode === 'suggestions') {
     const cards = data.suggestions || [];
+
     html += `<div class="result-section">
       <h4>Suggestions (${cards.length})</h4>
       <div class="result-text">
         ${cards.map(c => `<div style="margin-bottom:12px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
           <span class="result-tag tag-info">${c.category || 'Tip'}</span>
           <p style="margin-top:8px">${c.description || ''}</p>
-          ${c.example ? `<pre style="margin-top:8px;font-size:12px;color:var(--text-3)">${c.example}</pre>` : ''}
+          ${c.example ? createCopyableCodeBlock(c.example) : ''}
         </div>`).join('')}
       </div>
     </div>`;
+
     text = cards.map(c => `[${c.category}] ${c.description}`).join('\n');
   }
 
   lastResult = text;
   outputBox.innerHTML = html || '<p style="color:var(--text-3)">No structured output returned.</p>';
+  attachCodeCopyHandlers();
 }
 
 function showLoading() {
@@ -450,7 +519,9 @@ function saveHistory(code, mode, result) {
     mode,
     time: new Date().toLocaleTimeString()
   });
+
   if (history.length > 50) history = history.slice(0, 50);
+
   localStorage.setItem('qyverix_history', JSON.stringify(history));
   renderHistory();
 }
@@ -460,6 +531,7 @@ function renderHistory() {
     historyContainer.innerHTML = '<p class="history-empty">No history yet. Run your first analysis above.</p>';
     return;
   }
+
   historyContainer.innerHTML = history.slice(0, 10).map(h => `
     <div class="history-item">
       <div>
@@ -475,6 +547,7 @@ function renderFavorites() {
     favContainer.innerHTML = '<p class="history-empty">No favorites saved yet.</p>';
     return;
   }
+
   favContainer.innerHTML = favorites.map(f => `
     <div class="history-item">
       <div>
@@ -486,20 +559,26 @@ function renderFavorites() {
 }
 
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 // ── Toast ──
 function showToast(msg) {
   const t = document.createElement('div');
+
   t.style.cssText = `
     position:fixed;bottom:24px;right:24px;z-index:9999;
     padding:10px 18px;background:var(--text);color:var(--bg);
     border-radius:8px;font-family:var(--font-mono);font-size:13px;
     animation:fadeIn 0.2s ease;pointer-events:none;
   `;
+
   t.textContent = msg;
   document.body.appendChild(t);
+
   setTimeout(() => t.remove(), 2200);
 }
 
