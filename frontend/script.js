@@ -431,13 +431,25 @@ function resetOutput() {
     <p class="placeholder-sub">Paste code → select mode → click Analyze.</p>
   </div>`;
 }
-
 function showError(msg) {
+  const backendError =
+    msg.toLowerCase().includes('backend') ||
+    msg.toLowerCase().includes('server') ||
+    msg.toLowerCase().includes('could not reach');
+
   outputBox.innerHTML = `<div class="result-section">
     <h4>Error</h4>
     <div class="result-text">
       <span class="result-tag tag-error">✕ ${msg}</span>
-      <p style="margin-top:12px;color:var(--text-2)">Check that the backend is running at: <code>${getApiUrl()}</code></p>
+
+      ${
+        backendError
+          ? `<p style="margin-top:12px;color:var(--text-2)">
+              Check that the backend is running at:
+              <code>${getApiUrl()}</code>
+             </p>`
+          : ''
+      }
     </div>
   </div>`;
 }
