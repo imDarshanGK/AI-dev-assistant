@@ -58,8 +58,28 @@ Include when opening a PR:
 - 2-space indentation
 - Use `const`/`let`, prefer async/await
 
-## Testing
+## Code Formatting
 
+We use [Ruff](https://docs.astral.sh/ruff/) to enforce code formatting automatically.
+
+**Before submitting a PR**, ensure your code is properly formatted:
+
+```bash
+# Install ruff if you haven't already (already in CI)
+pip install ruff
+
+# Check formatting (will exit with non-zero if issues found)
+ruff format --check backend/
+
+# Auto-format your code (optional but recommended)
+ruff format backend/
+```
+
+The CI runs `ruff format --check` on every pull request. If formatting checks fail, you can either:
+1. Run `ruff format backend/` locally and commit the changes
+2. Or fix the formatting manually
+
+## Testing
 ```bash
 cd backend && pytest -q  # Run all tests
 ```
