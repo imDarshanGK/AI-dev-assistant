@@ -242,6 +242,17 @@ function getUserFriendlyError(err, responseStatus) {
   if (raw.includes('failed to fetch') || raw.includes('networkerror') || raw.includes('network request failed')) {
     return `Could not reach the backend at ${getApiUrl()}. Check the API URL and that the server is running.`;
   }
+  if (raw.includes('timeout') || raw.includes('aborted')) {
+    return 'Request timed out. The backend server may be slow or unavailable.';
+  }
+
+  if (raw.includes('unexpected token')) {
+    return 'Invalid response received from backend API.';
+  }
+
+  if (raw.includes('offline')) {
+    return 'No internet connection detected.';
+  }
 
   if (responseStatus === 401) {
     return 'Unauthorized request. Check your API key or auth settings.';
