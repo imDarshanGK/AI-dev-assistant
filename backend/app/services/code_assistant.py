@@ -74,7 +74,12 @@ def _python_debug_issues(code: str) -> list[DebugIssue]:
                 elif isinstance(value.value, (int, float, complex)):
                     variable_kinds[target] = "number"
             elif isinstance(value, ast.Call):
-                variable_kinds[target] = "unknown"
+                if isinstance(value.func, ast.Name) and value.func.id in {"int", "float"}:
+                    variable_kinds[target] = "number"
+                elif isinstance(value.func, ast.Name) and value.func.id == "str":
+                    variable_kinds[target] = "str"
+                else:
+                    variable_kinds[target] = "unknown"
 
             if isinstance(value, (ast.List, ast.Tuple)):
                 list_lengths[target] = len(value.elts)
@@ -100,7 +105,12 @@ def _python_debug_issues(code: str) -> list[DebugIssue]:
                         divide_param_index[node.name] = arg_names.index(param)
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.Compare) and isinstance(node.left, ast.Name) and node.left.id in input_vars:
+        if (
+            isinstance(node, ast.Compare)
+            and isinstance(node.left, ast.Name)
+            and node.left.id in input_vars
+            and variable_kinds.get(node.left.id) == "str"
+        ):
             has_numeric = any(
                 isinstance(comp, ast.Constant) and isinstance(comp.value, (int, float))
                 for comp in node.comparators
