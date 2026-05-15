@@ -74,7 +74,13 @@ def _python_debug_issues(code: str) -> list[DebugIssue]:
                 elif isinstance(value.value, (int, float, complex)):
                     variable_kinds[target] = "number"
             elif isinstance(value, ast.Call):
-                variable_kinds[target] = "unknown"
+               if isinstance(value.func, ast.Name):
+                if value.func.id in ("int", "float"):
+                  variable_kinds[target] = "number"
+                elif value.func.id == "str":
+                  variable_kinds[target] = "str"
+                else:
+                 variable_kinds[target] = "unknown"
 
             if isinstance(value, (ast.List, ast.Tuple)):
                 list_lengths[target] = len(value.elts)
@@ -100,7 +106,11 @@ def _python_debug_issues(code: str) -> list[DebugIssue]:
                         divide_param_index[node.name] = arg_names.index(param)
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.Compare) and isinstance(node.left, ast.Name) and node.left.id in input_vars:
+        if (
+    isinstance(node, ast.Compare)
+    and isinstance(node.left, ast.Name)
+    and variable_kinds.get(node.left.id) == "str"
+):
             has_numeric = any(
                 isinstance(comp, ast.Constant) and isinstance(comp.value, (int, float))
                 for comp in node.comparators
@@ -334,14 +344,17 @@ def suggest_improvements(code: str, language: Optional[str] = None) -> Suggestio
                 seen_cats.add(rule["cat"])
                 break
 
-    # Always add docstring tip if no docstring present
-    if not re.search(r'"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'', code):
-        cards.append(SuggestionCard(
-            category="Documentation",
-            description="Add docstrings to your functions to describe their purpose, parameters, and return value.",
-            example='def greet(name: str) -> str:\n    """Return a greeting string."""',
-            priority="medium"
-        ))
+  # Suggest docstrings only when functions/classes exist
+    has_docstring = re.search(r'"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'', code)
+    has_function_or_class = re.search(r"\bdef\b|\bclass\b", code)
+
+    if has_function_or_class and not has_docstring:
+     cards.append(SuggestionCard(
+        category="Documentation",
+        description="Add docstrings to your functions to describe their purpose, parameters, and return value.",
+        example='def greet(name: str) -> str:\n    """Return a greeting string."""',
+        priority="medium"
+    ))
 
     # Score: start at 100, deduct per issue
     score = max(0, 100 - len(cards) * 10)
