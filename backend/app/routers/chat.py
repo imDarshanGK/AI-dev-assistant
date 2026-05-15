@@ -1,7 +1,12 @@
 from fastapi import APIRouter
 
 from app.config import settings
-from app.schemas import ChatMessageRequest, ChatMessageResponse, ChatRequest, ChatResponse
+from app.schemas import (
+    ChatMessageRequest,
+    ChatMessageResponse,
+    ChatRequest,
+    ChatResponse,
+)
 from app.services.code_assistant import chat_fallback_reply
 from app.services.llm_analysis import llm_analysis_client
 

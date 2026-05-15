@@ -7,7 +7,9 @@ logger = logging.getLogger("qyverix.debugging")
 router = APIRouter()
 
 
-@router.post("/", response_model=DebuggingResponse, summary="Detect bugs and issues in code")
+@router.post(
+    "/", response_model=DebuggingResponse, summary="Detect bugs and issues in code"
+)
 async def debugging_endpoint(request: CodeRequest):
     """
     Scans the code for:
@@ -25,4 +27,6 @@ async def debugging_endpoint(request: CodeRequest):
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         logger.error(f"Debugging failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to debug code. Please try again.")
+        raise HTTPException(
+            status_code=500, detail="Failed to debug code. Please try again."
+        )

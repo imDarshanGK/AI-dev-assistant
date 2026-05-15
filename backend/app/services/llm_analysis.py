@@ -23,7 +23,9 @@ class LLMAnalysisClient:
     def enabled(self) -> bool:
         return bool(settings.llm_enabled and self.api_key)
 
-    async def _chat_completion(self, messages: list[dict], temperature: float = 0.2) -> str:
+    async def _chat_completion(
+        self, messages: list[dict], temperature: float = 0.2
+    ) -> str:
         if not self.enabled:
             raise LLMAnalysisError("llm_disabled")
 
@@ -96,11 +98,11 @@ class LLMAnalysisClient:
             "You are a senior software engineer assistant. "
             "Analyze the code deeply and respond ONLY JSON with this shape: "
             "{"
-            "\"explanation\":{\"summary\":string,\"key_points\":string[],\"beginner_tip\":string},"
-            "\"debugging\":{\"issues\":[{\"line\":number|null,\"issue_type\":string,\"message\":string,\"why_it_happens\":string,\"fix_suggestion\":string}],\"quick_checks\":string[]},"
-            "\"suggestions\":{\"suggestions\":[{\"title\":string,\"reason\":string,\"before\":string,\"after\":string}],\"next_steps\":string[]},"
-            "\"complexity\":{\"time\":string,\"space\":string},"
-            "\"optimized_version\":string"
+            '"explanation":{"summary":string,"key_points":string[],"beginner_tip":string},'
+            '"debugging":{"issues":[{"line":number|null,"issue_type":string,"message":string,"why_it_happens":string,"fix_suggestion":string}],"quick_checks":string[]},'
+            '"suggestions":{"suggestions":[{"title":string,"reason":string,"before":string,"after":string}],"next_steps":string[]},'
+            '"complexity":{"time":string,"space":string},'
+            '"optimized_version":string'
             "}. "
             "Keep suggestions practical and include recursion/loop insights when present."
         )
@@ -121,7 +123,9 @@ class LLMAnalysisClient:
             logger.warning("llm_structured_analysis_failed detail=%s", str(exc))
             raise LLMAnalysisError(str(exc)) from exc
 
-    async def chat_reply(self, message: str, code: str | None, history: list[str], level: str) -> str:
+    async def chat_reply(
+        self, message: str, code: str | None, history: list[str], level: str
+    ) -> str:
         prompt = (
             "You are QyverixAI coding assistant in chat mode. "
             f"Explain at {level} level, be clear and concrete, and avoid generic text."

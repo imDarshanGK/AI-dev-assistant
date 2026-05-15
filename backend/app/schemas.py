@@ -7,8 +7,12 @@ from typing import Optional
 
 
 class CodeRequest(BaseModel):
-    code: str = Field(..., min_length=1, max_length=50_000, description="Source code to analyze")
-    language: Optional[str] = Field(None, description="Optional language hint (python, javascript, java, etc.)")
+    code: str = Field(
+        ..., min_length=1, max_length=50_000, description="Source code to analyze"
+    )
+    language: Optional[str] = Field(
+        None, description="Optional language hint (python, javascript, java, etc.)"
+    )
 
     @field_validator("code")
     @classmethod

@@ -7,7 +7,9 @@ logger = logging.getLogger("qyverix.explanation")
 router = APIRouter()
 
 
-@router.post("/", response_model=ExplanationResponse, summary="Explain code in plain English")
+@router.post(
+    "/", response_model=ExplanationResponse, summary="Explain code in plain English"
+)
 async def explanation_endpoint(request: CodeRequest):
     """
     Analyzes the provided code and returns:
@@ -23,4 +25,6 @@ async def explanation_endpoint(request: CodeRequest):
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         logger.error(f"Explanation failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to explain code. Please try again.")
+        raise HTTPException(
+            status_code=500, detail="Failed to explain code. Please try again."
+        )

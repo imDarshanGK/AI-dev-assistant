@@ -37,7 +37,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    name: Lint
+    name: Lint and Format
 
     steps:
       - uses: actions/checkout@v4
@@ -51,3 +51,6 @@ jobs:
 
       - name: Lint backend
         run: ruff check backend/app --select E,W,F --ignore E501
+
+      - name: Check backend formatting
+        run: ruff format --check backend/app backend/tests

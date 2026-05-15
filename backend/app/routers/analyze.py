@@ -8,7 +8,11 @@ logger = logging.getLogger("qyverix.analyze")
 router = APIRouter()
 
 
-@router.post("/", response_model=AnalyzeResponse, summary="Full code analysis — explain + debug + suggest")
+@router.post(
+    "/",
+    response_model=AnalyzeResponse,
+    summary="Full code analysis — explain + debug + suggest",
+)
 async def analyze_endpoint(request: CodeRequest):
     """
     One-shot full analysis. Returns all three sections:
@@ -36,4 +40,6 @@ async def analyze_endpoint(request: CodeRequest):
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         logger.error(f"Analyze failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Analysis failed. Please try again.")
+        raise HTTPException(
+            status_code=500, detail="Analysis failed. Please try again."
+        )

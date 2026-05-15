@@ -53,6 +53,16 @@ Include when opening a PR:
 - 4-space indentation, follow PEP 8
 - Type hints encouraged
 - Example: `def analyze(code: str) -> dict:`
+- Run the backend Ruff checks before opening a PR:
+  ```bash
+  pip install ruff
+  ruff check backend/app --select E,W,F --ignore E501
+  ruff format --check backend/app backend/tests
+  ```
+- To apply formatting locally, run:
+  ```bash
+  ruff format backend/app backend/tests
+  ```
 
 ### JavaScript
 - 2-space indentation

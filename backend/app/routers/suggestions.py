@@ -7,7 +7,9 @@ logger = logging.getLogger("qyverix.suggestions")
 router = APIRouter()
 
 
-@router.post("/", response_model=SuggestionsResponse, summary="Get code improvement suggestions")
+@router.post(
+    "/", response_model=SuggestionsResponse, summary="Get code improvement suggestions"
+)
 async def suggestions_endpoint(request: CodeRequest):
     """
     Returns actionable improvement suggestions including:
@@ -24,4 +26,6 @@ async def suggestions_endpoint(request: CodeRequest):
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         logger.error(f"Suggestions failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to generate suggestions. Please try again.")
+        raise HTTPException(
+            status_code=500, detail="Failed to generate suggestions. Please try again."
+        )

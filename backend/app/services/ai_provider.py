@@ -45,12 +45,15 @@ async def llm_enhance(prompt: str) -> Optional[str]:
                 json={
                     "model": LLM_MODEL,
                     "messages": [
-                        {"role": "system", "content": "You are QyverixAI, a helpful AI assistant for beginner programmers. Keep explanations simple and encouraging."},
-                        {"role": "user", "content": prompt}
+                        {
+                            "role": "system",
+                            "content": "You are QyverixAI, a helpful AI assistant for beginner programmers. Keep explanations simple and encouraging.",
+                        },
+                        {"role": "user", "content": prompt},
                     ],
                     "max_tokens": 500,
                     "temperature": 0.3,
-                }
+                },
             )
             resp.raise_for_status()
             data = resp.json()
