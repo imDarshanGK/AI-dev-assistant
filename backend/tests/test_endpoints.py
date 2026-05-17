@@ -67,6 +67,16 @@ def test_debugging_detects_hardcoded_secret():
     types = [i["type"] for i in r.json()["issues"]]
     assert "Hardcoded Secret" in types
 
+def test_debugging_detects_undefined_python_name():
+    r = client.post("/debugging/", json={"code": "print(Hello)\n", "language": "Python"})
+    assert r.status_code == 200
+    issues = r.json()["issues"]
+    assert any(
+        issue["type"] == "NameError Risk" and "Hello" in issue["description"]
+        for issue in issues
+    )
+    assert r.json()["clean"] is False
+
 def test_debugging_empty_code():
     r = client.post("/debugging/", json={"code": ""})
     assert r.status_code == 422

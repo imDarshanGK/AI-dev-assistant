@@ -5,6 +5,7 @@ Rule-based engine with optional LLM integration.
 
 import re
 import ast
+import builtins
 import logging
 from typing import Optional
 from app.schemas import (
@@ -37,6 +38,26 @@ def _append_issue(
     seen.add(key)
 
 
+def _collect_defined_python_names(tree: ast.AST) -> set[str]:
+    defined = set(builtins.__dict__)
+    defined.update({"__builtins__", "__doc__", "__file__", "__loader__", "__name__", "__package__", "__spec__"})
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+            defined.add(node.id)
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            defined.add(node.name)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                defined.add((alias.asname or alias.name).split(".")[0])
+        elif isinstance(node, ast.arg):
+            defined.add(node.arg)
+        elif isinstance(node, ast.ExceptHandler) and node.name:
+            defined.add(node.name)
+
+    return defined
+
+
 def _python_debug_issues(code: str) -> list[DebugIssue]:
     issues: list[DebugIssue] = []
     seen: set[tuple[str, Optional[int], str]] = set()
@@ -56,6 +77,7 @@ def _python_debug_issues(code: str) -> list[DebugIssue]:
         return issues
 
     input_vars: set[str] = set()
+    defined_names = _collect_defined_python_names(tree)
     list_lengths: dict[str, int] = {}
     range_limits: dict[str, int] = {}
     variable_kinds: dict[str, str] = {}
@@ -150,6 +172,17 @@ def _python_debug_issues(code: str) -> list[DebugIssue]:
                         "Avoid passing 0 as denominator; add a guard clause before dividing.",
                         "error",
                     )
+
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load) and node.id not in defined_names:
+            _append_issue(
+                issues,
+                seen,
+                "NameError Risk",
+                node.lineno,
+                f"Variable '{node.id}' is not defined before use.",
+                f"Define '{node.id}' before using it, import it, or fix the variable name.",
+                "error",
+            )
 
         if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
             left_is_str = isinstance(node.left, ast.Constant) and isinstance(node.left.value, str)
