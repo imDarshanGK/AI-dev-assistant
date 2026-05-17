@@ -1,60 +1,54 @@
 """
-AI Provider Abstraction Layer
-Supports rule-based (default) and optional OpenAI-compatible LLM.
+Optional LLM provider layer.
+Set LLM_ENABLED=true + LLM_API_KEY in environment to enable.
+Compatible with OpenAI, Groq, Together AI, Ollama.
 """
 
+from __future__ import annotations
 import os
-import logging
+import json
 import httpx
-from typing import Optional
 
-logger = logging.getLogger("qyverix.ai_provider")
-
-LLM_ENABLED = os.getenv("LLM_ENABLED", "false").lower() == "true"
-LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+LLM_ENABLED  = os.getenv("LLM_ENABLED", "false").lower() == "true"
+LLM_API_KEY  = os.getenv("LLM_API_KEY", "")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
-LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
-AI_PROVIDER = os.getenv("AI_PROVIDER", "rule-based")
-AI_MODEL = os.getenv("AI_MODEL", "built-in")
+LLM_MODEL    = os.getenv("LLM_MODEL", "gpt-4o-mini")
+LLM_TIMEOUT  = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
 
 
-def get_provider_info() -> dict:
-    return {
-        "provider": "llm" if LLM_ENABLED else AI_PROVIDER,
-        "model": LLM_MODEL if LLM_ENABLED else AI_MODEL,
-    }
-
-
-async def llm_enhance(prompt: str) -> Optional[str]:
-    """
-    Call OpenAI-compatible API to enhance a rule-based result.
-    Returns None if LLM is disabled or call fails.
-    """
+async def call_llm(system: str, user: str) -> str | None:
+    """Return LLM text response or None if disabled/error."""
     if not LLM_ENABLED or not LLM_API_KEY:
         return None
 
+    headers = {
+        "Authorization": f"Bearer {LLM_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": LLM_MODEL,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user",   "content": user},
+        ],
+        "temperature": 0.2,
+        "max_tokens": 1024,
+    }
+
     try:
         async with httpx.AsyncClient(timeout=LLM_TIMEOUT) as client:
-            resp = await client.post(
+            r = await client.post(
                 f"{LLM_BASE_URL}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {LLM_API_KEY}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": LLM_MODEL,
-                    "messages": [
-                        {"role": "system", "content": "You are QyverixAI, a helpful AI assistant for beginner programmers. Keep explanations simple and encouraging."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "max_tokens": 500,
-                    "temperature": 0.3,
-                }
+                headers=headers,
+                json=payload,
             )
-            resp.raise_for_status()
-            data = resp.json()
+            r.raise_for_status()
+            data = r.json()
             return data["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        logger.warning(f"LLM call failed, falling back to rule-based: {e}")
+        print(f"[LLM] Error: {e}")
         return None
+
+
+def is_enabled() -> bool:
+    return LLM_ENABLED and bool(LLM_API_KEY)
