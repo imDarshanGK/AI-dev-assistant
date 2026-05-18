@@ -2,10 +2,13 @@
 QyverixAI — Test Suite
 Run: cd backend && pytest -v
 """
+
 import pytest
 from fastapi.testclient import TestClient
 
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.main import app
 
@@ -85,6 +88,7 @@ def test_root():
     assert data["status"] == "ok"
     assert "version" in data
 
+
 def test_health():
     r = client.get("/health")
     assert r.status_code == 200
@@ -102,15 +106,18 @@ def test_explanation_python():
     assert d["complexity"] in ("Beginner", "Intermediate", "Advanced", "Expert")
     assert isinstance(d["line_count"], int)
 
+
 def test_explanation_no_language_hint():
     r = client.post("/explanation/", json={"code": JS_CODE})
     assert r.status_code == 200
     d = r.json()
     assert d["language"] in ("JavaScript", "TypeScript")
 
+
 def test_explanation_empty_code():
     r = client.post("/explanation/", json={"code": "   "})
     assert r.status_code == 422
+
 
 def test_explanation_too_long():
     r = client.post("/explanation/", json={"code": "x" * 60000})
@@ -119,18 +126,24 @@ def test_explanation_too_long():
 
 # ── Debugging ─────────────────────────────────────────────────────────────────
 def test_debug_detects_zero_division():
-    r = client.post("/debugging/", json={"code": "result = a / b", "language": "python"})
+    r = client.post(
+        "/debugging/", json={"code": "result = a / b", "language": "python"}
+    )
     assert r.status_code == 200
     d = r.json()
     types = [i["type"] for i in d["issues"]]
     assert "ZeroDivisionError" in types
 
+
 def test_debug_detects_hardcoded_secret():
-    r = client.post("/debugging/", json={"code": 'password = "abc123"', "language": "python"})
+    r = client.post(
+        "/debugging/", json={"code": 'password = "abc123"', "language": "python"}
+    )
     assert r.status_code == 200
     d = r.json()
     types = [i["type"] for i in d["issues"]]
     assert "Hardcoded Secret" in types
+
 
 def test_debug_detects_bare_except():
     code = "try:\n    pass\nexcept:\n    pass"
@@ -139,11 +152,42 @@ def test_debug_detects_bare_except():
     types = [i["type"] for i in r.json()["issues"]]
     assert "Bare Except" in types
 
+
+@pytest.mark.parametrize(
+    ("code", "expected_type", "expected_severity"),
+    [
+        ("def list(items):\n    return items\n", "Built-in Shadowing", "warning"),
+        ('message = f"hello world"\n', "Unnecessary f-string", "info"),
+        (
+            "try:\n    risky()\nexcept:\n    pass\n",
+            "Silent Exception Swallowing",
+            "error",
+        ),
+        ('f = open("data.txt")\n', "File Handle Leak Risk", "warning"),
+        (
+            "def parse(flag):\n    if flag:\n        return 1\n    return\n",
+            "Inconsistent Return",
+            "info",
+        ),
+    ],
+)
+def test_debug_detects_new_python_bug_patterns(code, expected_type, expected_severity):
+    r = client.post("/debugging/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+
+    issue = next(i for i in r.json()["issues"] if i["type"] == expected_type)
+    assert issue["severity"] == expected_severity
+    assert issue["suggestion"]
+
+
 def test_debug_detects_eval():
-    r = client.post("/debugging/", json={"code": "x = eval(user_input)", "language": "python"})
+    r = client.post(
+        "/debugging/", json={"code": "x = eval(user_input)", "language": "python"}
+    )
     assert r.status_code == 200
     types = [i["type"] for i in r.json()["issues"]]
     assert "Eval Usage" in types
+
 
 def test_debug_clean_code():
     r = client.post("/debugging/", json={"code": PYTHON_CLEAN, "language": "python"})
@@ -152,11 +196,13 @@ def test_debug_clean_code():
     assert d["clean"] is True
     assert d["error_count"] == 0
 
+
 def test_debug_javascript():
     r = client.post("/debugging/", json={"code": JS_CODE, "language": "javascript"})
     assert r.status_code == 200
     d = r.json()
     assert d["error_count"] + d["warning_count"] + d["info_count"] > 0
+
 
 def test_debug_java():
     r = client.post("/debugging/", json={"code": JAVA_CODE, "language": "java"})
@@ -164,11 +210,13 @@ def test_debug_java():
     d = r.json()
     assert len(d["issues"]) > 0
 
+
 def test_debug_cpp():
     r = client.post("/debugging/", json={"code": CPP_CODE, "language": "cpp"})
     assert r.status_code == 200
     d = r.json()
     assert len(d["issues"]) > 0
+
 
 def test_debug_issue_has_required_fields():
     r = client.post("/debugging/", json={"code": PYTHON_BUGGY})
@@ -189,6 +237,7 @@ def test_suggestions_returns_score():
     assert 0 <= d["overall_score"] <= 100
     assert d["grade"] in ("A", "B", "C", "D", "F")
     assert "next_step" in d
+
 
 def test_suggestions_perfect_score():
     clean = """
@@ -219,6 +268,7 @@ def test_full_analyze():
     assert d["provider"] == "rule-based"
     assert d["analysis_time_ms"] is not None
 
+
 def test_full_analyze_all_languages():
     for code, lang in [
         (JS_CODE, "javascript"),
@@ -237,9 +287,11 @@ def test_missing_code_field():
     r = client.post("/analyze/", json={})
     assert r.status_code == 422
 
+
 def test_unicode_code():
     r = client.post("/explanation/", json={"code": "# こんにちは\ndef hello(): pass"})
     assert r.status_code == 200
+
 
 def test_single_line_code():
     r = client.post("/analyze/", json={"code": "print('hello')"})
