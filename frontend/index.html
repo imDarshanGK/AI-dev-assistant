@@ -744,6 +744,7 @@ footer a:hover{color:var(--accent)}
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
 </style>
+<link rel="icon" href="data:,">
 </head>
 <body>
 <div class="bg-orb bg-orb-1"></div>
@@ -1090,24 +1091,24 @@ if (themeToggleBtnInit) {
    EDITOR
 ═══════════════════════════════════════════════════════════════ */
 function updateEditor() {
-  const val = editor.value;
-  const lines = val ? val.split('\n').length : 0;
-  const chars = val.length;
-  const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-  charCount.textContent = val
-    ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
-    : 'Paste or type code to begin';
-  const lineCount = Math.max(lines, 1);
-  lineNumbers.innerHTML = val
-    ? Array.from({length: lineCount}, (_, i) => i + 1).join('<br>')
-    : '1';
+    const val = editor.value;
+    const lines = val ? val.split('\n').length : 0;
+    const chars = val.length;
+    const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
+
+    if (charCount) {
+        charCount.textContent = val 
+            ? `${chars.toLocaleString()} chars · ${lines} lines · ${nonBlank} non-blank`
+            : 'Paste or type code to begin';
+    }
+
+    const lineCount = Math.max(lines, 1);
+    if (lineNumbers) {
+        lineNumbers.innerHTML = val 
+            ? Array.from({length: lineCount}, (_, i) => i + 1).join('<br>')
+            : '1';
+    }
 }
-
-editor.addEventListener('input', updateEditor);
-editor.addEventListener('scroll', () => {
-  lineNumbers.scrollTop = editor.scrollTop;
-});
-
 // Tab key support
 editor.addEventListener('keydown', e => {
 
