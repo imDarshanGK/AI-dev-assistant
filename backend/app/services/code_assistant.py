@@ -230,10 +230,15 @@ BUG_PATTERNS: list[BugPattern] = [
                "Single quotes are used for strings. In C++, single quotes are strictly for single characters.",
                "Use double quotes `\"...\"` for string literals.",
                "error", ["C++"]),
-    BugPattern("Missing Semicolon", r"^(?!.*\bif\b)(?!.*\bfor\b)(?!.*\bwhile\b).*?\b(cout|cin|return)\b[^;]*$",
+    BugPattern("Missing Semicolon", r"^(?!.*\b(if|for|while|switch|catch)\b)(?!.*[{}#])(?!^\s*(int|float|double|char|long|short|bool|string|void)\s+\w+\s*\([^)]*\)\s*$).*\b(cout|cin|return|int|float|double|char|long|short|bool|string)\b[^;]*[^\s;]\s*$",
                "Missing semicolon at the end of the statement.",
                "Add a semicolon `;` at the end of the line.",
                "error", ["C++"]),
+
+    BugPattern("Incomplete Assignment", r"=\s*$",
+               "Statement ends abruptly with an assignment operator.",
+               "Provide a value for the assignment.",
+               "error", ["C++", "Java", "Python", "JavaScript", "TypeScript"]),
     BugPattern("Semicolon After Loop", r"\b(for|while)\s*\([^)]*\)\s*;",
                "Semicolon immediately after loop condition creates an empty loop body.",
                "Remove the semicolon so the loop executes the intended block.",
@@ -278,6 +283,18 @@ BUG_PATTERNS: list[BugPattern] = [
                "Returning the address of a local variable creates a dangling pointer.",
                "Return by value, or allocate on the heap and return a smart pointer.",
                "error", ["C++"]),
+    BugPattern("Missing Hash in Include", r"^\s*include\s*[<\"]",
+               "Preprocessor directives must start with a `#`.",
+               "Add a `#` at the beginning of the line (e.g., `#include`).",
+               "error", ["C++"]),
+    BugPattern("Semicolon in Condition", r"\b(if|while|switch)\s*\([^)]*;\s*\)",
+               "Condition blocks (if, while, switch) should not contain semicolons.",
+               "Remove the semicolon from inside the parentheses.",
+               "error", ["C++", "Java", "JavaScript", "TypeScript"]),
+    BugPattern("Malformed For-Loop", r"\bfor\s*\([^;:]*(?:;[^;:]*)?\)",
+               "A traditional for-loop must contain exactly two semicolons.",
+               "Ensure you have two semicolons separating the initialization, condition, and increment statements.",
+               "error", ["C++", "Java", "JavaScript", "TypeScript"]),
 ]
 
 
@@ -399,6 +416,16 @@ def run_suggestions(code: str, language: str) -> dict:
                 "category": "Configuration",
                 "description": "Environment variables accessed without validation.",
                 "example": "import { z } from 'zod';\nconst env = z.object({ PORT: z.string() }).parse(process.env);",
+                "priority": "medium",
+            })
+
+    # std::endl Performance (only if in a file with loops)
+    if language == "C++":
+        if re.search(r"<<\s*(std::)?endl\b", code) and re.search(r"\b(for|while)\b", code):
+            suggestions.append({
+                "category": "Performance",
+                "description": "Code contains both a loop and `std::endl`. If `std::endl` is used inside the loop, it flushes the buffer on every iteration, severely degrading performance.",
+                "example": "std::cout << value << '\\n';",
                 "priority": "medium",
             })
 
