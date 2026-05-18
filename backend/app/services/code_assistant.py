@@ -33,6 +33,10 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"#include\s*<", r"\bstd::\w+", r"\bcout\s*<<",
         r"\bint\s+main\s*\(", r"::\w+",
     ],
+        "Go": [
+        r"\bfunc\s+\w+\s*\(", r"\bpackage\s+\w+", r"\bimport\s+\"",
+        r"fmt\.Print", r"\bgo\s+func\b", r":=",                       
+    ],
 }
 
 
