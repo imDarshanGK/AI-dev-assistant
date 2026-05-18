@@ -47,6 +47,13 @@ body {
   transition: background var(--transition), color var(--transition);
 }
 
+*:focus-visible {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
+  border-radius: 2px;
+}
+
 /* ── Nav ── */
 .nav {
   position: sticky;

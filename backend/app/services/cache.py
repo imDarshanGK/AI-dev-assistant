@@ -4,7 +4,7 @@ import logging
 import time
 from threading import Lock
 
-from app.config import settings
+from ..config import settings
 
 logger = logging.getLogger("ai_assistant.api")
 

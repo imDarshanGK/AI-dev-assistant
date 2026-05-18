@@ -1,36 +1,59 @@
 """
-QyverixAI — AI Developer Assistant Backend
-FastAPI application entry point
+QyverixAI — Backend API
+FastAPI application with advanced middleware, rate limiting, and full analysis engine.
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 import time
-import uuid
 import os
-import logging
+from collections import defaultdict
+from contextlib import asynccontextmanager
 
-from app.routers import explanation, debugging, suggestions, analyze
+from .routers import explanation, debugging, suggestions, analyze
+from .schemas import HealthResponse
 
-# ── Logging ──
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-)
-logger = logging.getLogger("qyverix")
 
-# ── App ──
+# ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
+RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
+_request_counts: dict[str, list[float]] = defaultdict(list)
+
+
+def check_rate_limit(ip: str) -> None:
+    now = time.time()
+    window = 60.0
+    _request_counts[ip] = [t for t in _request_counts[ip] if now - t < window]
+    if len(_request_counts[ip]) >= RATE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded. Max {RATE_LIMIT} requests/minute.",
+        )
+    _request_counts[ip].append(now)
+
+
+# ── Lifespan ──────────────────────────────────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("🚀 QyverixAI backend starting…")
+    yield
+    print("🛑 QyverixAI backend shutting down…")
+
+
+# ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="QyverixAI",
-    description="Open-source AI Developer Assistant - code explanation, debugging, and improvement suggestions.",
-    version="2.0.0",
+    description="AI-powered developer assistant — code explanation, debugging, and improvement.",
+    version="3.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
-# ── CORS ──
+# ── Middleware ────────────────────────────────────────────────────────────────
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -39,77 +62,66 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Request ID + Timing Middleware ──
+
 @app.middleware("http")
-async def request_middleware(request: Request, call_next):
-    request_id = str(uuid.uuid4())[:8]
-    start = time.time()
+async def add_process_time_header(request: Request, call_next):
+    start = time.perf_counter()
+    ip = request.client.host if request.client else "unknown"
+
+    # Apply rate limiting to analysis endpoints only
+    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
+        check_rate_limit(ip)
+
     response = await call_next(request)
-    duration = round((time.time() - start) * 1000, 2)
-    response.headers["X-Request-ID"] = request_id
-    response.headers["X-Response-Time"] = f"{duration}ms"
-    logger.info(f"[{request_id}] {request.method} {request.url.path} → {response.status_code} ({duration}ms)")
+    elapsed = (time.perf_counter() - start) * 1000
+    response.headers["X-Process-Time-Ms"] = f"{elapsed:.2f}"
+    response.headers["X-QyverixAI-Version"] = "3.0.0"
     return response
 
-# ── Exception Handler ──
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled error: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "An internal server error occurred. Please try again."}
-    )
 
-# ── Routers ──
+# ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
-app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
+app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 
-# ── Serve frontend if built ──
-# Try multiple possible paths (backend Dockerfile vs root Dockerfile context)
-possible_frontends = [
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend")),  # backend/Dockerfile build
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend")),         # root Dockerfile build
-    "/app/frontend",                                                                     # root Dockerfile explicit
-]
-FRONTEND_PATH = None
-for path in possible_frontends:
-    if os.path.isdir(path):
-        FRONTEND_PATH = path
-        logger.info(f"Frontend mounted from: {FRONTEND_PATH}")
-        app.mount("/app", StaticFiles(directory=FRONTEND_PATH, html=True), name="frontend")
-        break
-if not FRONTEND_PATH:
-    logger.warning(f"Frontend directory not found. Checked: {possible_frontends}")
 
-# ── Root ──
-@app.get("/", include_in_schema=False)
-def root():
-    return RedirectResponse(url="/app/")
+# ── Core Endpoints ────────────────────────────────────────────────────────────
+@app.get("/", response_model=HealthResponse, tags=["System"])
+async def root():
+    return {
+        "status": "ok",
+        "version": "3.0.0",
+        "message": "QyverixAI API is running.",
+        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+    }
+
+
+@app.get("/health", response_model=HealthResponse, tags=["System"])
+async def health_check():
+    return {
+        "status": "ok",
+        "version": "3.0.0",
+        "message": "QyverixAI is healthy",
+        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+    }
 
 
 @app.get("/ping", tags=["System"])
-def ping():
+async def ping():
     return {"message": "pong"}
 
-# ── Health ──
-@app.get("/health", tags=["System"])
-def health():
-    return {
-        "status": "ok",
-        "version": "2.0.0",
-        "provider": os.getenv("AI_PROVIDER", "rule-based"),
-        "llm_enabled": os.getenv("LLM_ENABLED", "false").lower() == "true",
-    }
 
-# ── Info ──
-@app.get("/info", tags=["System"])
-def info():
-    return {
-        "name": "QyverixAI",
-        "description": "Open-source AI Developer Assistant",
-        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
-        "docs": "/docs",
-        "github": "https://github.com/imDarshanGK/AI-dev-assistant"
-    }
+# ── Static / Frontend ─────────────────────────────────────────────────────────
+_frontend = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
+if os.path.isdir(_frontend):
+    app.mount("/app", StaticFiles(directory=_frontend, html=True), name="frontend")
+
+
+# ── Global error handler ──────────────────────────────────────────────────────
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error. Please try again."},
+    )

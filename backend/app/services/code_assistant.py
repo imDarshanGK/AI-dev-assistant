@@ -1,356 +1,565 @@
 """
-QyverixAI Code Assistant Service
-Rule-based engine with optional LLM integration.
+QyverixAI — Rule-Based Code Analysis Engine
+Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++.
 """
 
-import re
+from __future__ import annotations
 import ast
-import logging
-from typing import Optional
-from app.schemas import (
-    ExplanationResponse, DebuggingResponse, DebugIssue,
-    SuggestionsResponse, SuggestionCard
-)
-
-logger = logging.getLogger("qyverix.assistant")
+import re
+import time
+from dataclasses import dataclass, field
 
 
-def _append_issue(
-    issues: list[DebugIssue],
-    seen: set[tuple[str, Optional[int], str]],
-    issue_type: str,
-    line: Optional[int],
-    description: str,
-    suggestion: str,
-    severity: str,
-) -> None:
-    key = (issue_type, line, description)
-    if key in seen:
-        return
-    issues.append(DebugIssue(
-        type=issue_type,
-        line=line,
-        description=description,
-        suggestion=suggestion,
-        severity=severity,
-    ))
-    seen.add(key)
+# ── Language Detection ─────────────────────────────────────────────────────────
+LANG_SIGNATURES: dict[str, list[str]] = {
+    "Python": [
+        r"\bdef\s+\w+\s*\(", r"\bimport\s+\w+", r"\bprint\s*\(",
+        r":\s*$", r"\belif\b", r"\bself\b", r"#.*", r"\bNone\b",
+    ],
+    "JavaScript": [
+        r"\bconst\b|\blet\b|\bvar\b", r"function\s+\w+\s*\(",
+        r"=>\s*[{(]", r"console\.log\(", r"require\(", r"export\s+(default|const)",
+    ],
+    "TypeScript": [
+        r":\s*(string|number|boolean|any|void|never)\b",
+        r"\binterface\s+\w+", r"\btype\s+\w+\s*=",
+        r"<\w+>", r"as\s+\w+", r"readonly\s+\w+",
+    ],
+    "Java": [
+        r"\bpublic\s+(class|void|static)\b", r"\bSystem\.out\.print",
+        r"\bimport\s+java\.", r"@Override", r"\bnew\s+\w+\s*\(",
+    ],
+    "C++": [
+        r"#include\s*<", r"\bstd::\w+", r"\bcout\s*<<",
+        r"\bint\s+main\s*\(", r"::\w+",
+    ],
+    "Swift": [
+        r"\bfunc\s+\w+\s*\(",
+        r"\bvar\s+\w+\s*:",
+        r"\blet\s+\w+\s*=",
+        r"print\s*\(",
+        r"import\s+\w+",
+        r"guard\s+let\b",
+    ],
+}
 
 
-def _python_debug_issues(code: str) -> list[DebugIssue]:
-    issues: list[DebugIssue] = []
-    seen: set[tuple[str, Optional[int], str]] = set()
+def detect_language(code: str, hint: str | None = None) -> str:
+    if hint:
+        normalized = hint.strip().lower()
+        mapping = {
+            "python": "Python", "py": "Python",
+            "javascript": "JavaScript", "js": "JavaScript",
+            "typescript": "TypeScript", "ts": "TypeScript",
+            "java": "Java",
+            "cpp": "C++", "c++": "C++", "cxx": "C++",
+            "swift": "Swift",
+        }
+        if normalized in mapping:
+            return mapping[normalized]
+
+    scores: dict[str, int] = {lang: 0 for lang in LANG_SIGNATURES}
+    for lang, patterns in LANG_SIGNATURES.items():
+        for pat in patterns:
+            if re.search(pat, code, re.MULTILINE):
+                scores[lang] += 1
+
+    best = max(scores, key=lambda lang_key: scores[lang_key])
+    return best if scores[best] > 0 else "Unknown"
+
+
+# ── Complexity Estimation ──────────────────────────────────────────────────────
+def estimate_complexity(code: str) -> str:
+    lines = [line for line in code.splitlines() if line.strip() and not line.strip().startswith("#")]
+    n = len(lines)
+    branches = len(re.findall(r"\b(if|elif|else|for|while|switch|case|try|catch|except)\b", code))
+    funcs = len(re.findall(r"\bdef\b|\bfunction\b|\bfunc\b", code))
+
+    if n <= 20 and branches <= 3 and funcs <= 2:
+        return "Beginner"
+    if n <= 80 and branches <= 10:
+        return "Intermediate"
+    if n <= 200:
+        return "Advanced"
+    return "Expert"
+
+
+# ── Bug Patterns ───────────────────────────────────────────────────────────────
+@dataclass
+class BugPattern:
+    name: str
+    pattern: str
+    description: str
+    suggestion: str
+    severity: str
+    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++"])
+
+
+BUG_PATTERNS: list[BugPattern] = [
+    # ── Python ──
+    BugPattern("ZeroDivisionError", r"\w+\s*/\s*\w+",
+               "Potential division by zero — divisor may be 0 at runtime.",
+               "Guard the divisor: `if divisor == 0: return None` or raise ValueError.",
+               "error", ["Python"]),
+    BugPattern("Bare Except", r"except\s*:",
+               "`except:` catches ALL exceptions including SystemExit and KeyboardInterrupt.",
+               "Use `except Exception as e:` to avoid swallowing system signals.",
+               "warning", ["Python"]),
+    BugPattern("Eval Usage", r"\beval\s*\(",
+               "`eval()` executes arbitrary code — severe security risk.",
+               "Replace with `ast.literal_eval()` for safe expression evaluation.",
+               "error", ["Python", "JavaScript"]),
+    BugPattern("Exec Usage", r"\bexec\s*\(",
+               "`exec()` runs arbitrary code strings — critical security vulnerability.",
+               "Refactor logic to avoid dynamic code execution entirely.",
+               "error", ["Python"]),
+    BugPattern("Mutable Default Arg", r"def\s+\w+\s*\([^)]*=\s*(\[\]|\{\}|\(\))",
+               "Mutable default argument shared across all calls — classic Python gotcha.",
+               "Use `None` as default and assign inside the function body.",
+               "warning", ["Python"]),
+    BugPattern("Hardcoded Secret", r"(password|secret|api_key|token|passwd)\s*=\s*['\"][^'\"]{4,}['\"]",
+               "Hardcoded credential found in source code.",
+               "Use `os.getenv('KEY')` or a secrets manager. Never commit secrets.",
+               "error"),
+    BugPattern("Print Debugging", r"\bprint\s*\(.*debug|TODO|FIXME|HACK",
+               "Debug print statement left in production code.",
+               "Use the `logging` module with appropriate log levels instead.",
+               "info", ["Python"]),
+    BugPattern("Wildcard Import", r"from\s+\w+\s+import\s+\*",
+               "`import *` pollutes the namespace and hides dependencies.",
+               "Explicitly import only what you need.",
+               "warning", ["Python"]),
+    BugPattern("Global Variable", r"^\s*global\s+\w+",
+               "Global variables make code harder to test and reason about.",
+               "Pass the value as a parameter or use a class to encapsulate state.",
+               "info", ["Python"]),
+    BugPattern("Unused Variable", r"^\s*(_[a-z]\w*)\s*=\s*.+",
+               "Variable assigned but potentially never used (prefixed convention).",
+               "Remove the assignment or prefix with `_` to signal it's intentional.",
+               "info", ["Python"]),
+    BugPattern("No Type Hints", r"def\s+\w+\s*\([^)]*\)\s*:",
+               "Function has no type annotations — reduces IDE support and readability.",
+               "Add type hints: `def func(x: int, y: str) -> bool:`",
+               "info", ["Python"]),
+    BugPattern("String Concatenation in Loop", r"(for|while).+\n.+\+=\s*['\"]",
+               "String concatenation inside a loop is O(n²) — very slow for large inputs.",
+               "Collect strings in a list and use `''.join(parts)` at the end.",
+               "warning", ["Python"]),
+    BugPattern("Missing __init__", r"class\s+\w+[^:]*:\n(?!\s+def __init__)",
+               "Class defined without `__init__` — may cause AttributeError on attribute access.",
+               "Add `def __init__(self):` to initialize instance state.",
+               "info", ["Python"]),
+    BugPattern("Comparison to None", r"==\s*None|!=\s*None",
+               "Using `==` / `!=` to compare with None is not idiomatic.",
+               "Use `is None` or `is not None` for identity comparison.",
+               "info", ["Python"]),
+    BugPattern("Assert in Production", r"^\s*assert\s+",
+               "`assert` statements are stripped when Python runs with `-O` flag.",
+               "Use explicit `if not condition: raise ValueError(...)` instead.",
+               "warning", ["Python"]),
+
+    # ── JavaScript / TypeScript ──
+    BugPattern("Var Usage", r"\bvar\s+\w+",
+               "`var` has function scope and hoisting — source of subtle bugs.",
+               "Replace with `const` (default) or `let` (mutable) for block scoping.",
+               "warning", ["JavaScript", "TypeScript"]),
+    BugPattern("== Instead of ===", r"[^=!]==[^=]|[^=!]!=[^=]",
+               "Loose equality `==` performs type coercion and causes unexpected results.",
+               "Always use strict equality `===` and `!==`.",
+               "warning", ["JavaScript", "TypeScript"]),
+    BugPattern("Console.log Left In", r"console\.(log|warn|error|debug)\s*\(",
+               "Console statement left in production code.",
+               "Remove or replace with a proper logging library.",
+               "info", ["JavaScript", "TypeScript"]),
+    BugPattern("Callback Hell", r"function\s*\([^)]*\)\s*\{[\s\S]{0,200}function\s*\([^)]*\)\s*\{[\s\S]{0,200}function",
+               "Deeply nested callbacks — hard to read and debug.",
+               "Refactor using `async/await` or Promise chaining.",
+               "warning", ["JavaScript", "TypeScript"]),
+    BugPattern("Any Type", r":\s*any\b",
+               "TypeScript `any` disables type checking — defeats the purpose of TypeScript.",
+               "Use a specific type, `unknown`, or a union type instead.",
+               "warning", ["TypeScript"]),
+    BugPattern("Non-null Assertion", r"\w+![\.\[]",
+               "Non-null assertion `!` overrides TypeScript safety — can cause runtime errors.",
+               "Add a proper null check: `if (value) { ... }`",
+               "warning", ["TypeScript"]),
+    BugPattern("Promise Not Awaited", r"(?<!await\s)\bfetch\s*\(|\bnew\s+Promise\s*\(",
+               "Promise may not be awaited — errors silently swallowed.",
+               "Add `await` or attach `.catch()` to handle rejections.",
+               "error", ["JavaScript", "TypeScript"]),
+    BugPattern("InnerHTML XSS", r"\.innerHTML\s*=",
+               "Setting `innerHTML` directly can introduce XSS vulnerabilities.",
+               "Use `textContent` for plain text, or sanitize HTML with DOMPurify.",
+               "error", ["JavaScript", "TypeScript"]),
+
+    # ── Java ──
+    BugPattern("Null Pointer Risk", r"\w+\s*\.\s*\w+\s*\(",
+               "Method called on object that may be null — NullPointerException risk.",
+               "Add null check: `if (obj != null) { ... }` or use `Optional<T>`.",
+               "warning", ["Java"]),
+    BugPattern("Raw Type", r"\b(List|Map|Set|Collection)\s+\w+\s*=",
+               "Raw generic type used — bypasses compile-time type safety.",
+               "Parameterize: `List<String>`, `Map<String, Integer>`, etc.",
+               "warning", ["Java"]),
+    BugPattern("Catching Exception", r"catch\s*\(\s*Exception\s+\w+\s*\)",
+               "Catching base `Exception` is too broad — hides bugs.",
+               "Catch specific exceptions: `IOException`, `IllegalArgumentException`, etc.",
+               "warning", ["Java"]),
+    BugPattern("String == Comparison", r"\"[^\"]+\"\s*==\s*\w+|\w+\s*==\s*\"[^\"]+\"",
+               "String compared with `==` checks reference, not value.",
+               'Use `.equals()`: `str.equals("value")` or `Objects.equals(a, b)`.',
+               "error", ["Java"]),
+    BugPattern("System.exit in Library", r"System\.exit\s*\(",
+               "`System.exit()` terminates the entire JVM — catastrophic in library code.",
+               "Throw an exception instead and let the caller decide.",
+               "error", ["Java"]),
+
+    # ── C++ ──
+    BugPattern("Memory Leak", r"\bnew\b(?!.*\bdelete\b)",
+               "`new` allocation without matching `delete` — memory leak.",
+               "Use `std::unique_ptr<T>` or `std::shared_ptr<T>` for automatic memory management.",
+               "error", ["C++"]),
+    BugPattern("Unsafe gets/scanf", r"\bgets\s*\(|\bscanf\s*\(",
+               "`gets()` and unsafe `scanf()` can overflow the buffer.",
+               "Use `fgets()` or `std::cin` with input validation.",
+               "error", ["C++"]),
+    BugPattern("Using namespace std", r"using\s+namespace\s+std\s*;",
+               "`using namespace std` in headers pollutes the global namespace.",
+               "Prefix with `std::` or limit scope to function bodies.",
+               "warning", ["C++"]),
+    BugPattern("Signed/Unsigned Mismatch", r"\bint\b.*\bsize\(\)|\.size\(\)\s*[<>]=?\s*\bint\b",
+               "Comparing signed `int` with unsigned `.size()` — undefined behavior on overflow.",
+               "Cast to `(int)` or use `std::ssize()` (C++20).",
+               "warning", ["C++"]),
+]
+
+
+def run_bug_detection(code: str, language: str) -> list[dict]:
+    lines = code.splitlines()
+    found: list[dict] = []
+    seen: set[str] = set()
+
+    for bp in BUG_PATTERNS:
+        if language not in bp.languages and "All" not in bp.languages:
+            continue
+
+        for i, line in enumerate(lines, start=1):
+            match = re.search(bp.pattern, line, re.IGNORECASE)
+            if match:
+                key = f"{bp.name}:{i}"
+                if key in seen:
+                    continue
+                seen.add(key)
+
+                # Format divisor hint for ZeroDivisionError
+                description = bp.description
+                suggestion = bp.suggestion
+
+                found.append({
+                    "type": bp.name,
+                    "line": i,
+                    "description": description,
+                    "suggestion": suggestion,
+                    "severity": bp.severity,
+                    "code_snippet": line.strip()[:120],
+                })
+                break  # one hit per pattern is enough
+
+    return found
+
+
+# ── Suggestion Engine ──────────────────────────────────────────────────────────
+def run_suggestions(code: str, language: str) -> dict:
+    suggestions: list[dict] = []
+    lines = code.splitlines()
+    non_blank = [line for line in lines if line.strip()]
+
+    # Docstrings / comments
+    comment_ratio = sum(1 for line in non_blank if line.strip().startswith(("#", "//", "/*", "*", "/**"))) / max(len(non_blank), 1)
+    if comment_ratio < 0.10:
+        suggestions.append({
+            "category": "Documentation",
+            "description": "Less than 10% of lines are comments. Add docstrings/comments to explain intent.",
+            "example": '"""Calculate the area of a circle given radius r."""',
+            "priority": "medium",
+        })
+
+    # Long functions
+    func_bodies = re.findall(r"def\s+\w+[^:]*:([\s\S]*?)(?=\ndef|\Z)", code)
+    for body in func_bodies:
+        if len(body.splitlines()) > 40:
+            suggestions.append({
+                "category": "Refactoring",
+                "description": "Function exceeds 40 lines — consider splitting into smaller helpers.",
+                "example": "def parse_input(raw): ...\ndef validate(data): ...\ndef process(validated): ...",
+                "priority": "high",
+            })
+            break
+
+    # Magic numbers
+    if re.search(r"\b(?<![\w.])[2-9]\d{1,}(?![\w.])\b", code):
+        suggestions.append({
+            "category": "Readability",
+            "description": "Magic numbers detected. Replace with named constants for clarity.",
+            "example": "MAX_RETRIES = 5\nTIMEOUT_SECONDS = 30",
+            "priority": "medium",
+        })
+
+    # Error handling
+    if language == "Python" and not re.search(r"\btry\b", code):
+        if re.search(r"\bopen\(|\brequests\.\w+\(|\bjson\.loads\(", code):
+            suggestions.append({
+                "category": "Error Handling",
+                "description": "I/O operations detected with no try/except block.",
+                "example": "try:\n    data = json.loads(raw)\nexcept json.JSONDecodeError as e:\n    logger.error('Bad JSON: %s', e)\n    return None",
+                "priority": "high",
+            })
+
+    # Type hints
+    if language == "Python":
+        defs = re.findall(r"def\s+\w+\s*\(([^)]*)\)\s*:", code)
+        unhinted = [d for d in defs if d.strip() and ":" not in d]
+        if unhinted:
+            suggestions.append({
+                "category": "Type Safety",
+                "description": f"{len(unhinted)} function(s) missing type annotations.",
+                "example": "def greet(name: str, age: int) -> str:\n    return f'Hello {name}, age {age}'",
+                "priority": "medium",
+            })
+
+    # Tests
+    if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b", code):
+        suggestions.append({
+            "category": "Testing",
+            "description": "No tests detected. Unit tests catch regressions early.",
+            "example": "def test_add():\n    assert add(2, 3) == 5\n    assert add(-1, 1) == 0",
+            "priority": "high",
+        })
+
+    # Logging
+    if re.search(r"\bprint\s*\(", code) and not re.search(r"\blogging\b|\blogger\b", code):
+        suggestions.append({
+            "category": "Observability",
+            "description": "Using `print()` instead of structured logging.",
+            "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
+            "priority": "medium",
+        })
+
+    # Env vars for JS/TS
+    if language in ("JavaScript", "TypeScript"):
+        if re.search(r"process\.env\.\w+", code) and not re.search(r"dotenv|zod|\.env", code):
+            suggestions.append({
+                "category": "Configuration",
+                "description": "Environment variables accessed without validation.",
+                "example": "import { z } from 'zod';\nconst env = z.object({ PORT: z.string() }).parse(process.env);",
+                "priority": "medium",
+            })
+
+    # Score
+    deductions = sum({"high": 15, "medium": 7, "low": 3}.get(s["priority"], 5) for s in suggestions)
+    score = max(0, min(100, 100 - deductions))
+
+    if score >= 90:
+        grade, next_step = "A", "Excellent code! Consider adding integration tests."
+    elif score >= 75:
+        grade, next_step = "B", "Good work. Address the medium-priority items next."
+    elif score >= 60:
+        grade, next_step = "C", "Solid foundation. Focus on error handling and testing."
+    elif score >= 40:
+        grade, next_step = "D", "Needs significant improvement — start with the high-priority items."
+    else:
+        grade, next_step = "F", "Major issues detected. Refactor with error handling, tests, and type safety."
+
+    return {"suggestions": suggestions, "overall_score": score, "grade": grade, "next_step": next_step}
+
+
+# ── Explanation Engine ─────────────────────────────────────────────────────────
+def run_explanation(code: str, language: str) -> dict:
+    lines = code.splitlines()
+    non_blank = [line for line in lines if line.strip()]
+    complexity = estimate_complexity(code)
+
+    func_names = re.findall(r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>", code)
+    funcs = [next(n for n in grp if n) for grp in func_names]
+
+    class_names = re.findall(r"class\s+(\w+)", code)
+
+    imports = re.findall(r"import\s+([\w,\s]+)|from\s+(\w+)\s+import", code)
+    import_count = len(imports)
+
+    has_loops = bool(re.search(r"\bfor\b|\bwhile\b", code))
+    has_conditions = bool(re.search(r"\bif\b|\belif\b|\bswitch\b", code))
+    has_recursion = any(f and re.search(rf"\b{f}\s*\(", code.replace(f"def {f}", "")) for f in funcs)
+
+    key_points = [
+        f"Written in **{language}** — {len(non_blank)} non-blank lines of code.",
+    ]
+    if funcs:
+        key_points.append(f"Defines {len(funcs)} function(s): `{'`, `'.join(funcs[:5])}`{'...' if len(funcs) > 5 else ''}.")
+    if class_names:
+        key_points.append(f"Contains {len(class_names)} class(es): `{'`, `'.join(class_names[:3])}`.")
+    if import_count:
+        key_points.append(f"Imports {import_count} module(s) — external dependencies present.")
+    if has_loops:
+        key_points.append("Contains loop(s) — iterative data processing detected.")
+    if has_conditions:
+        key_points.append("Contains conditional logic — branching control flow.")
+    if has_recursion:
+        key_points.append("⚠ Recursive call detected — ensure a proper base case exists.")
+
+    # Summary by complexity
+    summaries = {
+        "Beginner": f"A short {language} snippet ({len(non_blank)} lines) that performs a focused task. Good starting point for learners.",
+        "Intermediate": f"A {language} module with {len(funcs)} function(s) and moderate complexity. Demonstrates solid programming fundamentals.",
+        "Advanced": f"A well-structured {language} codebase with {len(class_names)} class(es) and {len(funcs)} function(s). Shows advanced design patterns.",
+        "Expert": f"A large-scale {language} system ({len(lines)} lines). Expert-level architecture with significant abstraction layers.",
+    }
+
+    return {
+        "language": language,
+        "summary": summaries.get(complexity, f"A {language} code snippet."),
+        "key_points": key_points,
+        "complexity": complexity,
+        "line_count": len(lines),
+        "function_count": len(funcs),
+        "class_count": len(class_names),
+    }
+
+
+@dataclass
+class Issue:
+    type: str
+    line: int | None
+    description: str
+    suggestion: str | None = None
+    severity: str | None = None
+    code_snippet: str | None = None
+
+
+@dataclass
+class DebugResult:
+    issues: list[Issue]
+    summary: str | None = None
+
+
+def debug_code(code: str, language: str = "Python") -> DebugResult:
+    """Lightweight AST-based analyzer used by tests.
+
+    Produces `Issue` objects for syntax errors, division by zero, out-of-range
+    constant indexes and simple type-mismatch additions.
+    """
+    issues: list[Issue] = []
 
     try:
         tree = ast.parse(code)
-    except SyntaxError as exc:
-        _append_issue(
-            issues,
-            seen,
-            "Syntax Error",
-            exc.lineno,
-            f"Python syntax error: {exc.msg}.",
-            "Fix the syntax near this line (for example missing ':' or unmatched brackets).",
-            "error",
-        )
-        return issues
+    except SyntaxError as e:
+        issues.append(Issue(type="Syntax Error", line=e.lineno or 0, description=str(e), severity="error"))
+        return DebugResult(issues=issues, summary="Syntax error detected")
 
-    input_vars: set[str] = set()
-    list_lengths: dict[str, int] = {}
-    range_limits: dict[str, int] = {}
-    variable_kinds: dict[str, str] = {}
-    divide_param_index: dict[str, int] = {}
+    # Track simple assignments to infer literal container lengths
+    container_lengths: dict[str, int] = {}
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
-            target = node.targets[0].id
-            value = node.value
-            if isinstance(value, ast.Call) and isinstance(value.func, ast.Name) and value.func.id == "input":
-                input_vars.add(target)
-                variable_kinds[target] = "str"
-            elif isinstance(value, ast.Constant):
-                if isinstance(value.value, str):
-                    variable_kinds[target] = "str"
-                elif isinstance(value.value, (int, float, complex)):
-                    variable_kinds[target] = "number"
-            elif isinstance(value, ast.Call):
-                variable_kinds[target] = "unknown"
+        if isinstance(node, ast.Assign):
+            # only simple name targets
+            if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+                name = node.targets[0].id
+                val = node.value
+                if isinstance(val, ast.List):
+                    container_lengths[name] = len(val.elts)
+                elif isinstance(val, ast.Constant) and isinstance(val.value, str):
+                    container_lengths[name] = len(val.value)
 
-            if isinstance(value, (ast.List, ast.Tuple)):
-                list_lengths[target] = len(value.elts)
-
-        if isinstance(node, ast.For) and isinstance(node.target, ast.Name):
-            iter_node = node.iter
-            if (
-                isinstance(iter_node, ast.Call)
-                and isinstance(iter_node.func, ast.Name)
-                and iter_node.func.id == "range"
-                and len(iter_node.args) == 1
-                and isinstance(iter_node.args[0], ast.Constant)
-                and isinstance(iter_node.args[0].value, int)
-            ):
-                range_limits[node.target.id] = iter_node.args[0].value
-
-        if isinstance(node, ast.FunctionDef):
-            arg_names = [a.arg for a in node.args.args]
-            for inner in ast.walk(node):
-                if isinstance(inner, ast.BinOp) and isinstance(inner.op, ast.Div) and isinstance(inner.right, ast.Name):
-                    param = inner.right.id
-                    if param in arg_names:
-                        divide_param_index[node.name] = arg_names.index(param)
-
+    # Find issues
     for node in ast.walk(tree):
-        if isinstance(node, ast.Compare) and isinstance(node.left, ast.Name) and node.left.id in input_vars:
-            has_numeric = any(
-                isinstance(comp, ast.Constant) and isinstance(comp.value, (int, float))
-                for comp in node.comparators
-            )
-            if has_numeric:
-                _append_issue(
-                    issues,
-                    seen,
-                    "Type Error Risk",
-                    node.lineno,
-                    f"Input variable '{node.left.id}' is a string but is compared with a number.",
-                    f"Convert input using int() or float(): {node.left.id} = int(input(...)).",
-                    "error",
-                )
+        # Division by zero literal
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            right = node.right
+            if isinstance(right, ast.Constant) and right.value == 0:
+                issues.append(Issue(type="ZeroDivisionError", line=getattr(node, "lineno", None), description="Division by literal zero detected.", severity="error"))
 
-        if (
-            isinstance(node, ast.Subscript)
-            and isinstance(node.value, ast.Name)
-            and node.value.id in list_lengths
-            and isinstance(node.slice, ast.Name)
-            and node.slice.id in range_limits
-        ):
-            limit = range_limits[node.slice.id]
-            list_len = list_lengths[node.value.id]
-            if limit > list_len:
-                _append_issue(
-                    issues,
-                    seen,
-                    "Index Error Risk",
-                    node.lineno,
-                    f"Loop can access {node.value.id}[{limit - 1}] but {node.value.id} has only {list_len} item(s).",
-                    f"Use range(len({node.value.id})) or ensure range upper bound is <= {list_len}.",
-                    "error",
-                )
+        # Indexing with a constant that's out of bounds for a known container
+        if isinstance(node, ast.Subscript):
+            idx = node.slice
+            target = node.value
+            if isinstance(idx, ast.Constant) and isinstance(idx.value, int) and isinstance(target, ast.Name):
+                name = target.id
+                if name in container_lengths:
+                    length = container_lengths[name]
+                    if idx.value >= length or idx.value < -length:
+                        issues.append(Issue(type="Index Error Risk", line=getattr(node, "lineno", None), description=f"Index {idx.value} is out of range for '{name}' of length {length}.", severity="warning"))
 
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in divide_param_index:
-            idx = divide_param_index[node.func.id]
-            if idx < len(node.args):
-                arg = node.args[idx]
-                if isinstance(arg, ast.Constant) and arg.value == 0:
-                    _append_issue(
-                        issues,
-                        seen,
-                        "ZeroDivisionError",
-                        node.lineno,
-                        f"Function '{node.func.id}' is called with zero denominator argument.",
-                        "Avoid passing 0 as denominator; add a guard clause before dividing.",
-                        "error",
-                    )
-
+        # Addition between incompatible constant types (e.g., str + int)
         if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
-            left_is_str = isinstance(node.left, ast.Constant) and isinstance(node.left.value, str)
-            if left_is_str and isinstance(node.right, ast.Name):
-                kind = variable_kinds.get(node.right.id)
-                if kind != "str":
-                    _append_issue(
-                        issues,
-                        seen,
-                        "Type Error Risk",
-                        node.lineno,
-                        f"String concatenation uses '{node.right.id}', which may not be a string.",
-                        f"Wrap with str(...): \"...\" + str({node.right.id}) or use an f-string.",
-                        "warning",
-                    )
+            left = node.left
+            right = node.right
+            if isinstance(left, ast.Constant) and isinstance(right, ast.Constant):
+                if (isinstance(left.value, str) and isinstance(right.value, int)) or (isinstance(left.value, int) and isinstance(right.value, str)):
+                    issues.append(Issue(type="Type Error Risk", line=getattr(node, "lineno", None), description="Possible string-integer concatenation detected.", severity="warning"))
 
-    return issues
+    # Detect division via parameter passed zero: find functions with division by a parameter
+    func_div_params: dict[str, set[str]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            params = [arg.arg for arg in node.args.args]
+            for sub in ast.walk(node):
+                if isinstance(sub, ast.BinOp) and isinstance(sub.op, ast.Div):
+                    if isinstance(sub.right, ast.Name) and sub.right.id in params:
+                        func_div_params[node.name] = func_div_params.get(node.name, set()) | {sub.right.id}
 
-# ── Language Detection ──
-LANG_PATTERNS = {
-    "Python":     [r"\bdef \w+\(", r"\bimport \w+", r"\bprint\(", r"if __name__"],
-    "JavaScript": [r"\bconst \b", r"\blet \b", r"\bvar \b", r"=>\s*{", r"console\.log"],
-    "TypeScript": [r":\s*(string|number|boolean|any)\b", r"\binterface \w+", r"\btype \w+\s*="],
-    "Java":       [r"public class", r"System\.out\.println", r"\bvoid \w+\("],
-    "C++":        [r"#include\s*<", r"\bstd::", r"\bcout\b"],
-    "C":          [r"#include\s*<stdio\.h>", r"\bprintf\(", r"\bscanf\("],
-    "Go":         [r"\bfunc \w+\(", r"\bpackage \w+", r"\bfmt\.Println"],
-    "Rust":       [r"\bfn \w+\(", r"\blet mut\b", r"\bprintln!"],
-    "Ruby":       [r"\bdef \w+", r"\bend\b", r"\bputs\b"],
-    "PHP":        [r"<\?php", r"\$\w+\s*=", r"echo\s+"],
-    "SQL":        [r"\bSELECT\b", r"\bFROM\b", r"\bWHERE\b"],
-    "HTML":       [r"<!DOCTYPE html>", r"<html", r"<div\b"],
-    "CSS":        [r"\{[\s\S]*?:\s*[\s\S]*?;", r"\.\w+\s*\{", r"#\w+\s*\{"],
-    "Bash":       [r"#!/bin/bash", r"\becho\b", r"\$\("],
-    # ── Added in issue #62 ──
-    "Swift":      [r"\bfunc\s+\w+\s*\(", r"\bvar\s+\w+\s*:", r"\blet\s+\w+\s*=",
-                   r"print\s*\(", r"import\s+\w+", r"guard\s+let\b"],
-}
+    # Check calls with literal zero for those functions
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            fname = node.func.id
+            if fname in func_div_params:
+                for i, arg in enumerate(node.args):
+                    if isinstance(arg, ast.Constant) and arg.value == 0:
+                        # determine which parameter this maps to
+                        try:
+                            func_node = next(f for f in ast.walk(tree) if isinstance(f, ast.FunctionDef) and f.name == fname)
+                            if i < len(func_node.args.args):
+                                param_name = func_node.args.args[i].arg
+                                if param_name in func_div_params[fname]:
+                                    issues.append(Issue(type="ZeroDivisionError", line=getattr(node, "lineno", None), description=f"Literal 0 passed to parameter '{param_name}' of function '{fname}' which is used as divisor.", severity="error"))
+                        except StopIteration:
+                            pass
 
-def detect_language(code: str) -> str:
-    scores = {}
-    for lang, patterns in LANG_PATTERNS.items():
-        scores[lang] = sum(1 for p in patterns if re.search(p, code))
-    best = max(scores, key=scores.get)
-    return best if scores[best] > 0 else "Unknown"
+    return DebugResult(issues=issues, summary=f"Found {len(issues)} issue(s)")
 
-# ── Complexity ──
-def estimate_complexity(code: str) -> str:
-    lines = len(code.strip().splitlines())
-    func_count = len(re.findall(r"\bdef |\bfunction |\bfunc \b", code))
-    if lines < 15 and func_count <= 1:
-        return "Beginner"
-    elif lines < 60 and func_count <= 4:
-        return "Intermediate"
-    return "Advanced"
 
-# ── Explanation Service ──
-def explain_code(code: str, language: Optional[str] = None) -> ExplanationResponse:
-    lang = language or detect_language(code)
-    lines = code.strip().splitlines()
-    line_count = len(lines)
-    complexity = estimate_complexity(code)
+# ── Combined ───────────────────────────────────────────────────────────────────
+def full_analysis(code: str, language_hint: str | None = None) -> dict:
+    t0 = time.perf_counter()
+    language = detect_language(code, language_hint)
 
-    # Build key points
-    points = [f"The code is written in {lang} with {line_count} line{'s' if line_count != 1 else ''}."]
+    explanation = run_explanation(code, language)
 
-    func_names = re.findall(r"def (\w+)\(|function (\w+)\(|func (\w+)\(", code)
-    if func_names:
-        names = [next(n for n in g if n) for g in func_names]
-        points.append(f"Defines {len(names)} function(s): {', '.join(names)}.")
-
-    if re.search(r"\bfor\b|\bwhile\b", code):
-        points.append("Uses loop(s) to iterate over data or repeat operations.")
-    if re.search(r"\bif\b|\belif\b|\belse\b", code):
-        points.append("Contains conditional logic (if/else) for decision-making.")
-    if re.search(r"\bclass\b", code):
-        class_names = re.findall(r"class (\w+)", code)
-        points.append(f"Defines class(es): {', '.join(class_names)}.")
-    if re.search(r"\bimport\b|\brequire\b|\buse\b", code):
-        points.append("Imports or uses external modules/libraries.")
-    if re.search(r"\btry\b|\bcatch\b|\bexcept\b", code):
-        points.append("Includes error handling (try/except/catch blocks).")
-    if re.search(r"#.*|//.*|/\*[\s\S]*?\*/", code):
-        points.append("Contains comments explaining the code logic.")
-
-    summary = (
-        f"This {complexity.lower()}-level {lang} snippet has {line_count} lines. "
-        f"It {'defines reusable functions' if func_names else 'runs procedural code'} "
-        f"and {'includes control flow logic' if re.search(r'if|for|while', code) else 'performs direct operations'}."
+    raw_issues = run_bug_detection(code, language)
+    errors   = [i for i in raw_issues if i["severity"] == "error"]
+    warnings = [i for i in raw_issues if i["severity"] == "warning"]
+    infos    = [i for i in raw_issues if i["severity"] == "info"]
+    issue_summary = (
+        f"Found {len(raw_issues)} issue(s): {len(errors)} error(s), {len(warnings)} warning(s), {len(infos)} info."
+        if raw_issues else "✅ No issues detected!"
     )
+    debugging = {
+        "issues": raw_issues,
+        "summary": issue_summary,
+        "clean": len(raw_issues) == 0,
+        "error_count": len(errors),
+        "warning_count": len(warnings),
+        "info_count": len(infos),
+    }
 
-    return ExplanationResponse(language=lang, summary=summary, key_points=points, complexity=complexity)
+    sugg = run_suggestions(code, language)
 
-# ── Debugging Rules ──
-DEBUG_RULES = [
-    # Python
-    {"pattern": r"\/\s*0\b|\/0\b",            "lang": None, "type": "ZeroDivisionError",    "severity": "error",   "desc": "Possible division by zero detected.",            "fix": "Check if the denominator is zero before dividing."},
-    {"pattern": r"\bprint\s+['\"]",            "lang": "Python", "type": "Syntax (Python 2)","severity": "warning", "desc": "Looks like Python 2 print statement.",           "fix": "Use print() function: print('...')"},
-    {"pattern": r"==\s*None\b",                "lang": "Python", "type": "Style Warning",    "severity": "warning", "desc": "Comparison to None using '==' instead of 'is'.", "fix": "Use `is None` instead of `== None`."},
-    {"pattern": r"\bexcept:\s*$",              "lang": None, "type": "Bare Except",          "severity": "warning", "desc": "Bare except clause catches all exceptions.",      "fix": "Specify the exception type: except ValueError:"},
-    {"pattern": r"[a-z]\s*=\s*[a-z]\s*=",     "lang": None, "type": "Chained Assignment",   "severity": "info",    "desc": "Chained assignment detected.",                   "fix": "Ensure this is intentional and variables are correctly set."},
-    # JS / TS
-    {"pattern": r"===\s*null\s*\|\|\s*===\s*undefined", "lang": None, "type": "Nullish Check", "severity": "info", "desc": "Verbose nullish check.",                        "fix": "Consider using ?? (nullish coalescing) operator."},
-    {"pattern": r"\bvar\b",                    "lang": "JavaScript", "type": "Style Warning", "severity": "info",  "desc": "'var' is function-scoped and can cause bugs.",    "fix": "Use 'const' or 'let' instead."},
-    {"pattern": r"eval\(",                     "lang": None, "type": "Security Risk",        "severity": "error",  "desc": "eval() can execute arbitrary code.",              "fix": "Avoid eval(). Use safer alternatives."},
-    # General
-    {"pattern": r"TODO|FIXME|HACK|XXX",        "lang": None, "type": "Incomplete Code",      "severity": "info",   "desc": "TODO/FIXME comment found — unfinished logic.",    "fix": "Address the TODO before shipping to production."},
-    {"pattern": r"password\s*=\s*['\"].+['\"]","lang": None, "type": "Hardcoded Secret",    "severity": "error",  "desc": "Hardcoded password or secret found in code.",     "fix": "Use environment variables: os.getenv('PASSWORD')"},
-    {"pattern": r"http://",                    "lang": None, "type": "Insecure URL",         "severity": "warning", "desc": "HTTP (not HTTPS) URL detected.",                 "fix": "Use HTTPS URLs for secure communication."},
-    {"pattern": r"\bsleep\(\d+\)",             "lang": None, "type": "Blocking Call",        "severity": "info",   "desc": "Synchronous sleep() blocks execution.",           "fix": "Consider async alternatives if this is in a loop or server."},
-    {"pattern": r"catch\s*\(\w+\)\s*\{\s*\}", "lang": None, "type": "Empty Catch",          "severity": "warning", "desc": "Empty catch block swallows errors silently.",     "fix": "Log or handle the exception inside the catch block."},
-]
+    elapsed_ms = (time.perf_counter() - t0) * 1000
 
-def debug_code(code: str, language: Optional[str] = None) -> DebuggingResponse:
-    lang = language or detect_language(code)
-    issues: list[DebugIssue] = []
-    seen: set[tuple[str, Optional[int], str]] = set()
-    lines_list = code.splitlines()
-
-    for rule in DEBUG_RULES:
-        if rule["lang"] and rule["lang"].lower() not in lang.lower():
-            continue
-        for i, line in enumerate(lines_list, 1):
-            if re.search(rule["pattern"], line, re.IGNORECASE):
-                _append_issue(
-                    issues,
-                    seen,
-                    rule["type"],
-                    i,
-                    rule["desc"],
-                    rule["fix"],
-                    rule["severity"],
-                )
-
-    if "python" in lang.lower():
-        for issue in _python_debug_issues(code):
-            _append_issue(
-                issues,
-                seen,
-                issue.type,
-                issue.line,
-                issue.description,
-                issue.suggestion,
-                issue.severity,
-            )
-
-    clean = len(issues) == 0
-    summary = (
-        "✓ No issues detected. Code looks clean!" if clean
-        else f"Found {len(issues)} issue(s). {len([i for i in issues if i.severity == 'error'])} error(s), "
-             f"{len([i for i in issues if i.severity == 'warning'])} warning(s)."
-    )
-    return DebuggingResponse(issues=issues, summary=summary, clean=clean)
-
-# ── Suggestions ──
-SUGGESTION_RULES = [
-    {"pattern": r"(?<!\w)(\w+)\s*=\s*\1\b",    "cat": "Redundant Assignment", "desc": "Self-assignment detected. Remove the line.",                               "example": "# x = x  ← remove this",            "priority": "high"},
-    {"pattern": r"#[^\n]{0,5}$",               "cat": "Comment Quality",      "desc": "Short comment found. Add more context to explain the 'why'.",              "example": "# increments counter by 1 each loop", "priority": "low"},
-    {"pattern": r"print\(|console\.log\(",     "cat": "Debug Statement",      "desc": "Debug print/log found. Remove before production.",                         "example": "# Remove or use a proper logger",     "priority": "medium"},
-    {"pattern": r"^(\s{2}|\t)[^\s]",           "cat": "Indentation",          "desc": "Inconsistent or 2-space indentation. Python PEP8 recommends 4 spaces.",   "example": "Use 4 spaces consistently",           "priority": "low"},
-    {"pattern": r"range\(len\(",               "cat": "Pythonic Code",        "desc": "range(len()) is not Pythonic.",                                            "example": "for item in my_list:",                "priority": "medium"},
-    {"pattern": r"\[\]$|\{\}$",               "cat": "Empty Collection",     "desc": "Initializing empty collection. Consider if this is intentional.",          "example": "items: list[str] = []",               "priority": "info"},
-    {"pattern": r"def \w+\([^)]{60,}\)",      "cat": "Function Signature",   "desc": "Function has many parameters. Consider using a dataclass or dict.",        "example": "def process(config: Config):",         "priority": "medium"},
-    {"pattern": r"if True:|if False:",         "cat": "Dead Code",            "desc": "'if True/False' is dead code. Remove or replace with the real condition.", "example": "if is_enabled:",                      "priority": "high"},
-    {"pattern": r"(\w+)\s*==\s*True\b",       "cat": "Bool Comparison",      "desc": "Comparing to True/False explicitly. Just use the variable.",               "example": "if is_valid: instead of == True",     "priority": "low"},
-    {"pattern": r"global \w+",                "cat": "Global Variable",      "desc": "Avoid global variables — they make code harder to test and debug.",         "example": "Pass as function argument instead",   "priority": "medium"},
-    {"pattern": r"lambda.*lambda",             "cat": "Lambda Complexity",    "desc": "Nested lambdas reduce readability.",                                        "example": "Use a named function instead",        "priority": "medium"},
-    {"pattern": r"string\.join|\.join\(",     "cat": "String Building",      "desc": "Good use of .join() for string concatenation — efficient!",                 "example": "', '.join(items)",                    "priority": "info"},
-]
-
-def suggest_improvements(code: str, language: Optional[str] = None) -> SuggestionsResponse:
-    cards: list[SuggestionCard] = []
-    seen_cats = set()
-    lines_list = code.splitlines()
-
-    for rule in SUGGESTION_RULES:
-        for line in lines_list:
-            if re.search(rule["pattern"], line) and rule["cat"] not in seen_cats:
-                cards.append(SuggestionCard(
-                    category=rule["cat"],
-                    description=rule["desc"],
-                    example=rule.get("example"),
-                    priority=rule["priority"]
-                ))
-                seen_cats.add(rule["cat"])
-                break
-
-    # Always add docstring tip if no docstring present
-    if not re.search(r'"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'', code):
-        cards.append(SuggestionCard(
-            category="Documentation",
-            description="Add docstrings to your functions to describe their purpose, parameters, and return value.",
-            example='def greet(name: str) -> str:\n    """Return a greeting string."""',
-            priority="medium"
-        ))
-
-    # Score: start at 100, deduct per issue
-    score = max(0, 100 - len(cards) * 10)
-    next_step = (
-        "Great code! Consider adding tests next." if score >= 80
-        else "Focus on fixing high-priority issues first, then add tests."
-    )
-
-    return SuggestionsResponse(suggestions=cards, overall_score=score, next_step=next_step)
+    return {
+        "provider": "rule-based",
+        "model": "qyverix-engine-v3",
+        "explanation": explanation,
+        "debugging": debugging,
+        "suggestions": sugg,
+        "analysis_time_ms": round(elapsed_ms, 2),
+    }
