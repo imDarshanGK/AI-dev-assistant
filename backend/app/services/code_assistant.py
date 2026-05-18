@@ -35,7 +35,7 @@ LANG_SIGNATURES: dict[str, list[str]] = {
     ],
         "Go": [
         r"\bfunc\s+\w+\s*\(", r"\bpackage\s+\w+", r"\bimport\s+\"",
-        r"fmt\.Print", r"\bgo\s+func\b", r":=",                       
+        r"fmt\.Print", r"\bgo\s+func\b", r":=",
     ],
 }
 
