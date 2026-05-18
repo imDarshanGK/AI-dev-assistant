@@ -184,6 +184,9 @@ LANG_PATTERNS = {
     "HTML":       [r"<!DOCTYPE html>", r"<html", r"<div\b"],
     "CSS":        [r"\{[\s\S]*?:\s*[\s\S]*?;", r"\.\w+\s*\{", r"#\w+\s*\{"],
     "Bash":       [r"#!/bin/bash", r"\becho\b", r"\$\("],
+    # ── Added in issue #62 ──
+    "Swift":      [r"\bfunc\s+\w+\s*\(", r"\bvar\s+\w+\s*:", r"\blet\s+\w+\s*=",
+                   r"print\s*\(", r"import\s+\w+", r"guard\s+let\b"],
 }
 
 def detect_language(code: str) -> str:
@@ -351,4 +354,3 @@ def suggest_improvements(code: str, language: Optional[str] = None) -> Suggestio
     )
 
     return SuggestionsResponse(suggestions=cards, overall_score=score, next_step=next_step)
-

@@ -112,3 +112,31 @@ def test_analyze_javascript():
     assert r.status_code == 200
     data = r.json()
     assert data["explanation"]["language"] in ("JavaScript", "TypeScript", "Unknown")
+
+# ── Swift Detection (issue #62) ──
+SAMPLE_SWIFT = """
+import Foundation
+
+func greet(name: String) {
+    let message = "Hello, \\(name)!"
+    print(message)
+}
+
+var score: Int = 0
+guard let value = Optional("test") else { fatalError() }
+"""
+
+def test_swift_detection_explanation():
+    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT})
+    assert r.status_code == 200
+    assert r.json()["language"] == "Swift"
+
+def test_swift_detection_analyze():
+    r = client.post("/analyze/", json={"code": SAMPLE_SWIFT})
+    assert r.status_code == 200
+    assert r.json()["explanation"]["language"] == "Swift"
+
+def test_swift_with_language_hint():
+    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT, "language": "Swift"})
+    assert r.status_code == 200
+    assert r.json()["language"] == "Swift"
