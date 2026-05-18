@@ -63,6 +63,13 @@ body{
 }
 ::selection{background:var(--accent);color:#fff}
 
+*:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(91, 156, 246, 0.4);
+  border-radius: 2px;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    SCROLLBAR
 ═══════════════════════════════════════════════════════════════ */
@@ -760,8 +767,8 @@ footer a:hover{color:var(--accent)}
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
       <span>API Docs</span>
     </a>
-    <button class="theme-btn" id="themeToggle" title="Toggle theme">
-      <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <button class="theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle dark mode" aria-pressed="false">
+      <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
   </div>
 </nav>
@@ -842,36 +849,37 @@ footer a:hover{color:var(--accent)}
         Code Editor
       </div>
       <div class="panel-actions">
-        <label class="icon-btn" title="Upload file" style="cursor:pointer">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none"/>
+        <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button" aria-label="Upload code file" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1"/>
         </label>
-        <button class="icon-btn" id="clearBtn" title="Clear">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
         </button>
-        <button class="icon-btn" id="copyBtn" title="Copy code">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <button class="icon-btn" id="copyBtn" title="Copy code" aria-label="Copy code to clipboard">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
       </div>
     </div>
 
     <!-- Language tabs -->
-    <div class="lang-tabs">
-      <button class="lang-tab active" data-lang="python">Python</button>
-      <button class="lang-tab" data-lang="javascript">JavaScript</button>
-      <button class="lang-tab" data-lang="typescript">TypeScript</button>
-      <button class="lang-tab" data-lang="java">Java</button>
-      <button class="lang-tab" data-lang="cpp">C++</button>
+    <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
+      <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
+      <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
+      <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
+      <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
+      <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
     </div>
 
     <!-- Editor -->
     <div class="editor-wrap">
-      <div class="line-numbers" id="lineNumbers">1</div>
+      <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
       <textarea id="codeEditor"
         placeholder="# Paste your code here or click 'Try Sample Code' above…"
         spellcheck="false"
         autocorrect="off"
-        autocapitalize="off"></textarea>
+        autocapitalize="off"
+        aria-label="Code Editor"></textarea>
     </div>
 
     <div class="editor-footer">
@@ -880,41 +888,41 @@ footer a:hover{color:var(--accent)}
     </div>
 
     <!-- Mode buttons -->
-    <div class="mode-row">
-      <button class="mode-btn active" data-mode="analyze">
-        <span class="mode-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+    <div class="mode-row" role="tablist" aria-label="Analysis Modes">
+      <button class="mode-btn active" data-mode="analyze" role="tab" aria-selected="true">
+        <span class="mode-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
         <span class="mode-btn-label">Full</span>
       </button>
-      <button class="mode-btn" data-mode="explain">
-        <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+      <button class="mode-btn" data-mode="explain" role="tab" aria-selected="false">
+        <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
         <span class="mode-btn-label">Explain</span>
       </button>
-      <button class="mode-btn" data-mode="debug">
-        <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2l1.5 1.5"/><path d="M14.5 3.5L16 2"/><path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5"/><path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5"/><line x1="12" y1="12" x2="12" y2="16"/><path d="M4.5 15H2"/><path d="M22 15h-2.5"/><path d="M4.5 19l-2 2"/><path d="M19.5 19l2 2"/></svg></span>
+      <button class="mode-btn" data-mode="debug" role="tab" aria-selected="false">
+        <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/><path d="M14.5 3.5L16 2"/><path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5"/><path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5"/><line x1="12" y1="12" x2="12" y2="16"/><path d="M4.5 15H2"/><path d="M22 15h-2.5"/><path d="M4.5 19l-2 2"/><path d="M19.5 19l2 2"/></svg></span>
         <span class="mode-btn-label">Debug</span>
       </button>
-      <button class="mode-btn" data-mode="suggest">
-        <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></span>
+      <button class="mode-btn" data-mode="suggest" role="tab" aria-selected="false">
+        <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></span>
         <span class="mode-btn-label">Improve</span>
       </button>
     </div>
 
     <!-- API URL -->
     <div class="api-config-row">
-      <div class="api-status">
-        <div class="api-dot" id="apiDot"></div>
+      <div class="api-status" aria-live="polite">
+        <div class="api-dot" id="apiDot" aria-hidden="true"></div>
         <span id="apiStatusText">Disconnected</span>
       </div>
       <div class="api-config-inner">
-        <input type="text" id="apiUrl" placeholder="http://localhost:8000" value="https://qyverixai.onrender.com"/>
-        <button class="btn-clear" id="pingBtn">Ping</button>
+        <input type="text" id="apiUrl" placeholder="http://localhost:8000" value="https://qyverixai.onrender.com" aria-label="Backend API URL"/>
+        <button class="btn-clear" id="pingBtn" aria-label="Ping API">Ping</button>
       </div>
     </div>
 
     <!-- Analyze -->
     <div class="analyze-row">
-      <button class="btn-analyze" id="analyzeBtn">
-        <div class="spinner" id="spinner"></div>
+      <button class="btn-analyze" id="analyzeBtn" aria-label="Analyze Code">
+        <div class="spinner" id="spinner" aria-hidden="true"></div>
         <span class="btn-text">Analyze Code</span>
       </button>
     </div>
@@ -925,49 +933,49 @@ footer a:hover{color:var(--accent)}
     <div class="panel-header">
       <div class="panel-title">Analysis Results</div>
       <div class="panel-actions" id="resultActions" style="display:none">
-        <button class="icon-btn" id="favBtn" title="Save to favorites"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-        <button class="icon-btn" id="downloadBtn" title="Download results">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save analysis to favorites"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+        <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
       </div>
     </div>
 
     <!-- Result tabs -->
-    <div class="result-tabs">
-      <button class="result-tab active" data-rtab="explain">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Explain <span class="tab-badge" id="explainBadge"></span>
+    <div class="result-tabs" role="tablist" aria-label="Analysis Results">
+      <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Explain <span class="tab-badge" id="explainBadge"></span>
       </button>
-      <button class="result-tab" data-rtab="debug">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2l1.5 1.5"/><path d="M14.5 3.5L16 2"/><path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5"/><path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5"/><line x1="12" y1="12" x2="12" y2="16"/><path d="M4.5 15H2"/><path d="M22 15h-2.5"/><path d="M4.5 19l-2 2"/><path d="M19.5 19l2 2"/></svg> Debug <span class="tab-badge" id="debugBadge"></span>
+      <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/><path d="M14.5 3.5L16 2"/><path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5"/><path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5"/><line x1="12" y1="12" x2="12" y2="16"/><path d="M4.5 15H2"/><path d="M22 15h-2.5"/><path d="M4.5 19l-2 2"/><path d="M19.5 19l2 2"/></svg> Debug <span class="tab-badge" id="debugBadge"></span>
       </button>
-      <button class="result-tab" data-rtab="suggest">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg> Improve <span class="tab-badge" id="suggestBadge"></span>
+      <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg> Improve <span class="tab-badge" id="suggestBadge"></span>
       </button>
     </div>
 
     <div class="result-content">
       <!-- Explain Pane -->
-      <div class="result-pane active" id="pane-explain">
+      <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
         <div class="empty-state" id="emptyExplain">
-          <div class="empty-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+          <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
           <h3>No analysis yet</h3>
           <p>Paste your code and click Analyze to see results</p>
         </div>
         <div id="explainResult" style="display:none"></div>
       </div>
       <!-- Debug Pane -->
-      <div class="result-pane" id="pane-debug">
+      <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel">
         <div class="empty-state" id="emptyDebug">
-          <div class="empty-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l1.5 1.5"/><path d="M14.5 3.5L16 2"/><path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5"/><path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5"/><line x1="12" y1="12" x2="12" y2="16"/><path d="M4.5 15H2"/><path d="M22 15h-2.5"/><path d="M4.5 19l-2 2"/><path d="M19.5 19l2 2"/></svg></div>
+          <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l1.5 1.5"/><path d="M14.5 3.5L16 2"/><path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5"/><path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5"/><line x1="12" y1="12" x2="12" y2="16"/><path d="M4.5 15H2"/><path d="M22 15h-2.5"/><path d="M4.5 19l-2 2"/><path d="M19.5 19l2 2"/></svg></div>
           <h3>No bugs scanned</h3>
           <p>Run analysis to detect issues in your code</p>
         </div>
         <div id="debugResult" style="display:none"></div>
       </div>
       <!-- Suggest Pane -->
-      <div class="result-pane" id="pane-suggest">
+      <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel">
         <div class="empty-state" id="emptySuggest">
-          <div class="empty-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
+          <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
           <h3>No suggestions yet</h3>
           <p>Run analysis to get improvement ideas</p>
         </div>
@@ -988,18 +996,18 @@ footer a:hover{color:var(--accent)}
   <div class="panel">
     <div class="panel-header">
       <div class="panel-title">Query History</div>
-      <button class="btn-clear" id="clearHistoryBtn">Clear</button>
+      <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history">Clear</button>
     </div>
-    <div class="history-list" id="historyList">
+    <div class="history-list" id="historyList" aria-live="polite">
       <div class="list-empty">No history yet. Run your first analysis.</div>
     </div>
   </div>
   <div class="panel">
     <div class="panel-header">
       <div class="panel-title">Saved Favorites</div>
-      <button class="btn-clear" id="clearFavsBtn">Clear</button>
+      <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites">Clear</button>
     </div>
-    <div class="fav-list" id="favList">
+    <div class="fav-list" id="favList" aria-live="polite">
       <div class="list-empty">No favorites saved yet.</div>
     </div>
   </div>
@@ -1062,7 +1070,21 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   const next = cur === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('qyx_theme', next);
+  
+  const themeToggleBtn = document.getElementById('themeToggle');
+  if (themeToggleBtn) {
+    themeToggleBtn.setAttribute('aria-label', next === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
+    themeToggleBtn.setAttribute('aria-pressed', next === 'dark' ? 'false' : 'true');
+  }
 });
+
+// Initialize aria label for theme toggle
+const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+const themeToggleBtnInit = document.getElementById('themeToggle');
+if (themeToggleBtnInit) {
+  themeToggleBtnInit.setAttribute('aria-label', initialTheme === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
+  themeToggleBtnInit.setAttribute('aria-pressed', initialTheme === 'dark' ? 'false' : 'true');
+}
 
 /* ═══════════════════════════════════════════════════════════════
    EDITOR
@@ -1088,7 +1110,11 @@ editor.addEventListener('scroll', () => {
 
 // Tab key support
 editor.addEventListener('keydown', e => {
-  if (e.key === 'Tab') {
+  if (e.key === 'Escape') {
+    editor.blur();
+    return;
+  }
+  if (e.key === 'Tab' && !e.shiftKey) {
     e.preventDefault();
     const s = editor.selectionStart, end = editor.selectionEnd;
     editor.value = editor.value.substring(0, s) + '  ' + editor.value.substring(end);
@@ -1143,7 +1169,9 @@ document.body.addEventListener('drop', e => {
 function setLanguage(lang) {
   selectedLang = lang;
   document.querySelectorAll('.lang-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.lang === lang);
+    const isActive = t.dataset.lang === lang;
+    t.classList.toggle('active', isActive);
+    t.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
 }
 document.querySelectorAll('.lang-tab').forEach(t => {
@@ -1156,8 +1184,12 @@ document.querySelectorAll('.lang-tab').forEach(t => {
 document.querySelectorAll('.mode-btn').forEach(b => {
   b.addEventListener('click', () => {
     selectedMode = b.dataset.mode;
-    document.querySelectorAll('.mode-btn').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.mode-btn').forEach(x => {
+      x.classList.remove('active');
+      x.setAttribute('aria-pressed', 'false');
+    });
     b.classList.add('active');
+    b.setAttribute('aria-pressed', 'true');
   });
 });
 
@@ -1167,9 +1199,13 @@ document.querySelectorAll('.mode-btn').forEach(b => {
 document.querySelectorAll('.result-tab').forEach(t => {
   t.addEventListener('click', () => {
     const tab = t.dataset.rtab;
-    document.querySelectorAll('.result-tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.result-tab').forEach(x => {
+      x.classList.remove('active');
+      x.setAttribute('aria-selected', 'false');
+    });
     document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
     t.classList.add('active');
+    t.setAttribute('aria-selected', 'true');
     document.getElementById(`pane-${tab}`).classList.add('active');
   });
 });
@@ -1303,7 +1339,7 @@ function renderExplain(exp) {
   document.getElementById('explainBadge').textContent = exp.complexity;
 
   el.innerHTML = `
-    <div class="explain-summary">${exp.summary}</div>
+    <div class="explain-summary" tabindex="0">${exp.summary}</div>
     <div class="explain-meta">
       <div class="meta-chip complexity-${exp.complexity}">
         <div class="dot"></div>${exp.complexity}
@@ -1357,7 +1393,7 @@ function renderDebug(dbg) {
     </div>`;
 
   const cards = dbg.issues.map((issue, i) => `
-    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s">
+    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
       <div class="issue-header">
         <span class="issue-badge">${issue.severity}</span>
         <span class="issue-type">${issue.type}</span>
@@ -1409,7 +1445,7 @@ function renderSuggest(sugg) {
   const cards = sugg.suggestions.length === 0
     ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
     : sugg.suggestions.map((s, i) => `
-      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s">
+      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
           <span class="suggest-cat">${s.category}</span>
           <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${s.priority} priority</span>
@@ -1480,7 +1516,7 @@ function renderHistory() {
     return;
   }
   historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')">
+    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="Load history entry for ${h.lang} at ${h.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
       <span class="history-lang">${h.lang || '?'}</span>
       <span class="history-thumb">${escHtml(h.preview)}…</span>
       <span class="history-meta">${h.ts}</span>
@@ -1530,10 +1566,10 @@ function renderFavorites() {
     return;
   }
   favList.innerHTML = favorites.map(f => `
-    <div class="fav-item" onclick="loadFav('${f.id}')">
+    <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="Load favorite entry for ${f.lang} at ${f.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
       <span class="history-lang">${f.lang || '?'}</span>
       <span class="history-thumb">${escHtml(f.preview)}…</span>
-      <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+      <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     </div>`).join('');
 }
 
