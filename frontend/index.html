@@ -1088,20 +1088,132 @@ editor.addEventListener('scroll', () => {
 
 // Tab key support
 editor.addEventListener('keydown', e => {
+
+  // TAB SUPPORT
   if (e.key === 'Tab') {
+
     e.preventDefault();
-    const s = editor.selectionStart, end = editor.selectionEnd;
-    editor.value = editor.value.substring(0, s) + '  ' + editor.value.substring(end);
-    editor.selectionStart = editor.selectionEnd = s + 2;
+
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+
+    editor.value =
+      editor.value.substring(0, start) +
+      '    ' +
+      editor.value.substring(end);
+
+    editor.selectionStart =
+      editor.selectionEnd =
+      start + 4;
+
     updateEditor();
   }
-  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+
+  // AUTO INDENT ON ENTER
+  else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+
+    e.preventDefault();
+
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+
+    const value = editor.value;
+
+    // Find current line
+    const lineStart =
+      value.lastIndexOf('\n', start - 1) + 1;
+
+    const currentLine =
+      value.substring(lineStart, start);
+
+    // Preserve existing indentation
+    const indentMatch = currentLine.match(/^\s*/);
+
+    let indent = indentMatch
+      ? indentMatch[0]
+      : '';
+
+    const trimmed = currentLine.trim();
+
+    // Python indentation
+    if (
+      selectedLang === 'python' &&
+      trimmed.endsWith(':')
+    ) {
+      indent += '    ';
+    }
+
+    // JavaScript / TypeScript / Java / C++
+    else if (
+      ['javascript', 'typescript', 'java', 'cpp']
+        .includes(selectedLang) &&
+      trimmed.endsWith('{')
+    ) {
+      indent += '    ';
+    }
+
+    editor.value =
+      value.substring(0, start) +
+      '\n' + indent +
+      value.substring(end);
+
+    editor.selectionStart =
+      editor.selectionEnd =
+      start + 1 + indent.length;
+
+    updateEditor();
+  }
+
+  // SMART BACKSPACE
+  else if (e.key === 'Backspace') {
+
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+
+    // Only if no text selected
+    if (start === end) {
+
+      const value = editor.value;
+
+      // Text before cursor
+      const beforeCursor =
+        value.substring(0, start);
+
+      // Current line
+      const lineStart =
+        beforeCursor.lastIndexOf('\n') + 1;
+
+      const currentLine =
+        beforeCursor.substring(lineStart);
+
+      // Remove full indentation level
+      if (currentLine.endsWith('    ')) {
+
+        e.preventDefault();
+
+        editor.value =
+          value.substring(0, start - 4) +
+          value.substring(end);
+
+        editor.selectionStart =
+          editor.selectionEnd =
+          start - 4;
+
+        updateEditor();
+      }
+    }
+  }
+
+  // CTRL + ENTER
+  else if (
+    e.key === 'Enter' &&
+    (e.ctrlKey || e.metaKey)
+  ) {
+
     e.preventDefault();
     doAnalyze();
   }
 });
-
-updateEditor();
 
 /* ═══════════════════════════════════════════════════════════════
    FILE UPLOAD
