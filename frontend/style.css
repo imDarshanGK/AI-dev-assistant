@@ -450,6 +450,7 @@ body {
 .status-dot.offline { background: var(--accent-red); }
 .status-dot.checking { background: var(--accent-yellow); animation: pulse 1s infinite; }
 
+/* ── Run Button & Responsive Shortcut Hint ── */
 .btn-run {
   margin: 12px 16px;
   padding: 10px;
@@ -462,10 +463,52 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition);
+  /* Flexbox configuration to perfectly line up text + hint tag */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 .btn-run:hover { opacity: 0.85; }
 .btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-run.loading { animation: shimmer 1.5s infinite; }
+/* Desktop only key shortcut hint */
+@media (min-width: 641px) {
+  .btn-run::after {
+    content: "Ctrl+Enter";
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.65;
+    background: rgba(0, 0, 0, 0.15); /* Soft contrasting badge background */
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+  }
+  /* Auto-adjust badge opacity if app switches to a light theme */
+  [data-theme="light"] .btn-run::after {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+@keyframes shimmer { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* Generate visual shortcut tag explicitly on Desktop screens only */
+@media (min-width: 641px) {
+  .btn-run::after {
+    content: "Ctrl+Enter";
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.65;
+    background: rgba(0, 0, 0, 0.15);
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+  }
+  /* Refine readability of tag if system transitions to light mode background */
+  [data-theme="light"] .btn-run::after {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
 @keyframes shimmer { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
 .output-box {
