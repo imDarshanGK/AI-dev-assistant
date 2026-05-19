@@ -39,7 +39,7 @@ LANG_SIGNATURES: dict[str, list[str]] = {
     r"\becho\s+",
     r"\bfunction\s+\w+\s*\(",
     r"\barray\s*\(",
-    r"->\\w+",
+    r"->\w+",
 ],
 }
 
