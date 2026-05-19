@@ -507,6 +507,11 @@
   transition:border-color var(--transition);
 }
 .panel:focus-within{border-color:var(--border2)}
+@keyframes resultsHighlight{
+  0%,35%{border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,156,246,0.35)}
+  100%{border-color:var(--border);box-shadow:none}
+}
+.panel.results-highlight{animation:resultsHighlight 1.8s ease}
 .panel-header{
   display:flex;align-items:center;justify-content:space-between;
   padding:14px 18px;border-bottom:1px solid var(--border);
@@ -2061,29 +2066,24 @@
           </button>
         </div>
 
-        <!-- API URL -->
-        <div class="api-config-row">
-          <div class="api-status" aria-live="polite">
-            <div class="api-dot" id="apiDot" aria-hidden="true"></div>
-            <span id="apiStatusText">Disconnected</span>
-          </div>
-          <div class="api-config-inner">
-            <input type="text" id="apiUrl" placeholder="http://localhost:8000" value="https://qyverixai.onrender.com"
-              aria-label="Backend API URL" />
-            <button class="btn-clear" id="pingBtn" aria-label="Ping API">Ping</button>
-          </div>
-        </div>
+    <!-- Analyze -->
+    <div class="analyze-row">
+      <button class="btn-analyze" id="analyzeBtn" aria-label="Analyze Code">
+        <div class="spinner" id="spinner" aria-hidden="true"></div>
+        <span class="btn-text">Analyze Code</span>
+      </button>
+    </div>
+  </div>
 
-        <!-- Analyze -->
-        <div class="analyze-row">
-          <button class="btn-analyze" id="analyzeBtn" aria-label="Analyze Code">
-            <div class="spinner" id="spinner" aria-hidden="true"></div>
-            <span class="btn-text">Analyze Code</span>
-          </button>
-          <button id="analyze-btn" title="Analyze Code (Ctrl+Enter)" align="center">Analyze <span
-              class="desktop-hint">(Ctrl+Enter)</span>
-          </button>
-        </div>
+  <!-- Results Panel -->
+  <div class="panel" id="resultsPanel">
+    <div class="panel-header">
+      <div class="panel-title">Analysis Results</div>
+      <div class="panel-actions" id="resultActions" style="display:none">
+        <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save analysis to favorites"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+        <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
       </div>
 
       <!-- Results Panel -->
@@ -2977,149 +2977,91 @@ document.getElementById('pingBtn').addEventListener('click', pingApi);
         }
       }
 
-      document.querySelectorAll('.lang-tab').forEach(t => {
-        t.addEventListener('click', () => setLanguage(t.dataset.lang));
-      });
+// Auto-ping on load
+setTimeout(pingApi, 800);
 
-      /* ═══════════════════════════════════════════════════════════════
-         MODE BUTTONS
-      ═══════════════════════════════════════════════════════════════ */
-      document.querySelectorAll('.mode-btn').forEach(b => {
-        b.addEventListener('click', () => {
-          selectedMode = b.dataset.mode;
-          document.querySelectorAll('.mode-btn').forEach(x => {
-            x.classList.remove('active');
-            x.setAttribute('aria-pressed', 'false');
-          });
-          b.classList.add('active');
-          b.setAttribute('aria-pressed', 'true');
-        });
-      });
+/* ═══════════════════════════════════════════════════════════════
+   ANALYZE
+═══════════════════════════════════════════════════════════════ */
+analyzeBtn.addEventListener('click', doAnalyze);
 
-      /* ═══════════════════════════════════════════════════════════════
-         RESULT TABS
-      ═══════════════════════════════════════════════════════════════ */
-      document.querySelectorAll('.result-tab').forEach(t => {
-        t.addEventListener('click', () => {
-          const tab = t.dataset.rtab;
-          document.querySelectorAll('.result-tab').forEach(x => {
-            x.classList.remove('active');
-            x.setAttribute('aria-selected', 'false');
-          });
-          document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
-          t.classList.add('active');
-          t.setAttribute('aria-selected', 'true');
-          document.getElementById(`pane-${tab}`).classList.add('active');
-        });
-      });
+function revealResultsOnMobile() {
+  if (window.innerWidth >= 900) return;
+  const panel = document.getElementById('resultsPanel');
+  if (!panel) return;
+  requestAnimationFrame(() => {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    panel.classList.remove('results-highlight');
+    void panel.offsetWidth;
+    panel.classList.add('results-highlight');
+    panel.addEventListener('animationend', () => panel.classList.remove('results-highlight'), { once: true });
+  });
+}
 
-      /* ═══════════════════════════════════════════════════════════════
-         CLEAR / COPY
-      ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('clearBtn').addEventListener('click', () => {
-        editor.value = '';
-        updateEditor();
-        resetResults();
-      });
-      document.getElementById('copyBtn').addEventListener('click', () => {
-        if (!editor.value.trim()) return;
-        navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
-      });
+async function doAnalyze() {
+  const code = editor.value.trim();
+  if (!code) { toast('Please paste some code first.', 'error'); return; }
 
-      /* ═══════════════════════════════════════════════════════════════
-         API PING
-      ═══════════════════════════════════════════════════════════════ */
-      async function pingApi() {
-        const base = apiUrlInput.value.replace(/\/$/, '');
-        try {
-          const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
-          if (r.ok) {
-            apiDot.classList.add('connected');
-            apiStatusText.textContent = 'Connected';
-            toast('API is reachable', 'success');
-          } else {
-            apiDot.classList.remove('connected');
-            apiStatusText.textContent = 'Error ' + r.status;
-          }
-        } catch {
-          apiDot.classList.remove('connected');
-          apiStatusText.textContent = 'Unreachable';
-          toast('Cannot reach API. Check the URL.', 'error');
-        }
-      }
-      document.getElementById('pingBtn').addEventListener('click', pingApi);
+  const base = apiUrlInput.value.replace(/\/$/, '');
+  const endpointMap = {
+    analyze: '/analyze/',
+    explain: '/explanation/',
+    debug:   '/debugging/',
+    suggest: '/suggestions/',
+  };
+  const endpoint = endpointMap[selectedMode] || '/analyze/';
 
-      // Auto-ping on load
-      setTimeout(pingApi, 800);
+  // Loading state
+  analyzeBtn.classList.add('loading');
+  analyzeBtn.disabled = true;
+  showShimmers();
 
-      /* ═══════════════════════════════════════════════════════════════
-         ANALYZE
-      ═══════════════════════════════════════════════════════════════ */
-      analyzeBtn.addEventListener('click', doAnalyze);
+  try {
+    const res = await fetch(`${base}${endpoint}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({code, language: selectedLang}),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const elapsed = res.headers.get('X-Process-Time-Ms');
 
-      async function doAnalyze() {
-        const code = editor.value.trim();
-        if (!code) { toast('Please paste some code first.', 'error'); return; }
+    // Normalize to full analysis shape
+    let result;
+    if (selectedMode === 'analyze') {
+      result = data;
+    } else if (selectedMode === 'explain') {
+      result = {explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null};
+    } else if (selectedMode === 'debug') {
+      result = {explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null};
+    } else {
+      result = {explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null};
+    }
 
-        const base = apiUrlInput.value.replace(/\/$/, '');
-        const endpointMap = {
-          analyze: '/analyze/',
-          explain: '/explanation/',
-          debug: '/debugging/',
-          suggest: '/suggestions/',
-        };
-        const endpoint = endpointMap[selectedMode] || '/analyze/';
+    currentResult = result;
+    renderResults(result, code);
+    addToHistory(code, result);
+    apiDot.classList.add('connected');
+    apiStatusText.textContent = 'Connected';
+    document.getElementById('engineBar').style.display = 'flex';
+    engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
+    if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
+    else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
+    resultActions.style.display = 'flex';
+    revealResultsOnMobile();
 
-        // Loading state
-        analyzeBtn.classList.add('loading');
-        analyzeBtn.disabled = true;
-        showShimmers();
-
-        try {
-          const res = await fetch(`${base}${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, language: selectedLang }),
-            signal: AbortSignal.timeout(30000),
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.detail || `HTTP ${res.status}`);
-          }
-          const data = await res.json();
-          const elapsed = res.headers.get('X-Process-Time-Ms');
-
-          // Normalize to full analysis shape
-          let result;
-          if (selectedMode === 'analyze') {
-            result = data;
-          } else if (selectedMode === 'explain') {
-            result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-          } else if (selectedMode === 'debug') {
-            result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-          } else {
-            result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
-          }
-
-          currentResult = result;
-          renderResults(result, code);
-          addToHistory(code, result);
-          apiDot.classList.add('connected');
-          apiStatusText.textContent = 'Connected';
-          document.getElementById('engineBar').style.display = 'flex';
-          engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
-          if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
-          else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
-          resultActions.style.display = 'flex';
-
-        } catch (err) {
-          toast(`Error: ${err.message}`, 'error');
-          resetResults();
-        } finally {
-          analyzeBtn.classList.remove('loading');
-          analyzeBtn.disabled = false;
-        }
-      }
+  } catch (err) {
+    toast(`Error: ${err.message}`, 'error');
+    resetResults();
+  } finally {
+    analyzeBtn.classList.remove('loading');
+    analyzeBtn.disabled = false;
+  }
+}
 
       /* ═══════════════════════════════════════════════════════════════
          RENDER RESULTS
