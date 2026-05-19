@@ -1,6 +1,6 @@
 """
 QyverixAI — Rule-Based Code Analysis Engine
-Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++.
+Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Rust.
 """
 
 from __future__ import annotations
@@ -34,17 +34,35 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"\bint\s+main\s*\(", r"::\w+",
     ],
     "PHP": [
-    r"<\?php",
-    r"\$\w+\s*=",
-    r"\becho\s+",
-    r"\bfunction\s+\w+\s*\(",
-    r"\barray\s*\(",
-    r"->\w+",
-],
+        r"<\?php",
+        r"\$\w+\s*=",
+        r"\becho\s+",
+        r"\bfunction\s+\w+\s*\(",
+        r"\barray\s*\(",
+        r"->\w+",
+    ],
+    "Rust": [
+        r"\bfn\s+\w+\s*\(",
+        r"\blet\s+mut\b",
+        r"\buse\s+std::",
+        r"println!\(",
+        r"\bimpl\b",
+        r"\bOption<\w+>",
+    ],
 }
 
 
 def detect_language(code: str, hint: str | None = None) -> str:
+    """Detect the programming language of the given code snippet.
+
+    Args:
+        code: The source code string to analyze.
+        hint: Optional language name to override detection.
+
+    Returns:
+        Detected language name as a string.
+    """
+
     if hint:
         normalized = hint.strip().lower()
         mapping = {
@@ -53,6 +71,7 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "typescript": "TypeScript", "ts": "TypeScript",
             "java": "Java",
             "cpp": "C++", "c++": "C++", "cxx": "C++",
+            "rust": "Rust", "rs": "Rust",
         }
         if normalized in mapping:
             return mapping[normalized]
@@ -69,10 +88,19 @@ def detect_language(code: str, hint: str | None = None) -> str:
 
 # ── Complexity Estimation ──────────────────────────────────────────────────────
 def estimate_complexity(code: str) -> str:
+    """Estimate the overall complexity level of the given code snippet.
+
+    Args:
+        code: The source code to evaluate.
+
+    Returns:
+        Complexity level as a string from Beginner to Expert.
+    """
+
     lines = [line for line in code.splitlines() if line.strip() and not line.strip().startswith("#")]
     n = len(lines)
     branches = len(re.findall(r"\b(if|elif|else|for|while|switch|case|try|catch|except)\b", code))
-    funcs = len(re.findall(r"\bdef\b|\bfunction\b|\bfunc\b", code))
+    funcs = len(re.findall(r"\bdef\b|\bfunction\b|\bfunc\b|\bfn\b", code))
 
     if n <= 20 and branches <= 3 and funcs <= 2:
         return "Beginner"
@@ -82,7 +110,6 @@ def estimate_complexity(code: str) -> str:
         return "Advanced"
     return "Expert"
 
-
 # ── Bug Patterns ───────────────────────────────────────────────────────────────
 @dataclass
 class BugPattern:
@@ -91,7 +118,7 @@ class BugPattern:
     description: str
     suggestion: str
     severity: str
-    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++"])
+    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++", "Rust"])
 
 
 BUG_PATTERNS: list[BugPattern] = [
@@ -230,10 +257,41 @@ BUG_PATTERNS: list[BugPattern] = [
                "Comparing signed `int` with unsigned `.size()` — undefined behavior on overflow.",
                "Cast to `(int)` or use `std::ssize()` (C++20).",
                "warning", ["C++"]),
+
+    # ── Rust ──
+    BugPattern("Unwrap Usage", r"\.unwrap\s*\(\s*\)",
+               "`.unwrap()` panics if the value is `None` or `Err` — unsafe in production.",
+               "Use `match`, `if let`, `unwrap_or`, or the `?` operator for safe error handling.",
+               "warning", ["Rust"]),
+    BugPattern("Unsafe Block", r"\bunsafe\s*\{",
+               "`unsafe` block bypasses Rust's memory safety guarantees.",
+               "Isolate unsafe code, document why it is safe, and minimise its scope.",
+               "warning", ["Rust"]),
+    BugPattern("Panic Usage", r"\bpanic!\s*\(",
+               "`panic!()` crashes the thread — avoid in library code.",
+               "Return a `Result<T, E>` instead so callers can handle the error.",
+               "warning", ["Rust"]),
+    BugPattern("Expect Usage", r"\.expect\s*\(\s*['\"]",
+               "`.expect()` panics with a message but still crashes on `None`/`Err`.",
+               "Use `?` or explicit `match`/`unwrap_or_else` for recoverable error handling.",
+               "info", ["Rust"]),
+    BugPattern("Clone Overuse", r"\.clone\s*\(\s*\)",
+               "Excessive `.clone()` calls can hurt performance by copying heap data.",
+               "Consider borrowing (`&T`) or using `Rc`/`Arc` for shared ownership instead.",
+               "info", ["Rust"]),
 ]
 
 
 def run_bug_detection(code: str, language: str) -> list[dict]:
+    """Run rule-based bug detection for the provided source code.
+
+    Args:
+        code: The source code to analyse.
+        language: The detected or selected programming language.
+
+    Returns:
+        A list of detected issues with metadata and suggestions.
+    """
     from .line_utils import format_code_snippet
 
     lines = code.splitlines()
@@ -275,6 +333,15 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
 # ── Suggestion Engine ──────────────────────────────────────────────────────────
 def run_suggestions(code: str, language: str) -> dict:
+    """Generate improvement suggestions for the provided source code.
+
+    Args:
+        code: The source code to analyse.
+        language: The detected or selected programming language.
+
+    Returns:
+        Suggestion results including score, grade, and recommendations.
+    """
     """Enhanced suggestion engine with line number tracking."""
     from .line_utils import (
         format_code_snippet,
@@ -392,7 +459,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 6: Tests
     # ─────────────────────────────────────────────────────────────
-    if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b", code):
+    if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]", code):
         suggestions.append({
             "category": "Testing",
             "description": "No tests detected. Unit tests catch regressions early.",
@@ -460,16 +527,29 @@ def run_suggestions(code: str, language: str) -> dict:
 
 # ── Explanation Engine ─────────────────────────────────────────────────────────
 def run_explanation(code: str, language: str) -> dict:
+    """Generate a plain-English explanation of the provided source code.
+
+    Args:
+        code: The source code to analyse.
+        language: The detected or selected programming language.
+
+    Returns:
+        A structured explanation summary with key insights.
+    """
+
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
     complexity = estimate_complexity(code)
 
-    func_names = re.findall(r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>", code)
+    func_names = re.findall(
+        r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(",
+        code,
+    )
     funcs = [next(n for n in grp if n) for grp in func_names]
 
     class_names = re.findall(r"class\s+(\w+)", code)
 
-    imports = re.findall(r"import\s+([\w,\s]+)|from\s+(\w+)\s+import", code)
+    imports = re.findall(r"import\s+([\w,\s]+)|from\s+(\w+)\s+import|\buse\s+([\w:]+)", code)
     import_count = len(imports)
 
     has_loops = bool(re.search(r"\bfor\b|\bwhile\b", code))
@@ -614,6 +694,16 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
 
 # ── Combined ───────────────────────────────────────────────────────────────────
 def full_analysis(code: str, language_hint: str | None = None) -> dict:
+    """Run the complete analysis pipeline for the provided source code.
+
+    Args:
+        code: The source code to analyse.
+        language_hint: Optional language override hint.
+
+    Returns:
+        Combined explanation, debugging, and suggestion analysis results.
+    """
+
     t0 = time.perf_counter()
     language = detect_language(code, language_hint)
 
