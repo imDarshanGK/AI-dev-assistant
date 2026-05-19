@@ -55,16 +55,16 @@ body {
 }
 
 /* ── Shortcut Hint Visibility ── */
-/* Hide the shortcut hint by default (mobile, tablet, or touch-only input setups) */
+/* 1. COMPLETELY HIDDEN everywhere by default (Mobile / Tablets) */
 .desktop-hint {
   display: none;
 }
 
-/* Show shortcut hint only on desktop screens with a mouse/trackpad pointer */
+/* 2. ONLY VISIBLE on typical desktop screens (width >= 1024px with a mouse/trackpad pointer) */
 @media (min-width: 1024px) and (pointer: fine) {
   .desktop-hint {
     display: inline;
-    margin-left: 6px;
+    margin-left: 4px; /* Separates the word 'Analyze' from '(Ctrl+Enter)' smoothly */
   }
 }
 
@@ -123,7 +123,6 @@ body {
   overflow: hidden;
   min-height: calc(100vh - 52px);
 }
-
 .hero-grid-bg {
   position: absolute;
   inset: 0;
@@ -134,9 +133,7 @@ body {
   opacity: 0.4;
   mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
 }
-
 .hero-content { position: relative; z-index: 1; }
-
 .hero-chip {
   display: inline-flex;
   align-items: center;
@@ -171,7 +168,6 @@ body {
   font-style: italic;
   color: var(--text-2);
 }
-
 .hero-sub {
   font-size: 15px;
   color: var(--text-2);
@@ -463,6 +459,7 @@ body {
 .status-dot.offline { background: var(--accent-red); }
 .status-dot.checking { background: var(--accent-yellow); animation: pulse 1s infinite; }
 
+/* Run / Analyze Button */
 .btn-run {
   margin: 12px 16px;
   padding: 10px;
@@ -475,11 +472,18 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition);
+  
+  /* Flex Centering Layout: Centers 'Analyze' and '(Ctrl+Enter)' perfectly */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 .btn-run:hover { opacity: 0.85; }
 .btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-run.loading { animation: shimmer 1.5s infinite; }
 @keyframes shimmer { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
 .output-box {
   flex: 1;
   overflow-y: auto;
@@ -499,6 +503,7 @@ body {
 }
 .placeholder-icon { font-size: 28px; opacity: 0.4; }
 .placeholder-sub { font-size: 12px; }
+
 /* Output sections */
 .result-section { margin-bottom: 20px; }
 .result-section h4 {
@@ -521,6 +526,7 @@ body {
 .tag-error { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
 .tag-ok { background: rgba(34,197,94,0.12); color: #86efac; border: 1px solid rgba(34,197,94,0.2); }
 .tag-info { background: rgba(59,130,246,0.12); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
+
 /* ── History ── */
 .history-section, .fav-section { padding: 4rem 4rem; }
 .history-container, .fav-container {
@@ -556,6 +562,7 @@ body {
   transition: all var(--transition);
 }
 .btn-ghost-sm:hover { color: var(--text-2); border-color: var(--border-2); }
+
 /* ── Footer ── */
 .footer {
   display: flex;
@@ -570,10 +577,12 @@ body {
 .footer-sep { opacity: 0.4; }
 .footer-right a { color: var(--text-3); text-decoration: none; transition: color var(--transition); }
 .footer-right a:hover { color: var(--text-2); }
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .hero { grid-template-columns: 1fr; padding: 4rem 2rem; min-height: auto; }
