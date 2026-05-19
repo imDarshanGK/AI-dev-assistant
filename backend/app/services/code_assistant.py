@@ -33,6 +33,14 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"#include\s*<", r"\bstd::\w+", r"\bcout\s*<<",
         r"\bint\s+main\s*\(", r"::\w+",
     ],
+    "PHP": [
+    r"<\?php",
+    r"\$\w+\s*=",
+    r"\becho\s+",
+    r"\bfunction\s+\w+\s*\(",
+    r"\barray\s*\(",
+    r"->\w+",
+],
 }
 
 

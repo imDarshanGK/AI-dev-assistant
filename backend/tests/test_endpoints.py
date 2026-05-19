@@ -13,6 +13,18 @@ client = TestClient(app)
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
+PHP_CODE = """
+<?php
+$name = "Srija";
+echo $name;
+function greet($user) {
+    return "Hello " . $user;
+}
+$arr = array(1, 2, 3);
+$obj->method();
+?>
+"""
+
 PYTHON_BUGGY = """
 import os
 password = "supersecret123"
@@ -169,6 +181,12 @@ def test_debug_cpp():
     assert r.status_code == 200
     d = r.json()
     assert len(d["issues"]) > 0
+
+def test_debug_php():
+    r = client.post("/debugging/", json={"code": PHP_CODE, "language": "php"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d is not None
 
 def test_debug_issue_has_required_fields():
     r = client.post("/debugging/", json={"code": PYTHON_BUGGY})
