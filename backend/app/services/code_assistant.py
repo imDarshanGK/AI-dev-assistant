@@ -227,7 +227,7 @@ BUG_PATTERNS: list[BugPattern] = [
 
 def run_bug_detection(code: str, language: str) -> list[dict]:
     from .line_utils import format_code_snippet
-    
+
     lines = code.splitlines()
     found: list[dict] = []
     seen: set[str] = set()
@@ -269,12 +269,12 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 def run_suggestions(code: str, language: str) -> dict:
     """Enhanced suggestion engine with line number tracking."""
     from .line_utils import (
-        format_code_snippet, 
-        find_lines_matching_pattern, 
+        format_code_snippet,
+        find_lines_matching_pattern,
         find_function_lines,
         find_undocumented_lines,
     )
-    
+
     suggestions: list[dict] = []
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
@@ -287,7 +287,7 @@ def run_suggestions(code: str, language: str) -> dict:
         # Track undocumented code lines
         undocumented = find_undocumented_lines(code)
         sample_lines = undocumented[:5]  # Show first 5 examples
-        
+
         suggestions.append({
             "category": "Documentation",
             "description": "Less than 10% of lines are comments. Add docstrings/comments to explain intent.",
@@ -305,7 +305,7 @@ def run_suggestions(code: str, language: str) -> dict:
     for func in functions:
         if func["length"] > 40:
             func_range = list(range(func["start_line"], func["end_line"] + 1))
-            
+
             suggestions.append({
                 "category": "Refactoring",
                 "description": f"Function '{func['name']}' is {func['length']} lines — consider splitting into smaller helpers.",
@@ -322,10 +322,10 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     magic_pattern = r"\b(?<![a-zA-Z_])[2-9]\d{1,}(?![a-zA-Z_])\b"
     magic_lines = find_lines_matching_pattern(code, magic_pattern)
-    
+
     if magic_lines:
         sample_magic_lines = magic_lines[:5]  # Show first 5 occurrences
-        
+
         suggestions.append({
             "category": "Readability",
             "description": f"Magic numbers detected ({len(magic_lines)} occurrence(s)). Replace with named constants.",
@@ -342,12 +342,12 @@ def run_suggestions(code: str, language: str) -> dict:
     if language == "Python" and not re.search(r"\btry\b", code):
         risky_patterns = [r"requests\.(get|post|put|delete)", r"open\s*\(", r"\.query\(|\.execute\("]
         risky_lines = []
-        
+
         for pattern in risky_patterns:
             risky_lines.extend(find_lines_matching_pattern(code, pattern))
-        
+
         risky_lines = sorted(set(risky_lines))
-        
+
         if risky_lines:
             sample_risky = risky_lines[:5]
             suggestions.append({
@@ -366,11 +366,11 @@ def run_suggestions(code: str, language: str) -> dict:
     if language == "Python":
         defs = re.findall(r"def\s+\w+\s*\(([^)]*)\)\s*:", code)
         unhinted = [d for d in defs if d.strip() and ":" not in d]
-        
+
         if unhinted:
             # Find lines with functions without type hints
             func_def_lines = find_lines_matching_pattern(code, r"def\s+\w+\s*\([^)]*\)\s*:")
-            
+
             suggestions.append({
                 "category": "Type Safety",
                 "description": f"{len(unhinted)} function(s) missing type annotations.",
@@ -400,7 +400,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     print_lines = find_lines_matching_pattern(code, r"\bprint\s*\(")
     has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
-    
+
     if print_lines and not has_logging:
         sample_print = print_lines[:3]
         suggestions.append({
@@ -419,7 +419,7 @@ def run_suggestions(code: str, language: str) -> dict:
     if language in ("JavaScript", "TypeScript"):
         env_lines = find_lines_matching_pattern(code, r"process\.env\.\w+")
         has_validation = bool(re.search(r"dotenv|zod|\.env", code))
-        
+
         if env_lines and not has_validation:
             sample_env = env_lines[:3]
             suggestions.append({
