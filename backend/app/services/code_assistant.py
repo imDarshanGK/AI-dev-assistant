@@ -1,6 +1,6 @@
 """
 QyverixAI — Rule-Based Code Analysis Engine
-Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++.
+Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Rust.
 """
 
 from __future__ import annotations
@@ -33,6 +33,22 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"#include\s*<", r"\bstd::\w+", r"\bcout\s*<<",
         r"\bint\s+main\s*\(", r"::\w+",
     ],
+    "PHP": [
+        r"<\?php",
+        r"\$\w+\s*=",
+        r"\becho\s+",
+        r"\bfunction\s+\w+\s*\(",
+        r"\barray\s*\(",
+        r"->\w+",
+    ],
+    "Rust": [
+        r"\bfn\s+\w+\s*\(",
+        r"\blet\s+mut\b",
+        r"\buse\s+std::",
+        r"println!\(",
+        r"\bimpl\b",
+        r"\bOption<\w+>",
+    ],
 }
 
 
@@ -55,6 +71,7 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "typescript": "TypeScript", "ts": "TypeScript",
             "java": "Java",
             "cpp": "C++", "c++": "C++", "cxx": "C++",
+            "rust": "Rust", "rs": "Rust",
         }
         if normalized in mapping:
             return mapping[normalized]
@@ -83,7 +100,7 @@ def estimate_complexity(code: str) -> str:
     lines = [line for line in code.splitlines() if line.strip() and not line.strip().startswith("#")]
     n = len(lines)
     branches = len(re.findall(r"\b(if|elif|else|for|while|switch|case|try|catch|except)\b", code))
-    funcs = len(re.findall(r"\bdef\b|\bfunction\b|\bfunc\b", code))
+    funcs = len(re.findall(r"\bdef\b|\bfunction\b|\bfunc\b|\bfn\b", code))
 
     if n <= 20 and branches <= 3 and funcs <= 2:
         return "Beginner"
@@ -101,7 +118,7 @@ class BugPattern:
     description: str
     suggestion: str
     severity: str
-    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++"])
+    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++", "Rust"])
 
 
 BUG_PATTERNS: list[BugPattern] = [
@@ -240,6 +257,28 @@ BUG_PATTERNS: list[BugPattern] = [
                "Comparing signed `int` with unsigned `.size()` — undefined behavior on overflow.",
                "Cast to `(int)` or use `std::ssize()` (C++20).",
                "warning", ["C++"]),
+
+    # ── Rust ──
+    BugPattern("Unwrap Usage", r"\.unwrap\s*\(\s*\)",
+               "`.unwrap()` panics if the value is `None` or `Err` — unsafe in production.",
+               "Use `match`, `if let`, `unwrap_or`, or the `?` operator for safe error handling.",
+               "warning", ["Rust"]),
+    BugPattern("Unsafe Block", r"\bunsafe\s*\{",
+               "`unsafe` block bypasses Rust's memory safety guarantees.",
+               "Isolate unsafe code, document why it is safe, and minimise its scope.",
+               "warning", ["Rust"]),
+    BugPattern("Panic Usage", r"\bpanic!\s*\(",
+               "`panic!()` crashes the thread — avoid in library code.",
+               "Return a `Result<T, E>` instead so callers can handle the error.",
+               "warning", ["Rust"]),
+    BugPattern("Expect Usage", r"\.expect\s*\(\s*['\"]",
+               "`.expect()` panics with a message but still crashes on `None`/`Err`.",
+               "Use `?` or explicit `match`/`unwrap_or_else` for recoverable error handling.",
+               "info", ["Rust"]),
+    BugPattern("Clone Overuse", r"\.clone\s*\(\s*\)",
+               "Excessive `.clone()` calls can hurt performance by copying heap data.",
+               "Consider borrowing (`&T`) or using `Rc`/`Arc` for shared ownership instead.",
+               "info", ["Rust"]),
 ]
 
 
@@ -253,6 +292,7 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     Returns:
         A list of detected issues with metadata and suggestions.
     """
+    from .line_utils import format_code_snippet
 
     lines = code.splitlines()
     found: list[dict] = []
@@ -274,6 +314,9 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                 description = bp.description
                 suggestion = bp.suggestion
 
+                # NEW: Add code context with line number
+                code_context = format_code_snippet(code, [i], context_lines=2)
+
                 found.append({
                     "type": bp.name,
                     "line": i,
@@ -281,6 +324,7 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                     "suggestion": suggestion,
                     "severity": bp.severity,
                     "code_snippet": line.strip()[:120],
+                    "code_context": code_context,
                 })
                 break  # one hit per pattern is enough
 
@@ -298,93 +342,172 @@ def run_suggestions(code: str, language: str) -> dict:
     Returns:
         Suggestion results including score, grade, and recommendations.
     """
+    """Enhanced suggestion engine with line number tracking."""
+    from .line_utils import (
+        format_code_snippet,
+        find_lines_matching_pattern,
+        find_function_lines,
+        find_undocumented_lines,
+    )
 
     suggestions: list[dict] = []
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
 
-    # Docstrings / comments
+    # ─────────────────────────────────────────────────────────────
+    # SUGGESTION 1: Documentation Quality
+    # ─────────────────────────────────────────────────────────────
     comment_ratio = sum(1 for line in non_blank if line.strip().startswith(("#", "//", "/*", "*", "/**"))) / max(len(non_blank), 1)
     if comment_ratio < 0.10:
+        # Track undocumented code lines
+        undocumented = find_undocumented_lines(code)
+        sample_lines = undocumented[:5]  # Show first 5 examples
+
         suggestions.append({
             "category": "Documentation",
             "description": "Less than 10% of lines are comments. Add docstrings/comments to explain intent.",
+            "line_number": sample_lines[0] if sample_lines else None,
+            "line_range": sample_lines,
+            "code_context": format_code_snippet(code, sample_lines) if sample_lines else None,
             "example": '"""Calculate the area of a circle given radius r."""',
             "priority": "medium",
         })
 
-    # Long functions
-    func_bodies = re.findall(r"def\s+\w+[^:]*:([\s\S]*?)(?=\ndef|\Z)", code)
-    for body in func_bodies:
-        if len(body.splitlines()) > 40:
+    # ─────────────────────────────────────────────────────────────
+    # SUGGESTION 2: Function Length
+    # ─────────────────────────────────────────────────────────────
+    functions = find_function_lines(code, language)
+    for func in functions:
+        if func["length"] > 40:
+            func_range = list(range(func["start_line"], func["end_line"] + 1))
+
             suggestions.append({
                 "category": "Refactoring",
-                "description": "Function exceeds 40 lines — consider splitting into smaller helpers.",
+                "description": f"Function '{func['name']}' is {func['length']} lines — consider splitting into smaller helpers.",
+                "line_number": func["start_line"],
+                "line_range": func_range,
+                "code_context": format_code_snippet(code, [func["start_line"], func["end_line"]]),
                 "example": "def parse_input(raw): ...\ndef validate(data): ...\ndef process(validated): ...",
                 "priority": "high",
             })
-            break
+            break  # Only flag first long function
 
-    # Magic numbers
-    if re.search(r"\b(?<![\w.])[2-9]\d{1,}(?![\w.])\b", code):
+    # ─────────────────────────────────────────────────────────────
+    # SUGGESTION 3: Magic Numbers
+    # ─────────────────────────────────────────────────────────────
+    magic_pattern = r"\b(?<![a-zA-Z_])[2-9]\d{1,}(?![a-zA-Z_])\b"
+    magic_lines = find_lines_matching_pattern(code, magic_pattern)
+
+    if magic_lines:
+        sample_magic_lines = magic_lines[:5]  # Show first 5 occurrences
+
         suggestions.append({
             "category": "Readability",
-            "description": "Magic numbers detected. Replace with named constants for clarity.",
+            "description": f"Magic numbers detected ({len(magic_lines)} occurrence(s)). Replace with named constants.",
+            "line_number": magic_lines[0],
+            "line_range": sample_magic_lines,
+            "code_context": format_code_snippet(code, sample_magic_lines),
             "example": "MAX_RETRIES = 5\nTIMEOUT_SECONDS = 30",
             "priority": "medium",
         })
 
-    # Error handling
+    # ─────────────────────────────────────────────────────────────
+    # SUGGESTION 4: Error Handling
+    # ─────────────────────────────────────────────────────────────
     if language == "Python" and not re.search(r"\btry\b", code):
-        if re.search(r"\bopen\(|\brequests\.\w+\(|\bjson\.loads\(", code):
+        risky_patterns = [r"requests\.(get|post|put|delete)", r"open\s*\(", r"\.query\(|\.execute\("]
+        risky_lines = []
+
+        for pattern in risky_patterns:
+            risky_lines.extend(find_lines_matching_pattern(code, pattern))
+
+        risky_lines = sorted(set(risky_lines))
+
+        if risky_lines:
+            sample_risky = risky_lines[:5]
             suggestions.append({
                 "category": "Error Handling",
-                "description": "I/O operations detected with no try/except block.",
-                "example": "try:\n    data = json.loads(raw)\nexcept json.JSONDecodeError as e:\n    logger.error('Bad JSON: %s', e)\n    return None",
+                "description": f"I/O operations detected ({len(risky_lines)} line(s)) with no try/except block.",
+                "line_number": risky_lines[0],
+                "line_range": sample_risky,
+                "code_context": format_code_snippet(code, sample_risky),
+                "example": "try:\n    data = json.loads(raw)\nexcept json.JSONDecodeError as e:\n    logger.error('Bad JSON: %s', e)",
                 "priority": "high",
             })
 
-    # Type hints
+    # ─────────────────────────────────────────────────────────────
+    # SUGGESTION 5: Type Hints
+    # ─────────────────────────────────────────────────────────────
     if language == "Python":
         defs = re.findall(r"def\s+\w+\s*\(([^)]*)\)\s*:", code)
         unhinted = [d for d in defs if d.strip() and ":" not in d]
+
         if unhinted:
+            # Find lines with functions without type hints
+            func_def_lines = find_lines_matching_pattern(code, r"def\s+\w+\s*\([^)]*\)\s*:")
+
             suggestions.append({
                 "category": "Type Safety",
                 "description": f"{len(unhinted)} function(s) missing type annotations.",
+                "line_number": func_def_lines[0] if func_def_lines else None,
+                "line_range": func_def_lines[:5] if func_def_lines else None,
+                "code_context": format_code_snippet(code, func_def_lines[:3]) if func_def_lines else None,
                 "example": "def greet(name: str, age: int) -> str:\n    return f'Hello {name}, age {age}'",
                 "priority": "medium",
             })
 
-    # Tests
-    if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b", code):
+    # ─────────────────────────────────────────────────────────────
+    # SUGGESTION 6: Tests
+    # ─────────────────────────────────────────────────────────────
+    if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]", code):
         suggestions.append({
             "category": "Testing",
             "description": "No tests detected. Unit tests catch regressions early.",
+            "line_number": None,
+            "line_range": None,
+            "code_context": None,
             "example": "def test_add():\n    assert add(2, 3) == 5\n    assert add(-1, 1) == 0",
             "priority": "high",
         })
 
-    # Logging
-    if re.search(r"\bprint\s*\(", code) and not re.search(r"\blogging\b|\blogger\b", code):
+    # ─────────────────────────────────────────────────────────────
+    # SUGGESTION 7: Logging
+    # ─────────────────────────────────────────────────────────────
+    print_lines = find_lines_matching_pattern(code, r"\bprint\s*\(")
+    has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
+
+    if print_lines and not has_logging:
+        sample_print = print_lines[:3]
         suggestions.append({
             "category": "Observability",
-            "description": "Using `print()` instead of structured logging.",
+            "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
+            "line_number": print_lines[0],
+            "line_range": sample_print,
+            "code_context": format_code_snippet(code, sample_print),
             "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
             "priority": "medium",
         })
 
-    # Env vars for JS/TS
+    # ─────────────────────────────────────────────────────────────
+    # SUGGESTION 8: Environment Variables (JS/TS)
+    # ─────────────────────────────────────────────────────────────
     if language in ("JavaScript", "TypeScript"):
-        if re.search(r"process\.env\.\w+", code) and not re.search(r"dotenv|zod|\.env", code):
+        env_lines = find_lines_matching_pattern(code, r"process\.env\.\w+")
+        has_validation = bool(re.search(r"dotenv|zod|\.env", code))
+
+        if env_lines and not has_validation:
+            sample_env = env_lines[:3]
             suggestions.append({
                 "category": "Configuration",
-                "description": "Environment variables accessed without validation.",
+                "description": f"Environment variables accessed without validation ({len(env_lines)} line(s)).",
+                "line_number": env_lines[0],
+                "line_range": sample_env,
+                "code_context": format_code_snippet(code, sample_env),
                 "example": "import { z } from 'zod';\nconst env = z.object({ PORT: z.string() }).parse(process.env);",
                 "priority": "medium",
             })
 
-    # Score
+    # Score calculation
     deductions = sum({"high": 15, "medium": 7, "low": 3}.get(s["priority"], 5) for s in suggestions)
     score = max(0, min(100, 100 - deductions))
 
@@ -418,12 +541,15 @@ def run_explanation(code: str, language: str) -> dict:
     non_blank = [line for line in lines if line.strip()]
     complexity = estimate_complexity(code)
 
-    func_names = re.findall(r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>", code)
+    func_names = re.findall(
+        r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(",
+        code,
+    )
     funcs = [next(n for n in grp if n) for grp in func_names]
 
     class_names = re.findall(r"class\s+(\w+)", code)
 
-    imports = re.findall(r"import\s+([\w,\s]+)|from\s+(\w+)\s+import", code)
+    imports = re.findall(r"import\s+([\w,\s]+)|from\s+(\w+)\s+import|\buse\s+([\w:]+)", code)
     import_count = len(imports)
 
     has_loops = bool(re.search(r"\bfor\b|\bwhile\b", code))

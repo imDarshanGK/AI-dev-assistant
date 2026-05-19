@@ -13,6 +13,18 @@ client = TestClient(app)
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
+PHP_CODE = """
+<?php
+$name = "Srija";
+echo $name;
+function greet($user) {
+    return "Hello " . $user;
+}
+$arr = array(1, 2, 3);
+$obj->method();
+?>
+"""
+
 PYTHON_BUGGY = """
 import os
 password = "supersecret123"
@@ -76,6 +88,34 @@ int main() {
 }
 """
 
+RUST_CODE = """
+use std::collections::HashMap;
+
+fn main() {
+    let mut scores: HashMap<String, i32> = HashMap::new();
+    println!("Hello, world!");
+}
+
+impl MyStruct {
+    fn new() -> Option<MyStruct> {
+        None
+    }
+}
+"""
+
+RUST_BUGGY = """
+fn main() {
+    let v: Vec<i32> = vec![1, 2, 3];
+    let x = v.get(0).unwrap();
+    let s = String::from("hello").clone();
+    unsafe {
+        println!("{}", x);
+    }
+    panic!("something went wrong");
+    let y: Option<i32> = None;
+    let z = y.expect("no value");
+}
+"""
 
 # ── Health ────────────────────────────────────────────────────────────────────
 def test_root():
@@ -107,6 +147,24 @@ def test_explanation_no_language_hint():
     assert r.status_code == 200
     d = r.json()
     assert d["language"] in ("JavaScript", "TypeScript")
+
+def test_explanation_rust():
+    r = client.post("/explanation/", json={"code": RUST_CODE, "language": "rust"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Rust"
+
+def test_explanation_detects_rust_without_hint():
+    r = client.post("/explanation/", json={"code": RUST_CODE})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Rust"
+    assert d["function_count"] >= 2
+
+def test_explanation_accepts_rust_hint_alias():
+    r = client.post("/explanation/", json={"code": "fn main() {}", "language": "rs"})
+    assert r.status_code == 200
+    assert r.json()["language"] == "Rust"
 
 def test_explanation_empty_code():
     r = client.post("/explanation/", json={"code": "   "})
@@ -170,6 +228,27 @@ def test_debug_cpp():
     d = r.json()
     assert len(d["issues"]) > 0
 
+def test_debug_php():
+    r = client.post("/debugging/", json={"code": PHP_CODE, "language": "php"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d is not None
+
+def test_debug_rust():
+    r = client.post("/debugging/", json={"code": RUST_CODE, "language": "rust"})
+    assert r.status_code == 200
+    assert r.json() is not None
+
+def test_debug_rust_buggy_patterns():
+    r = client.post("/debugging/", json={"code": RUST_BUGGY, "language": "rust"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "Unwrap Usage" in types
+    assert "Unsafe Block" in types
+    assert "Panic Usage" in types
+    assert "Expect Usage" in types
+    assert "Clone Overuse" in types
+
 def test_debug_issue_has_required_fields():
     r = client.post("/debugging/", json={"code": PYTHON_BUGGY})
     assert r.status_code == 200
@@ -225,6 +304,7 @@ def test_full_analyze_all_languages():
         (TS_CODE, "typescript"),
         (JAVA_CODE, "java"),
         (CPP_CODE, "cpp"),
+        (RUST_CODE, "rust"),
     ]:
         r = client.post("/analyze/", json={"code": code, "language": lang})
         assert r.status_code == 200, f"Failed for {lang}"
