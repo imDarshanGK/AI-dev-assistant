@@ -76,6 +76,22 @@ int main() {
 }
 """
 
+RUST_CODE = """
+use std::collections::HashMap;
+
+fn main() {
+    let mut counts: HashMap<String, i32> = HashMap::new();
+    counts.insert(String::from("dailyforge"), 1);
+    println!("{:?}", counts.get("dailyforge"));
+}
+
+impl Score {
+    fn value(&self) -> Option<i32> {
+        Some(self.total)
+    }
+}
+"""
+
 
 # ── Health ────────────────────────────────────────────────────────────────────
 def test_root():
@@ -107,6 +123,18 @@ def test_explanation_no_language_hint():
     assert r.status_code == 200
     d = r.json()
     assert d["language"] in ("JavaScript", "TypeScript")
+
+def test_explanation_detects_rust_without_hint():
+    r = client.post("/explanation/", json={"code": RUST_CODE})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Rust"
+    assert d["function_count"] >= 2
+
+def test_explanation_accepts_rust_hint_alias():
+    r = client.post("/explanation/", json={"code": "fn main() {}", "language": "rs"})
+    assert r.status_code == 200
+    assert r.json()["language"] == "Rust"
 
 def test_explanation_empty_code():
     r = client.post("/explanation/", json={"code": "   "})
@@ -225,6 +253,7 @@ def test_full_analyze_all_languages():
         (TS_CODE, "typescript"),
         (JAVA_CODE, "java"),
         (CPP_CODE, "cpp"),
+        (RUST_CODE, "rust"),
     ]:
         r = client.post("/analyze/", json={"code": code, "language": lang})
         assert r.status_code == 200, f"Failed for {lang}"

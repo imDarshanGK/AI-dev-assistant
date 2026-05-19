@@ -33,6 +33,14 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"#include\s*<", r"\bstd::\w+", r"\bcout\s*<<",
         r"\bint\s+main\s*\(", r"::\w+",
     ],
+    "Rust": [
+        r"\bfn\s+\w+\s*\(",
+        r"\blet\s+mut\b",
+        r"\buse\s+std::",
+        r"println!\s*\(",
+        r"\bimpl\b",
+        r"\bOption<\w+>",
+    ],
 }
 
 
@@ -45,6 +53,7 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "typescript": "TypeScript", "ts": "TypeScript",
             "java": "Java",
             "cpp": "C++", "c++": "C++", "cxx": "C++",
+            "rust": "Rust", "rs": "Rust",
         }
         if normalized in mapping:
             return mapping[normalized]
@@ -83,7 +92,7 @@ class BugPattern:
     description: str
     suggestion: str
     severity: str
-    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++"])
+    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++", "Rust"])
 
 
 BUG_PATTERNS: list[BugPattern] = [
@@ -370,7 +379,10 @@ def run_explanation(code: str, language: str) -> dict:
     non_blank = [line for line in lines if line.strip()]
     complexity = estimate_complexity(code)
 
-    func_names = re.findall(r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>", code)
+    func_names = re.findall(
+        r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(",
+        code,
+    )
     funcs = [next(n for n in grp if n) for grp in func_names]
 
     class_names = re.findall(r"class\s+(\w+)", code)
