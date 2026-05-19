@@ -297,6 +297,7 @@ nav{
   transition:all var(--transition);font-size:12px;
 }
 .icon-btn:hover{background:var(--bg);color:var(--text);border-color:var(--border2)}
+.icon-btn:disabled,.icon-btn.disabled{opacity:0.35;cursor:not-allowed;pointer-events:none}
 
 /* ── Language Tabs ── */
 .lang-tabs{
@@ -853,6 +854,12 @@ footer a:hover{color:var(--accent)}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1"/>
         </label>
+        <button class="icon-btn" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10h10a5 5 0 0 1 5 5v2"/><path d="M3 10l4-4M3 10l4 4"/></svg>
+        </button>
+        <button class="icon-btn" id="redoBtn" title="Redo (Ctrl+Y)" aria-label="Redo" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10H11a5 5 0 0 0-5 5v2"/><path d="M21 10l-4-4M21 10l-4 4"/></svg>
+        </button>
         <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
         </button>
@@ -884,7 +891,7 @@ footer a:hover{color:var(--accent)}
 
     <div class="editor-footer">
       <span id="charCount">0 chars · 0 lines</span>
-      <span>Ctrl+Enter to analyze</span>
+      <span>Ctrl+Z undo · Ctrl+Y redo · Ctrl+Enter analyze</span>
     </div>
 
     <!-- Mode buttons -->
@@ -1087,6 +1094,115 @@ if (themeToggleBtnInit) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   EDITOR — UNDO / REDO
+═══════════════════════════════════════════════════════════════ */
+const UNDO_LIMIT = 50;
+const undoBtn = document.getElementById('undoBtn');
+const redoBtn = document.getElementById('redoBtn');
+let undoStack = [];
+let redoStack = [];
+let undoDebounce = null;
+let editSnapshot = null;
+let isApplyingHistory = false;
+
+function captureEditorState() {
+  return {
+    value: editor.value,
+    selStart: editor.selectionStart,
+    selEnd: editor.selectionEnd,
+  };
+}
+
+function statesEqual(a, b) {
+  return a.value === b.value && a.selStart === b.selStart && a.selEnd === b.selEnd;
+}
+
+function updateUndoRedoButtons() {
+  const canUndo = undoStack.length > 0 ||
+    (editSnapshot && !statesEqual(editSnapshot, captureEditorState()));
+  undoBtn.disabled = !canUndo;
+  redoBtn.disabled = redoStack.length === 0;
+}
+
+function pushUndoState(state) {
+  const top = undoStack[undoStack.length - 1];
+  if (top && statesEqual(top, state)) return;
+  undoStack.push(state);
+  if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+  redoStack = [];
+  updateUndoRedoButtons();
+}
+
+function beginEditSession() {
+  if (isApplyingHistory) return;
+  if (!editSnapshot) editSnapshot = captureEditorState();
+}
+
+function commitEditSnapshot() {
+  if (isApplyingHistory || !editSnapshot) return;
+  const current = captureEditorState();
+  if (!statesEqual(editSnapshot, current)) {
+    pushUndoState(editSnapshot);
+  }
+  editSnapshot = null;
+}
+
+function scheduleCommitEdit() {
+  clearTimeout(undoDebounce);
+  undoDebounce = setTimeout(commitEditSnapshot, 400);
+}
+
+function applyEditorState(state) {
+  isApplyingHistory = true;
+  editor.value = state.value;
+  editor.setSelectionRange(state.selStart, state.selEnd);
+  editSnapshot = null;
+  updateEditor();
+  isApplyingHistory = false;
+  updateUndoRedoButtons();
+}
+
+function undo() {
+  if (isApplyingHistory) return;
+  clearTimeout(undoDebounce);
+
+  if (editSnapshot && !statesEqual(editSnapshot, captureEditorState())) {
+    redoStack.push(captureEditorState());
+    applyEditorState(editSnapshot);
+    editSnapshot = null;
+    return;
+  }
+
+  commitEditSnapshot();
+  if (!undoStack.length) return;
+  redoStack.push(captureEditorState());
+  applyEditorState(undoStack.pop());
+}
+
+function redo() {
+  if (isApplyingHistory || !redoStack.length) return;
+  clearTimeout(undoDebounce);
+  editSnapshot = null;
+  undoStack.push(captureEditorState());
+  applyEditorState(redoStack.pop());
+}
+
+function setEditorValue(value, { recordUndo = true } = {}) {
+  if (recordUndo && !isApplyingHistory && value !== editor.value) {
+    clearTimeout(undoDebounce);
+    commitEditSnapshot();
+    pushUndoState(captureEditorState());
+  }
+  editSnapshot = null;
+  editor.value = value;
+  updateEditor();
+  updateUndoRedoButtons();
+}
+
+undoBtn.addEventListener('click', undo);
+redoBtn.addEventListener('click', redo);
+
+/* ═══════════════════════════════════════════════════════════════
    EDITOR
 ═══════════════════════════════════════════════════════════════ */
 function updateEditor() {
@@ -1103,7 +1219,16 @@ function updateEditor() {
     : '1';
 }
 
-editor.addEventListener('input', updateEditor);
+editor.addEventListener('input', () => {
+  if (!isApplyingHistory) {
+    beginEditSession();
+    scheduleCommitEdit();
+  }
+  updateEditor();
+});
+editor.addEventListener('beforeinput', () => {
+  if (!isApplyingHistory) beginEditSession();
+});
 editor.addEventListener('scroll', () => {
   lineNumbers.scrollTop = editor.scrollTop;
 });
@@ -1111,10 +1236,23 @@ editor.addEventListener('scroll', () => {
 // Tab key support
 editor.addEventListener('keydown', e => {
 
+  // UNDO / REDO
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    undo();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+    e.preventDefault();
+    redo();
+    return;
+  }
+
   // TAB SUPPORT
   if (e.key === 'Tab' && !e.shiftKey) {
 
     e.preventDefault();
+    beginEditSession();
 
     const start = editor.selectionStart;
     const end = editor.selectionEnd;
@@ -1135,6 +1273,7 @@ editor.addEventListener('keydown', e => {
   else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
 
     e.preventDefault();
+    beginEditSession();
 
     const start = editor.selectionStart;
     const end = editor.selectionEnd;
@@ -1212,6 +1351,7 @@ editor.addEventListener('keydown', e => {
       if (currentLine.endsWith('    ')) {
 
         e.preventDefault();
+        beginEditSession();
 
         editor.value =
           value.substring(0, start - 4) +
@@ -1248,8 +1388,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
   if (langMap[ext]) setLanguage(langMap[ext]);
   const reader = new FileReader();
   reader.onload = ev => {
-    editor.value = ev.target.result;
-    updateEditor();
+    setEditorValue(ev.target.result);
     toast(`Loaded ${file.name}`, 'success');
   };
   reader.readAsText(file);
