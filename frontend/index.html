@@ -1655,6 +1655,8 @@ function loadEntry(id) {
 }
 
 document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+  if (!confirm('Clear all history? This cannot be undone.')) return;
+
   history = [];
   localStorage.removeItem('qyx_history');
   renderHistory();
@@ -1705,6 +1707,8 @@ function loadFav(id) {
 }
 
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
+  if (!confirm('Clear all favorites? This cannot be undone.')) return;
+  
   favorites = [];
   localStorage.removeItem('qyx_favorites');
   renderFavorites();
