@@ -54,6 +54,20 @@ body {
   border-radius: 2px;
 }
 
+/* ── Shortcut Hint Visibility ── */
+/* Hide the shortcut hint by default (mobile, tablet, or touch-only input setups) */
+.desktop-hint {
+  display: none;
+}
+
+/* Show shortcut hint only on desktop screens with a mouse/trackpad pointer */
+@media (min-width: 1024px) and (pointer: fine) {
+  .desktop-hint {
+    display: inline;
+    margin-left: 6px;
+  }
+}
+
 /* ── Nav ── */
 .nav {
   position: sticky;
@@ -145,7 +159,6 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
-
 .hero-title {
   font-family: var(--font-serif);
   font-size: clamp(2.8rem, 5vw, 4.5rem);
@@ -467,7 +480,6 @@ body {
 .btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-run.loading { animation: shimmer 1.5s infinite; }
 @keyframes shimmer { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-
 .output-box {
   flex: 1;
   overflow-y: auto;
@@ -487,7 +499,6 @@ body {
 }
 .placeholder-icon { font-size: 28px; opacity: 0.4; }
 .placeholder-sub { font-size: 12px; }
-
 /* Output sections */
 .result-section { margin-bottom: 20px; }
 .result-section h4 {
@@ -510,7 +521,6 @@ body {
 .tag-error { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
 .tag-ok { background: rgba(34,197,94,0.12); color: #86efac; border: 1px solid rgba(34,197,94,0.2); }
 .tag-info { background: rgba(59,130,246,0.12); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
-
 /* ── History ── */
 .history-section, .fav-section { padding: 4rem 4rem; }
 .history-container, .fav-container {
@@ -546,7 +556,6 @@ body {
   transition: all var(--transition);
 }
 .btn-ghost-sm:hover { color: var(--text-2); border-color: var(--border-2); }
-
 /* ── Footer ── */
 .footer {
   display: flex;
@@ -561,12 +570,10 @@ body {
 .footer-sep { opacity: 0.4; }
 .footer-right a { color: var(--text-3); text-decoration: none; transition: color var(--transition); }
 .footer-right a:hover { color: var(--text-2); }
-
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
-
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .hero { grid-template-columns: 1fr; padding: 4rem 2rem; min-height: auto; }
