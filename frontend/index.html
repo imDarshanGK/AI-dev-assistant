@@ -3464,6 +3464,109 @@ int main() {
       const savedUrl = localStorage.getItem('qyx_apiUrl');
       if (savedUrl) apiUrlInput.value = savedUrl;
     </script>
+    <!-- Keyboard Shortcuts Modal -->
+<div id="shortcutModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100vw;
+height:100vh;
+background:rgba(0,0,0,0.7);
+z-index:999999;
+align-items:center;
+justify-content:center;
+backdrop-filter:blur(8px);
+">
+
+  <div style="
+    width:90%;
+    max-width:500px;
+    background:#111827;
+    color:white;
+    padding:28px;
+    border-radius:18px;
+    position:relative;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    font-family:Arial,sans-serif;
+  ">
+
+    <button id="shortcutCloseBtn" style="
+      position:absolute;
+      top:12px;
+      right:14px;
+      background:none;
+      border:none;
+      color:white;
+      font-size:24px;
+      cursor:pointer;
+    ">✕</button>
+
+    <h2>⌨️ Keyboard Shortcuts</h2>
+    <p>Quick shortcuts for faster workflow</p>
+
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:20px;">
+      <div style="display:flex;justify-content:space-between;"><b>?</b><span>Open help</span></div>
+      <div style="display:flex;justify-content:space-between;"><b>Esc</b><span>Close modal</span></div>
+      <div style="display:flex;justify-content:space-between;"><b>/</b><span>Focus editor</span></div>
+      <div style="display:flex;justify-content:space-between;"><b>Ctrl + Enter</b><span>Run analysis</span></div>
+      <div style="display:flex;justify-content:space-between;"><b>Ctrl + K</b><span>Focus editor</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const modal = document.getElementById('shortcutModal');
+  const closeBtn = document.getElementById('shortcutCloseBtn');
+  const codeEditor = document.getElementById('codeEditor');
+
+  function openModal() {
+    modal.style.display = 'flex';
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) closeModal();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    const activeTag = document.activeElement?.tagName;
+
+    if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+      e.preventDefault();
+      openModal();
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      closeModal();
+      if (codeEditor) codeEditor.blur();
+      return;
+    }
+
+    if (
+      e.key === '/' &&
+      !['INPUT', 'TEXTAREA'].includes(activeTag)
+    ) {
+      e.preventDefault();
+      if (codeEditor) codeEditor.focus();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      if (codeEditor) codeEditor.focus();
+      return;
+    }
+  });
+})();
+</script>
 </body>
 
 </html>
