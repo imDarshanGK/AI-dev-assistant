@@ -13,6 +13,17 @@ client = TestClient(app)
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
+
+KOTLIN_CODE = """
+fun greet(name: String): String {
+    return "Hello $name"
+}
+val message: String? = null
+var count = 0
+data class User(val name: String, val age: Int)
+println("Hello World")
+"""
+
 PYTHON_BUGGY = """
 import os
 password = "supersecret123"
@@ -169,6 +180,12 @@ def test_debug_cpp():
     assert r.status_code == 200
     d = r.json()
     assert len(d["issues"]) > 0
+
+def test_debug_kotlin():
+    r = client.post("/debugging/", json={"code": KOTLIN_CODE, "language": "kotlin"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d is not None
 
 def test_debug_issue_has_required_fields():
     r = client.post("/debugging/", json={"code": PYTHON_BUGGY})
