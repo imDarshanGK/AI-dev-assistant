@@ -1276,12 +1276,25 @@ document.body.addEventListener('drop', e => {
 ═══════════════════════════════════════════════════════════════ */
 function setLanguage(lang) {
   selectedLang = lang;
+  
+  // 1. Update the visual tabs
   document.querySelectorAll('.lang-tab').forEach(t => {
     const isActive = t.dataset.lang === lang;
     t.classList.toggle('active', isActive);
     t.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
+
+  // 2. Check if the editor currently contains one of the samples
+  const currentCode = editor.value.trim();
+  const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
+  
+  // 3. If it is a sample, swap it to the new language's sample automatically
+  if (isSample) {
+    editor.value = SAMPLES[lang] || SAMPLES.python;
+    updateEditor();
+  }
 }
+
 document.querySelectorAll('.lang-tab').forEach(t => {
   t.addEventListener('click', () => setLanguage(t.dataset.lang));
 });
@@ -1761,7 +1774,8 @@ function renderMarkdown(s) {
    SAMPLE CODE LOADER
 ═══════════════════════════════════════════════════════════════ */
 const SAMPLES = {
-  python: `import os
+  python: `// Python Sample
+  import os
 
 # [!] Hardcoded secret - security risk
 password = "supersecret123"
@@ -1788,7 +1802,8 @@ from os import *  # [!] Wildcard import
 x = eval("1 + 2")  # [!] Unsafe eval
 
 calculate(10, 0)`,
-  javascript: `var counter = 0;
+  javascript: `// JavaScript Sample
+  var counter = 0;
 
 function loadUser(id) {
   // [!] Promise not awaited
@@ -1804,6 +1819,61 @@ function loadUser(id) {
 }
 
 loadUser(42);`,
+  typescript: `// TypeScript Sample
+interface User {
+  id: number;
+  name: string;
+  email?: string; 
+}
+
+function sendWelcomeEmail(user: User) {
+  // Anti-pattern: Non-null assertion operator (!) used dangerously
+  // If user.email is undefined, this will cause a runtime error in the compiled JS
+  console.log("Sending email to: " + user.email!.toLowerCase());
+}
+
+const newUser: User = { id: 1, name: "Alice" };
+sendWelcomeEmail(newUser);`,
+  java: `// Java Sample
+public class Main {
+    public static void main(String[] args) {
+        String name1 = new String("Vaibhav");
+        String name2 = new String("Vaibhav");
+
+        // Anti-pattern 1: Using == for string comparison instead of .equals()
+        if (name1 == name2) {
+            System.out.println("Names are the same");
+        } else {
+            System.out.println("Names are different (Reference comparison failed)");
+        }
+
+        // Anti-pattern 2: NullPointerException risk
+        String uninitializedString = null;
+        System.out.println(uninitializedString.length());
+    }
+}`,
+  cpp: `// C++ Sample
+#include <iostream>
+
+// Anti-pattern 1: using namespace std in global scope
+using namespace std; 
+
+void processData() {
+    // Anti-pattern 2: Memory Leak
+    // Allocating memory on the heap but never freeing it with 'delete'
+    int* dataBuffer = new int[100]; 
+    
+    dataBuffer[0] = 42;
+    cout << "Processing value: " << dataBuffer[0] << endl;
+    
+    // Memory leak occurs here when the function exits 
+    // because 'delete[] dataBuffer;' is missing.
+}
+
+int main() {
+    processData();
+    return 0;
+}`
 };
 
 function loadSample() {
