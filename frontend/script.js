@@ -64,14 +64,44 @@ codeInput.addEventListener('input', () => {
 
 // ── Keyboard shortcut ──
 codeInput.addEventListener('keydown', (e) => {
+
   if (e.key === 'Escape') {
     codeInput.blur();
     return;
   }
+
+  if (e.key === 'Enter') {
+
+    const start = codeInput.selectionStart;
+    const end = codeInput.selectionEnd;
+
+    const value = codeInput.value;
+
+    const lines = value.substring(0, start).split('\n');
+    const currentLine = lines[lines.length - 1];
+
+    if (currentLine.trim().endsWith(':')) {
+
+      e.preventDefault();
+
+      const insertion = '\n    ';
+
+      codeInput.value =
+        value.substring(0, start) +
+        insertion +
+        value.substring(end);
+
+      codeInput.selectionStart =
+        codeInput.selectionEnd =
+        start + insertion.length;
+    }
+  }
+
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault();
     runAnalysis();
   }
+
 });
 
 // ── File upload ──
@@ -364,8 +394,8 @@ function renderResult(data, mode) {
         <h4>Debugging</h4>
         <div class="result-text">
           ${issues.length === 0
-            ? '<span class="result-tag tag-ok">✓ No issues found</span>'
-            : issues.map(i => `<div style="margin-bottom:10px">
+          ? '<span class="result-tag tag-ok">✓ No issues found</span>'
+          : issues.map(i => `<div style="margin-bottom:10px">
                 <span class="result-tag tag-error">${i.type || 'Issue'}</span>
                 <p style="margin-top:4px">${i.description || ''}</p>
                 ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${i.suggestion}</p>` : ''}
@@ -409,8 +439,8 @@ function renderResult(data, mode) {
       <h4>Issues Found (${issues.length})</h4>
       <div class="result-text">
         ${issues.length === 0
-          ? '<span class="result-tag tag-ok">✓ No issues detected. Code looks clean!</span>'
-          : issues.map(i => `<div style="margin-bottom:14px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
+        ? '<span class="result-tag tag-ok">✓ No issues detected. Code looks clean!</span>'
+        : issues.map(i => `<div style="margin-bottom:14px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
               <span class="result-tag tag-error">${i.type || 'Issue'}</span>
               ${i.line ? `<span class="result-tag tag-info">Line ${i.line}</span>` : ''}
               <p style="margin-top:8px">${i.description || ''}</p>
@@ -508,7 +538,7 @@ function renderFavorites() {
 }
 
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ── Toast ──
