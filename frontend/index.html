@@ -273,6 +273,11 @@ nav{
   transition:border-color var(--transition);
 }
 .panel:focus-within{border-color:var(--border2)}
+@keyframes resultsHighlight{
+  0%,35%{border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,156,246,0.35)}
+  100%{border-color:var(--border);box-shadow:none}
+}
+.panel.results-highlight{animation:resultsHighlight 1.8s ease}
 .panel-header{
   display:flex;align-items:center;justify-content:space-between;
   padding:14px 18px;border-bottom:1px solid var(--border);
@@ -936,7 +941,7 @@ footer a:hover{color:var(--accent)}
   </div>
 
   <!-- Results Panel -->
-  <div class="panel">
+  <div class="panel" id="resultsPanel">
     <div class="panel-header">
       <div class="panel-title">Analysis Results</div>
       <div class="panel-actions" id="resultActions" style="display:none">
@@ -1515,6 +1520,19 @@ setTimeout(pingApi, 800);
 ═══════════════════════════════════════════════════════════════ */
 analyzeBtn.addEventListener('click', doAnalyze);
 
+function revealResultsOnMobile() {
+  if (window.innerWidth >= 900) return;
+  const panel = document.getElementById('resultsPanel');
+  if (!panel) return;
+  requestAnimationFrame(() => {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    panel.classList.remove('results-highlight');
+    void panel.offsetWidth;
+    panel.classList.add('results-highlight');
+    panel.addEventListener('animationend', () => panel.classList.remove('results-highlight'), { once: true });
+  });
+}
+
 async function doAnalyze() {
   const code = editor.value.trim();
   if (!code) { toast('Please paste some code first.', 'error'); return; }
@@ -1569,6 +1587,7 @@ async function doAnalyze() {
     if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
     else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
     resultActions.style.display = 'flex';
+    revealResultsOnMobile();
 
   } catch (err) {
     toast(`Error: ${err.message}`, 'error');
