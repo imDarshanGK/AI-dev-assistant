@@ -75,5 +75,9 @@ class AppCache:
         with self._memory_lock:
             self._memory_store[key] = (expires_at, payload)
 
+    def clear_memory(self) -> None:
+        with self._memory_lock:
+            self._memory_store.clear()
+
 
 cache = AppCache()

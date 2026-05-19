@@ -298,6 +298,24 @@ def test_full_analyze():
     assert d["provider"] == "rule-based"
     assert d["analysis_time_ms"] is not None
 
+def test_full_analyze_uses_cache_for_identical_inputs():
+    from app.main import _request_counts
+    from app.services.cache import cache
+
+    _request_counts.clear()
+    cache.clear_memory()
+    payload = {"code": PYTHON_BUGGY, "language": "python"}
+
+    first = client.post("/analyze/", json=payload)
+    second = client.post("/analyze/", json=payload)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.headers["X-QyverixAI-Cache"] == "miss"
+    assert second.headers["X-QyverixAI-Cache"] == "hit"
+    assert second.json() == first.json()
+    _request_counts.clear()
+
 def test_full_analyze_all_languages():
     for code, lang in [
         (JS_CODE, "javascript"),
