@@ -465,6 +465,18 @@ nav{
   margin-left:auto;font-size:0.72rem;color:var(--text3);
   font-family:var(--font-mono);
 }
+.issue-copy-btn{
+  border:1px solid var(--border);background:var(--bg);
+  color:var(--text3);border-radius:8px;padding:4px 8px;
+  font-size:0.68rem;font-weight:700;cursor:pointer;
+  transition:all var(--transition);
+}
+.issue-copy-btn:hover,.issue-copy-btn:focus-visible{
+  color:var(--accent);border-color:var(--accent);outline:none;
+}
+.issue-copy-btn.copied{
+  color:var(--green);border-color:var(--green);
+}
 .issue-type{font-size:0.88rem;font-weight:600}
 .issue-desc{font-size:0.82rem;color:var(--text2);margin-bottom:8px;line-height:1.5}
 .issue-snippet{
@@ -1506,6 +1518,7 @@ function renderDebug(dbg) {
         <span class="issue-badge">${issue.severity}</span>
         <span class="issue-type">${issue.type}</span>
         ${issue.line ? `<span class="issue-line">Line ${issue.line}</span>` : ''}
+        <button class="issue-copy-btn" type="button" data-issue-copy="${i}" aria-label="Copy fix suggestion for ${escHtml(issue.type)}">Copy</button>
       </div>
       <div class="issue-desc">${issue.description}</div>
       ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
@@ -1513,6 +1526,31 @@ function renderDebug(dbg) {
     </div>`).join('');
 
   el.innerHTML = statBar + cards;
+
+  el.querySelectorAll('[data-issue-copy]').forEach((button) => {
+    button.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      const index = Number(button.getAttribute('data-issue-copy'));
+      const suggestion = dbg.issues[index]?.suggestion;
+      if (!suggestion) return;
+
+      try {
+        await navigator.clipboard.writeText(suggestion);
+      } catch {
+        toast('Copy failed. Please try again.', 'error');
+        return;
+      }
+
+      button.textContent = 'Copied!';
+      button.classList.add('copied');
+      button.setAttribute('aria-label', 'Fix suggestion copied');
+      setTimeout(() => {
+        button.textContent = 'Copy';
+        button.classList.remove('copied');
+        button.setAttribute('aria-label', `Copy fix suggestion for ${dbg.issues[index]?.type || 'issue'}`);
+      }, 2000);
+    });
+  });
 }
 
 function renderSuggest(sugg) {
