@@ -40,7 +40,7 @@ def detect_language(code: str, hint: str | None = None) -> str:
     """Detect the programming language of the given code snippet.
 
     Args:
-        code: The source code string to analyse.
+        code: The source code string to analyze.
         hint: Optional language name to override detection.
 
     Returns:
