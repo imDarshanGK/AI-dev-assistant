@@ -41,6 +41,15 @@ LANG_SIGNATURES: dict[str, list[str]] = {
     r"\barray\s*\(",
     r"->\w+",
 ],
+
+"Kotlin": [
+    r"\bfun\s+\w+\s*\(",
+    r"\bval\s+\w+",
+    r"\bvar\s+\w+",
+    r"println\s*\(",
+    r"data\s+class\s+\w+",
+    r":\s*\w+\s*\?",
+],
 }
 
 

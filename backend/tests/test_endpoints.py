@@ -15,7 +15,7 @@ client = TestClient(app)
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 PHP_CODE = """
 <?php
-$name = "Srija";
+$name = "John";
 echo $name;
 function greet($user) {
     return "Hello " . $user;
@@ -23,6 +23,16 @@ function greet($user) {
 $arr = array(1, 2, 3);
 $obj->method();
 ?>
+"""
+
+KOTLIN_CODE = """
+fun greet(name: String): String {
+    return "Hello $name"
+}
+val message: String? = null
+var count = 0
+data class User(val name: String, val age: Int)
+println("Hello World")
 """
 
 PYTHON_BUGGY = """
@@ -184,6 +194,12 @@ def test_debug_cpp():
 
 def test_debug_php():
     r = client.post("/debugging/", json={"code": PHP_CODE, "language": "php"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d is not None
+
+def test_debug_kotlin():
+    r = client.post("/debugging/", json={"code": KOTLIN_CODE, "language": "kotlin"})
     assert r.status_code == 200
     d = r.json()
     assert d is not None
