@@ -25,6 +25,8 @@ class ExplanationResponse(BaseModel):
     summary: str
     key_points: list[str]
     complexity: str
+    cyclomatic_complexity: int
+    complexity_risk: str
     line_count: int
     function_count: int
     class_count: int

@@ -3033,6 +3033,10 @@
         <div class="dot"></div>${exp.complexity}
       </div>
       <div class="meta-chip">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 12h6"/><path d="M10 5v14"/><path d="M10 12h6"/><path d="M16 5v14"/><path d="M16 12h4"/></svg>
+        CC ${exp.cyclomatic_complexity || 1} · ${exp.complexity_risk || 'Simple'}
+      </div>
+      <div class="meta-chip">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
         ${exp.language}
       </div>
@@ -3296,7 +3300,7 @@
       function buildReport(r, code) {
         const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
         if (r.explanation) {
-          lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
+          lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Cyclomatic Complexity: ${r.explanation.cyclomatic_complexity || 1} (${r.explanation.complexity_risk || 'Simple'})`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
         }
         if (r.debugging) {
           lines.push('── DEBUGGING ──', r.debugging.summary, '');

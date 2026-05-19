@@ -140,7 +140,30 @@ def test_explanation_python():
     assert "summary" in d
     assert isinstance(d["key_points"], list)
     assert d["complexity"] in ("Beginner", "Intermediate", "Advanced", "Expert")
+    assert d["cyclomatic_complexity"] >= 1
+    assert d["complexity_risk"] in ("Simple", "Moderate", "High", "Very High")
     assert isinstance(d["line_count"], int)
+
+def test_explanation_reports_cyclomatic_complexity_risk():
+    from app.main import _request_counts
+
+    code = """
+def classify(value):
+    if value > 10 and value < 20:
+        return "mid"
+    elif value >= 20 or value == 0:
+        return "edge"
+    for item in range(value):
+        if item % 2 == 0:
+            continue
+    return "low"
+"""
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["cyclomatic_complexity"] >= 6
+    assert d["complexity_risk"] == "Moderate"
+    _request_counts.clear()
 
 def test_explanation_no_language_hint():
     r = client.post("/explanation/", json={"code": JS_CODE})

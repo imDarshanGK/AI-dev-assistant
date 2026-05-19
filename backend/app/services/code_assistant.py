@@ -110,6 +110,52 @@ def estimate_complexity(code: str) -> str:
         return "Advanced"
     return "Expert"
 
+
+def calculate_cyclomatic_complexity(code: str, language: str) -> tuple[int, str]:
+    """Calculate simplified cyclomatic complexity from common decision points."""
+
+    decision_patterns = [
+        r"\bif\b",
+        r"\belif\b",
+        r"\belse\s+if\b",
+        r"\bfor\b",
+        r"\bwhile\b",
+        r"\bcase\b",
+        r"\bcatch\b",
+        r"\bexcept\b",
+        r"\band\b",
+        r"\bor\b",
+        r"&&",
+        r"\|\|",
+        r"\?",
+    ]
+
+    decision_points = 0
+    for pattern in decision_patterns:
+        decision_points += len(re.findall(pattern, code))
+
+    if language == "Python":
+        try:
+            tree = ast.parse(code)
+            bool_ops = sum(max(0, len(node.values) - 1) for node in ast.walk(tree) if isinstance(node, ast.BoolOp))
+            structural_nodes = sum(
+                1
+                for node in ast.walk(tree)
+                if isinstance(node, (ast.If, ast.For, ast.AsyncFor, ast.While, ast.ExceptHandler, ast.Match))
+            )
+            decision_points = max(decision_points, bool_ops + structural_nodes)
+        except SyntaxError:
+            pass
+
+    score = max(1, decision_points + 1)
+    if score <= 5:
+        return score, "Simple"
+    if score <= 10:
+        return score, "Moderate"
+    if score <= 20:
+        return score, "High"
+    return score, "Very High"
+
 # ── Bug Patterns ───────────────────────────────────────────────────────────────
 @dataclass
 class BugPattern:
@@ -540,6 +586,7 @@ def run_explanation(code: str, language: str) -> dict:
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
     complexity = estimate_complexity(code)
+    cyclomatic_complexity, complexity_risk = calculate_cyclomatic_complexity(code, language)
 
     func_names = re.findall(
         r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(",
@@ -569,6 +616,9 @@ def run_explanation(code: str, language: str) -> dict:
         key_points.append("Contains loop(s) — iterative data processing detected.")
     if has_conditions:
         key_points.append("Contains conditional logic — branching control flow.")
+    key_points.append(
+        f"Cyclomatic complexity is **{cyclomatic_complexity}** ({complexity_risk} risk)."
+    )
     if has_recursion:
         key_points.append("⚠ Recursive call detected — ensure a proper base case exists.")
 
@@ -585,6 +635,8 @@ def run_explanation(code: str, language: str) -> dict:
         "summary": summaries.get(complexity, f"A {language} code snippet."),
         "key_points": key_points,
         "complexity": complexity,
+        "cyclomatic_complexity": cyclomatic_complexity,
+        "complexity_risk": complexity_risk,
         "line_count": len(lines),
         "function_count": len(funcs),
         "class_count": len(class_names),
