@@ -2037,6 +2037,9 @@
             <div class="spinner" id="spinner" aria-hidden="true"></div>
             <span class="btn-text">Analyze Code</span>
           </button>
+          <button id="analyze-btn" title="Analyze Code (Ctrl+Enter)" align="center">Analyze <span
+              class="desktop-hint">(Ctrl+Enter)</span>
+          </button>
         </div>
       </div>
 
@@ -2177,449 +2180,853 @@
 
   <!-- ── FOOTER ─────────────────────────────────────────────────── -->
   <footer>
+
     <div class="app">
-      <div class="footer-logo">QyverixAI</div>
-      <p>
-        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
-        · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
-        · MIT License
-      </p>
-      <p style="margin-top:8px;font-size:0.75rem">Built for the open source community</p>
-    </div>
-  </footer>
 
-  <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
-  <div id="toastContainer"></div>
+      <!-- ── NAV ──────────────────────────────────────────────────── -->
+      <nav>
+        <a href="#" class="nav-logo">
+          <div class="logo-hex">Q</div>
+          QyverixAI
+          <span
+            style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.25);letter-spacing:0.04em;margin-left:4px">v3.0</span>
+        </a>
+        <div class="nav-links">
+          <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+            <span>GitHub</span>
+          </a>
+          <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14,2 14,8 20,8" />
+            </svg>
+            <span>API Docs</span>
+          </a>
+          <button class="theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle dark mode"
+            aria-pressed="false">
+            <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          </button>
+        </div>
+      </nav>
 
-  <script>
-    /* ═══════════════════════════════════════════════════════════════
-       STATE
-    ═══════════════════════════════════════════════════════════════ */
-    const MAX_HISTORY = 50;
-    let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
-    let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
-    let currentResult = null;
-    let selectedLang = 'python';
-    let selectedMode = 'analyze';
+      <!-- ── HERO ──────────────────────────────────────────────────── -->
+      <section class="hero">
+        <div class="hero-badge">
+          <div class="badge-dot"></div>
+          Open Source · AI-Powered · Free
+        </div>
+        <h1>Debug. Understand.<br /><em>Ship faster.</em></h1>
+        <p class="hero-sub">
+          Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
+          suggestions — no account needed.
+        </p>
+        <div class="hero-cta">
+          <button class="btn btn-primary"
+            onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="5,3 19,12 5,21" />
+            </svg>
+            Start Analyzing
+          </button>
+          <button class="btn btn-secondary" onclick="loadSample()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16,18 22,12 16,6" />
+              <polyline points="8,6 2,12 8,18" />
+            </svg>
+            Try Sample Code
+          </button>
+          <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+            Star on GitHub
+          </a>
+        </div>
+      </section>
 
-    /* ═══════════════════════════════════════════════════════════════
-       DOM REFS
-    ═══════════════════════════════════════════════════════════════ */
-    const editor = document.getElementById('codeEditor');
-    const lineNumbers = document.getElementById('lineNumbers');
-    const charCount = document.getElementById('charCount');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const spinner = document.getElementById('spinner');
-    const apiUrlInput = document.getElementById('apiUrl');
-    const apiDot = document.getElementById('apiDot');
-    const apiStatusText = document.getElementById('apiStatusText');
-    const historyList = document.getElementById('historyList');
-    const favList = document.getElementById('favList');
-    const resultActions = document.getElementById('resultActions');
-    const engineInfo = document.getElementById('engineInfo');
-    const timeInfo = document.getElementById('timeInfo');
+      <!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
+      <div class="features-row">
+        <div class="feat-pill">
+          <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg></div>
+          <div class="feat-pill-info">
+            <h4>40+ Bug Patterns</h4>
+            <p>Python, JS, TS, Java, C++</p>
+          </div>
+        </div>
+        <div class="feat-pill">
+          <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg></div>
+          <div class="feat-pill-info">
+            <h4>Code Explanation</h4>
+            <p>Plain English breakdowns</p>
+          </div>
+        </div>
+        <div class="feat-pill">
+          <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+            </svg></div>
+          <div class="feat-pill-info">
+            <h4>Smart Suggestions</h4>
+            <p>Quality score + grade</p>
+          </div>
+        </div>
+        <div class="feat-pill">
+          <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg></div>
+          <div class="feat-pill-info">
+            <h4>Dark / Light Mode</h4>
+            <p>Persisted preference</p>
+          </div>
+        </div>
+        <div class="feat-pill">
+          <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            </svg></div>
+          <div class="feat-pill-info">
+            <h4>File Upload</h4>
+            <p>.py .js .ts .java .cpp</p>
+          </div>
+        </div>
+      </div>
 
-    /* ═══════════════════════════════════════════════════════════════
-       THEME
-    ═══════════════════════════════════════════════════════════════ */
-    const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+      <!-- ── WORKSPACE ─────────────────────────────────────────────── -->
+      <section id="workspace" class="workspace">
 
-    document.getElementById('themeToggle').addEventListener('click', () => {
-      const cur = document.documentElement.getAttribute('data-theme');
-      const next = cur === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('qyx_theme', next);
+        <!-- Editor Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span></span>
+              Code Editor
+            </div>
+            <div class="panel-actions">
+              <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button"
+                aria-label="Upload code file"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17,8 12,3 7,8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none"
+                  tabindex="-1" />
+              </label>
+              <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  aria-hidden="true">
+                  <polyline points="3,6 5,6 21,6" />
+                  <path d="M19 6l-1 14H6L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                </svg>
+              </button>
+              <button class="icon-btn" id="copyBtn" title="Copy code" aria-label="Copy code to clipboard">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  aria-hidden="true">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </button>
+            </div>
+          </div>
 
-      const themeToggleBtn = document.getElementById('themeToggle');
-      if (themeToggleBtn) {
-        themeToggleBtn.setAttribute('aria-label', next === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
-        themeToggleBtn.setAttribute('aria-pressed', next === 'dark' ? 'false' : 'true');
+          <!-- Language tabs -->
+          <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
+            <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
+            <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
+            <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
+            <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
+            <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
+          </div>
+
+          <!-- Editor -->
+          <div class="editor-wrap">
+            <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
+            <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…"
+              spellcheck="false" autocorrect="off" autocapitalize="off" aria-label="Code Editor"></textarea>
+          </div>
+
+          <div class="editor-footer">
+            <span id="charCount">0 chars · 0 lines</span>
+            <span>Ctrl+Enter to analyze</span>
+          </div>
+
+          <!-- Mode buttons -->
+          <div class="mode-row" role="tablist" aria-label="Analysis Modes">
+            <button class="mode-btn active" data-mode="analyze" role="tab" aria-selected="true">
+              <span class="mode-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                </svg></span>
+              <span class="mode-btn-label">Full</span>
+            </button>
+            <button class="mode-btn" data-mode="explain" role="tab" aria-selected="false">
+              <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg></span>
+              <span class="mode-btn-label">Explain</span>
+            </button>
+            <button class="mode-btn" data-mode="debug" role="tab" aria-selected="false">
+              <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M8 2l1.5 1.5" />
+                  <path d="M14.5 3.5L16 2" />
+                  <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
+                  <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
+                  <line x1="12" y1="12" x2="12" y2="16" />
+                  <path d="M4.5 15H2" />
+                  <path d="M22 15h-2.5" />
+                  <path d="M4.5 19l-2 2" />
+                  <path d="M19.5 19l2 2" />
+                </svg></span>
+              <span class="mode-btn-label">Debug</span>
+            </button>
+            <button class="mode-btn" data-mode="suggest" role="tab" aria-selected="false">
+              <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+                </svg></span>
+              <span class="mode-btn-label">Improve</span>
+            </button>
+          </div>
+
+          <!-- API URL -->
+          <div class="api-config-row">
+            <div class="api-status" aria-live="polite">
+              <div class="api-dot" id="apiDot" aria-hidden="true"></div>
+              <span id="apiStatusText">Disconnected</span>
+            </div>
+            <div class="api-config-inner">
+              <input type="text" id="apiUrl" placeholder="http://localhost:8000" value="https://qyverixai.onrender.com"
+                aria-label="Backend API URL" />
+              <button class="btn-clear" id="pingBtn" aria-label="Ping API">Ping</button>
+            </div>
+          </div>
+
+          <!-- Analyze -->
+          <div class="analyze-row">
+            <button class="btn-analyze" id="analyzeBtn" aria-label="Analyze Code">
+              <div class="spinner" id="spinner" aria-hidden="true"></div>
+              <span class="btn-text">Analyze Code</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Analysis Results</div>
+            <div class="panel-actions" id="resultActions" style="display:none">
+              <button class="icon-btn" id="favBtn" title="Save to favorites"
+                aria-label="Save analysis to favorites"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg></button>
+              <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7,10 12,15 17,10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Result tabs -->
+          <div class="result-tabs" role="tablist" aria-label="Analysis Results">
+            <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true"
+              aria-controls="pane-explain">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg> Explain <span class="tab-badge" id="explainBadge"></span>
+            </button>
+            <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M8 2l1.5 1.5" />
+                <path d="M14.5 3.5L16 2" />
+                <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
+                <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
+                <line x1="12" y1="12" x2="12" y2="16" />
+                <path d="M4.5 15H2" />
+                <path d="M22 15h-2.5" />
+                <path d="M4.5 19l-2 2" />
+                <path d="M19.5 19l2 2" />
+              </svg> Debug <span class="tab-badge" id="debugBadge"></span>
+            </button>
+            <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false"
+              aria-controls="pane-suggest">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+              </svg> Improve <span class="tab-badge" id="suggestBadge"></span>
+            </button>
+          </div>
+
+          <div class="result-content">
+            <!-- Explain Pane -->
+            <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0"
+              aria-label="Explanation Panel">
+              <div class="empty-state" id="emptyExplain">
+                <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                  </svg></div>
+                <h3>No analysis yet</h3>
+                <p>Paste your code and click Analyze to see results</p>
+              </div>
+              <div id="explainResult" style="display:none"></div>
+            </div>
+            <!-- Debug Pane -->
+            <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel">
+              <div class="empty-state" id="emptyDebug">
+                <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5">
+                    <path d="M8 2l1.5 1.5" />
+                    <path d="M14.5 3.5L16 2" />
+                    <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
+                    <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
+                    <line x1="12" y1="12" x2="12" y2="16" />
+                    <path d="M4.5 15H2" />
+                    <path d="M22 15h-2.5" />
+                    <path d="M4.5 19l-2 2" />
+                    <path d="M19.5 19l2 2" />
+                  </svg></div>
+                <h3>No bugs scanned</h3>
+                <p>Run analysis to detect issues in your code</p>
+              </div>
+              <div id="debugResult" style="display:none"></div>
+            </div>
+            <!-- Suggest Pane -->
+            <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel">
+              <div class="empty-state" id="emptySuggest">
+                <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5">
+                    <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+                  </svg></div>
+                <h3>No suggestions yet</h3>
+                <p>Run analysis to get improvement ideas</p>
+              </div>
+              <div id="suggestResult" style="display:none"></div>
+            </div>
+          </div>
+
+          <!-- Analysis time footer -->
+          <div id="engineBar"
+            style="padding:8px 18px;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);display:none;gap:16px">
+            <span id="engineInfo"></span>
+            <span id="timeInfo"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
+      <div class="bottom-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Query History</div>
+            <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history">Clear</button>
+          </div>
+          <div class="history-list" id="historyList" aria-live="polite">
+            <div class="list-empty">No history yet. Run your first analysis.</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Saved Favorites</div>
+            <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites">Clear</button>
+          </div>
+          <div class="fav-list" id="favList" aria-live="polite">
+            <div class="list-empty">No favorites saved yet.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /app -->
+
+    <!-- ── FOOTER ─────────────────────────────────────────────────── -->
+    <footer>
+      <div class="app">
+        <div class="footer-logo">QyverixAI</div>
+        <p>
+          <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
+          · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
+          · MIT License
+        </p>
+        <p style="margin-top:8px;font-size:0.75rem">Built for the open source community</p>
+      </div>
+    </footer>
+
+    <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
+    <div id="toastContainer"></div>
+
+    <script>
+      /* ═══════════════════════════════════════════════════════════════
+         STATE
+      ═══════════════════════════════════════════════════════════════ */
+      const MAX_HISTORY = 50;
+      let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+      let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
+      let currentResult = null;
+      let selectedLang = 'python';
+      let selectedMode = 'analyze';
+
+      /* ═══════════════════════════════════════════════════════════════
+         DOM REFS
+      ═══════════════════════════════════════════════════════════════ */
+      const editor = document.getElementById('codeEditor');
+      const lineNumbers = document.getElementById('lineNumbers');
+      const charCount = document.getElementById('charCount');
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const spinner = document.getElementById('spinner');
+      const apiUrlInput = document.getElementById('apiUrl');
+      const apiDot = document.getElementById('apiDot');
+      const apiStatusText = document.getElementById('apiStatusText');
+      const historyList = document.getElementById('historyList');
+      const favList = document.getElementById('favList');
+      const resultActions = document.getElementById('resultActions');
+      const engineInfo = document.getElementById('engineInfo');
+      const timeInfo = document.getElementById('timeInfo');
+
+      /* ═══════════════════════════════════════════════════════════════
+         THEME
+      ═══════════════════════════════════════════════════════════════ */
+      const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme');
+        const next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('qyx_theme', next);
+
+        const themeToggleBtn = document.getElementById('themeToggle');
+        if (themeToggleBtn) {
+          themeToggleBtn.setAttribute('aria-label', next === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
+          themeToggleBtn.setAttribute('aria-pressed', next === 'dark' ? 'false' : 'true');
+        }
+      });
+
+      // Initialize aria label for theme toggle
+      const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const themeToggleBtnInit = document.getElementById('themeToggle');
+      if (themeToggleBtnInit) {
+        themeToggleBtnInit.setAttribute('aria-label', initialTheme === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
+        themeToggleBtnInit.setAttribute('aria-pressed', initialTheme === 'dark' ? 'false' : 'true');
       }
-    });
 
-    // Initialize aria label for theme toggle
-    const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    const themeToggleBtnInit = document.getElementById('themeToggle');
-    if (themeToggleBtnInit) {
-      themeToggleBtnInit.setAttribute('aria-label', initialTheme === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
-      themeToggleBtnInit.setAttribute('aria-pressed', initialTheme === 'dark' ? 'false' : 'true');
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       EDITOR
-    ═══════════════════════════════════════════════════════════════ */
-    function updateEditor() {
-      const val = editor.value;
-      const lines = val ? val.split('\n').length : 0;
-      const chars = val.length;
-      const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-      charCount.textContent = val
-        ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
-        : 'Paste or type code to begin';
-      const lineCount = Math.max(lines, 1);
-      lineNumbers.innerHTML = val
-        ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
-        : '1';
-    }
-
-    editor.addEventListener('input', updateEditor);
-    editor.addEventListener('scroll', () => {
-      lineNumbers.scrollTop = editor.scrollTop;
-    });
-
-    // Tab key support
-    editor.addEventListener('keydown', e => {
-
-      // TAB SUPPORT
-      if (e.key === 'Tab' && !e.shiftKey) {
-
-        e.preventDefault();
-
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-
-        editor.value =
-          editor.value.substring(0, start) +
-          '    ' +
-          editor.value.substring(end);
-
-        editor.selectionStart =
-          editor.selectionEnd =
-          start + 4;
-
-        updateEditor();
+      /* ═══════════════════════════════════════════════════════════════
+         EDITOR
+      ═══════════════════════════════════════════════════════════════ */
+      function updateEditor() {
+        const val = editor.value;
+        const lines = val ? val.split('\n').length : 0;
+        const chars = val.length;
+        const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
+        charCount.textContent = val
+          ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
+          : 'Paste or type code to begin';
+        const lineCount = Math.max(lines, 1);
+        lineNumbers.innerHTML = val
+          ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
+          : '1';
       }
 
-      // AUTO INDENT ON ENTER
-      else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+      editor.addEventListener('input', updateEditor);
+      editor.addEventListener('scroll', () => {
+        lineNumbers.scrollTop = editor.scrollTop;
+      });
 
-        e.preventDefault();
+      // Tab key support
+      editor.addEventListener('keydown', e => {
 
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
+        // TAB SUPPORT
+        if (e.key === 'Tab' && !e.shiftKey) {
 
-        const value = editor.value;
+          e.preventDefault();
 
-        // Find current line
-        const lineStart =
-          value.lastIndexOf('\n', start - 1) + 1;
+          const start = editor.selectionStart;
+          const end = editor.selectionEnd;
 
-        const currentLine =
-          value.substring(lineStart, start);
+          editor.value =
+            editor.value.substring(0, start) +
+            '    ' +
+            editor.value.substring(end);
 
-        // Preserve existing indentation
-        const indentMatch = currentLine.match(/^\s*/);
+          editor.selectionStart =
+            editor.selectionEnd =
+            start + 4;
 
-        let indent = indentMatch
-          ? indentMatch[0]
-          : '';
-
-        const trimmed = currentLine.trim();
-
-        // Python indentation
-        if (
-          selectedLang === 'python' &&
-          trimmed.endsWith(':')
-        ) {
-          indent += '    ';
+          updateEditor();
         }
 
-        // JavaScript / TypeScript / Java / C++
-        else if (
-          ['javascript', 'typescript', 'java', 'cpp']
-            .includes(selectedLang) &&
-          trimmed.endsWith('{')
-        ) {
-          indent += '    ';
-        }
+        // AUTO INDENT ON ENTER
+        else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
 
-        editor.value =
-          value.substring(0, start) +
-          '\n' + indent +
-          value.substring(end);
+          e.preventDefault();
 
-        editor.selectionStart =
-          editor.selectionEnd =
-          start + 1 + indent.length;
-
-        updateEditor();
-      }
-
-      // SMART BACKSPACE
-      else if (e.key === 'Backspace') {
-
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-
-        // Only if no text selected
-        if (start === end) {
+          const start = editor.selectionStart;
+          const end = editor.selectionEnd;
 
           const value = editor.value;
 
-          // Text before cursor
-          const beforeCursor =
-            value.substring(0, start);
-
-          // Current line
+          // Find current line
           const lineStart =
-            beforeCursor.lastIndexOf('\n') + 1;
+            value.lastIndexOf('\n', start - 1) + 1;
 
           const currentLine =
-            beforeCursor.substring(lineStart);
+            value.substring(lineStart, start);
 
-          // Remove full indentation level
-          if (currentLine.endsWith('    ')) {
+          // Preserve existing indentation
+          const indentMatch = currentLine.match(/^\s*/);
 
-            e.preventDefault();
+          let indent = indentMatch
+            ? indentMatch[0]
+            : '';
 
-            editor.value =
-              value.substring(0, start - 4) +
-              value.substring(end);
+          const trimmed = currentLine.trim();
 
-            editor.selectionStart =
-              editor.selectionEnd =
-              start - 4;
+          // Python indentation
+          if (
+            selectedLang === 'python' &&
+            trimmed.endsWith(':')
+          ) {
+            indent += '    ';
+          }
 
-            updateEditor();
+          // JavaScript / TypeScript / Java / C++
+          else if (
+            ['javascript', 'typescript', 'java', 'cpp']
+              .includes(selectedLang) &&
+            trimmed.endsWith('{')
+          ) {
+            indent += '    ';
+          }
+
+          editor.value =
+            value.substring(0, start) +
+            '\n' + indent +
+            value.substring(end);
+
+          editor.selectionStart =
+            editor.selectionEnd =
+            start + 1 + indent.length;
+
+          updateEditor();
+        }
+
+        // SMART BACKSPACE
+        else if (e.key === 'Backspace') {
+
+          const start = editor.selectionStart;
+          const end = editor.selectionEnd;
+
+          // Only if no text selected
+          if (start === end) {
+
+            const value = editor.value;
+
+            // Text before cursor
+            const beforeCursor =
+              value.substring(0, start);
+
+            // Current line
+            const lineStart =
+              beforeCursor.lastIndexOf('\n') + 1;
+
+            const currentLine =
+              beforeCursor.substring(lineStart);
+
+            // Remove full indentation level
+            if (currentLine.endsWith('    ')) {
+
+              e.preventDefault();
+
+              editor.value =
+                value.substring(0, start - 4) +
+                value.substring(end);
+
+              editor.selectionStart =
+                editor.selectionEnd =
+                start - 4;
+
+              updateEditor();
+            }
           }
         }
-      }
 
-      // CTRL + ENTER
-      else if (
-        e.key === 'Enter' &&
-        (e.ctrlKey || e.metaKey)
-      ) {
+        // CTRL + ENTER
+        else if (
+          e.key === 'Enter' &&
+          (e.ctrlKey || e.metaKey)
+        ) {
 
+          e.preventDefault();
+          doAnalyze();
+        }
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         FILE UPLOAD
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('fileInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const ext = file.name.split('.').pop().toLowerCase();
+        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
+        if (langMap[ext]) setLanguage(langMap[ext]);
+        const reader = new FileReader();
+        reader.onload = ev => {
+          editor.value = ev.target.result;
+          updateEditor();
+          toast(`Loaded ${file.name}`, 'success');
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+
+      /* Drag and drop */
+      document.body.addEventListener('dragover', e => e.preventDefault());
+      document.body.addEventListener('drop', e => {
         e.preventDefault();
-        doAnalyze();
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          editor.value = ev.target.result;
+          updateEditor();
+          toast(`Dropped ${file.name}`, 'success');
+        };
+        reader.readAsText(file);
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         LANGUAGE TABS
+      ═══════════════════════════════════════════════════════════════ */
+      function setLanguage(lang) {
+        selectedLang = lang;
+
+        // 1. Update the visual tabs
+        document.querySelectorAll('.lang-tab').forEach(t => {
+          const isActive = t.dataset.lang === lang;
+          t.classList.toggle('active', isActive);
+          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        // 2. Check if the editor currently contains one of the samples
+        const currentCode = editor.value.trim();
+        const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
+
+        // 3. If it is a sample, swap it to the new language's sample automatically
+        if (isSample) {
+          editor.value = SAMPLES[lang] || SAMPLES.python;
+          updateEditor();
+        }
       }
-    });
 
-    /* ═══════════════════════════════════════════════════════════════
-       FILE UPLOAD
-    ═══════════════════════════════════════════════════════════════ */
-    document.getElementById('fileInput').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const ext = file.name.split('.').pop().toLowerCase();
-      const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
-      if (langMap[ext]) setLanguage(langMap[ext]);
-      const reader = new FileReader();
-      reader.onload = ev => {
-        editor.value = ev.target.result;
-        updateEditor();
-        toast(`Loaded ${file.name}`, 'success');
-      };
-      reader.readAsText(file);
-      e.target.value = '';
-    });
-
-    /* Drag and drop */
-    document.body.addEventListener('dragover', e => e.preventDefault());
-    document.body.addEventListener('drop', e => {
-      e.preventDefault();
-      const file = e.dataTransfer.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        editor.value = ev.target.result;
-        updateEditor();
-        toast(`Dropped ${file.name}`, 'success');
-      };
-      reader.readAsText(file);
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-       LANGUAGE TABS
-    ═══════════════════════════════════════════════════════════════ */
-    function setLanguage(lang) {
-      selectedLang = lang;
-
-      // 1. Update the visual tabs
       document.querySelectorAll('.lang-tab').forEach(t => {
-        const isActive = t.dataset.lang === lang;
-        t.classList.toggle('active', isActive);
-        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        t.addEventListener('click', () => setLanguage(t.dataset.lang));
       });
 
-      // 2. Check if the editor currently contains one of the samples
-      const currentCode = editor.value.trim();
-      const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
+      /* ═══════════════════════════════════════════════════════════════
+         MODE BUTTONS
+      ═══════════════════════════════════════════════════════════════ */
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          selectedMode = b.dataset.mode;
+          document.querySelectorAll('.mode-btn').forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-pressed', 'false');
+          });
+          b.classList.add('active');
+          b.setAttribute('aria-pressed', 'true');
+        });
+      });
 
-      // 3. If it is a sample, swap it to the new language's sample automatically
-      if (isSample) {
-        editor.value = SAMPLES[lang] || SAMPLES.python;
+      /* ═══════════════════════════════════════════════════════════════
+         RESULT TABS
+      ═══════════════════════════════════════════════════════════════ */
+      document.querySelectorAll('.result-tab').forEach(t => {
+        t.addEventListener('click', () => {
+          const tab = t.dataset.rtab;
+          document.querySelectorAll('.result-tab').forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
+          t.classList.add('active');
+          t.setAttribute('aria-selected', 'true');
+          document.getElementById(`pane-${tab}`).classList.add('active');
+        });
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         CLEAR / COPY
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        editor.value = '';
         updateEditor();
+        resetResults();
+      });
+      document.getElementById('copyBtn').addEventListener('click', () => {
+        if (!editor.value.trim()) return;
+        navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         API PING
+      ═══════════════════════════════════════════════════════════════ */
+      async function pingApi() {
+        const base = apiUrlInput.value.replace(/\/$/, '');
+        try {
+          const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+          if (r.ok) {
+            apiDot.classList.add('connected');
+            apiStatusText.textContent = 'Connected';
+            toast('API is reachable', 'success');
+          } else {
+            apiDot.classList.remove('connected');
+            apiStatusText.textContent = 'Error ' + r.status;
+          }
+        } catch {
+          apiDot.classList.remove('connected');
+          apiStatusText.textContent = 'Unreachable';
+          toast('Cannot reach API. Check the URL.', 'error');
+        }
       }
-    }
+      document.getElementById('pingBtn').addEventListener('click', pingApi);
 
-    document.querySelectorAll('.lang-tab').forEach(t => {
-      t.addEventListener('click', () => setLanguage(t.dataset.lang));
-    });
+      // Auto-ping on load
+      setTimeout(pingApi, 800);
 
-    /* ═══════════════════════════════════════════════════════════════
-       MODE BUTTONS
-    ═══════════════════════════════════════════════════════════════ */
-    document.querySelectorAll('.mode-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        selectedMode = b.dataset.mode;
-        document.querySelectorAll('.mode-btn').forEach(x => {
-          x.classList.remove('active');
-          x.setAttribute('aria-pressed', 'false');
-        });
-        b.classList.add('active');
-        b.setAttribute('aria-pressed', 'true');
-      });
-    });
+      /* ═══════════════════════════════════════════════════════════════
+         ANALYZE
+      ═══════════════════════════════════════════════════════════════ */
+      analyzeBtn.addEventListener('click', doAnalyze);
 
-    /* ═══════════════════════════════════════════════════════════════
-       RESULT TABS
-    ═══════════════════════════════════════════════════════════════ */
-    document.querySelectorAll('.result-tab').forEach(t => {
-      t.addEventListener('click', () => {
-        const tab = t.dataset.rtab;
-        document.querySelectorAll('.result-tab').forEach(x => {
-          x.classList.remove('active');
-          x.setAttribute('aria-selected', 'false');
-        });
-        document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
-        t.classList.add('active');
-        t.setAttribute('aria-selected', 'true');
-        document.getElementById(`pane-${tab}`).classList.add('active');
-      });
-    });
+      async function doAnalyze() {
+        const code = editor.value.trim();
+        if (!code) { toast('Please paste some code first.', 'error'); return; }
 
-    /* ═══════════════════════════════════════════════════════════════
-       CLEAR / COPY
-    ═══════════════════════════════════════════════════════════════ */
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      editor.value = '';
-      updateEditor();
-      resetResults();
-    });
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      if (!editor.value.trim()) return;
-      navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
-    });
+        const base = apiUrlInput.value.replace(/\/$/, '');
+        const endpointMap = {
+          analyze: '/analyze/',
+          explain: '/explanation/',
+          debug: '/debugging/',
+          suggest: '/suggestions/',
+        };
+        const endpoint = endpointMap[selectedMode] || '/analyze/';
 
-    /* ═══════════════════════════════════════════════════════════════
-       API PING
-    ═══════════════════════════════════════════════════════════════ */
-    async function pingApi() {
-      const base = apiUrlInput.value.replace(/\/$/, '');
-      try {
-        const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
-        if (r.ok) {
+        // Loading state
+        analyzeBtn.classList.add('loading');
+        analyzeBtn.disabled = true;
+        showShimmers();
+
+        try {
+          const res = await fetch(`${base}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language: selectedLang }),
+            signal: AbortSignal.timeout(30000),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          const elapsed = res.headers.get('X-Process-Time-Ms');
+
+          // Normalize to full analysis shape
+          let result;
+          if (selectedMode === 'analyze') {
+            result = data;
+          } else if (selectedMode === 'explain') {
+            result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+          } else if (selectedMode === 'debug') {
+            result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+          } else {
+            result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
+          }
+
+          currentResult = result;
+          renderResults(result, code);
+          addToHistory(code, result);
           apiDot.classList.add('connected');
           apiStatusText.textContent = 'Connected';
-          toast('API is reachable', 'success');
-        } else {
-          apiDot.classList.remove('connected');
-          apiStatusText.textContent = 'Error ' + r.status;
+          document.getElementById('engineBar').style.display = 'flex';
+          engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
+          if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
+          else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
+          resultActions.style.display = 'flex';
+
+        } catch (err) {
+          toast(`Error: ${err.message}`, 'error');
+          resetResults();
+        } finally {
+          analyzeBtn.classList.remove('loading');
+          analyzeBtn.disabled = false;
         }
-      } catch {
-        apiDot.classList.remove('connected');
-        apiStatusText.textContent = 'Unreachable';
-        toast('Cannot reach API. Check the URL.', 'error');
       }
-    }
-    document.getElementById('pingBtn').addEventListener('click', pingApi);
 
-    // Auto-ping on load
-    setTimeout(pingApi, 800);
+      /* ═══════════════════════════════════════════════════════════════
+         RENDER RESULTS
+      ═══════════════════════════════════════════════════════════════ */
+      function renderResults(result, code) {
+        if (result.explanation) renderExplain(result.explanation);
+        if (result.debugging) renderDebug(result.debugging);
+        if (result.suggestions) renderSuggest(result.suggestions);
 
-    /* ═══════════════════════════════════════════════════════════════
-       ANALYZE
-    ═══════════════════════════════════════════════════════════════ */
-    analyzeBtn.addEventListener('click', doAnalyze);
-
-    async function doAnalyze() {
-      const code = editor.value.trim();
-      if (!code) { toast('Please paste some code first.', 'error'); return; }
-
-      const base = apiUrlInput.value.replace(/\/$/, '');
-      const endpointMap = {
-        analyze: '/analyze/',
-        explain: '/explanation/',
-        debug: '/debugging/',
-        suggest: '/suggestions/',
-      };
-      const endpoint = endpointMap[selectedMode] || '/analyze/';
-
-      // Loading state
-      analyzeBtn.classList.add('loading');
-      analyzeBtn.disabled = true;
-      showShimmers();
-
-      try {
-        const res = await fetch(`${base}${endpoint}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, language: selectedLang }),
-          signal: AbortSignal.timeout(30000),
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || `HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        const elapsed = res.headers.get('X-Process-Time-Ms');
-
-        // Normalize to full analysis shape
-        let result;
-        if (selectedMode === 'analyze') {
-          result = data;
-        } else if (selectedMode === 'explain') {
-          result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-        } else if (selectedMode === 'debug') {
-          result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-        } else {
-          result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
-        }
-
-        currentResult = result;
-        renderResults(result, code);
-        addToHistory(code, result);
-        apiDot.classList.add('connected');
-        apiStatusText.textContent = 'Connected';
-        document.getElementById('engineBar').style.display = 'flex';
-        engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
-        if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
-        else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
-        resultActions.style.display = 'flex';
-
-      } catch (err) {
-        toast(`Error: ${err.message}`, 'error');
-        resetResults();
-      } finally {
-        analyzeBtn.classList.remove('loading');
-        analyzeBtn.disabled = false;
+        // Auto-switch to relevant tab
+        const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
+        const targetTab = tabOrder[selectedMode] || 'explain';
+        document.querySelector(`[data-rtab="${targetTab}"]`).click();
       }
-    }
 
-    /* ═══════════════════════════════════════════════════════════════
-       RENDER RESULTS
-    ═══════════════════════════════════════════════════════════════ */
-    function renderResults(result, code) {
-      if (result.explanation) renderExplain(result.explanation);
-      if (result.debugging) renderDebug(result.debugging);
-      if (result.suggestions) renderSuggest(result.suggestions);
+      function renderExplain(exp) {
+        document.getElementById('emptyExplain').style.display = 'none';
+        const el = document.getElementById('explainResult');
+        el.style.display = 'block';
+        document.getElementById('explainBadge').textContent = exp.complexity;
 
-      // Auto-switch to relevant tab
-      const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
-      const targetTab = tabOrder[selectedMode] || 'explain';
-      document.querySelector(`[data-rtab="${targetTab}"]`).click();
-    }
-
-    function renderExplain(exp) {
-      document.getElementById('emptyExplain').style.display = 'none';
-      const el = document.getElementById('explainResult');
-      el.style.display = 'block';
-      document.getElementById('explainBadge').textContent = exp.complexity;
-
-      el.innerHTML = `
+        el.innerHTML = `
     <div class="explain-summary" tabindex="0">${exp.summary}</div>
     <div class="explain-meta">
       <div class="meta-chip complexity-${exp.complexity}">
@@ -2637,27 +3044,27 @@
       ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
     </ul>
   `;
-    }
+      }
 
-    function renderDebug(dbg) {
-      document.getElementById('emptyDebug').style.display = 'none';
-      const el = document.getElementById('debugResult');
-      el.style.display = 'block';
+      function renderDebug(dbg) {
+        document.getElementById('emptyDebug').style.display = 'none';
+        const el = document.getElementById('debugResult');
+        el.style.display = 'block';
 
-      const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
-      document.getElementById('debugBadge').textContent = badge || '0';
+        const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
+        document.getElementById('debugBadge').textContent = badge || '0';
 
-      if (dbg.clean) {
-        el.innerHTML = `
+        if (dbg.clean) {
+          el.innerHTML = `
       <div class="clean-state">
         <div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
         <h3>No issues detected!</h3>
         <p>Your code passed all ${40}+ pattern checks. Keep it up!</p>
       </div>`;
-        return;
-      }
+          return;
+        }
 
-      const statBar = `
+        const statBar = `
     <div class="stat-bar">
       <div class="stat-chip error-chip">
         <div class="stat-chip-num">${dbg.error_count}</div>
@@ -2673,7 +3080,7 @@
       </div>
     </div>`;
 
-      const cards = dbg.issues.map((issue, i) => `
+        const cards = dbg.issues.map((issue, i) => `
     <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
       <div class="issue-header">
         <span class="issue-badge">${issue.severity}</span>
@@ -2685,23 +3092,23 @@
       <div class="issue-fix">${issue.suggestion}</div>
     </div>`).join('');
 
-      el.innerHTML = statBar + cards;
-    }
+        el.innerHTML = statBar + cards;
+      }
 
-    function renderSuggest(sugg) {
-      document.getElementById('emptySuggest').style.display = 'none';
-      const el = document.getElementById('suggestResult');
-      el.style.display = 'block';
-      document.getElementById('suggestBadge').textContent = sugg.suggestions.length || '0';
+      function renderSuggest(sugg) {
+        document.getElementById('emptySuggest').style.display = 'none';
+        const el = document.getElementById('suggestResult');
+        el.style.display = 'block';
+        document.getElementById('suggestBadge').textContent = sugg.suggestions.length || '0';
 
-      const scoreColor = sugg.overall_score >= 80 ? 'var(--green)'
-        : sugg.overall_score >= 60 ? 'var(--yellow)'
-          : 'var(--red)';
+        const scoreColor = sugg.overall_score >= 80 ? 'var(--green)'
+          : sugg.overall_score >= 60 ? 'var(--yellow)'
+            : 'var(--red)';
 
-      const circumference = 2 * Math.PI * 30;
-      const dashOffset = circumference - (sugg.overall_score / 100) * circumference;
+        const circumference = 2 * Math.PI * 30;
+        const dashOffset = circumference - (sugg.overall_score / 100) * circumference;
 
-      const ring = `
+        const ring = `
     <div class="score-ring-wrap">
       <div class="score-ring">
         <svg width="80" height="80" viewBox="0 0 80 80">
@@ -2723,9 +3130,9 @@
       </div>
     </div>`;
 
-      const cards = sugg.suggestions.length === 0
-        ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
-        : sugg.suggestions.map((s, i) => `
+        const cards = sugg.suggestions.length === 0
+          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
+          : sugg.suggestions.map((s, i) => `
       <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
           <span class="suggest-cat">${s.category}</span>
@@ -2735,206 +3142,206 @@
         ${s.example ? `<pre class="suggest-example">${escHtml(s.example)}</pre>` : ''}
       </div>`).join('');
 
-      el.innerHTML = ring + cards;
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       SHIMMER LOADING
-    ═══════════════════════════════════════════════════════════════ */
-    function showShimmers() {
-      const shims = '<div class="shimmer-card"></div>'.repeat(3);
-      ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
-        const el = document.getElementById(id);
-        el.style.display = 'block';
-        el.innerHTML = shims;
-      });
-      ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
-        document.getElementById(id).style.display = 'none';
-      });
-    }
-
-    function resetResults() {
-      ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
-        const el = document.getElementById(id);
-        el.style.display = 'none';
-        el.innerHTML = '';
-      });
-      ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
-        document.getElementById(id).style.display = 'flex';
-      });
-      ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => {
-        document.getElementById(id).textContent = '';
-      });
-      resultActions.style.display = 'none';
-      document.getElementById('engineBar').style.display = 'none';
-      engineInfo.textContent = '';
-      timeInfo.textContent = '';
-      currentResult = null;
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       HISTORY
-    ═══════════════════════════════════════════════════════════════ */
-    function addToHistory(code, result) {
-      const lang = result.explanation?.language || selectedLang;
-      const entry = {
-        id: Date.now(),
-        code,
-        result,
-        lang,
-        ts: new Date().toLocaleTimeString(),
-        preview: code.slice(0, 60).replace(/\n/g, ' '),
-      };
-      history.unshift(entry);
-      if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-      localStorage.setItem('qyx_history', JSON.stringify(history));
-      renderHistory();
-    }
-
-    function renderHistory() {
-      if (!history.length) {
-        historyList.innerHTML = '<div class="list-empty">No history yet. Run your first analysis.</div>';
-        return;
+        el.innerHTML = ring + cards;
       }
-      historyList.innerHTML = history.map(h => `
+
+      /* ═══════════════════════════════════════════════════════════════
+         SHIMMER LOADING
+      ═══════════════════════════════════════════════════════════════ */
+      function showShimmers() {
+        const shims = '<div class="shimmer-card"></div>'.repeat(3);
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          const el = document.getElementById(id);
+          el.style.display = 'block';
+          el.innerHTML = shims;
+        });
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'none';
+        });
+      }
+
+      function resetResults() {
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          const el = document.getElementById(id);
+          el.style.display = 'none';
+          el.innerHTML = '';
+        });
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'flex';
+        });
+        ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => {
+          document.getElementById(id).textContent = '';
+        });
+        resultActions.style.display = 'none';
+        document.getElementById('engineBar').style.display = 'none';
+        engineInfo.textContent = '';
+        timeInfo.textContent = '';
+        currentResult = null;
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+         HISTORY
+      ═══════════════════════════════════════════════════════════════ */
+      function addToHistory(code, result) {
+        const lang = result.explanation?.language || selectedLang;
+        const entry = {
+          id: Date.now(),
+          code,
+          result,
+          lang,
+          ts: new Date().toLocaleTimeString(),
+          preview: code.slice(0, 60).replace(/\n/g, ' '),
+        };
+        history.unshift(entry);
+        if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+        localStorage.setItem('qyx_history', JSON.stringify(history));
+        renderHistory();
+      }
+
+      function renderHistory() {
+        if (!history.length) {
+          historyList.innerHTML = '<div class="list-empty">No history yet. Run your first analysis.</div>';
+          return;
+        }
+        historyList.innerHTML = history.map(h => `
     <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="Load history entry for ${h.lang} at ${h.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
       <span class="history-lang">${h.lang || '?'}</span>
       <span class="history-thumb">${escHtml(h.preview)}…</span>
       <span class="history-meta">${h.ts}</span>
     </div>`).join('');
-    }
-
-    function loadEntry(id) {
-      const entry = history.find(h => h.id === id);
-      if (!entry) return;
-      editor.value = entry.code;
-      updateEditor();
-      currentResult = entry.result;
-      renderResults(entry.result, entry.code);
-      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-      history = [];
-      localStorage.removeItem('qyx_history');
-      renderHistory();
-      toast('History cleared', 'info');
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-       FAVORITES
-    ═══════════════════════════════════════════════════════════════ */
-    document.getElementById('favBtn').addEventListener('click', () => {
-      if (!currentResult || !editor.value.trim()) return;
-      const entry = {
-        id: Date.now(),
-        code: editor.value,
-        result: currentResult,
-        lang: currentResult.explanation?.language || selectedLang,
-        ts: new Date().toLocaleDateString(),
-        preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
-      };
-      favorites.unshift(entry);
-      if (favorites.length > 30) favorites = favorites.slice(0, 30);
-      localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
-      renderFavorites();
-      toast('Saved to favorites', 'success');
-    });
-
-    function renderFavorites() {
-      if (!favorites.length) {
-        favList.innerHTML = '<div class="list-empty">No favorites saved yet.</div>';
-        return;
       }
-      favList.innerHTML = favorites.map(f => `
+
+      function loadEntry(id) {
+        const entry = history.find(h => h.id === id);
+        if (!entry) return;
+        editor.value = entry.code;
+        updateEditor();
+        currentResult = entry.result;
+        renderResults(entry.result, entry.code);
+        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+        history = [];
+        localStorage.removeItem('qyx_history');
+        renderHistory();
+        toast('History cleared', 'info');
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         FAVORITES
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('favBtn').addEventListener('click', () => {
+        if (!currentResult || !editor.value.trim()) return;
+        const entry = {
+          id: Date.now(),
+          code: editor.value,
+          result: currentResult,
+          lang: currentResult.explanation?.language || selectedLang,
+          ts: new Date().toLocaleDateString(),
+          preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
+        };
+        favorites.unshift(entry);
+        if (favorites.length > 30) favorites = favorites.slice(0, 30);
+        localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
+        renderFavorites();
+        toast('Saved to favorites', 'success');
+      });
+
+      function renderFavorites() {
+        if (!favorites.length) {
+          favList.innerHTML = '<div class="list-empty">No favorites saved yet.</div>';
+          return;
+        }
+        favList.innerHTML = favorites.map(f => `
     <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="Load favorite entry for ${f.lang} at ${f.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
       <span class="history-lang">${f.lang || '?'}</span>
       <span class="history-thumb">${escHtml(f.preview)}…</span>
       <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     </div>`).join('');
-    }
-
-    function loadFav(id) {
-      const entry = favorites.find(f => f.id === id);
-      if (!entry) return;
-      editor.value = entry.code;
-      updateEditor();
-      currentResult = entry.result;
-      renderResults(entry.result, entry.code);
-      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    document.getElementById('clearFavsBtn').addEventListener('click', () => {
-      favorites = [];
-      localStorage.removeItem('qyx_favorites');
-      renderFavorites();
-      toast('Favorites cleared', 'info');
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-       DOWNLOAD
-    ═══════════════════════════════════════════════════════════════ */
-    document.getElementById('downloadBtn').addEventListener('click', () => {
-      if (!currentResult) return;
-      const text = buildReport(currentResult, editor.value);
-      const blob = new Blob([text], { type: 'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `qyverixai-report-${Date.now()}.txt`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-      toast('Report downloaded', 'success');
-    });
-
-    function buildReport(r, code) {
-      const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
-      if (r.explanation) {
-        lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
       }
-      if (r.debugging) {
-        lines.push('── DEBUGGING ──', r.debugging.summary, '');
-        r.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
+
+      function loadFav(id) {
+        const entry = favorites.find(f => f.id === id);
+        if (!entry) return;
+        editor.value = entry.code;
+        updateEditor();
+        currentResult = entry.result;
+        renderResults(entry.result, entry.code);
+        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
-      if (r.suggestions) {
-        lines.push('── SUGGESTIONS ──', `Score: ${r.suggestions.overall_score}/100 (${r.suggestions.grade})`, r.suggestions.next_step, '');
-        r.suggestions.suggestions.forEach(s => lines.push(`[${s.priority.toUpperCase()}] ${s.category}: ${s.description}`, ''));
+
+      document.getElementById('clearFavsBtn').addEventListener('click', () => {
+        favorites = [];
+        localStorage.removeItem('qyx_favorites');
+        renderFavorites();
+        toast('Favorites cleared', 'info');
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         DOWNLOAD
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('downloadBtn').addEventListener('click', () => {
+        if (!currentResult) return;
+        const text = buildReport(currentResult, editor.value);
+        const blob = new Blob([text], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `qyverixai-report-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast('Report downloaded', 'success');
+      });
+
+      function buildReport(r, code) {
+        const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
+        if (r.explanation) {
+          lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
+        }
+        if (r.debugging) {
+          lines.push('── DEBUGGING ──', r.debugging.summary, '');
+          r.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
+        }
+        if (r.suggestions) {
+          lines.push('── SUGGESTIONS ──', `Score: ${r.suggestions.overall_score}/100 (${r.suggestions.grade})`, r.suggestions.next_step, '');
+          r.suggestions.suggestions.forEach(s => lines.push(`[${s.priority.toUpperCase()}] ${s.category}: ${s.description}`, ''));
+        }
+        lines.push('── CODE ──', '', code);
+        return lines.join('\n');
       }
-      lines.push('── CODE ──', '', code);
-      return lines.join('\n');
-    }
 
-    /* ═══════════════════════════════════════════════════════════════
-       TOAST
-    ═══════════════════════════════════════════════════════════════ */
-    function toast(msg, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const el = document.createElement('div');
-      el.className = 'toast ' + type;
-      const icons = { success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>', error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' };
-      el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + msg + '</span>';
-      container.appendChild(el);
-      setTimeout(() => {
-        el.classList.add('fadeout');
-        el.addEventListener('animationend', () => el.remove());
-      }, 3000);
-    }
+      /* ═══════════════════════════════════════════════════════════════
+         TOAST
+      ═══════════════════════════════════════════════════════════════ */
+      function toast(msg, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        el.className = 'toast ' + type;
+        const icons = { success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>', error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' };
+        el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + msg + '</span>';
+        container.appendChild(el);
+        setTimeout(() => {
+          el.classList.add('fadeout');
+          el.addEventListener('animationend', () => el.remove());
+        }, 3000);
+      }
 
-    /* ═══════════════════════════════════════════════════════════════
-       HELPERS
-    ═══════════════════════════════════════════════════════════════ */
-    function escHtml(s) {
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-    function renderMarkdown(s) {
-      return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
-    }
+      /* ═══════════════════════════════════════════════════════════════
+         HELPERS
+      ═══════════════════════════════════════════════════════════════ */
+      function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+      function renderMarkdown(s) {
+        return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
+      }
 
-    /* ═══════════════════════════════════════════════════════════════
-       SAMPLE CODE LOADER
-    ═══════════════════════════════════════════════════════════════ */
-    const SAMPLES = {
-      python: `// Python Sample
+      /* ═══════════════════════════════════════════════════════════════
+         SAMPLE CODE LOADER
+      ═══════════════════════════════════════════════════════════════ */
+      const SAMPLES = {
+        python: `// Python Sample
   import os
 
 # [!] Hardcoded secret - security risk
@@ -2962,7 +3369,7 @@ from os import *  # [!] Wildcard import
 x = eval("1 + 2")  # [!] Unsafe eval
 
 calculate(10, 0)`,
-      javascript: `// JavaScript Sample
+        javascript: `// JavaScript Sample
   var counter = 0;
 
 function loadUser(id) {
@@ -2979,7 +3386,7 @@ function loadUser(id) {
 }
 
 loadUser(42);`,
-      typescript: `// TypeScript Sample
+        typescript: `// TypeScript Sample
 interface User {
   id: number;
   name: string;
@@ -2994,7 +3401,7 @@ function sendWelcomeEmail(user: User) {
 
 const newUser: User = { id: 1, name: "Alice" };
 sendWelcomeEmail(newUser);`,
-      java: `// Java Sample
+        java: `// Java Sample
 public class Main {
     public static void main(String[] args) {
         String name1 = new String("Vaibhav");
@@ -3012,7 +3419,7 @@ public class Main {
         System.out.println(uninitializedString.length());
     }
 }`,
-      cpp: `// C++ Sample
+        cpp: `// C++ Sample
 #include <iostream>
 
 // Anti-pattern 1: using namespace std in global scope
@@ -3034,29 +3441,29 @@ int main() {
     processData();
     return 0;
 }`
-    };
+      };
 
-    function loadSample() {
-      const sample = SAMPLES[selectedLang] || SAMPLES.python;
-      editor.value = sample;
-      updateEditor();
-      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      toast('Sample code loaded — click Analyze!', 'success');
-    }
+      function loadSample() {
+        const sample = SAMPLES[selectedLang] || SAMPLES.python;
+        editor.value = sample;
+        updateEditor();
+        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+        toast('Sample code loaded — click Analyze!', 'success');
+      }
 
-    /* ═══════════════════════════════════════════════════════════════
-       INIT
-    ═══════════════════════════════════════════════════════════════ */
-    renderHistory();
-    renderFavorites();
+      /* ═══════════════════════════════════════════════════════════════
+         INIT
+      ═══════════════════════════════════════════════════════════════ */
+      renderHistory();
+      renderFavorites();
 
-    // Save API URL
-    apiUrlInput.addEventListener('change', () => {
-      localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
-    });
-    const savedUrl = localStorage.getItem('qyx_apiUrl');
-    if (savedUrl) apiUrlInput.value = savedUrl;
-  </script>
+      // Save API URL
+      apiUrlInput.addEventListener('change', () => {
+        localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
+      });
+      const savedUrl = localStorage.getItem('qyx_apiUrl');
+      if (savedUrl) apiUrlInput.value = savedUrl;
+    </script>
 </body>
 
 </html>
