@@ -76,6 +76,16 @@ int main() {
 }
 """
 
+KOTLIN_CODE = """
+data class User(val name: String?, var score: Int)
+
+fun main() {
+    val user = User(null, 1)
+    var total = user.score
+    println(total)
+}
+"""
+
 
 # ── Health ────────────────────────────────────────────────────────────────────
 def test_root():
@@ -107,6 +117,19 @@ def test_explanation_no_language_hint():
     assert r.status_code == 200
     d = r.json()
     assert d["language"] in ("JavaScript", "TypeScript")
+
+def test_explanation_detects_kotlin_without_hint():
+    r = client.post("/explanation/", json={"code": KOTLIN_CODE})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Kotlin"
+    assert d["function_count"] >= 1
+    assert d["class_count"] >= 1
+
+def test_explanation_accepts_kotlin_hint_alias():
+    r = client.post("/explanation/", json={"code": "fun main() {}", "language": "kt"})
+    assert r.status_code == 200
+    assert r.json()["language"] == "Kotlin"
 
 def test_explanation_empty_code():
     r = client.post("/explanation/", json={"code": "   "})
@@ -225,6 +248,7 @@ def test_full_analyze_all_languages():
         (TS_CODE, "typescript"),
         (JAVA_CODE, "java"),
         (CPP_CODE, "cpp"),
+        (KOTLIN_CODE, "kotlin"),
     ]:
         r = client.post("/analyze/", json={"code": code, "language": lang})
         assert r.status_code == 200, f"Failed for {lang}"

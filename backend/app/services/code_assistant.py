@@ -1,6 +1,6 @@
 """
 QyverixAI — Rule-Based Code Analysis Engine
-Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++.
+Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, Kotlin.
 """
 
 from __future__ import annotations
@@ -29,6 +29,10 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"\bpublic\s+(class|void|static)\b", r"\bSystem\.out\.print",
         r"\bimport\s+java\.", r"@Override", r"\bnew\s+\w+\s*\(",
     ],
+    "Kotlin": [
+        r"\bfun\s+\w+\s*\(", r"\bval\s+\w+", r"\bvar\s+\w+",
+        r"println\s*\(", r"\bdata\s+class\s+\w+", r":\s*\w+\s*\?",
+    ],
     "C++": [
         r"#include\s*<", r"\bstd::\w+", r"\bcout\s*<<",
         r"\bint\s+main\s*\(", r"::\w+",
@@ -44,6 +48,7 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "javascript": "JavaScript", "js": "JavaScript",
             "typescript": "TypeScript", "ts": "TypeScript",
             "java": "Java",
+            "kotlin": "Kotlin", "kt": "Kotlin", "kts": "Kotlin",
             "cpp": "C++", "c++": "C++", "cxx": "C++",
         }
         if normalized in mapping:
@@ -83,7 +88,7 @@ class BugPattern:
     description: str
     suggestion: str
     severity: str
-    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++"])
+    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++", "Kotlin"])
 
 
 BUG_PATTERNS: list[BugPattern] = [
@@ -370,7 +375,7 @@ def run_explanation(code: str, language: str) -> dict:
     non_blank = [line for line in lines if line.strip()]
     complexity = estimate_complexity(code)
 
-    func_names = re.findall(r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>", code)
+    func_names = re.findall(r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfun\s+(\w+)\s*\(", code)
     funcs = [next(n for n in grp if n) for grp in func_names]
 
     class_names = re.findall(r"class\s+(\w+)", code)
