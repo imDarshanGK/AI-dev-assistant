@@ -25,6 +25,17 @@ $obj->method();
 ?>
 """
 
+PHP_BUGGY = """
+<?php
+$id = $_GET['id'];
+$result = mysql_query("SELECT * FROM users WHERE id=" . $id);
+echo $_POST['username'];
+extract($_GET);
+$$varname = "dynamic";
+$data = @file_get_contents($url);
+?>
+"""
+
 PYTHON_BUGGY = """
 import os
 password = "supersecret123"
@@ -228,11 +239,31 @@ def test_debug_cpp():
     d = r.json()
     assert len(d["issues"]) > 0
 
+def test_explanation_php():
+    r = client.post("/explanation/", json={"code": PHP_CODE, "language": "php"})
+    assert r.status_code == 200
+    assert r.json()["language"] == "PHP"
+
+def test_explanation_detects_php_without_hint():
+    r = client.post("/explanation/", json={"code": PHP_CODE})
+    assert r.status_code == 200
+    assert r.json()["language"] == "PHP"
+
 def test_debug_php():
     r = client.post("/debugging/", json={"code": PHP_CODE, "language": "php"})
     assert r.status_code == 200
     d = r.json()
     assert d is not None
+
+def test_debug_php_buggy_patterns():
+    r = client.post("/debugging/", json={"code": PHP_BUGGY, "language": "php"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "PHP MySQL Deprecated" in types
+    assert "PHP XSS" in types
+    assert "PHP Extract" in types
+    assert "PHP Variable Variables" in types
+    assert "PHP Error Suppression" in types
 
 def test_debug_rust():
     r = client.post("/debugging/", json={"code": RUST_CODE, "language": "rust"})
@@ -304,6 +335,7 @@ def test_full_analyze_all_languages():
         (TS_CODE, "typescript"),
         (JAVA_CODE, "java"),
         (CPP_CODE, "cpp"),
+        (PHP_CODE, "php"),
         (RUST_CODE, "rust"),
     ]:
         r = client.post("/analyze/", json={"code": code, "language": lang})
