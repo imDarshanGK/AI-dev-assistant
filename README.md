@@ -1,18 +1,13 @@
 <div align="center">
 
+<img src="assets/logo-dark.svg" alt="QyverixAI" width="300"/>
+
+<br/>
 <br/>
 
-```
-  ⬡ QyverixAI
-```
+<h3>Debug. Understand. Ship faster.</h3>
 
-# AI Developer Assistant
-
-**Debug. Understand. Ship faster.**
-
-An open-source AI-powered developer assistant that helps beginners
-understand code, detect bugs, and improve code quality - with
-plain-English explanations and actionable suggestions.
+<p>An open-source AI-powered developer assistant that detects bugs, explains code in plain English,<br/>and gives actionable improvement suggestions - instantly, no account needed.</p>
 
 <br/>
 
@@ -20,99 +15,124 @@ plain-English explanations and actionable suggestions.
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://python.org)
-[![GSSoC 2026](https://img.shields.io/badge/GSSoC-2026-orange)](https://gssoc.girlscript.org)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![GSSoC 2026](https://img.shields.io/badge/GSSoC-2026-FF6B35?logoColor=white)](https://gssoc.girlscript.tech)
 
 <br/>
 
-[**Live Demo**](https://qyverixai.onrender.com) · [**API Docs**](https://qyverixai.onrender.com/docs) · [**Contributing Guide**](CONTRIBUTING.md) · [**Good First Issues**](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue)
+**[Live Demo](https://qyverixai.onrender.com)** &nbsp;·&nbsp; **[API Docs](https://qyverixai.onrender.com/docs)** &nbsp;·&nbsp; **[Contributing Guide](CONTRIBUTING.md)** &nbsp;·&nbsp; **[Good First Issues](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue)**
 
 <br/>
+
+> **GSSoC 2026 Contributors** -- Welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, then grab a [good first issue](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue) to get started.
 
 </div>
 
 ---
 
-## Preview
+## What is QyverixAI?
 
-<p align="center">
-  <img src="screenshots/demo.png" alt="QyverixAI home page screenshot" width="100%" />
-</p>
+QyverixAI is a code analysis workspace. Paste any code and get three things back instantly:
+
+| | What you get |
+|---|---|
+| **Explain** | Language detection, plain-English summary, complexity estimate, function and class inventory |
+| **Debug** | 40+ pattern checks across 5 languages with exact line numbers, code snippets, and fix suggestions |
+| **Improve** | Documentation gaps, error handling, testing, type safety - plus a 0–100 quality score and letter grade A–F |
+
+No account required. No API key needed. Works fully offline. Fully open source.
 
 ---
 
-## What is QyverixAI?
+## Preview
 
-Many beginners struggle with reading error messages, understanding what their code does, or knowing how to improve it. QyverixAI solves this with a clean workspace where you paste code and instantly get:
-
-- A **plain-English explanation** - what the code does and why
-- A **structured bug report** - what's wrong, which line, and how to fix it
-- **Improvement suggestions** - style tips, best practices, and a quality score
-
-No account required. No API key needed to get started. Fully open source.
+<!-- Add a screenshot of the live site here -->
+<!-- ![QyverixAI Preview](assets/preview.png) -->
 
 ---
 
 ## Features
 
-| Feature | Description |
+| Feature | Detail |
 |---|---|
-|  **Code Explanation** | Language detection, summary, key observations, complexity estimate |
-|  **Bug Detection** | 15+ rule patterns: ZeroDivisionError, bare excepts, hardcoded secrets, eval(), and more |
-|  **Improvement Suggestions** | Pythonic patterns, documentation gaps, dead code, quality score 0–100 |
-|  **Full Analysis Endpoint** | One call — all three analyses combined |
-|  **File Upload** | Drag-drop or upload `.py`, `.js`, `.java`, `.ts`, `.cpp` files |
-|  **Dark / Light Mode** | Persisted theme preference |
-|  **Query History** | Last 50 queries saved locally |
-|  **Saved Favorites** | Bookmark important results |
-|  **Download Results** | Export analysis as `.txt` |
-|  **LLM-Ready** | Drop-in OpenAI-compatible API support via env vars |
-|  **Swagger Docs** | Full interactive API documentation at `/docs` |
+| **40+ Bug Patterns** | ZeroDivisionError, bare except, hardcoded secrets, eval(), memory leaks, XSS, NullPointerException, and more |
+| **5 Languages** | Python, JavaScript, TypeScript, Java, C++ |
+| **Full Analysis Endpoint** | One call - explain + debug + improve combined, with timing metrics |
+| **Quality Score** | 0–100 score with letter grade A–F and prioritised suggestions |
+| **File Upload** | Drag-drop or upload `.py` `.js` `.ts` `.java` `.cpp` |
+| **Dark / Light Mode** | Persisted across sessions |
+| **Query History** | Last 50 analyses saved locally |
+| **Saved Favorites** | Bookmark and reload any analysis |
+| **Download Results** | Export full report as `.txt` |
+| **LLM-Ready** | Plug in OpenAI, Groq, Ollama, or any OpenAI-compatible provider via env vars |
+| **Rate Limiting** | 30 requests/minute per IP - configurable |
+| **Swagger Docs** | Interactive API docs at `/docs` |
+| **Gzip Compression** | Automatic response compression |
+
+### Languages and patterns
+
+| Language | Patterns detected |
+|---|---|
+| **Python** | ZeroDivisionError, bare except, eval/exec, mutable defaults, hardcoded secrets, wildcard imports, global variables, missing type hints, string concat in loops, assert in production, comparison to None |
+| **JavaScript** | var usage, loose equality `==`, console.log, callback hell, innerHTML XSS, unhandled promises |
+| **TypeScript** | `any` type, non-null assertion `!`, unhandled promises, missing env var validation |
+| **Java** | NullPointerException risk, raw generics, broad catch, String `==` comparison, System.exit |
+| **C++** | Memory leaks, unsafe gets/scanf, `using namespace std`, signed/unsigned mismatch |
 
 ---
 
 ## Quick Start
 
-### 1. Clone
+### Prerequisites
+
+- Python 3.11 or 3.12
+- pip
+- A modern browser (Chrome, Firefox, Edge, Safari)
+
+### 1 - Clone
 
 ```bash
 git clone https://github.com/imDarshanGK/AI-dev-assistant.git
 cd AI-dev-assistant
 ```
 
-### 2. Install Backend Dependencies
+### 2 - Run the backend
 
 ```bash
 cd backend
 pip install -r requirements.txt
+uvicorn app.main:app --reload
 ```
 
-### 3. Start the Backend
+| Endpoint | URL |
+|---|---|
+| API root | http://localhost:8000/ |
+| Interactive docs | http://localhost:8000/docs |
+| Health check | http://localhost:8000/health |
+
+### 3 - Open the frontend
 
 ```bash
-cd backend
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+# No build step required - open directly in your browser
+open frontend/index.html
 ```
 
-### 4. Open the Frontend
-
-```
-http://localhost:8000/app/
-```
-
-### 5. Run Tests
-
-```bash
-cd backend
-pytest -q
-```
+Set the API URL field to `http://localhost:8000`, click **Ping** to confirm the green Connected status, then paste any code and click **Analyze Code**.
 
 ---
 
 ## API Reference
 
-All endpoints accept `POST` with JSON body `{ "code": "..." }`.
-Optional: `{ "code": "...", "language": "python" }` to override language detection.
+All endpoints accept `POST` with `Content-Type: application/json`.
+
+**Request body**
+```json
+{ "code": "your code here", "language": "python" }
+```
+
+`language` is optional — the engine auto-detects it from the code.
+
+---
 
 ### `POST /explanation/`
 
@@ -121,66 +141,81 @@ Returns a plain-English breakdown of the code.
 ```json
 {
   "language": "Python",
-  "summary": "This beginner-level Python snippet defines a reusable function...",
+  "summary": "A short Python snippet (5 lines) that performs a focused task.",
   "key_points": [
-    "The code is written in Python with 2 lines.",
-    "Defines 1 function: add.",
-    "No loops or conditionals found."
+    "Written in Python — 5 non-blank lines of code.",
+    "Defines 1 function: calculate.",
+    "Contains conditional logic — branching control flow."
   ],
-  "complexity": "Beginner"
+  "complexity": "Beginner",
+  "line_count": 6,
+  "function_count": 1,
+  "class_count": 0
 }
 ```
 
+---
+
 ### `POST /debugging/`
 
-Returns detected issues with line numbers and fix suggestions.
+Returns detected issues with line numbers, code snippets, and fix suggestions.
 
 ```json
 {
   "issues": [
     {
-      "type": "Hardcoded Secret",
-      "line": 3,
-      "description": "Hardcoded password found in code.",
-      "suggestion": "Use environment variables: os.getenv('PASSWORD')",
-      "severity": "error"
+      "type": "ZeroDivisionError",
+      "line": 2,
+      "description": "Potential division by zero — divisor may be 0 at runtime.",
+      "suggestion": "Guard the divisor: if b == 0: return None",
+      "severity": "error",
+      "code_snippet": "result = a / b"
     }
   ],
-  "summary": "Found 1 issue. 1 error(s), 0 warning(s).",
-  "clean": false
+  "summary": "Found 1 issue: 1 error, 0 warnings, 0 info.",
+  "clean": false,
+  "error_count": 1,
+  "warning_count": 0,
+  "info_count": 0
 }
 ```
 
+---
+
 ### `POST /suggestions/`
 
-Returns improvement suggestion cards.
+Returns improvement suggestion cards with a quality score.
 
 ```json
 {
   "suggestions": [
     {
       "category": "Documentation",
-      "description": "Add docstrings to your functions.",
-      "example": "def greet(name: str) -> str:\n    \"\"\"Return a greeting string.\"\"\"",
+      "description": "Less than 10% of lines are comments. Add docstrings.",
+      "example": "\"\"\"Calculate the area of a circle given radius r.\"\"\"",
       "priority": "medium"
     }
   ],
-  "overall_score": 80,
-  "next_step": "Great code! Consider adding tests next."
+  "overall_score": 72,
+  "grade": "B",
+  "next_step": "Good work. Address the medium-priority items next."
 }
 ```
 
+---
+
 ### `POST /analyze/`
 
-All three analyses in one response.
+All three analyses in one response with timing.
 
 ```json
 {
   "provider": "rule-based",
-  "model": "built-in",
-  "explanation": { ... },
-  "debugging": { ... },
-  "suggestions": { ... }
+  "model": "qyverix-engine-v3",
+  "explanation": { "...": "..." },
+  "debugging":   { "...": "..." },
+  "suggestions": { "...": "..." },
+  "analysis_time_ms": 1.84
 }
 ```
 
@@ -190,55 +225,63 @@ All three analyses in one response.
 
 ```
 AI-dev-assistant/
+├── assets/                           # Logo and brand assets
+│   ├── logo-dark.svg
+│   ├── logo-light.svg
+│   └── icon.svg
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              # FastAPI app, middleware, routes
-│   │   ├── schemas.py           # Pydantic request/response models
+│   │   ├── main.py                   # FastAPI app, middleware, rate limiting
+│   │   ├── schemas.py                # Pydantic v2 request/response models
 │   │   ├── routers/
-│   │   │   ├── analyze.py       # POST /analyze/
-│   │   │   ├── debugging.py     # POST /debugging/
-│   │   │   ├── explanation.py   # POST /explanation/
-│   │   │   └── suggestions.py   # POST /suggestions/
+│   │   │   ├── analyze.py            # POST /analyze/
+│   │   │   ├── debugging.py          # POST /debugging/
+│   │   │   ├── explanation.py        # POST /explanation/
+│   │   │   └── suggestions.py        # POST /suggestions/
 │   │   └── services/
-│   │       ├── code_assistant.py  # Rule-based analysis engine
-│   │       └── ai_provider.py     # LLM abstraction layer
+│   │       ├── code_assistant.py     # Rule-based engine — 40+ patterns, 5 languages
+│   │       └── ai_provider.py        # Optional LLM abstraction layer
 │   ├── requirements.txt
 │   └── tests/
-│       └── test_endpoints.py    # Full test suite (pytest)
+│       └── test_endpoints.py         # 22 tests across all endpoints and languages
 ├── frontend/
-│   ├── index.html               # Main UI — no build step
-│   ├── style.css                # Dark/light theme, responsive
-│   └── script.js                # All interactivity
-├── .env.example                 # Environment variable reference
-├── Dockerfile                   # One-service Docker build
-├── render.yaml                  # Render deploy blueprint
+│   └── index.html                    # Complete UI — no build step, self-contained
+├── .github/
+│   └── workflows/
+│       └── ci.yml                    # CI on Python 3.11 + 3.12, lint with Ruff
+├── .env.example
+├── Dockerfile
+├── render.yaml
+├── CONTRIBUTING.md
 └── README.md
 ```
 
 ---
 
-## Contributing
+## Running Tests
 
-We welcome contributions from all levels. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-**New to open source?** Check [good first issue](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue).
-
-**Have questions?** Ask in [GitHub Discussions](https://github.com/imDarshanGK/AI-dev-assistant/discussions).
+```bash
+cd backend
+pytest -v
 ```
 
+22 tests covering all endpoints, all 5 languages, 10+ individual bug patterns, suggestions scoring, full analysis, and edge cases including empty code, unicode, and single-line input.
+
+Tests run automatically on every push and pull request via GitHub Actions across Python 3.11 and 3.12.
 
 ---
 
 ## Deployment
 
-### Render (Recommended - Free Tier)
+### Render - recommended, free tier
 
 1. Fork this repository
-2. Connect it to [Render](https://render.com)
-3. Use the `render.yaml` blueprint - one service, zero config
-4. Your app will be live at `https://your-service.onrender.com`
+2. Go to [render.com](https://render.com) → New Web Service
+3. Connect your fork - `render.yaml` configures everything automatically
+4. Add environment variable: `PYTHON_VERSION` = `3.12.0`
+5. Click Deploy - your app goes live at `https://your-service.onrender.com`
 
-The same service serves the frontend at `/app/` and the API from `/`.
+> **Note:** The free tier sleeps after 15 minutes of inactivity. The first request after sleep takes 30–60 seconds to wake up. This is expected.
 
 ### Docker
 
@@ -249,45 +292,36 @@ docker run -p 8000:8000 qyverixai
 
 ---
 
-## Optional: Live LLM Integration
+## Optional LLM Integration
 
-QyverixAI works out of the box with its rule-based engine.
-To enable richer AI-powered analysis, set these on your backend host:
+QyverixAI works fully offline with its built-in rule-based engine. To enable richer AI-powered analysis, add these environment variables:
 
 ```env
 LLM_ENABLED=true
-LLM_API_KEY=sk-your-key-here
+LLM_API_KEY=your-key-here
 LLM_BASE_URL=https://api.openai.com/v1
 LLM_MODEL=gpt-4o-mini
+LLM_TIMEOUT_SECONDS=30
 ```
 
-Compatible with OpenAI, Groq, Together AI, Ollama, and any OpenAI-compatible endpoint.
+Compatible with **OpenAI**, **Groq** (free tier), **Together AI**, **Ollama** (local, free), and any OpenAI-compatible endpoint.
 
-> ⚠️ Never commit API keys. Use environment variables or your host's secrets manager.
+> Never commit API keys. Use environment variables or your host's secrets manager.
 
 ---
 
-## Contributing
+## Configuration Reference
 
-QyverixAI is a **GSSoC 2026** project - beginner contributors are warmly welcome!
+| Variable | Default | Description |
+|---|---|---|
+| `RATE_LIMIT_PER_MINUTE` | `30` | Max requests per IP per minute |
+| `LLM_ENABLED` | `false` | Enable LLM provider |
+| `LLM_API_KEY` | — | API key for your LLM provider |
+| `LLM_BASE_URL` | `https://api.openai.com/v1` | LLM base URL |
+| `LLM_MODEL` | `gpt-4o-mini` | Model name |
+| `LLM_TIMEOUT_SECONDS` | `30` | Request timeout in seconds |
 
-```bash
-# Fork → Clone → Branch → Code → Test → PR
-git checkout -b feat/your-feature-name
-pytest -q                         # All tests must pass
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
-
-### Good First Issues
-
-Look for issues labeled [`good first issue`](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue):
-
-- Add support for a new language pattern in the debug engine
-- Improve explanation key points for a specific language
-- Add a new suggestion rule
-- Write tests for edge cases
-- Improve frontend accessibility
+Copy `.env.example` to `.env` and fill in values as needed.
 
 ---
 
@@ -295,27 +329,69 @@ Look for issues labeled [`good first issue`](https://github.com/imDarshanGK/AI-d
 
 | Layer | Technology |
 |---|---|
-| Backend | FastAPI, Pydantic v2, Python 3.12 |
-| Frontend | HTML5, CSS3, Vanilla JS (no build step) |
+| Backend | FastAPI 0.115+, Pydantic v2, Python 3.12 |
+| Frontend | HTML5, CSS3, Vanilla JS - no build step, zero dependencies |
 | Testing | Pytest, FastAPI TestClient |
-| Deploy | Docker, Render |
-| CI | GitHub Actions |
+| Linting | Ruff |
+| Deployment | Docker, Render |
+| CI | GitHub Actions - Python 3.11 + 3.12 matrix |
+
+---
+
+## Contributing
+
+QyverixAI is a **GSSoC 2026** open source project. Contributors of all levels are welcome.
+
+```bash
+# 1. Fork the repo on GitHub
+# 2. Clone your fork
+git clone https://github.com/YOUR_USERNAME/AI-dev-assistant.git
+
+# 3. Create a branch
+git checkout -b feat/your-feature-name
+
+# 4. Install and test
+cd backend && pip install -r requirements.txt
+pytest -v   # all 22 tests must pass
+
+# 5. Push and open a pull request
+```
+
+Read the full workflow, code standards, and pattern guide in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### Good first issues for GSSoC contributors
+
+| Task | Label |
+|---|---|
+| Add a new bug detection pattern for any language | `easy` |
+| Add test cases for edge cases | `easy` |
+| Improve explanation key points for a specific language | `easy` |
+| Add ARIA labels and keyboard navigation to frontend | `medium` |
+| Add support for a new file type in file upload | `medium` |
+| Build AST-based deep analysis for Python | `hard` |
+| Add VS Code extension | `hard` |
+
+Browse all open issues: [github.com/imDarshanGK/AI-dev-assistant/issues](https://github.com/imDarshanGK/AI-dev-assistant/issues)
 
 ---
 
 ## Roadmap
 
 - [x] Rule-based code explanation engine
-- [x] Bug detection with 15+ patterns
-- [x] Improvement suggestions with quality score
-- [x] Full-analysis combined endpoint
-- [x] Dark/light theme, file upload, history, favorites
-- [x] LLM provider abstraction layer
-- [ ] Language-specific analyzers (Python, JS, Java, Go)
-- [ ] Per-user history with database backend
+- [x] Bug detection — 40+ patterns across 5 languages
+- [x] Improvement suggestions with quality score and letter grade A–F
+- [x] Full-analysis combined endpoint with timing metrics
+- [x] Rate limiting per IP — configurable
+- [x] Gzip compression middleware
+- [x] Dark / light theme, file upload, drag-and-drop, history, favorites, download
+- [x] LLM provider abstraction layer — OpenAI, Groq, Ollama compatible
+- [x] CI matrix — Python 3.11 + 3.12
+- [ ] AST-based deep analysis for Python
+- [ ] Per-user history with database backend (SQLite → PostgreSQL)
 - [ ] VS Code extension
-- [ ] AI-powered explanations (LLM integration GA)
+- [ ] AI-powered explanations — LLM integration GA
 - [ ] Multi-file analysis support
+- [ ] Diff view — before/after code improvements
 
 ---
 
@@ -323,12 +399,18 @@ Look for issues labeled [`good first issue`](https://github.com/imDarshanGK/AI-d
 
 MIT © [Darshan G K](https://github.com/imDarshanGK)
 
-Built with ♥ for the open source community · GSSoC 2026
-
 ---
 
 <div align="center">
 
-[⭐ Star this repo](https://github.com/imDarshanGK/AI-dev-assistant) · [🐛 Report a bug](https://github.com/imDarshanGK/AI-dev-assistant/issues/new?template=bug_report.md) · [💡 Request a feature](https://github.com/imDarshanGK/AI-dev-assistant/issues/new?template=feature_request.md)
+<br/>
+
+**[Star this repo](https://github.com/imDarshanGK/AI-dev-assistant)** &nbsp;·&nbsp;
+**[Report a bug](https://github.com/imDarshanGK/AI-dev-assistant/issues/new?template=bug_report.md)** &nbsp;·&nbsp;
+**[Request a feature](https://github.com/imDarshanGK/AI-dev-assistant/issues/new?template=feature_request.md)**
+
+<br/>
+
+Built for the open source community &nbsp;·&nbsp; GSSoC 2026
 
 </div>
