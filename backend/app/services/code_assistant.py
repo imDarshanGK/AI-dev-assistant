@@ -37,6 +37,16 @@ LANG_SIGNATURES: dict[str, list[str]] = {
 
 
 def detect_language(code: str, hint: str | None = None) -> str:
+    """Detect the programming language of the given code snippet.
+
+    Args:
+        code: The source code string to analyse.
+        hint: Optional language name to override detection.
+
+    Returns:
+        Detected language name as a string.
+    """
+
     if hint:
         normalized = hint.strip().lower()
         mapping = {
@@ -61,6 +71,15 @@ def detect_language(code: str, hint: str | None = None) -> str:
 
 # ── Complexity Estimation ──────────────────────────────────────────────────────
 def estimate_complexity(code: str) -> str:
+    """Estimate the overall complexity level of the given code snippet.
+
+    Args:
+        code: The source code to evaluate.
+
+    Returns:
+        Complexity level as a string from Beginner to Expert.
+    """
+
     lines = [line for line in code.splitlines() if line.strip() and not line.strip().startswith("#")]
     n = len(lines)
     branches = len(re.findall(r"\b(if|elif|else|for|while|switch|case|try|catch|except)\b", code))
@@ -73,7 +92,6 @@ def estimate_complexity(code: str) -> str:
     if n <= 200:
         return "Advanced"
     return "Expert"
-
 
 # ── Bug Patterns ───────────────────────────────────────────────────────────────
 @dataclass
@@ -226,6 +244,16 @@ BUG_PATTERNS: list[BugPattern] = [
 
 
 def run_bug_detection(code: str, language: str) -> list[dict]:
+    """Run rule-based bug detection for the provided source code.
+
+    Args:
+        code: The source code to analyse.
+        language: The detected or selected programming language.
+
+    Returns:
+        A list of detected issues with metadata and suggestions.
+    """
+
     lines = code.splitlines()
     found: list[dict] = []
     seen: set[str] = set()
@@ -261,6 +289,16 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
 # ── Suggestion Engine ──────────────────────────────────────────────────────────
 def run_suggestions(code: str, language: str) -> dict:
+    """Generate improvement suggestions for the provided source code.
+
+    Args:
+        code: The source code to analyse.
+        language: The detected or selected programming language.
+
+    Returns:
+        Suggestion results including score, grade, and recommendations.
+    """
+
     suggestions: list[dict] = []
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
@@ -366,6 +404,16 @@ def run_suggestions(code: str, language: str) -> dict:
 
 # ── Explanation Engine ─────────────────────────────────────────────────────────
 def run_explanation(code: str, language: str) -> dict:
+    """Generate a plain-English explanation of the provided source code.
+
+    Args:
+        code: The source code to analyse.
+        language: The detected or selected programming language.
+
+    Returns:
+        A structured explanation summary with key insights.
+    """
+
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
     complexity = estimate_complexity(code)
@@ -520,6 +568,16 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
 
 # ── Combined ───────────────────────────────────────────────────────────────────
 def full_analysis(code: str, language_hint: str | None = None) -> dict:
+    """Run the complete analysis pipeline for the provided source code.
+
+    Args:
+        code: The source code to analyse.
+        language_hint: Optional language override hint.
+
+    Returns:
+        Combined explanation, debugging, and suggestion analysis results.
+    """
+
     t0 = time.perf_counter()
     language = detect_language(code, language_hint)
 
