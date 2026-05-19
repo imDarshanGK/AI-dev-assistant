@@ -1059,6 +1059,45 @@ const resultActions = document.getElementById('resultActions');
 const engineInfo   = document.getElementById('engineInfo');
 const timeInfo     = document.getElementById('timeInfo');
 
+const BOILERPLATES = {
+  python: `def main():
+    print("Hello from Python")
+
+
+if __name__ == "__main__":
+    main()`,
+  javascript: `function main() {
+  console.log("Hello from JavaScript");
+}
+
+main();`,
+  typescript: `function main(): void {
+  console.log("Hello from TypeScript");
+}
+
+main();`,
+  java: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello from Java");
+    }
+}`,
+  cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Hello from C++" << endl;
+    return 0;
+}`
+};
+
+const LANGUAGE_LABELS = {
+  python: 'Python',
+  javascript: 'JavaScript',
+  typescript: 'TypeScript',
+  java: 'Java',
+  cpp: 'C++'
+};
+
 /* ═══════════════════════════════════════════════════════════════
    THEME
 ═══════════════════════════════════════════════════════════════ */
@@ -1287,11 +1326,19 @@ function setLanguage(lang) {
   // 2. Check if the editor currently contains one of the samples
   const currentCode = editor.value.trim();
   const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
+  const isBoilerplate = Object.values(BOILERPLATES).map(s => s.trim()).includes(currentCode);
   
   // 3. If it is a sample, swap it to the new language's sample automatically
   if (isSample) {
     editor.value = SAMPLES[lang] || SAMPLES.python;
     updateEditor();
+    return;
+  }
+
+  if (!currentCode || isBoilerplate) {
+    editor.value = BOILERPLATES[lang] || BOILERPLATES.python;
+    updateEditor();
+    toast(`${LANGUAGE_LABELS[lang] || 'Language'} boilerplate loaded`, 'success');
   }
 }
 
