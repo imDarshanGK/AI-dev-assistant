@@ -37,6 +37,85 @@ def _append_issue(
     seen.add(key)
 
 
+def _collect_defined_names(tree: ast.Module) -> set[str]:
+    """
+    Return every name that is legitimately defined anywhere in the module:
+    assignments, augmented/annotated assignments, for-loop targets,
+    with-statement targets, function/class definitions, import aliases,
+    comprehension targets, function arguments (incl. *args/**kwargs),
+    global/nonlocal declarations, except-handler aliases, match/case
+    patterns (Python 3.10+), and all built-in names.
+    Used by _python_debug_issues to avoid false-positive NameError flags.
+    """
+    import builtins as _builtins
+    defined: set[str] = set(_builtins.__dict__.keys())
+    defined.update({
+        "__name__", "__file__", "__doc__", "__package__",
+        "__spec__", "__loader__", "__builtins__",
+    })
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+            defined.add(node.id)
+        elif isinstance(node, ast.AugAssign) and isinstance(node.target, ast.Name):
+            defined.add(node.target.id)
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            defined.add(node.target.id)
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            defined.add(node.name)
+            all_args = (
+                node.args.args
+                + node.args.posonlyargs
+                + node.args.kwonlyargs
+            )
+            for arg in all_args:
+                defined.add(arg.arg)
+            if node.args.vararg:
+                defined.add(node.args.vararg.arg)
+            if node.args.kwarg:
+                defined.add(node.args.kwarg.arg)
+        elif isinstance(node, ast.ClassDef):
+            defined.add(node.name)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                defined.add(alias.asname if alias.asname else alias.name.split(".")[0])
+        elif isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                if alias.name != "*":
+                    defined.add(alias.asname if alias.asname else alias.name)
+        elif isinstance(node, ast.For):
+            for n in ast.walk(node.target):
+                if isinstance(n, ast.Name):
+                    defined.add(n.id)
+        elif isinstance(node, ast.With):
+            for item in node.items:
+                if item.optional_vars:
+                    for n in ast.walk(item.optional_vars):
+                        if isinstance(n, ast.Name):
+                            defined.add(n.id)
+        elif isinstance(node, ast.ExceptHandler) and node.name:
+            defined.add(node.name)
+        elif isinstance(node, (ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)):
+            generators = getattr(node, "generators", [])
+            for gen in generators:
+                for n in ast.walk(gen.target):
+                    if isinstance(n, ast.Name):
+                        defined.add(n.id)
+        elif isinstance(node, ast.Global):
+            defined.update(node.names)
+        elif isinstance(node, ast.Nonlocal):
+            defined.update(node.names)
+        # match/case patterns — Python 3.10+
+        elif hasattr(ast, "MatchAs") and isinstance(node, ast.MatchAs) and node.name:
+            defined.add(node.name)
+        elif hasattr(ast, "MatchStar") and isinstance(node, ast.MatchStar) and node.name:
+            defined.add(node.name)
+        elif hasattr(ast, "MatchMapping") and isinstance(node, ast.MatchMapping) and node.rest:
+            defined.add(node.rest)
+
+    return defined
+
+
 def _python_debug_issues(code: str) -> list[DebugIssue]:
     issues: list[DebugIssue] = []
     seen: set[tuple[str, Optional[int], str]] = set()
@@ -165,6 +244,27 @@ def _python_debug_issues(code: str) -> list[DebugIssue]:
                         f"Wrap with str(...): \"...\" + str({node.right.id}) or use an f-string.",
                         "warning",
                     )
+
+    # ── NameError Risk: undefined names ──
+    defined_names = _collect_defined_names(tree)
+    seen_undefined: set[str] = set()
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Name)
+            and isinstance(node.ctx, ast.Load)
+            and node.id not in defined_names
+            and node.id not in seen_undefined
+        ):
+            seen_undefined.add(node.id)
+            _append_issue(
+                issues,
+                seen,
+                "NameError Risk",
+                node.lineno,
+                f"'{node.id}' is used but never defined — this will raise NameError at runtime.",
+                f"Define '{node.id}' before using it, or check for a typo in the variable name.",
+                "error",
+            )
 
     return issues
 
@@ -351,4 +451,3 @@ def suggest_improvements(code: str, language: Optional[str] = None) -> Suggestio
     )
 
     return SuggestionsResponse(suggestions=cards, overall_score=score, next_step=next_step)
-
