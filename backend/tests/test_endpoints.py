@@ -9,9 +9,16 @@ from fastapi.testclient import TestClient
 from app.main import _request_counts
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from app.main import app
+from app.main import app, _request_counts
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limit_state():
+    _request_counts.clear()
+    yield
+    _request_counts.clear()
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
