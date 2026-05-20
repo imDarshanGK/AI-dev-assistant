@@ -1801,20 +1801,9 @@
           </svg>
           <span>API Docs</span>
         </a>
-        <button class="theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle dark mode"
-          aria-pressed="false">
-          <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="5" />
-            <line x1="12" y1="1" x2="12" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="23" />
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-            <line x1="1" y1="12" x2="3" y2="12" />
-            <line x1="21" y1="12" x2="23" y2="12" />
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-          </svg>
+        <!-- Theme toggle: icon is injected by JS on load and on every click -->
+        <button class="theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+          <span id="themeIcon"></span>
         </button>
       </div>
     </nav>
@@ -2037,9 +2026,6 @@
             <div class="spinner" id="spinner" aria-hidden="true"></div>
             <span class="btn-text">Analyze Code</span>
           </button>
-          <button id="analyze-btn" title="Analyze Code (Ctrl+Enter)" align="center">Analyze <span
-              class="desktop-hint">(Ctrl+Enter)</span>
-          </button>
         </div>
       </div>
 
@@ -2177,770 +2163,690 @@
     </div>
 
   </div><!-- /app -->
-  
 
-    <!-- ── FOOTER ─────────────────────────────────────────────────── -->
-    <footer>
-      <div class="app">
-        <div class="footer-logo">QyverixAI</div>
-        <p>
-          <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
-          · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
-          · MIT License
-        </p>
-        <p style="margin-top:8px;font-size:0.75rem">Built for the open source community</p>
-      </div>
-    </footer>
+  <!-- ── FOOTER ─────────────────────────────────────────────────── -->
+  <footer>
+    <div class="app">
+      <div class="footer-logo">QyverixAI</div>
+      <p>
+        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
+        · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
+        · MIT License
+      </p>
+      <p style="margin-top:8px;font-size:0.75rem">Built for the open source community</p>
+    </div>
+  </footer>
 
-    <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
-    <div id="toastContainer"></div>
+  <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
+  <div id="toastContainer"></div>
 
-    <script>
-      /* ═══════════════════════════════════════════════════════════════
-         STATE
-      ═══════════════════════════════════════════════════════════════ */
-      const MAX_HISTORY = 50;
-      let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
-      let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
-      let currentResult = null;
-      let selectedLang = 'python';
-      let selectedMode = 'analyze';
+  <script>
+    /* ═══════════════════════════════════════════════════════════════
+       THEME — icon swaps between sun (light mode) and moon (dark mode)
+    ═══════════════════════════════════════════════════════════════ */
+    const SUN_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>`;
 
-      /* ═══════════════════════════════════════════════════════════════
-         DOM REFS
-      ═══════════════════════════════════════════════════════════════ */
-      const editor = document.getElementById('codeEditor');
-      const lineNumbers = document.getElementById('lineNumbers');
-      const charCount = document.getElementById('charCount');
-      const analyzeBtn = document.getElementById('analyzeBtn');
-      const spinner = document.getElementById('spinner');
-      const apiUrlInput = document.getElementById('apiUrl');
-      const apiDot = document.getElementById('apiDot');
-      const apiStatusText = document.getElementById('apiStatusText');
-      const historyList = document.getElementById('historyList');
-      const favList = document.getElementById('favList');
-      const resultActions = document.getElementById('resultActions');
-      const engineInfo = document.getElementById('engineInfo');
-      const timeInfo = document.getElementById('timeInfo');
+    const MOON_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>`;
 
-      /* ═══════════════════════════════════════════════════════════════
-         THEME
-      ═══════════════════════════════════════════════════════════════ */
-      const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
+    function updateThemeIcon(theme) {
+      // dark mode  → show moon  (clicking will switch to light)
+      // light mode → show sun   (clicking will switch to dark)
+      document.getElementById('themeIcon').innerHTML = theme === 'dark' ? MOON_SVG : SUN_SVG;
+      const btn = document.getElementById('themeToggle');
+      btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+    }
 
-      document.getElementById('themeToggle').addEventListener('click', () => {
-        const cur = document.documentElement.getAttribute('data-theme');
-        const next = cur === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('qyx_theme', next);
+    const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
 
-        const themeToggleBtn = document.getElementById('themeToggle');
-        if (themeToggleBtn) {
-          themeToggleBtn.setAttribute('aria-label', next === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
-          themeToggleBtn.setAttribute('aria-pressed', next === 'dark' ? 'false' : 'true');
-        }
-      });
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('qyx_theme', next);
+      updateThemeIcon(next);
+    });
 
-      // Initialize aria label for theme toggle
-      const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-      const themeToggleBtnInit = document.getElementById('themeToggle');
-      if (themeToggleBtnInit) {
-        themeToggleBtnInit.setAttribute('aria-label', initialTheme === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
-        themeToggleBtnInit.setAttribute('aria-pressed', initialTheme === 'dark' ? 'false' : 'true');
-      }
+    /* ═══════════════════════════════════════════════════════════════
+       STATE
+    ═══════════════════════════════════════════════════════════════ */
+    const MAX_HISTORY = 50;
+    let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+    let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
+    let currentResult = null;
+    let selectedLang = 'python';
+    let selectedMode = 'analyze';
 
-      /* ═══════════════════════════════════════════════════════════════
-         EDITOR
-      ═══════════════════════════════════════════════════════════════ */
-      function updateEditor() {
-        const val = editor.value;
-        const lines = val ? val.split('\n').length : 0;
-        const chars = val.length;
-        const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-        charCount.textContent = val
-          ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
-          : 'Paste or type code to begin';
-        const lineCount = Math.max(lines, 1);
-        lineNumbers.innerHTML = val
-          ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
-          : '1';
-      }
+    /* ═══════════════════════════════════════════════════════════════
+       DOM REFS
+    ═══════════════════════════════════════════════════════════════ */
+    const editor = document.getElementById('codeEditor');
+    const lineNumbers = document.getElementById('lineNumbers');
+    const charCount = document.getElementById('charCount');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const spinner = document.getElementById('spinner');
+    const apiUrlInput = document.getElementById('apiUrl');
+    const apiDot = document.getElementById('apiDot');
+    const apiStatusText = document.getElementById('apiStatusText');
+    const historyList = document.getElementById('historyList');
+    const favList = document.getElementById('favList');
+    const resultActions = document.getElementById('resultActions');
+    const engineInfo = document.getElementById('engineInfo');
+    const timeInfo = document.getElementById('timeInfo');
 
-      editor.addEventListener('input', updateEditor);
-      editor.addEventListener('scroll', () => {
-        lineNumbers.scrollTop = editor.scrollTop;
-      });
+    /* ═══════════════════════════════════════════════════════════════
+       EDITOR
+    ═══════════════════════════════════════════════════════════════ */
+    function updateEditor() {
+      const val = editor.value;
+      const lines = val ? val.split('\n').length : 0;
+      const chars = val.length;
+      const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
+      charCount.textContent = val
+        ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
+        : 'Paste or type code to begin';
+      const lineCount = Math.max(lines, 1);
+      lineNumbers.innerHTML = val
+        ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
+        : '1';
+    }
 
-      // Tab key support
-      editor.addEventListener('keydown', e => {
+    editor.addEventListener('input', updateEditor);
+    editor.addEventListener('scroll', () => {
+      lineNumbers.scrollTop = editor.scrollTop;
+    });
 
-        // TAB SUPPORT
-        if (e.key === 'Tab' && !e.shiftKey) {
-
-          e.preventDefault();
-
-          const start = editor.selectionStart;
-          const end = editor.selectionEnd;
-
-          editor.value =
-            editor.value.substring(0, start) +
-            '    ' +
-            editor.value.substring(end);
-
-          editor.selectionStart =
-            editor.selectionEnd =
-            start + 4;
-
-          updateEditor();
-        }
-
-        // AUTO INDENT ON ENTER
-        else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
-
-          e.preventDefault();
-
-          const start = editor.selectionStart;
-          const end = editor.selectionEnd;
-
-          const value = editor.value;
-
-          // Find current line
-          const lineStart =
-            value.lastIndexOf('\n', start - 1) + 1;
-
-          const currentLine =
-            value.substring(lineStart, start);
-
-          // Preserve existing indentation
-          const indentMatch = currentLine.match(/^\s*/);
-
-          let indent = indentMatch
-            ? indentMatch[0]
-            : '';
-
-          const trimmed = currentLine.trim();
-
-          // Python indentation
-          if (
-            selectedLang === 'python' &&
-            trimmed.endsWith(':')
-          ) {
-            indent += '    ';
-          }
-
-          // JavaScript / TypeScript / Java / C++
-          else if (
-            ['javascript', 'typescript', 'java', 'cpp']
-              .includes(selectedLang) &&
-            trimmed.endsWith('{')
-          ) {
-            indent += '    ';
-          }
-
-          editor.value =
-            value.substring(0, start) +
-            '\n' + indent +
-            value.substring(end);
-
-          editor.selectionStart =
-            editor.selectionEnd =
-            start + 1 + indent.length;
-
-          updateEditor();
-        }
-
-        // SMART BACKSPACE
-        else if (e.key === 'Backspace') {
-
-          const start = editor.selectionStart;
-          const end = editor.selectionEnd;
-
-          // Only if no text selected
-          if (start === end) {
-
-            const value = editor.value;
-
-            // Text before cursor
-            const beforeCursor =
-              value.substring(0, start);
-
-            // Current line
-            const lineStart =
-              beforeCursor.lastIndexOf('\n') + 1;
-
-            const currentLine =
-              beforeCursor.substring(lineStart);
-
-            // Remove full indentation level
-            if (currentLine.endsWith('    ')) {
-
-              e.preventDefault();
-
-              editor.value =
-                value.substring(0, start - 4) +
-                value.substring(end);
-
-              editor.selectionStart =
-                editor.selectionEnd =
-                start - 4;
-
-              updateEditor();
-            }
-          }
-        }
-
-        // CTRL + ENTER
-        else if (
-          e.key === 'Enter' &&
-          (e.ctrlKey || e.metaKey)
-        ) {
-
-          e.preventDefault();
-          doAnalyze();
-        }
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         FILE UPLOAD
-      ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('fileInput').addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const ext = file.name.split('.').pop().toLowerCase();
-        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
-        if (langMap[ext]) setLanguage(langMap[ext]);
-        const reader = new FileReader();
-        reader.onload = ev => {
-          editor.value = ev.target.result;
-          updateEditor();
-          toast(`Loaded ${file.name}`, 'success');
-        };
-        reader.readAsText(file);
-        e.target.value = '';
-      });
-
-      /* Drag and drop */
-      document.body.addEventListener('dragover', e => e.preventDefault());
-      document.body.addEventListener('drop', e => {
+    editor.addEventListener('keydown', e => {
+      if (e.key === 'Tab' && !e.shiftKey) {
         e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-          editor.value = ev.target.result;
-          updateEditor();
-          toast(`Dropped ${file.name}`, 'success');
-        };
-        reader.readAsText(file);
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         LANGUAGE TABS
-      ═══════════════════════════════════════════════════════════════ */
-      function setLanguage(lang) {
-        selectedLang = lang;
-
-        // 1. Update the visual tabs
-        document.querySelectorAll('.lang-tab').forEach(t => {
-          const isActive = t.dataset.lang === lang;
-          t.classList.toggle('active', isActive);
-          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        });
-
-        // 2. Check if the editor currently contains one of the samples
-        const currentCode = editor.value.trim();
-        const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
-
-        // 3. If it is a sample, swap it to the new language's sample automatically
-        if (isSample) {
-          editor.value = SAMPLES[lang] || SAMPLES.python;
-          updateEditor();
-        }
-      }
-
-      document.querySelectorAll('.lang-tab').forEach(t => {
-        t.addEventListener('click', () => setLanguage(t.dataset.lang));
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         MODE BUTTONS
-      ═══════════════════════════════════════════════════════════════ */
-      document.querySelectorAll('.mode-btn').forEach(b => {
-        b.addEventListener('click', () => {
-          selectedMode = b.dataset.mode;
-          document.querySelectorAll('.mode-btn').forEach(x => {
-            x.classList.remove('active');
-            x.setAttribute('aria-pressed', 'false');
-          });
-          b.classList.add('active');
-          b.setAttribute('aria-pressed', 'true');
-        });
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         RESULT TABS
-      ═══════════════════════════════════════════════════════════════ */
-      document.querySelectorAll('.result-tab').forEach(t => {
-        t.addEventListener('click', () => {
-          const tab = t.dataset.rtab;
-          document.querySelectorAll('.result-tab').forEach(x => {
-            x.classList.remove('active');
-            x.setAttribute('aria-selected', 'false');
-          });
-          document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
-          t.classList.add('active');
-          t.setAttribute('aria-selected', 'true');
-          document.getElementById(`pane-${tab}`).classList.add('active');
-        });
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         CLEAR / COPY
-      ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('clearBtn').addEventListener('click', () => {
-        editor.value = '';
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        editor.value = editor.value.substring(0, start) + '    ' + editor.value.substring(end);
+        editor.selectionStart = editor.selectionEnd = start + 4;
         updateEditor();
-        resetResults();
-      });
-      document.getElementById('copyBtn').addEventListener('click', () => {
-        if (!editor.value.trim()) return;
-        navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         API PING
-      ═══════════════════════════════════════════════════════════════ */
-      async function pingApi() {
-        const base = apiUrlInput.value.replace(/\/$/, '');
-        try {
-          const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
-          if (r.ok) {
-            apiDot.classList.add('connected');
-            apiStatusText.textContent = 'Connected';
-            toast('API is reachable', 'success');
-          } else {
-            apiDot.classList.remove('connected');
-            apiStatusText.textContent = 'Error ' + r.status;
-          }
-        } catch {
-          apiDot.classList.remove('connected');
-          apiStatusText.textContent = 'Unreachable';
-          toast('Cannot reach API. Check the URL.', 'error');
+      } else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        const value = editor.value;
+        const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+        const currentLine = value.substring(lineStart, start);
+        const indentMatch = currentLine.match(/^\s*/);
+        let indent = indentMatch ? indentMatch[0] : '';
+        const trimmed = currentLine.trim();
+        if (selectedLang === 'python' && trimmed.endsWith(':')) {
+          indent += '    ';
+        } else if (['javascript', 'typescript', 'java', 'cpp'].includes(selectedLang) && trimmed.endsWith('{')) {
+          indent += '    ';
         }
+        editor.value = value.substring(0, start) + '\n' + indent + value.substring(end);
+        editor.selectionStart = editor.selectionEnd = start + 1 + indent.length;
+        updateEditor();
+      } else if (e.key === 'Backspace') {
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        if (start === end) {
+          const value = editor.value;
+          const beforeCursor = value.substring(0, start);
+          const lineStart = beforeCursor.lastIndexOf('\n') + 1;
+          const currentLine = beforeCursor.substring(lineStart);
+          if (currentLine.endsWith('    ')) {
+            e.preventDefault();
+            editor.value = value.substring(0, start - 4) + value.substring(end);
+            editor.selectionStart = editor.selectionEnd = start - 4;
+            updateEditor();
+          }
+        }
+      } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        doAnalyze();
       }
-      document.getElementById('pingBtn').addEventListener('click', pingApi);
+    });
 
-      // Auto-ping on load
-      setTimeout(pingApi, 800);
+    /* ═══════════════════════════════════════════════════════════════
+       FILE UPLOAD
+    ═══════════════════════════════════════════════════════════════ */
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
+      if (langMap[ext]) setLanguage(langMap[ext]);
+      const reader = new FileReader();
+      reader.onload = ev => {
+        editor.value = ev.target.result;
+        updateEditor();
+        toast(`Loaded ${file.name}`, 'success');
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
 
-      /* ═══════════════════════════════════════════════════════════════
-         ANALYZE
-      ═══════════════════════════════════════════════════════════════ */
-      analyzeBtn.addEventListener('click', doAnalyze);
+    document.body.addEventListener('dragover', e => e.preventDefault());
+    document.body.addEventListener('drop', e => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        editor.value = ev.target.result;
+        updateEditor();
+        toast(`Dropped ${file.name}`, 'success');
+      };
+      reader.readAsText(file);
+    });
 
-      async function doAnalyze() {
-        const code = editor.value.trim();
-        if (!code) { toast('Please paste some code first.', 'error'); return; }
+    /* ═══════════════════════════════════════════════════════════════
+       LANGUAGE TABS
+    ═══════════════════════════════════════════════════════════════ */
+    function setLanguage(lang) {
+      selectedLang = lang;
+      document.querySelectorAll('.lang-tab').forEach(t => {
+        const isActive = t.dataset.lang === lang;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      const currentCode = editor.value.trim();
+      const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
+      if (isSample) {
+        editor.value = SAMPLES[lang] || SAMPLES.python;
+        updateEditor();
+      }
+    }
 
-        const base = apiUrlInput.value.replace(/\/$/, '');
-        const endpointMap = {
-          analyze: '/analyze/',
-          explain: '/explanation/',
-          debug: '/debugging/',
-          suggest: '/suggestions/',
-        };
-        const endpoint = endpointMap[selectedMode] || '/analyze/';
+    document.querySelectorAll('.lang-tab').forEach(t => {
+      t.addEventListener('click', () => setLanguage(t.dataset.lang));
+    });
 
-        // Loading state
-        analyzeBtn.classList.add('loading');
-        analyzeBtn.disabled = true;
-        showShimmers();
+    /* ═══════════════════════════════════════════════════════════════
+       MODE BUTTONS
+    ═══════════════════════════════════════════════════════════════ */
+    document.querySelectorAll('.mode-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        selectedMode = b.dataset.mode;
+        document.querySelectorAll('.mode-btn').forEach(x => {
+          x.classList.remove('active');
+          x.setAttribute('aria-pressed', 'false');
+        });
+        b.classList.add('active');
+        b.setAttribute('aria-pressed', 'true');
+      });
+    });
 
-        try {
-          const res = await fetch(`${base}${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, language: selectedLang }),
-            signal: AbortSignal.timeout(30000),
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.detail || `HTTP ${res.status}`);
-          }
-          const data = await res.json();
-          const elapsed = res.headers.get('X-Process-Time-Ms');
+    /* ═══════════════════════════════════════════════════════════════
+       RESULT TABS
+    ═══════════════════════════════════════════════════════════════ */
+    document.querySelectorAll('.result-tab').forEach(t => {
+      t.addEventListener('click', () => {
+        const tab = t.dataset.rtab;
+        document.querySelectorAll('.result-tab').forEach(x => {
+          x.classList.remove('active');
+          x.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        t.setAttribute('aria-selected', 'true');
+        document.getElementById(`pane-${tab}`).classList.add('active');
+      });
+    });
 
-          // Normalize to full analysis shape
-          let result;
-          if (selectedMode === 'analyze') {
-            result = data;
-          } else if (selectedMode === 'explain') {
-            result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-          } else if (selectedMode === 'debug') {
-            result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-          } else {
-            result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
-          }
+    /* ═══════════════════════════════════════════════════════════════
+       CLEAR / COPY
+    ═══════════════════════════════════════════════════════════════ */
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      editor.value = '';
+      updateEditor();
+      resetResults();
+    });
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      if (!editor.value.trim()) return;
+      navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
+    });
 
-          currentResult = result;
-          renderResults(result, code);
-          addToHistory(code, result);
+    /* ═══════════════════════════════════════════════════════════════
+       API PING
+    ═══════════════════════════════════════════════════════════════ */
+    async function pingApi() {
+      const base = apiUrlInput.value.replace(/\/$/, '');
+      try {
+        const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+        if (r.ok) {
           apiDot.classList.add('connected');
           apiStatusText.textContent = 'Connected';
-          document.getElementById('engineBar').style.display = 'flex';
-          engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
-          if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
-          else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
-          resultActions.style.display = 'flex';
-
-        } catch (err) {
-          toast(`Error: ${err.message}`, 'error');
-          resetResults();
-        } finally {
-          analyzeBtn.classList.remove('loading');
-          analyzeBtn.disabled = false;
+          toast('API is reachable', 'success');
+        } else {
+          apiDot.classList.remove('connected');
+          apiStatusText.textContent = 'Error ' + r.status;
         }
+      } catch {
+        apiDot.classList.remove('connected');
+        apiStatusText.textContent = 'Unreachable';
+        toast('Cannot reach API. Check the URL.', 'error');
       }
+    }
+    document.getElementById('pingBtn').addEventListener('click', pingApi);
+    setTimeout(pingApi, 800);
 
-      /* ═══════════════════════════════════════════════════════════════
-         RENDER RESULTS
-      ═══════════════════════════════════════════════════════════════ */
-      function renderResults(result, code) {
-        if (result.explanation) renderExplain(result.explanation);
-        if (result.debugging) renderDebug(result.debugging);
-        if (result.suggestions) renderSuggest(result.suggestions);
+    /* ═══════════════════════════════════════════════════════════════
+       ANALYZE
+    ═══════════════════════════════════════════════════════════════ */
+    analyzeBtn.addEventListener('click', doAnalyze);
 
-        // Auto-switch to relevant tab
-        const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
-        const targetTab = tabOrder[selectedMode] || 'explain';
-        document.querySelector(`[data-rtab="${targetTab}"]`).click();
+    async function doAnalyze() {
+      const code = editor.value.trim();
+      if (!code) { toast('Please paste some code first.', 'error'); return; }
+
+      const base = apiUrlInput.value.replace(/\/$/, '');
+      const endpointMap = {
+        analyze: '/analyze/',
+        explain: '/explanation/',
+        debug: '/debugging/',
+        suggest: '/suggestions/',
+      };
+      const endpoint = endpointMap[selectedMode] || '/analyze/';
+
+      analyzeBtn.classList.add('loading');
+      analyzeBtn.disabled = true;
+      showShimmers();
+
+      try {
+        const res = await fetch(`${base}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, language: selectedLang }),
+          signal: AbortSignal.timeout(30000),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        const elapsed = res.headers.get('X-Process-Time-Ms');
+
+        let result;
+        if (selectedMode === 'analyze') {
+          result = data;
+        } else if (selectedMode === 'explain') {
+          result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+        } else if (selectedMode === 'debug') {
+          result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+        } else {
+          result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
+        }
+
+        currentResult = result;
+        renderResults(result, code);
+        addToHistory(code, result);
+        apiDot.classList.add('connected');
+        apiStatusText.textContent = 'Connected';
+        document.getElementById('engineBar').style.display = 'flex';
+        engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
+        if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
+        else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
+        resultActions.style.display = 'flex';
+
+      } catch (err) {
+        toast(`Error: ${err.message}`, 'error');
+        resetResults();
+      } finally {
+        analyzeBtn.classList.remove('loading');
+        analyzeBtn.disabled = false;
       }
+    }
 
-      function renderExplain(exp) {
-        document.getElementById('emptyExplain').style.display = 'none';
-        const el = document.getElementById('explainResult');
-        el.style.display = 'block';
-        document.getElementById('explainBadge').textContent = exp.complexity;
+    /* ═══════════════════════════════════════════════════════════════
+       RENDER RESULTS
+    ═══════════════════════════════════════════════════════════════ */
+    function renderResults(result, code) {
+      if (result.explanation) renderExplain(result.explanation);
+      if (result.debugging) renderDebug(result.debugging);
+      if (result.suggestions) renderSuggest(result.suggestions);
+      const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
+      const targetTab = tabOrder[selectedMode] || 'explain';
+      document.querySelector(`[data-rtab="${targetTab}"]`).click();
+    }
 
+    function renderExplain(exp) {
+      document.getElementById('emptyExplain').style.display = 'none';
+      const el = document.getElementById('explainResult');
+      el.style.display = 'block';
+      document.getElementById('explainBadge').textContent = exp.complexity;
+      el.innerHTML = `
+        <div class="explain-summary" tabindex="0">${exp.summary}</div>
+        <div class="explain-meta">
+          <div class="meta-chip complexity-${exp.complexity}">
+            <div class="dot"></div>${exp.complexity}
+          </div>
+          <div class="meta-chip">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
+            ${exp.language}
+          </div>
+          <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
+          <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
+          ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
+        </div>
+        <ul class="key-points">
+          ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
+        </ul>
+      `;
+    }
+
+    function renderDebug(dbg) {
+      document.getElementById('emptyDebug').style.display = 'none';
+      const el = document.getElementById('debugResult');
+      el.style.display = 'block';
+      const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
+      document.getElementById('debugBadge').textContent = badge || '0';
+
+      if (dbg.clean) {
         el.innerHTML = `
-    <div class="explain-summary" tabindex="0">${exp.summary}</div>
-    <div class="explain-meta">
-      <div class="meta-chip complexity-${exp.complexity}">
-        <div class="dot"></div>${exp.complexity}
-      </div>
-      <div class="meta-chip">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-        ${exp.language}
-      </div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
-      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
-    </div>
-    <ul class="key-points">
-      ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
-    </ul>
-  `;
+          <div class="clean-state">
+            <div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
+            <h3>No issues detected!</h3>
+            <p>Your code passed all ${40}+ pattern checks. Keep it up!</p>
+          </div>`;
+        return;
       }
 
-      function renderDebug(dbg) {
-        document.getElementById('emptyDebug').style.display = 'none';
-        const el = document.getElementById('debugResult');
+      const statBar = `
+        <div class="stat-bar">
+          <div class="stat-chip error-chip">
+            <div class="stat-chip-num">${dbg.error_count}</div>
+            <div class="stat-chip-label">Errors</div>
+          </div>
+          <div class="stat-chip warn-chip">
+            <div class="stat-chip-num">${dbg.warning_count}</div>
+            <div class="stat-chip-label">Warnings</div>
+          </div>
+          <div class="stat-chip info-chip">
+            <div class="stat-chip-num">${dbg.info_count}</div>
+            <div class="stat-chip-label">Info</div>
+          </div>
+        </div>`;
+
+      const cards = dbg.issues.map((issue, i) => `
+        <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
+          <div class="issue-header">
+            <span class="issue-badge">${issue.severity}</span>
+            <span class="issue-type">${issue.type}</span>
+            ${issue.line ? `<span class="issue-line">Line ${issue.line}</span>` : ''}
+          </div>
+          <div class="issue-desc">${issue.description}</div>
+          ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
+          <div class="issue-fix">${issue.suggestion}</div>
+        </div>`).join('');
+
+      el.innerHTML = statBar + cards;
+    }
+
+    function renderSuggest(sugg) {
+      document.getElementById('emptySuggest').style.display = 'none';
+      const el = document.getElementById('suggestResult');
+      el.style.display = 'block';
+      document.getElementById('suggestBadge').textContent = sugg.suggestions.length || '0';
+
+      const scoreColor = sugg.overall_score >= 80 ? 'var(--green)'
+        : sugg.overall_score >= 60 ? 'var(--yellow)'
+          : 'var(--red)';
+
+      const circumference = 2 * Math.PI * 30;
+      const dashOffset = circumference - (sugg.overall_score / 100) * circumference;
+
+      const ring = `
+        <div class="score-ring-wrap">
+          <div class="score-ring">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="30" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+              <circle cx="40" cy="40" r="30" fill="none" stroke="${scoreColor}" stroke-width="6"
+                stroke-dasharray="${circumference}"
+                stroke-dashoffset="${dashOffset}"
+                stroke-linecap="round"
+                style="transition:stroke-dashoffset 1s ease"/>
+            </svg>
+            <div class="score-ring-text">
+              <div class="score-num" style="color:${scoreColor}">${sugg.overall_score}</div>
+              <div class="score-grade">${sugg.grade}</div>
+            </div>
+          </div>
+          <div class="score-info">
+            <h3>Quality Score</h3>
+            <p>${sugg.next_step}</p>
+          </div>
+        </div>`;
+
+      const cards = sugg.suggestions.length === 0
+        ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
+        : sugg.suggestions.map((s, i) => `
+          <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
+            <div class="suggest-header">
+              <span class="suggest-cat">${s.category}</span>
+              <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${s.priority} priority</span>
+            </div>
+            <div class="suggest-desc">${s.description}</div>
+            ${s.example ? `<pre class="suggest-example">${escHtml(s.example)}</pre>` : ''}
+          </div>`).join('');
+
+      el.innerHTML = ring + cards;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SHIMMER LOADING
+    ═══════════════════════════════════════════════════════════════ */
+    function showShimmers() {
+      const shims = '<div class="shimmer-card"></div>'.repeat(3);
+      ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+        const el = document.getElementById(id);
         el.style.display = 'block';
-
-        const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
-        document.getElementById('debugBadge').textContent = badge || '0';
-
-        if (dbg.clean) {
-          el.innerHTML = `
-      <div class="clean-state">
-        <div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
-        <h3>No issues detected!</h3>
-        <p>Your code passed all ${40}+ pattern checks. Keep it up!</p>
-      </div>`;
-          return;
-        }
-
-        const statBar = `
-    <div class="stat-bar">
-      <div class="stat-chip error-chip">
-        <div class="stat-chip-num">${dbg.error_count}</div>
-        <div class="stat-chip-label">Errors</div>
-      </div>
-      <div class="stat-chip warn-chip">
-        <div class="stat-chip-num">${dbg.warning_count}</div>
-        <div class="stat-chip-label">Warnings</div>
-      </div>
-      <div class="stat-chip info-chip">
-        <div class="stat-chip-num">${dbg.info_count}</div>
-        <div class="stat-chip-label">Info</div>
-      </div>
-    </div>`;
-
-        const cards = dbg.issues.map((issue, i) => `
-    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
-      <div class="issue-header">
-        <span class="issue-badge">${issue.severity}</span>
-        <span class="issue-type">${issue.type}</span>
-        ${issue.line ? `<span class="issue-line">Line ${issue.line}</span>` : ''}
-      </div>
-      <div class="issue-desc">${issue.description}</div>
-      ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
-      <div class="issue-fix">${issue.suggestion}</div>
-    </div>`).join('');
-
-        el.innerHTML = statBar + cards;
-      }
-
-      function renderSuggest(sugg) {
-        document.getElementById('emptySuggest').style.display = 'none';
-        const el = document.getElementById('suggestResult');
-        el.style.display = 'block';
-        document.getElementById('suggestBadge').textContent = sugg.suggestions.length || '0';
-
-        const scoreColor = sugg.overall_score >= 80 ? 'var(--green)'
-          : sugg.overall_score >= 60 ? 'var(--yellow)'
-            : 'var(--red)';
-
-        const circumference = 2 * Math.PI * 30;
-        const dashOffset = circumference - (sugg.overall_score / 100) * circumference;
-
-        const ring = `
-    <div class="score-ring-wrap">
-      <div class="score-ring">
-        <svg width="80" height="80" viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="30" fill="none" stroke="var(--bg3)" stroke-width="6"/>
-          <circle cx="40" cy="40" r="30" fill="none" stroke="${scoreColor}" stroke-width="6"
-            stroke-dasharray="${circumference}"
-            stroke-dashoffset="${dashOffset}"
-            stroke-linecap="round"
-            style="transition:stroke-dashoffset 1s ease"/>
-        </svg>
-        <div class="score-ring-text">
-          <div class="score-num" style="color:${scoreColor}">${sugg.overall_score}</div>
-          <div class="score-grade">${sugg.grade}</div>
-        </div>
-      </div>
-      <div class="score-info">
-        <h3>Quality Score</h3>
-        <p>${sugg.next_step}</p>
-      </div>
-    </div>`;
-
-        const cards = sugg.suggestions.length === 0
-          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
-          : sugg.suggestions.map((s, i) => `
-      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
-        <div class="suggest-header">
-          <span class="suggest-cat">${s.category}</span>
-          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${s.priority} priority</span>
-        </div>
-        <div class="suggest-desc">${s.description}</div>
-        ${s.example ? `<pre class="suggest-example">${escHtml(s.example)}</pre>` : ''}
-      </div>`).join('');
-
-        el.innerHTML = ring + cards;
-      }
-
-      /* ═══════════════════════════════════════════════════════════════
-         SHIMMER LOADING
-      ═══════════════════════════════════════════════════════════════ */
-      function showShimmers() {
-        const shims = '<div class="shimmer-card"></div>'.repeat(3);
-        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
-          const el = document.getElementById(id);
-          el.style.display = 'block';
-          el.innerHTML = shims;
-        });
-        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
-          document.getElementById(id).style.display = 'none';
-        });
-      }
-
-      function resetResults() {
-        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
-          const el = document.getElementById(id);
-          el.style.display = 'none';
-          el.innerHTML = '';
-        });
-        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
-          document.getElementById(id).style.display = 'flex';
-        });
-        ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => {
-          document.getElementById(id).textContent = '';
-        });
-        resultActions.style.display = 'none';
-        document.getElementById('engineBar').style.display = 'none';
-        engineInfo.textContent = '';
-        timeInfo.textContent = '';
-        currentResult = null;
-      }
-
-      /* ═══════════════════════════════════════════════════════════════
-         HISTORY
-      ═══════════════════════════════════════════════════════════════ */
-      function addToHistory(code, result) {
-        const lang = result.explanation?.language || selectedLang;
-        const entry = {
-          id: Date.now(),
-          code,
-          result,
-          lang,
-          ts: new Date().toLocaleTimeString(),
-          preview: code.slice(0, 60).replace(/\n/g, ' '),
-        };
-        history.unshift(entry);
-        if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-        localStorage.setItem('qyx_history', JSON.stringify(history));
-        renderHistory();
-      }
-
-      function renderHistory() {
-        if (!history.length) {
-          historyList.innerHTML = '<div class="list-empty">No history yet. Run your first analysis.</div>';
-          return;
-        }
-        historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="Load history entry for ${h.lang} at ${h.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
-      <span class="history-lang">${h.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(h.preview)}…</span>
-      <span class="history-meta">${h.ts}</span>
-    </div>`).join('');
-      }
-
-document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-  if (!confirm('Clear all history? This cannot be undone.')) return;
-
-  history = [];
-  localStorage.removeItem('qyx_history');
-  renderHistory();
-  toast('History cleared', 'info');
-});
-      function loadEntry(id) {
-        const entry = history.find(h => h.id === id);
-        if (!entry) return;
-        editor.value = entry.code;
-        updateEditor();
-        currentResult = entry.result;
-        renderResults(entry.result, entry.code);
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      }
-
-      /* ═══════════════════════════════════════════════════════════════
-         FAVORITES
-      ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('favBtn').addEventListener('click', () => {
-        if (!currentResult || !editor.value.trim()) return;
-        const entry = {
-          id: Date.now(),
-          code: editor.value,
-          result: currentResult,
-          lang: currentResult.explanation?.language || selectedLang,
-          ts: new Date().toLocaleDateString(),
-          preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
-        };
-        favorites.unshift(entry);
-        if (favorites.length > 30) favorites = favorites.slice(0, 30);
-        localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
-        renderFavorites();
-        toast('Saved to favorites', 'success');
+        el.innerHTML = shims;
       });
-
-      function renderFavorites() {
-        if (!favorites.length) {
-          favList.innerHTML = '<div class="list-empty">No favorites saved yet.</div>';
-          return;
-        }
-        favList.innerHTML = favorites.map(f => `
-    <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="Load favorite entry for ${f.lang} at ${f.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
-      <span class="history-lang">${f.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(f.preview)}…</span>
-      <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-    </div>`).join('');
-      }
-
-document.getElementById('clearFavsBtn').addEventListener('click', () => {
-  if (!confirm('Clear all favorites? This cannot be undone.')) return;
-  
-  favorites = [];
-  localStorage.removeItem('qyx_favorites');
-  renderFavorites();
-  toast('Favorites cleared', 'info');
-});
-      function loadFav(id) {
-        const entry = favorites.find(f => f.id === id);
-        if (!entry) return;
-        editor.value = entry.code;
-        updateEditor();
-        currentResult = entry.result;
-        renderResults(entry.result, entry.code);
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      }
-      /* ═══════════════════════════════════════════════════════════════
-         DOWNLOAD
-      ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('downloadBtn').addEventListener('click', () => {
-        if (!currentResult) return;
-        const text = buildReport(currentResult, editor.value);
-        const blob = new Blob([text], { type: 'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `qyverixai-report-${Date.now()}.txt`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        toast('Report downloaded', 'success');
+      ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
       });
+    }
 
-      function buildReport(r, code) {
-        const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
-        if (r.explanation) {
-          lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
-        }
-        if (r.debugging) {
-          lines.push('── DEBUGGING ──', r.debugging.summary, '');
-          r.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
-        }
-        if (r.suggestions) {
-          lines.push('── SUGGESTIONS ──', `Score: ${r.suggestions.overall_score}/100 (${r.suggestions.grade})`, r.suggestions.next_step, '');
-          r.suggestions.suggestions.forEach(s => lines.push(`[${s.priority.toUpperCase()}] ${s.category}: ${s.description}`, ''));
-        }
-        lines.push('── CODE ──', '', code);
-        return lines.join('\n');
-      }
+    function resetResults() {
+      ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.display = 'none';
+        el.innerHTML = '';
+      });
+      ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+        document.getElementById(id).style.display = 'flex';
+      });
+      ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => {
+        document.getElementById(id).textContent = '';
+      });
+      resultActions.style.display = 'none';
+      document.getElementById('engineBar').style.display = 'none';
+      engineInfo.textContent = '';
+      timeInfo.textContent = '';
+      currentResult = null;
+    }
 
-      /* ═══════════════════════════════════════════════════════════════
-         TOAST
-      ═══════════════════════════════════════════════════════════════ */
-      function toast(msg, type = 'info') {
-        const container = document.getElementById('toastContainer');
-        const el = document.createElement('div');
-        el.className = 'toast ' + type;
-        const icons = { success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>', error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' };
-        el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + msg + '</span>';
-        container.appendChild(el);
-        setTimeout(() => {
-          el.classList.add('fadeout');
-          el.addEventListener('animationend', () => el.remove());
-        }, 3000);
-      }
+    /* ═══════════════════════════════════════════════════════════════
+       HISTORY
+    ═══════════════════════════════════════════════════════════════ */
+    function addToHistory(code, result) {
+      const lang = result.explanation?.language || selectedLang;
+      const entry = {
+        id: Date.now(),
+        code,
+        result,
+        lang,
+        ts: new Date().toLocaleTimeString(),
+        preview: code.slice(0, 60).replace(/\n/g, ' '),
+      };
+      history.unshift(entry);
+      if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+      localStorage.setItem('qyx_history', JSON.stringify(history));
+      renderHistory();
+    }
 
-      /* ═══════════════════════════════════════════════════════════════
-         HELPERS
-      ═══════════════════════════════════════════════════════════════ */
-      function escHtml(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    function renderHistory() {
+      if (!history.length) {
+        historyList.innerHTML = '<div class="list-empty">No history yet. Run your first analysis.</div>';
+        return;
       }
-      function renderMarkdown(s) {
-        return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-          .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
-      }
+      historyList.innerHTML = history.map(h => `
+        <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="Load history entry for ${h.lang} at ${h.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+          <span class="history-lang">${h.lang || '?'}</span>
+          <span class="history-thumb">${escHtml(h.preview)}…</span>
+          <span class="history-meta">${h.ts}</span>
+        </div>`).join('');
+    }
 
-      /* ═══════════════════════════════════════════════════════════════
-         SAMPLE CODE LOADER
-      ═══════════════════════════════════════════════════════════════ */
-      const SAMPLES = {
-        python: `// Python Sample
-  import os
+    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      if (!confirm('Clear all history? This cannot be undone.')) return;
+      history = [];
+      localStorage.removeItem('qyx_history');
+      renderHistory();
+      toast('History cleared', 'info');
+    });
+
+    function loadEntry(id) {
+      const entry = history.find(h => h.id === id);
+      if (!entry) return;
+      editor.value = entry.code;
+      updateEditor();
+      currentResult = entry.result;
+      renderResults(entry.result, entry.code);
+      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FAVORITES
+    ═══════════════════════════════════════════════════════════════ */
+    document.getElementById('favBtn').addEventListener('click', () => {
+      if (!currentResult || !editor.value.trim()) return;
+      const entry = {
+        id: Date.now(),
+        code: editor.value,
+        result: currentResult,
+        lang: currentResult.explanation?.language || selectedLang,
+        ts: new Date().toLocaleDateString(),
+        preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
+      };
+      favorites.unshift(entry);
+      if (favorites.length > 30) favorites = favorites.slice(0, 30);
+      localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
+      renderFavorites();
+      toast('Saved to favorites', 'success');
+    });
+
+    function renderFavorites() {
+      if (!favorites.length) {
+        favList.innerHTML = '<div class="list-empty">No favorites saved yet.</div>';
+        return;
+      }
+      favList.innerHTML = favorites.map(f => `
+        <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="Load favorite entry for ${f.lang} at ${f.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
+          <span class="history-lang">${f.lang || '?'}</span>
+          <span class="history-thumb">${escHtml(f.preview)}…</span>
+          <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+        </div>`).join('');
+    }
+
+    document.getElementById('clearFavsBtn').addEventListener('click', () => {
+      if (!confirm('Clear all favorites? This cannot be undone.')) return;
+      favorites = [];
+      localStorage.removeItem('qyx_favorites');
+      renderFavorites();
+      toast('Favorites cleared', 'info');
+    });
+
+    function loadFav(id) {
+      const entry = favorites.find(f => f.id === id);
+      if (!entry) return;
+      editor.value = entry.code;
+      updateEditor();
+      currentResult = entry.result;
+      renderResults(entry.result, entry.code);
+      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       DOWNLOAD
+    ═══════════════════════════════════════════════════════════════ */
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      if (!currentResult) return;
+      const text = buildReport(currentResult, editor.value);
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `qyverixai-report-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('Report downloaded', 'success');
+    });
+
+    function buildReport(r, code) {
+      const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
+      if (r.explanation) {
+        lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
+      }
+      if (r.debugging) {
+        lines.push('── DEBUGGING ──', r.debugging.summary, '');
+        r.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
+      }
+      if (r.suggestions) {
+        lines.push('── SUGGESTIONS ──', `Score: ${r.suggestions.overall_score}/100 (${r.suggestions.grade})`, r.suggestions.next_step, '');
+        r.suggestions.suggestions.forEach(s => lines.push(`[${s.priority.toUpperCase()}] ${s.category}: ${s.description}`, ''));
+      }
+      lines.push('── CODE ──', '', code);
+      return lines.join('\n');
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       TOAST
+    ═══════════════════════════════════════════════════════════════ */
+    function toast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      el.className = 'toast ' + type;
+      const icons = {
+        success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>',
+        error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+        info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+      };
+      el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + msg + '</span>';
+      container.appendChild(el);
+      setTimeout(() => {
+        el.classList.add('fadeout');
+        el.addEventListener('animationend', () => el.remove());
+      }, 3000);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       HELPERS
+    ═══════════════════════════════════════════════════════════════ */
+    function escHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function renderMarkdown(s) {
+      return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SAMPLE CODE LOADER
+    ═══════════════════════════════════════════════════════════════ */
+    const SAMPLES = {
+      python: `// Python Sample
+import os
 
 # [!] Hardcoded secret - security risk
 password = "supersecret123"
@@ -2967,8 +2873,8 @@ from os import *  # [!] Wildcard import
 x = eval("1 + 2")  # [!] Unsafe eval
 
 calculate(10, 0)`,
-        javascript: `// JavaScript Sample
-  var counter = 0;
+      javascript: `// JavaScript Sample
+var counter = 0;
 
 function loadUser(id) {
   // [!] Promise not awaited
@@ -2984,7 +2890,7 @@ function loadUser(id) {
 }
 
 loadUser(42);`,
-        typescript: `// TypeScript Sample
+      typescript: `// TypeScript Sample
 interface User {
   id: number;
   name: string;
@@ -2999,7 +2905,7 @@ function sendWelcomeEmail(user: User) {
 
 const newUser: User = { id: 1, name: "Alice" };
 sendWelcomeEmail(newUser);`,
-        java: `// Java Sample
+      java: `// Java Sample
 public class Main {
     public static void main(String[] args) {
         String name1 = new String("Vaibhav");
@@ -3017,7 +2923,7 @@ public class Main {
         System.out.println(uninitializedString.length());
     }
 }`,
-        cpp: `// C++ Sample
+      cpp: `// C++ Sample
 #include <iostream>
 
 // Anti-pattern 1: using namespace std in global scope
@@ -3039,29 +2945,28 @@ int main() {
     processData();
     return 0;
 }`
-      };
+    };
 
-      function loadSample() {
-        const sample = SAMPLES[selectedLang] || SAMPLES.python;
-        editor.value = sample;
-        updateEditor();
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-        toast('Sample code loaded — click Analyze!', 'success');
-      }
+    function loadSample() {
+      const sample = SAMPLES[selectedLang] || SAMPLES.python;
+      editor.value = sample;
+      updateEditor();
+      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+      toast('Sample code loaded — click Analyze!', 'success');
+    }
 
-      /* ═══════════════════════════════════════════════════════════════
-         INIT
-      ═══════════════════════════════════════════════════════════════ */
-      renderHistory();
-      renderFavorites();
+    /* ═══════════════════════════════════════════════════════════════
+       INIT
+    ═══════════════════════════════════════════════════════════════ */
+    renderHistory();
+    renderFavorites();
 
-      // Save API URL
-      apiUrlInput.addEventListener('change', () => {
-        localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
-      });
-      const savedUrl = localStorage.getItem('qyx_apiUrl');
-      if (savedUrl) apiUrlInput.value = savedUrl;
-    </script>
+    apiUrlInput.addEventListener('change', () => {
+      localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
+    });
+    const savedUrl = localStorage.getItem('qyx_apiUrl');
+    if (savedUrl) apiUrlInput.value = savedUrl;
+  </script>
 </body>
 
 </html>
