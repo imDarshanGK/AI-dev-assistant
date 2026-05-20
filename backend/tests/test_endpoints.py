@@ -4,7 +4,7 @@ Run: cd backend && pytest -v
 """
 import pytest
 from fastapi.testclient import TestClient
-
+from app.main import _request_counts
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.main import app
@@ -306,7 +306,42 @@ def test_debug_issue_has_required_fields():
         assert "severity" in issue
         assert issue["severity"] in ("error", "warning", "info")
 
+def test_js_ts_security_patterns():
+    code = """
+if (typeof x == "1") {
+    console.log("equal");
+}
 
+setTimeout("alert('hack')", 1000);
+
+async function load() {
+    await fetch("/api");
+}
+
+window.location = userInput;
+
+obj["__proto__"] = {};
+"""
+
+    r = client.post(
+        "/debugging/",
+        json={
+            "code": code,
+            "language": "javascript"
+        }
+    )
+
+    assert r.status_code == 200
+
+    data = r.json()
+
+    issue_types = [issue["type"] for issue in data["issues"]]
+
+    assert "Typeof Equality Issue" in issue_types
+    assert "setTimeout String Usage" in issue_types
+    assert "Async Await Without Try Catch" in issue_types
+    assert "Unsafe Window Location Assignment" in issue_types
+    assert "Prototype Pollution Risk" in issue_types
 # ── Suggestions ───────────────────────────────────────────────────────────────
 def test_suggestions_returns_score():
     r = client.post("/suggestions/", json={"code": PYTHON_BUGGY})
@@ -369,6 +404,7 @@ def test_unicode_code():
     r = client.post("/explanation/", json={"code": "# こんにちは\ndef hello(): pass"})
     assert r.status_code == 200
 
-def test_single_line_code():
+
+    _request_counts.clear()
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
