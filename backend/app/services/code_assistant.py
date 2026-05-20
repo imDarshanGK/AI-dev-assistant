@@ -57,6 +57,13 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"data\s+class\s+\w+",
         r":\s*\w+\s*\?",
     ],
+    "Ruby": [
+        r"\bdef\s+\w+",
+        r"\bend\b",
+        r"\bputs\b",
+        r"\battr_(accessor|reader|writer)\b",
+        r"\brequire\s+['\"]\w+",
+    ],
 }
 
 
@@ -81,6 +88,7 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "cpp": "C++", "c++": "C++", "cxx": "C++",
             "php": "PHP",
             "rust": "Rust", "rs": "Rust",
+            "ruby": "Ruby", "rb": "Ruby",
         }
         if normalized in mapping:
             return mapping[normalized]

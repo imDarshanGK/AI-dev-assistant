@@ -114,6 +114,22 @@ impl MyStruct {
 }
 """
 
+RUBY_CODE = """
+require 'json'
+
+class Person
+  attr_accessor :name
+
+  def initialize(name)
+    @name = name
+  end
+
+  def show
+    puts "Name is: #{@name}"
+  end
+end
+"""
+
 RUST_BUGGY = """
 fn main() {
     let v: Vec<i32> = vec![1, 2, 3];
@@ -212,6 +228,12 @@ def test_explanation_cpp():
     assert r.status_code == 200
     d = r.json()
     assert d["language"] == "C++"
+
+def test_explanation_ruby():
+    r = client.post("/explanation/", json={"code": RUBY_CODE, "language": "ruby"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Ruby"
 
 # ── Debugging ─────────────────────────────────────────────────────────────────
 def test_debug_detects_zero_division():
