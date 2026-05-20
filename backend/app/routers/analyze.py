@@ -11,12 +11,11 @@ async def analyze(req: CodeRequest, response: Response):
     cache_input = f"{req.language or 'auto'}\n{req.code}"
     cached_payload = cache.get("analyze:v1", cache_input)
 
-    response.headers["X-QyverixAI-Cache-Backend"] = cache.backend
     if cached_payload is not None:
-        response.headers["X-QyverixAI-Cache"] = "hit"
+        response.headers["X-Cache"] = "HIT"
         return cached_payload
 
     payload = full_analysis(req.code, req.language)
     cache.set("analyze:v1", cache_input, payload)
-    response.headers["X-QyverixAI-Cache"] = "miss"
+    response.headers["X-Cache"] = "MISS"
     return payload

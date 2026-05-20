@@ -311,10 +311,46 @@ def test_full_analyze_uses_cache_for_identical_inputs():
 
     assert first.status_code == 200
     assert second.status_code == 200
-    assert first.headers["X-QyverixAI-Cache"] == "miss"
-    assert second.headers["X-QyverixAI-Cache"] == "hit"
+    assert first.headers["X-Cache"] == "MISS"
+    assert second.headers["X-Cache"] == "HIT"
     assert second.json() == first.json()
     _request_counts.clear()
+
+def test_analyze_cache_expires(monkeypatch):
+    from app.services import cache as cache_module
+    from app.services.cache import cache
+
+    cache.clear_memory()
+    payload = {"code": PYTHON_BUGGY, "language": "python"}
+    start = 1_700_000_000
+
+    monkeypatch.setattr(cache_module.time, "time", lambda: start)
+    first = client.post("/analyze/", json=payload)
+
+    monkeypatch.setattr(cache_module.time, "time", lambda: start + 301)
+    second = client.post("/analyze/", json=payload)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.headers["X-Cache"] == "MISS"
+    assert second.headers["X-Cache"] == "MISS"
+    cache.clear_memory()
+
+def test_memory_cache_evicts_least_recently_used_entries():
+    from app.services.cache import cache
+
+    cache.clear_memory()
+
+    for index in range(100):
+        cache.set("test", f"item-{index}", {"index": index})
+
+    assert cache.get("test", "item-0") == {"index": 0}
+    cache.set("test", "item-100", {"index": 100})
+
+    assert cache.get("test", "item-1") is None
+    assert cache.get("test", "item-0") == {"index": 0}
+    assert cache.get("test", "item-100") == {"index": 100}
+    cache.clear_memory()
 
 def test_full_analyze_all_languages():
     for code, lang in [
