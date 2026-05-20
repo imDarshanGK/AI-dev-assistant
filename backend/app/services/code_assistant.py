@@ -183,7 +183,46 @@ BUG_PATTERNS: list[BugPattern] = [
                "`assert` statements are stripped when Python runs with `-O` flag.",
                "Use explicit `if not condition: raise ValueError(...)` instead.",
                "warning", ["Python"]),
-
+    BugPattern(
+                "Shadowing Built-ins",
+                r"def\s+(list|dict|id)\s*\(",
+                "Shadowing Python built-in names can cause unexpected behaviour.",
+                "Rename the function to avoid shadowing built-in functions.",
+                "warning",
+                ["Python"]
+                ),
+    BugPattern(
+                "F-string Without Variable",
+                r'f"(?!.*\{).*"|f\'(?!.*\{).*\'' ,
+                "Using an f-string without variable interpolation is unnecessary.",
+                "Remove the f-prefix if no interpolation is needed.",
+                "info",
+                ["Python"]
+                ),
+    BugPattern(
+                "Empty Except With Pass",
+                r"except\s*:\s*pass",
+                "Silently swallowing exceptions hides bugs and makes debugging difficult.",
+                "Log the exception at minimum instead of using an empty except block.",
+                "error",
+                ["Python"]
+                ),
+    BugPattern(
+                "Open File Without Context Manager",
+                r"(?<!with\s)open\s*\(",
+                "Opening files without a context manager may leave files unclosed.",
+                "Use `with open(...) as f:` to ensure the file is always closed.",
+                "warning",
+                ["Python"]
+            ),
+    BugPattern(
+                "Bare Return In Non-Void Function",
+                r"return\s*$",
+                "Using a bare return may lead to inconsistent return types in functions.",
+                "Return a consistent type or explicitly use `return None`.",
+                "info",
+                ["Python"]
+            ),
     # ── JavaScript / TypeScript ──
     BugPattern("Var Usage", r"\bvar\s+\w+",
                "`var` has function scope and hoisting — source of subtle bugs.",
