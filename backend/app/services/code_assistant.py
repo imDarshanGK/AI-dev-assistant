@@ -49,6 +49,13 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"\bimpl\b",
         r"\bOption<\w+>",
     ],
+    "C#": [
+    r"\busing\s+System",
+    r"\bnamespace\s+\w+",
+    r"\bpublic\s+(class|void|static)\b",
+    r"Console\.Write",
+    r"\bnew\s+\w+\s*\(",
+],
 }
 
 
@@ -279,6 +286,21 @@ BUG_PATTERNS: list[BugPattern] = [
                "Excessive `.clone()` calls can hurt performance by copying heap data.",
                "Consider borrowing (`&T`) or using `Rc`/`Arc` for shared ownership instead.",
                "info", ["Rust"]),
+        # ── C# ──
+    BugPattern("Empty Catch Block",r"catch\s*\([^)]*\)\s*\{[^}]*\}",
+               "Empty catch block suppresses exceptions silently.",
+               "Log or handle the exception properly.",
+               "error", ["C#"]),
+
+    BugPattern("Hardcoded Connection String", r"connectionString\s*=\s*\"",
+               "Hardcoded connection strings may expose sensitive credentials.",
+               "Move connection strings to environment variables or secure config.",
+               "error", ["C#"]),
+
+    BugPattern("Thread.Sleep in Async Method", r"Thread\.Sleep\s*\(",
+               "Blocking Thread.Sleep used inside async workflows.",
+               "Use await Task.Delay() instead.",
+               "warning", ["C#"]),
 ]
 
 
@@ -303,9 +325,12 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
             continue
 
         for i, line in enumerate(lines, start=1):
-            match = re.search(bp.pattern, line, re.IGNORECASE)
+            match = re.search(bp.pattern, code, re.IGNORECASE | re.MULTILINE)
+
             if match:
-                key = f"{bp.name}:{i}"
+                match_line = code[:match.start()].count("\n") + 1
+                key = f"{bp.name}:{match_line}"
+
                 if key in seen:
                     continue
                 seen.add(key)

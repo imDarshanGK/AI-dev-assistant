@@ -258,6 +258,61 @@ def test_debug_issue_has_required_fields():
         assert "suggestion" in issue
         assert "severity" in issue
         assert issue["severity"] in ("error", "warning", "info")
+def test_csharp_detection():
+    code = """
+using System;
+
+namespace DemoApp
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            Console.WriteLine("Hello");
+        }
+    }
+}
+"""
+
+    r = client.post("/explanation/", json={"code": code})
+    assert r.status_code == 200
+
+    data = r.json()
+
+    assert data["language"] == "C#"
+
+
+def test_csharp_bug_patterns():
+    code = """
+using System;
+
+public class Demo
+{
+    public async void Run()
+    {
+        try
+        {
+        }
+        catch(Exception ex)
+        {
+        }
+
+        string connectionString = "Server=localhost;Database=test;";
+        Thread.Sleep(1000);
+    }
+}
+"""
+
+    r = client.post("/debugging/", json={"code": code})
+    assert r.status_code == 200
+
+    data = r.json()
+
+    types = [issue["type"] for issue in data["issues"]]
+
+    assert "Empty Catch Block" in types
+    assert "Hardcoded Connection String" in types
+    assert "Thread.Sleep in Async Method" in types
 
 
 # ── Suggestions ───────────────────────────────────────────────────────────────
