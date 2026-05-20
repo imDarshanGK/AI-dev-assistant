@@ -4,7 +4,7 @@ Run: cd backend && pytest -v
 """
 import pytest
 from fastapi.testclient import TestClient
-
+from app.main import _request_counts
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.main import app
@@ -128,6 +128,16 @@ fn main() {
 }
 """
 
+KOTLIN_CODE = """
+fun greet(name: String): String {
+    return "Hello $name"
+}
+val message: String? = null
+var count = 0
+data class User(val name: String, val age: Int)
+println("Hello World")
+"""
+
 # ── Health ────────────────────────────────────────────────────────────────────
 def test_root():
     r = client.get("/")
@@ -184,7 +194,24 @@ def test_explanation_empty_code():
 def test_explanation_too_long():
     r = client.post("/explanation/", json={"code": "x" * 60000})
     assert r.status_code == 422
+    
+def test_explanation_typescript():
+    r = client.post("/explanation/", json={"code": TS_CODE, "language": "typescript"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "TypeScript"
 
+def test_explanation_java():
+    r = client.post("/explanation/", json={"code": JAVA_CODE, "language": "java"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Java"
+
+def test_explanation_cpp():
+    r = client.post("/explanation/", json={"code": CPP_CODE, "language": "cpp"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "C++"
 
 # ── Debugging ─────────────────────────────────────────────────────────────────
 def test_debug_detects_zero_division():
@@ -280,6 +307,12 @@ def test_debug_rust_buggy_patterns():
     assert "Expect Usage" in types
     assert "Clone Overuse" in types
 
+def test_debug_kotlin():
+    r = client.post("/debugging/", json={"code": KOTLIN_CODE, "language": "kotlin"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d is not None
+
 def test_debug_issue_has_required_fields():
     r = client.post("/debugging/", json={"code": PYTHON_BUGGY})
     assert r.status_code == 200
@@ -290,7 +323,42 @@ def test_debug_issue_has_required_fields():
         assert "severity" in issue
         assert issue["severity"] in ("error", "warning", "info")
 
+def test_js_ts_security_patterns():
+    code = """
+if (typeof x == "1") {
+    console.log("equal");
+}
 
+setTimeout("alert('hack')", 1000);
+
+async function load() {
+    await fetch("/api");
+}
+
+window.location = userInput;
+
+obj["__proto__"] = {};
+"""
+
+    r = client.post(
+        "/debugging/",
+        json={
+            "code": code,
+            "language": "javascript"
+        }
+    )
+
+    assert r.status_code == 200
+
+    data = r.json()
+
+    issue_types = [issue["type"] for issue in data["issues"]]
+
+    assert "Typeof Equality Issue" in issue_types
+    assert "setTimeout String Usage" in issue_types
+    assert "Async Await Without Try Catch" in issue_types
+    assert "Unsafe Window Location Assignment" in issue_types
+    assert "Prototype Pollution Risk" in issue_types
 # ── Suggestions ───────────────────────────────────────────────────────────────
 def test_suggestions_returns_score():
     r = client.post("/suggestions/", json={"code": PYTHON_BUGGY})
@@ -353,6 +421,7 @@ def test_unicode_code():
     r = client.post("/explanation/", json={"code": "# こんにちは\ndef hello(): pass"})
     assert r.status_code == 200
 
-def test_single_line_code():
+
+    _request_counts.clear()
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
