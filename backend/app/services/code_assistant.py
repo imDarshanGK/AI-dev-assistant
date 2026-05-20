@@ -78,6 +78,7 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "typescript": "TypeScript", "ts": "TypeScript",
             "java": "Java",
             "cpp": "C++", "c++": "C++", "cxx": "C++",
+            "php": "PHP",
             "rust": "Rust", "rs": "Rust",
         }
         if normalized in mapping:
@@ -125,7 +126,7 @@ class BugPattern:
     description: str
     suggestion: str
     severity: str
-    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++", "Rust"])
+    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++", "PHP", "Rust"])
 
 
 BUG_PATTERNS: list[BugPattern] = [
@@ -190,6 +191,30 @@ BUG_PATTERNS: list[BugPattern] = [
                "`assert` statements are stripped when Python runs with `-O` flag.",
                "Use explicit `if not condition: raise ValueError(...)` instead.",
                "warning", ["Python"]),
+        BugPattern("Typeof Equality Issue", r'typeof\s+\w+\s*==\s*["\']',
+               "Using == in typeof checks may cause coercion issues.",
+               "Use === instead of == for type comparisons.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("setTimeout String Usage", r'setTimeout\s*\(\s*["\']|setInterval\s*\(\s*["\']',
+               "Passing strings to setTimeout/setInterval behaves like eval().",
+               "Pass a function reference instead of a string.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Async Await Without Try Catch", r'await\s+\w+\(',
+               "Await used without visible error handling.",
+               "Wrap async code inside try/catch blocks.",
+               "info", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Unsafe Window Location Assignment", r'window\.location\s*=',
+               "Direct window.location assignment may allow open redirects.",
+               "Validate URLs before redirecting users.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Prototype Pollution Risk", r'__proto__|\["__proto__"\]',
+               "Prototype pollution vulnerability risk detected.",
+               "Avoid modifying __proto__; use Object.create(null).",
+               "error", ["JavaScript", "TypeScript"]),
 
     # ── JavaScript / TypeScript ──
     BugPattern("Var Usage", r"\bvar\s+\w+",
@@ -264,6 +289,32 @@ BUG_PATTERNS: list[BugPattern] = [
                "Comparing signed `int` with unsigned `.size()` — undefined behavior on overflow.",
                "Cast to `(int)` or use `std::ssize()` (C++20).",
                "warning", ["C++"]),
+
+    # ── PHP ──
+    BugPattern("PHP MySQL Deprecated", r"\bmysql_\w+\s*\(",
+               "`mysql_*` functions are removed in PHP 7+ — critical compatibility issue.",
+               "Use `mysqli_*` or PDO with prepared statements instead.",
+               "error", ["PHP"]),
+    BugPattern("PHP SQL Injection", r"\$_(GET|POST|REQUEST|COOKIE)\[.+\].*\b(mysql_query|mysqli_query|pg_query)\b",
+               "User input passed directly to a database query — SQL injection risk.",
+               "Use prepared statements with parameterised queries via PDO or mysqli.",
+               "error", ["PHP"]),
+    BugPattern("PHP XSS", r"echo\s+.*\$_(GET|POST|REQUEST|COOKIE)",
+               "Unescaped user input echoed directly — Cross-Site Scripting (XSS) vulnerability.",
+               "Wrap output with `htmlspecialchars($var, ENT_QUOTES, 'UTF-8')`.",
+               "error", ["PHP"]),
+    BugPattern("PHP Extract", r"\bextract\s*\(\s*\$_(GET|POST|REQUEST|COOKIE)",
+               "`extract()` on user input can overwrite arbitrary variables — severe security risk.",
+               "Never call `extract()` on untrusted data. Access keys explicitly instead.",
+               "error", ["PHP"]),
+    BugPattern("PHP Variable Variables", r"\$\$\w+",
+               "Variable variables (`$$var`) make code unpredictable and hard to debug.",
+               "Use an associative array instead of variable variables.",
+               "warning", ["PHP"]),
+    BugPattern("PHP Error Suppression", r"@\w+\s*\(",
+               "The `@` error suppression operator hides errors silently.",
+               "Handle errors explicitly with try/catch or check return values.",
+               "warning", ["PHP"]),
 
     # ── Rust ──
     BugPattern("Unwrap Usage", r"\.unwrap\s*\(\s*\)",
@@ -574,7 +625,10 @@ def run_explanation(code: str, language: str) -> dict:
 
     class_names = re.findall(r"class\s+(\w+)", code)
 
-    imports = re.findall(r"import\s+([\w,\s]+)|from\s+(\w+)\s+import|\buse\s+([\w:]+)", code)
+    imports = re.findall(
+        r"import\s+([\w,\s]+)|from\s+(\w+)\s+import|\buse\s+([\w:]+)|require(_once)?\s*\(|include(_once)?\s*\(",
+        code,
+    )
     import_count = len(imports)
 
     has_loops = bool(re.search(r"\bfor\b|\bwhile\b", code))
