@@ -173,7 +173,24 @@ def test_explanation_empty_code():
 def test_explanation_too_long():
     r = client.post("/explanation/", json={"code": "x" * 60000})
     assert r.status_code == 422
+    
+def test_explanation_typescript():
+    r = client.post("/explanation/", json={"code": TS_CODE, "language": "typescript"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "TypeScript"
 
+def test_explanation_java():
+    r = client.post("/explanation/", json={"code": JAVA_CODE, "language": "java"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Java"
+
+def test_explanation_cpp():
+    r = client.post("/explanation/", json={"code": CPP_CODE, "language": "cpp"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "C++"
 
 # ── Debugging ─────────────────────────────────────────────────────────────────
 def test_debug_detects_zero_division():
