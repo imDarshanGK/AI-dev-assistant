@@ -49,6 +49,14 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"\bimpl\b",
         r"\bOption<\w+>",
     ],
+    "Kotlin": [
+        r"\bfun\s+\w+\s*\(",
+        r"\bval\s+\w+",
+        r"\bvar\s+\w+",
+        r"println\s*\(",
+        r"data\s+class\s+\w+",
+        r":\s*\w+\s*\?",
+    ],
 }
 
 
@@ -184,6 +192,30 @@ BUG_PATTERNS: list[BugPattern] = [
                "`assert` statements are stripped when Python runs with `-O` flag.",
                "Use explicit `if not condition: raise ValueError(...)` instead.",
                "warning", ["Python"]),
+        BugPattern("Typeof Equality Issue", r'typeof\s+\w+\s*==\s*["\']',
+               "Using == in typeof checks may cause coercion issues.",
+               "Use === instead of == for type comparisons.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("setTimeout String Usage", r'setTimeout\s*\(\s*["\']|setInterval\s*\(\s*["\']',
+               "Passing strings to setTimeout/setInterval behaves like eval().",
+               "Pass a function reference instead of a string.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Async Await Without Try Catch", r'await\s+\w+\(',
+               "Await used without visible error handling.",
+               "Wrap async code inside try/catch blocks.",
+               "info", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Unsafe Window Location Assignment", r'window\.location\s*=',
+               "Direct window.location assignment may allow open redirects.",
+               "Validate URLs before redirecting users.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Prototype Pollution Risk", r'__proto__|\["__proto__"\]',
+               "Prototype pollution vulnerability risk detected.",
+               "Avoid modifying __proto__; use Object.create(null).",
+               "error", ["JavaScript", "TypeScript"]),
 
     # ── JavaScript / TypeScript ──
     BugPattern("Var Usage", r"\bvar\s+\w+",
