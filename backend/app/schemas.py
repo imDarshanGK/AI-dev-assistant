@@ -39,6 +39,8 @@ class Issue(BaseModel):
     severity: str          # "error" | "warning" | "info"
     code_snippet: str | None = None
     code_context: str | None = None  # NEW: Formatted code with line numbers
+    suggestion_source: str = "rule"
+    suggestion_tooltip: str | None = None
 
 
 class DebuggingResponse(BaseModel):

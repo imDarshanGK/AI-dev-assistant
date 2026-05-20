@@ -8,6 +8,8 @@ from fastapi.testclient import TestClient
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.main import app
+from app import main as app_main
+from app.services import ai_provider
 
 client = TestClient(app)
 
@@ -289,6 +291,57 @@ def test_debug_issue_has_required_fields():
         assert "suggestion" in issue
         assert "severity" in issue
         assert issue["severity"] in ("error", "warning", "info")
+
+def test_debug_ai_enhances_bug_fix_and_uses_cache(monkeypatch):
+    code = "result = total / count"
+
+    monkeypatch.setattr(ai_provider, "LLM_ENABLED", True)
+    monkeypatch.setattr(ai_provider, "LLM_API_KEY", "test-key")
+
+    calls = {"count": 0}
+
+    async def fake_call_llm(system: str, user: str) -> str:
+        calls["count"] += 1
+        return "Validate the divisor before division and return a safe fallback when it is zero."
+
+    monkeypatch.setattr(ai_provider, "call_llm", fake_call_llm)
+
+    app_main._request_counts.clear()
+    try:
+        first = client.post("/debugging/", json={"code": code, "language": "python"})
+        assert first.status_code == 200
+        issue = first.json()["issues"][0]
+        assert issue["suggestion_source"] == "ai"
+        assert issue["suggestion"].startswith("Validate the divisor")
+
+        second = client.post("/debugging/", json={"code": code, "language": "python"})
+        assert second.status_code == 200
+        cached_issue = second.json()["issues"][0]
+        assert cached_issue["suggestion_source"] == "ai"
+        assert calls["count"] == 1
+    finally:
+        app_main._request_counts.clear()
+
+def test_debug_ai_falls_back_to_rule_based_fix(monkeypatch):
+    code = "amount = price / tax_rate"
+
+    monkeypatch.setattr(ai_provider, "LLM_ENABLED", True)
+    monkeypatch.setattr(ai_provider, "LLM_API_KEY", "test-key")
+
+    async def failing_call_llm(system: str, user: str) -> str | None:
+        raise RuntimeError("llm unavailable")
+
+    monkeypatch.setattr(ai_provider, "call_llm", failing_call_llm)
+
+    app_main._request_counts.clear()
+    try:
+        resp = client.post("/debugging/", json={"code": code, "language": "python"})
+        assert resp.status_code == 200
+        issue = resp.json()["issues"][0]
+        assert issue["suggestion_source"] == "rule"
+        assert "Guard the divisor" in issue["suggestion"]
+    finally:
+        app_main._request_counts.clear()
 
 
 # ── Suggestions ───────────────────────────────────────────────────────────────
