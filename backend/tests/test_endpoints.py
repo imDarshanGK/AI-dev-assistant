@@ -128,6 +128,16 @@ fn main() {
 }
 """
 
+KOTLIN_CODE = """
+fun greet(name: String): String {
+    return "Hello $name"
+}
+val message: String? = null
+var count = 0
+data class User(val name: String, val age: Int)
+println("Hello World")
+"""
+
 # ── Health ────────────────────────────────────────────────────────────────────
 def test_root():
     r = client.get("/")
@@ -279,6 +289,12 @@ def test_debug_rust_buggy_patterns():
     assert "Panic Usage" in types
     assert "Expect Usage" in types
     assert "Clone Overuse" in types
+
+def test_debug_kotlin():
+    r = client.post("/debugging/", json={"code": KOTLIN_CODE, "language": "kotlin"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d is not None
 
 def test_debug_issue_has_required_fields():
     r = client.post("/debugging/", json={"code": PYTHON_BUGGY})
