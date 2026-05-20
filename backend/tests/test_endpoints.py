@@ -4,7 +4,7 @@ Run: cd backend && pytest -v
 """
 import pytest
 from fastapi.testclient import TestClient
-
+from app.main import _request_counts
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.main import app
@@ -356,6 +356,7 @@ def test_unicode_code():
     r = client.post("/explanation/", json={"code": "# こんにちは\ndef hello(): pass"})
     assert r.status_code == 200
 
-def test_single_line_code():
+
+    _request_counts.clear()
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
