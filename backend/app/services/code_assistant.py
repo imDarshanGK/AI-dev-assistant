@@ -62,7 +62,7 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"\bend\b",
         r"\bputs\b",
         r"\battr_(accessor|reader|writer)\b",
-        r"\brequire\s+['\"]\w+",
+        r"\brequire(?:_relative)?\s+['\"][\w./-]+['\"]",
     ],
 }
 
