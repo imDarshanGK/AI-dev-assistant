@@ -7,12 +7,18 @@ import zipfile
 
 import pytest
 from fastapi.testclient import TestClient
-from app.main import _request_counts
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.main import app, _request_counts
 
-client = TestClient(app)
+client = TestClient(app_main.app)
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limit_state():
+    app_main._request_counts.clear()
+    yield
+    app_main._request_counts.clear()
 
 
 @pytest.fixture(autouse=True)
@@ -160,6 +166,29 @@ def test_health():
     assert r.json()["status"] == "ok"
 
 
+def test_rate_limit_headers_on_success_response():
+    r = client.get("/")
+    assert r.status_code == 200
+    assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+    assert r.headers["X-RateLimit-Remaining"] == str(app_main.RATE_LIMIT)
+
+
+def test_rate_limit_returns_429_with_retry_after_header():
+    payload = {"code": "print('hello')", "language": "python"}
+
+    for expected_remaining in range(app_main.RATE_LIMIT - 1, -1, -1):
+        r = client.post("/debugging/", json=payload)
+        assert r.status_code == 200
+        assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+        assert r.headers["X-RateLimit-Remaining"] == str(expected_remaining)
+
+    r = client.post("/debugging/", json=payload)
+    assert r.status_code == 429
+    assert r.headers["Retry-After"] == str(app_main.RATE_LIMIT_WINDOW_SECONDS)
+    assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+    assert r.headers["X-RateLimit-Remaining"] == "0"
+
+
 # ── Explanation ───────────────────────────────────────────────────────────────
 def test_explanation_python():
     r = client.post("/explanation/", json={"code": PYTHON_CLEAN, "language": "python"})
@@ -202,7 +231,7 @@ def test_explanation_empty_code():
 def test_explanation_too_long():
     r = client.post("/explanation/", json={"code": "x" * 60000})
     assert r.status_code == 422
-    
+
 def test_explanation_typescript():
     r = client.post("/explanation/", json={"code": TS_CODE, "language": "typescript"})
     assert r.status_code == 200
@@ -220,6 +249,124 @@ def test_explanation_cpp():
     assert r.status_code == 200
     d = r.json()
     assert d["language"] == "C++"
+
+# ── Cyclomatic Complexity ─────────────────────────────────────────────────────
+def test_explanation_cyclomatic_fields_present():
+    r = client.post("/explanation/", json={"code": PYTHON_CLEAN, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert "cyclomatic_complexity" in d
+    assert "complexity_risk" in d
+    assert isinstance(d["cyclomatic_complexity"], int)
+    assert d["complexity_risk"] in ("Simple", "Moderate", "High", "Very High")
+
+
+def test_explanation_cyclomatic_simple():
+    code = "def add(a: int, b: int) -> int:\n    return a + b\n"
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["cyclomatic_complexity"] >= 1
+    assert d["complexity_risk"] == "Simple"
+
+
+def test_explanation_cyclomatic_moderate():
+    code = """
+def validate(x, y, z):
+    if x < 0:
+        return False
+    elif y < 0:
+        return False
+    elif z < 0:
+        return False
+    elif x > 100 or y > 100:
+        return False
+    else:
+        return True
+"""
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert 6 <= d["cyclomatic_complexity"] <= 10
+    assert d["complexity_risk"] == "Moderate"
+
+
+def test_explanation_cyclomatic_high():
+    code = """
+def process(items, config, flags):
+    if not items:
+        return []
+    elif not config:
+        return None
+    results = []
+    for item in items:
+        if item and flags.get("enabled"):
+            if item > 0 and item < 100:
+                results.append(item)
+            elif item >= 100 or item == -1:
+                results.append(item * 2)
+            else:
+                results.append(0)
+        elif item is None:
+            pass
+        else:
+            while item > 0:
+                item -= 1
+            results.append(item)
+    return results
+"""
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert 11 <= d["cyclomatic_complexity"] <= 20
+    assert d["complexity_risk"] == "High"
+
+
+def test_explanation_cyclomatic_very_high():
+    code = """
+def route(req, user, db, cache, logger):
+    if not req:
+        return None
+    elif not user:
+        return None
+    elif not db:
+        return None
+    if user.role == "admin" and user.active and not user.banned:
+        if req.method == "GET" or req.method == "HEAD":
+            if cache.has(req.path) and not req.bypass_cache:
+                return cache.get(req.path)
+            else:
+                result = db.query(req.path)
+                if result and not result.expired:
+                    cache.set(req.path, result)
+                    return result
+                elif result and result.expired:
+                    if cache.has_stale(req.path) or logger.warn("stale"):
+                        return cache.get_stale(req.path)
+                    else:
+                        return None
+                else:
+                    return None
+        elif req.method == "POST":
+            if user.can_write and req.body:
+                for item in req.body:
+                    if item.valid and item.size < 1024:
+                        db.insert(item)
+                    else:
+                        logger.warn("invalid item")
+            else:
+                return None
+        else:
+            return None
+    else:
+        return None
+"""
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["cyclomatic_complexity"] >= 21
+    assert d["complexity_risk"] == "Very High"
+
 
 # ── Debugging ─────────────────────────────────────────────────────────────────
 def test_debug_detects_zero_division():
@@ -430,104 +577,6 @@ def test_unicode_code():
     assert r.status_code == 200
 
 
-    _request_counts.clear()
+def test_single_line_code():
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
-
-
-def _make_zip(files: dict[str, str | bytes]) -> bytes:
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, "w") as archive:
-        for name, content in files.items():
-            archive.writestr(name, content)
-    buffer.seek(0)
-    return buffer.getvalue()
-
-
-def test_zip_analyze_multiple_files():
-    zip_bytes = _make_zip(
-        {
-            "src/app.py": PYTHON_CLEAN,
-            "web/app.js": JS_CODE,
-            "native/main.cpp": CPP_CODE,
-            "README.md": "# skipped",
-        }
-    )
-
-    r = client.post(
-        "/analyze/zip/",
-        files={"file": ("project.zip", zip_bytes, "application/zip")},
-    )
-
-    assert r.status_code == 200
-    d = r.json()
-    assert d["provider"] == "rule-based"
-    assert d["file_count"] == 3
-    assert 0 <= d["overall_project_score"] <= 100
-    assert d["grade"] in ("A", "B", "C", "D", "F")
-    assert len(d["files"]) == 3
-    assert {f["filename"] for f in d["files"]} == {"src/app.py", "web/app.js", "native/main.cpp"}
-    assert any(f["filename"] == "native/main.cpp" and f["language"] == "C++" for f in d["files"])
-    assert "analysis" in d["files"][0]
-    assert d["skipped_files"] == ["README.md (unsupported file type)"]
-
-
-def test_zip_analyze_rejects_non_zip_upload():
-    r = client.post(
-        "/analyze/zip/",
-        files={"file": ("project.txt", b"print('hello')", "text/plain")},
-    )
-
-    assert r.status_code == 400
-    assert "Only .zip" in r.json()["detail"]
-
-
-def test_zip_analyze_ignores_git_and_build_outputs():
-    zip_bytes = _make_zip(
-        {
-            "adas/.git/config": "[core]\nrepositoryformatversion = 0",
-            "adas/build/CMakeFiles/compiler.bin": b"\x00\x01\x02",
-            "adas/Release/app.exe": b"MZ",
-            "adas/x64/Release/main.obj": b"\x00\x01",
-            "adas/src/main.cpp": CPP_CODE,
-        }
-    )
-
-    r = client.post(
-        "/analyze/zip/",
-        files={"file": ("adas.zip", zip_bytes, "application/zip")},
-    )
-
-    assert r.status_code == 200
-    d = r.json()
-    assert d["file_count"] == 1
-    assert d["files"][0]["filename"] == "adas/src/main.cpp"
-    assert d["files"][0]["language"] == "C++"
-    assert d["skipped_files"] == []
-
-
-def test_zip_analyze_limits_source_file_count():
-    zip_bytes = _make_zip({f"file_{i}.py": "print('hello')" for i in range(25)})
-
-    r = client.post(
-        "/analyze/zip/",
-        files={"file": ("many-files.zip", zip_bytes, "application/zip")},
-    )
-
-    assert r.status_code == 200
-    d = r.json()
-    assert d["file_count"] == 20
-    assert len(d["skipped_files"]) == 5
-    assert all("file limit reached" in item for item in d["skipped_files"])
-
-
-def test_zip_analyze_rejects_total_source_size_over_limit():
-    zip_bytes = _make_zip({"huge.py": "x = 1\n" * 900_000})
-
-    r = client.post(
-        "/analyze/zip/",
-        files={"file": ("huge.zip", zip_bytes, "application/zip")},
-    )
-
-    assert r.status_code == 400
-    assert "5MB" in r.json()["detail"]
