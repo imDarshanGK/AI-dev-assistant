@@ -1,18 +1,48 @@
 import argparse
 import json
 import requests
+import os
 
 from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
 
 console = Console()
+os.system("")
 
-DEFAULT_API_URL = "http://127.0.0.1:8000/analyze/"
+BASE_API_URL = "http://127.0.0.1:8000"
 
 
-def analyze_file(file_path, api_url, json_output=False):
+def analyze_file(file_path,api_url,json_output=False,output_file=None):
     try:
+        if os.path.isdir(file_path):
+            if not args.recursive:
+                console.print(
+                    "[red]ERROR:[/red] Directory detected. Use --recursive to scan folders."
+                )
+                return
+
+            supported = (
+                ".py", ".js", ".ts",
+                ".java", ".cpp", ".rs",
+                ".php", ".cs"
+            )
+
+            for root, _, files in os.walk(file_path):
+                for name in files:
+                    if name.endswith(supported):
+                        full_path = os.path.join(root, name)
+
+                        console.print(
+                            f"\n[bold yellow]Analyzing:[/bold yellow] {full_path}"
+                        )
+
+                        analyze_file(
+                            full_path,
+                            api_url,
+                            json_output,
+                            output_file
+                        )
+
+            return
         with open(file_path, "r", encoding="utf-8") as file:
             code = file.read()
 
@@ -33,16 +63,22 @@ def analyze_file(file_path, api_url, json_output=False):
 
         # JSON MODE
         if json_output:
-            print(json.dumps(data, indent=2))
+            formatted = json.dumps(data, indent=2)
+
+            if output_file:
+                with open(output_file, "w", encoding="utf-8") as out:
+                    out.write(formatted)
+
+                console.print(
+                    f"[green]Saved output to {output_file}[/green]"
+                )
+            else:
+                print(formatted)
+
             return
 
         # HEADER
-        console.print(
-            Panel.fit(
-                "Qyverix AI Analysis Report",
-                style="bold cyan"
-            )
-        )
+        console.rule("[bold cyan]Qyverix AI Analysis Report[/bold cyan]")
 
         console.print(f"[yellow]Provider:[/yellow] {data.get('provider')}")
         console.print(f"[yellow]Model:[/yellow] {data.get('model')}")
@@ -52,51 +88,38 @@ def analyze_file(file_path, api_url, json_output=False):
         suggestions = data.get("suggestions", {})
 
         # EXPLANATION TABLE
-        explain_table = Table(title="Explanation")
-
-        explain_table.add_column("Field", style="magenta")
-        explain_table.add_column("Value", style="white")
-
-        explain_table.add_row("Language", explanation.get("language", "Unknown"))
-        explain_table.add_row("Complexity", explanation.get("complexity", "Unknown"))
-        explain_table.add_row("Line Count", str(explanation.get("line_count", 0)))
-        explain_table.add_row("Summary", explanation.get("summary", "N/A"))
-
-        console.print(explain_table)
+        console.print("\n[bold cyan]Explanation[/bold cyan]")
+        console.print(f"Language: {explanation.get('language', 'Unknown')}")
+        console.print(f"Complexity: {explanation.get('complexity', 'Unknown')}")
+        console.print(f"Line Count: {explanation.get('line_count', 0)}")
+        console.print(f"Summary: {explanation.get('summary', 'N/A')}")
 
         # DEBUG TABLE
-        debug_table = Table(title="Detected Issues")
-
-        debug_table.add_column("Type", style="red")
-        debug_table.add_column("Line", style="yellow")
-        debug_table.add_column("Severity", style="cyan")
-        debug_table.add_column("Description", style="white")
+        console.print("\n[bold red]Detected Issues[/bold red]")
 
         for issue in debugging.get("issues", []):
-            debug_table.add_row(
-                issue.get("type", "Unknown"),
-                str(issue.get("line", "-")),
-                issue.get("severity", "-"),
-                issue.get("description", "-")
+            console.print(
+                f"- {issue.get('type', 'Unknown')} "
+                f"(Line {issue.get('line', '-')}) "
+                f"[{issue.get('severity', '-')}]"
             )
 
-        console.print(debug_table)
+            console.print(
+                f"  {issue.get('description', '-')}"
+            )
 
         # SUGGESTIONS
-        suggestion_table = Table(title="Suggestions")
-
-        suggestion_table.add_column("Category", style="cyan")
-        suggestion_table.add_column("Priority", style="yellow")
-        suggestion_table.add_column("Description", style="white")
+        console.print("\n[bold green]Suggestions[/bold green]")
 
         for suggestion in suggestions.get("suggestions", []):
-            suggestion_table.add_row(
-                suggestion.get("category", "-"),
-                suggestion.get("priority", "-"),
-                suggestion.get("description", "-")
+            console.print(
+                f"- [{suggestion.get('priority', '-')}] "
+                f"{suggestion.get('category', '-')}"
             )
 
-        console.print(suggestion_table)
+            console.print(
+                f"  {suggestion.get('description', '-')}"
+            )
 
         # QUALITY SCORE
         score = suggestions.get("overall_score", 0)
@@ -128,20 +151,46 @@ parser.add_argument(
     action="store_true",
     help="Show raw JSON output"
 )
+parser.add_argument(
+    "--mode",
+    choices=["analyze", "debug", "explain", "suggest"],
+    default="analyze",
+    help="Select analysis mode"
+)
+
+parser.add_argument(
+    "--output",
+    help="Save JSON output to a file"
+)
+
+parser.add_argument(
+    "--recursive",
+    action="store_true",
+    help="Recursively analyze directories"
+)
 
 parser.add_argument(
     "--api-url",
-    default=DEFAULT_API_URL,
+    default=BASE_API_URL,
     help="Custom backend API URL"
 )
 
 args = parser.parse_args()
+endpoint_map = {
+    "analyze": "/analyze/",
+    "debug": "/debugging/",
+    "explain": "/explanation/",
+    "suggest": "/suggestions/",
+}
+
+api_url = f"{BASE_API_URL}{endpoint_map[args.mode]}"
 
 if args.command == "analyze":
     analyze_file(
         args.file,
-        args.api_url,
-        args.json
+        api_url,
+        args.json,
+        args.output
     )
 
 else:
