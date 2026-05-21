@@ -6,6 +6,7 @@ let lastResult = '';
 
 // ── DOM refs ──
 const codeInput = document.getElementById('codeInput');
+const highlightedCode = document.getElementById('highlightedCode');
 const runBtn = document.getElementById('runBtn');
 const runLabel = document.getElementById('runLabel');
 const outputBox = document.getElementById('outputBox');
@@ -60,6 +61,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 codeInput.addEventListener('input', () => {
   const lines = codeInput.value.split('\n').length;
   lineCount.textContent = `${lines} line${lines !== 1 ? 's' : ''}`;
+  updateHighlightedCode();
 });
 
 // ── Keyboard shortcut ──
@@ -510,6 +512,17 @@ function renderFavorites() {
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+function updateHighlightedCode() {
+  if (!highlightedCode) return;
+  highlightedCode.className = `language-${codeInput.dataset.lang || 'python'}`;
+  highlightedCode.textContent = codeInput.value || '// Start typing code...';
+  if (window.Prism) Prism.highlightElement(highlightedCode);
+}
+
+function setEditorLanguage(lang) {
+  codeInput.dataset.lang = lang;
+  updateHighlightedCode();
+}
 
 // ── Toast ──
 function showToast(msg) {
@@ -528,3 +541,4 @@ function showToast(msg) {
 // ── Init ──
 renderHistory();
 renderFavorites();
+updateHighlightedCode();

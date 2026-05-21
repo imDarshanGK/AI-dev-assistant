@@ -9,6 +9,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet" />
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
   <style>
     /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -1967,6 +1969,8 @@
           <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
           <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…"
             spellcheck="false" autocorrect="off" autocapitalize="off" aria-label="Code Editor"></textarea>
+            <pre class="code-preview editor-preview"><code id="highlightedCode" 
+              class="language-python"></code></pre>
         </div>
 
         <div class="editor-footer">
@@ -3064,6 +3068,13 @@ int main() {
       const savedUrl = localStorage.getItem('qyx_apiUrl');
       if (savedUrl) apiUrlInput.value = savedUrl;
     </script>
+    <script
+     src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js">
+    </script>
+    <script 
+     src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js">
+    </script>
+
 </body>
 
 </html>

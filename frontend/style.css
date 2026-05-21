@@ -600,3 +600,20 @@ body {
   .features, .app-section { padding: 2rem 1rem; }
   .section-label { padding: 0 1rem; }
 }
+.editor-preview {
+  margin: 0 16px 16px;
+  min-height: 220px;
+  max-height: 320px;
+  overflow: auto;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.editor-preview code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre;
+}
