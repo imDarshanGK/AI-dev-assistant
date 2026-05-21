@@ -314,6 +314,15 @@ def test_debug_kotlin():
     d = r.json()
     assert d is not None
 
+def test_debug_cpp_syntax_errors():
+    code = "void main() {\n    cout << 'Hello World'\n}"
+    r = client.post("/debugging/", json={"code": code, "language": "cpp"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "Void Main" in types
+    assert "Single Quotes for String" in types
+    assert "Missing Semicolon" in types
+
 def test_debug_issue_has_required_fields():
     r = client.post("/debugging/", json={"code": PYTHON_BUGGY})
     assert r.status_code == 200
