@@ -28,6 +28,8 @@ class ExplanationResponse(BaseModel):
     line_count: int
     function_count: int
     class_count: int
+    cyclomatic_complexity: int
+    complexity_risk: str
 
 
 # ── Debugging ─────────────────────────────────────────────────────────────────
