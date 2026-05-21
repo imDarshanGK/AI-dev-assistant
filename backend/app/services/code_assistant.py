@@ -1,6 +1,6 @@
 """
 QyverixAI — Rule-Based Code Analysis Engine
-Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP, Go, and Rust.
+Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP, Go and Rust.
 """
 
 from __future__ import annotations
