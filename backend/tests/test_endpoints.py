@@ -423,6 +423,7 @@ def test_unicode_code():
     assert r.status_code == 200
 
 
+def test_single_line_code():
     _request_counts.clear()
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
