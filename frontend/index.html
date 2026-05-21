@@ -2043,6 +2043,18 @@
         </div>
       </div>
 
+    <!-- Result tabs -->
+    <div class="result-tabs" role="tablist" aria-label="Analysis Results">
+      <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain" tabindex="0">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Explain <span class="tab-badge" id="explainBadge"></span>
+      </button>
+      <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug" tabindex="-1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/><path d="M14.5 3.5L16 2"/><path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5"/><path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5"/><line x1="12" y1="12" x2="12" y2="16"/><path d="M4.5 15H2"/><path d="M22 15h-2.5"/><path d="M4.5 19l-2 2"/><path d="M19.5 19l2 2"/></svg> Debug <span class="tab-badge" id="debugBadge"></span>
+      </button>
+      <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest" tabindex="-1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg> Improve <span class="tab-badge" id="suggestBadge"></span>
+      </button>
+    </div>
       <!-- Results Panel -->
       <div class="panel">
         <div class="panel-header">
@@ -2392,6 +2404,96 @@
           }
         }
 
+/* ═══════════════════════════════════════════════════════════════
+   MODE BUTTONS
+═══════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.mode-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    selectedMode = b.dataset.mode;
+    document.querySelectorAll('.mode-btn').forEach(x => {
+      x.classList.remove('active');
+      x.setAttribute('aria-pressed', 'false');
+    });
+    b.classList.add('active');
+    b.setAttribute('aria-pressed', 'true');
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   RESULT TABS
+═══════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.result-tab').forEach((t, index, tabs) => {
+  t.addEventListener('click', () => {
+    const tab = t.dataset.rtab;
+
+    document.querySelectorAll('.result-tab').forEach(x => {
+      x.classList.remove('active');
+      x.setAttribute('aria-selected', 'false');
+    });
+
+    document.querySelectorAll('.result-pane').forEach(x =>
+      x.classList.remove('active')
+    );
+
+    t.classList.add('active');
+    t.setAttribute('aria-selected', 'true');
+
+    document.getElementById(`pane-${tab}`).classList.add('active');
+  });
+
+  t.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      tabs[(index + 1) % tabs.length].focus();
+    }
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      tabs[(index - 1 + tabs.length) % tabs.length].focus();
+    }
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      t.click();
+    }
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   CLEAR / COPY
+═══════════════════════════════════════════════════════════════ */
+document.getElementById('clearBtn').addEventListener('click', () => {
+  editor.value = '';
+  updateEditor();
+  resetResults();
+});
+document.getElementById('copyBtn').addEventListener('click', () => {
+  if (!editor.value.trim()) return;
+  navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   API PING
+═══════════════════════════════════════════════════════════════ */
+async function pingApi() {
+  const base = apiUrlInput.value.replace(/\/$/, '');
+  try {
+    const r = await fetch(`${base}/health`, {signal: AbortSignal.timeout(5000)});
+    if (r.ok) {
+      apiDot.classList.add('connected');
+      apiStatusText.textContent = 'Connected';
+      toast('API is reachable', 'success');
+    } else {
+      apiDot.classList.remove('connected');
+      apiStatusText.textContent = 'Error ' + r.status;
+    }
+  } catch {
+    apiDot.classList.remove('connected');
+    apiStatusText.textContent = 'Unreachable';
+    toast('Cannot reach API. Check the URL.', 'error');
+  }
+}
+document.getElementById('pingBtn').addEventListener('click', pingApi);
         // CTRL + ENTER
         else if (
           e.key === 'Enter' &&
