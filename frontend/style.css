@@ -47,6 +47,27 @@ body {
   transition: background var(--transition), color var(--transition);
 }
 
+*:focus-visible {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
+  border-radius: 2px;
+}
+
+/* ── Shortcut Hint Visibility ── */
+/* 1. COMPLETELY HIDDEN everywhere by default (Mobile / Tablets) */
+.desktop-hint {
+  display: none;
+}
+
+/* 2. ONLY VISIBLE on typical desktop screens (width >= 1024px with a mouse/trackpad pointer) */
+@media (min-width: 1024px) and (pointer: fine) {
+  .desktop-hint {
+    display: inline;
+    margin-left: 4px; /* Separates the word 'Analyze' from '(Ctrl+Enter)' smoothly */
+  }
+}
+
 /* ── Nav ── */
 .nav {
   position: sticky;
@@ -99,10 +120,8 @@ body {
   gap: 4rem;
   align-items: center;
   padding: 6rem 4rem 5rem;
-  overflow: hidden;
   min-height: calc(100vh - 52px);
 }
-
 .hero-grid-bg {
   position: absolute;
   inset: 0;
@@ -113,9 +132,7 @@ body {
   opacity: 0.4;
   mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
 }
-
 .hero-content { position: relative; z-index: 1; }
-
 .hero-chip {
   display: inline-flex;
   align-items: center;
@@ -138,20 +155,19 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
-
 .hero-title {
   font-family: var(--font-serif);
   font-size: clamp(2.8rem, 5vw, 4.5rem);
   font-weight: 400;
-  line-height: 1.1;
+  line-height: 1.18;
   letter-spacing: -0.02em;
   margin-bottom: 1.5rem;
 }
 .hero-title em {
   font-style: italic;
   color: var(--text-2);
+  display: inline-block;
 }
-
 .hero-sub {
   font-size: 15px;
   color: var(--text-2);
@@ -443,6 +459,7 @@ body {
 .status-dot.offline { background: var(--accent-red); }
 .status-dot.checking { background: var(--accent-yellow); animation: pulse 1s infinite; }
 
+/* Run / Analyze Button */
 .btn-run {
   margin: 12px 16px;
   padding: 10px;
@@ -455,6 +472,12 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition);
+  
+  /* Flex Centering Layout: Centers 'Analyze' and '(Ctrl+Enter)' perfectly */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 .btn-run:hover { opacity: 0.85; }
 .btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
