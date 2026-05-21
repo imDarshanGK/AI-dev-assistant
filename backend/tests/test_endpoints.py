@@ -635,3 +635,36 @@ def test_unicode_code():
 def test_single_line_code():
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
+
+
+def test_metrics_endpoint():
+    # Reset metrics for a clean test
+    app_main.METRICS["total_requests"] = 0
+    app_main.METRICS["total_analyses"] = 0
+    app_main.METRICS["languages_detected"].clear()
+
+    # Non-analysis requests
+    client.get("/")
+    client.get("/health")
+
+    # Analysis requests
+    client.post("/explanation/", json={"code": PYTHON_CLEAN, "language": "python"})
+    client.post("/analyze/", json={"code": JS_CODE, "language": "javascript"})
+
+    # Fetch metrics
+    r = client.get("/metrics")
+    assert r.status_code == 200
+    d = r.json()
+
+    assert d["total_requests"] == 5  # /, /health, /explanation/, /analyze/, /metrics
+    assert d["total_analyses"] == 2
+    
+    # Check languages (may be casing depending on the engine, e.g., 'Python', 'JavaScript')
+    langs = d["languages_detected"]
+    assert "Python" in langs and langs["Python"] == 1
+    assert "JavaScript" in langs and langs["JavaScript"] == 1
+    
+    assert "uptime_seconds" in d
+    assert "version" in d
+    assert d["version"] == "3.0.0"
+

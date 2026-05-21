@@ -12,9 +12,20 @@ import time
 import os
 from collections import defaultdict
 from contextlib import asynccontextmanager
+import json
+from starlette.concurrency import iterate_in_threadpool
 
 from .routers import explanation, debugging, suggestions, analyze
 from .schemas import HealthResponse
+
+
+# ── Metrics (in-memory) ───────────────────────────────────────────────────────
+SERVER_START_TIME = time.time()
+METRICS = {
+    "total_requests": 0,
+    "total_analyses": 0,
+    "languages_detected": defaultdict(int)
+}
 
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
@@ -62,6 +73,33 @@ app = FastAPI(
 )
 
 # ── Middleware ────────────────────────────────────────────────────────────────
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    METRICS["total_requests"] += 1
+    response = await call_next(request)
+
+    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/") and request.method == "POST":
+        if response.status_code == 200:
+            METRICS["total_analyses"] += 1
+            try:
+                response_body = [chunk async for chunk in response.body_iterator]
+                response.body_iterator = iterate_in_threadpool(iter(response_body))
+                body_bytes = b"".join(response_body)
+                data = json.loads(body_bytes)
+
+                lang = None
+                if "language" in data:
+                    lang = data["language"]
+                elif "explanation" in data and isinstance(data["explanation"], dict) and "language" in data["explanation"]:
+                    lang = data["explanation"]["language"]
+
+                if lang:
+                    METRICS["languages_detected"][lang] += 1
+            except Exception:
+                pass
+
+    return response
+
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
@@ -128,6 +166,17 @@ async def root():
         "version": "3.0.0",
         "message": "QyverixAI API is running.",
         "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+    }
+
+
+@app.get("/metrics", tags=["System"])
+async def get_metrics():
+    return {
+        "total_requests": METRICS["total_requests"],
+        "total_analyses": METRICS["total_analyses"],
+        "languages_detected": dict(METRICS["languages_detected"]),
+        "uptime_seconds": int(time.time() - SERVER_START_TIME),
+        "version": app.version
     }
 
 
