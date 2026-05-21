@@ -1,6 +1,6 @@
 """
 QyverixAI — Rule-Based Code Analysis Engine
-Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Rust.
+Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP, Go, and Rust.
 """
 
 from __future__ import annotations
@@ -57,6 +57,17 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"data\s+class\s+\w+",
         r":\s*\w+\s*\?",
     ],
+    "Go": [
+        r"\bfunc\s+\w+\s*\(",
+        r"\bpackage\s+\w+",
+        r"\bdefer\s+",
+        r"\bgo\s+\w+\s*\(",
+        r"\bchan\s+\w+",
+        r"interface\{\}",
+        r"\berror\b",
+        r":=",
+        r"\brange\s+\w+",
+    ],
 }
 
 
@@ -80,6 +91,7 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "java": "Java",
             "cpp": "C++", "c++": "C++", "cxx": "C++",
             "php": "PHP",
+            "go": "Go", "golang": "Go",
             "rust": "Rust", "rs": "Rust",
         }
         if normalized in mapping:
@@ -601,7 +613,7 @@ def run_explanation(code: str, language: str) -> dict:
     complexity = estimate_complexity(code)
 
     func_names = re.findall(
-        r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(",
+        r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(|\bfunc\s+(\w+)\s*\(",
         code,
     )
     funcs = [next(n for n in grp if n) for grp in func_names]

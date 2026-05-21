@@ -138,6 +138,32 @@ data class User(val name: String, val age: Int)
 println("Hello World")
 """
 
+GO_CODE = """
+package main
+
+import "fmt"
+
+func greet(name string) string {
+	return "Hello " + name
+}
+
+func main() {
+	message := "world"
+	fmt.Println(greet(message))
+	
+	ch := make(chan int)
+	go processData(ch)
+	
+	defer close(ch)
+}
+
+func processData(ch chan int) {
+	for i := range ch {
+		fmt.Println(i)
+	}
+}
+"""
+
 # ── Health ────────────────────────────────────────────────────────────────────
 def test_root():
     r = client.get("/")
@@ -312,6 +338,16 @@ def test_debug_kotlin():
     assert r.status_code == 200
     d = r.json()
     assert d is not None
+
+def test_explanation_go():
+    r = client.post("/explanation/", json={"code": GO_CODE, "language": "go"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Go"
+    assert "summary" in d
+    assert isinstance(d["key_points"], list)
+    assert d["complexity"] in ("Beginner", "Intermediate", "Advanced", "Expert")
+    assert d["function_count"] >= 2
 
 def test_debug_issue_has_required_fields():
     r = client.post("/debugging/", json={"code": PYTHON_BUGGY})
