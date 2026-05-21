@@ -4,12 +4,18 @@ Run: cd backend && pytest -v
 """
 import pytest
 from fastapi.testclient import TestClient
-
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from app.main import app
+from app import main as app_main
 
-client = TestClient(app)
+client = TestClient(app_main.app)
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limit_state():
+    app_main._request_counts.clear()
+    yield
+    app_main._request_counts.clear()
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -22,6 +28,17 @@ function greet($user) {
 }
 $arr = array(1, 2, 3);
 $obj->method();
+?>
+"""
+
+PHP_BUGGY = """
+<?php
+$id = $_GET['id'];
+$result = mysql_query("SELECT * FROM users WHERE id=" . $id);
+echo $_POST['username'];
+extract($_GET);
+$$varname = "dynamic";
+$data = @file_get_contents($url);
 ?>
 """
 
@@ -117,6 +134,16 @@ fn main() {
 }
 """
 
+KOTLIN_CODE = """
+fun greet(name: String): String {
+    return "Hello $name"
+}
+val message: String? = null
+var count = 0
+data class User(val name: String, val age: Int)
+println("Hello World")
+"""
+
 # ── Health ────────────────────────────────────────────────────────────────────
 def test_root():
     r = client.get("/")
@@ -129,6 +156,29 @@ def test_health():
     r = client.get("/health")
     assert r.status_code == 200
     assert r.json()["status"] == "ok"
+
+
+def test_rate_limit_headers_on_success_response():
+    r = client.get("/")
+    assert r.status_code == 200
+    assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+    assert r.headers["X-RateLimit-Remaining"] == str(app_main.RATE_LIMIT)
+
+
+def test_rate_limit_returns_429_with_retry_after_header():
+    payload = {"code": "print('hello')", "language": "python"}
+
+    for expected_remaining in range(app_main.RATE_LIMIT - 1, -1, -1):
+        r = client.post("/debugging/", json=payload)
+        assert r.status_code == 200
+        assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+        assert r.headers["X-RateLimit-Remaining"] == str(expected_remaining)
+
+    r = client.post("/debugging/", json=payload)
+    assert r.status_code == 429
+    assert r.headers["Retry-After"] == str(app_main.RATE_LIMIT_WINDOW_SECONDS)
+    assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+    assert r.headers["X-RateLimit-Remaining"] == "0"
 
 
 # ── Explanation ───────────────────────────────────────────────────────────────
@@ -173,6 +223,141 @@ def test_explanation_empty_code():
 def test_explanation_too_long():
     r = client.post("/explanation/", json={"code": "x" * 60000})
     assert r.status_code == 422
+
+def test_explanation_typescript():
+    r = client.post("/explanation/", json={"code": TS_CODE, "language": "typescript"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "TypeScript"
+
+def test_explanation_java():
+    r = client.post("/explanation/", json={"code": JAVA_CODE, "language": "java"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Java"
+
+def test_explanation_cpp():
+    r = client.post("/explanation/", json={"code": CPP_CODE, "language": "cpp"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "C++"
+
+# ── Cyclomatic Complexity ─────────────────────────────────────────────────────
+def test_explanation_cyclomatic_fields_present():
+    r = client.post("/explanation/", json={"code": PYTHON_CLEAN, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert "cyclomatic_complexity" in d
+    assert "complexity_risk" in d
+    assert isinstance(d["cyclomatic_complexity"], int)
+    assert d["complexity_risk"] in ("Simple", "Moderate", "High", "Very High")
+
+
+def test_explanation_cyclomatic_simple():
+    code = "def add(a: int, b: int) -> int:\n    return a + b\n"
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["cyclomatic_complexity"] >= 1
+    assert d["complexity_risk"] == "Simple"
+
+
+def test_explanation_cyclomatic_moderate():
+    code = """
+def validate(x, y, z):
+    if x < 0:
+        return False
+    elif y < 0:
+        return False
+    elif z < 0:
+        return False
+    elif x > 100 or y > 100:
+        return False
+    else:
+        return True
+"""
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert 6 <= d["cyclomatic_complexity"] <= 10
+    assert d["complexity_risk"] == "Moderate"
+
+
+def test_explanation_cyclomatic_high():
+    code = """
+def process(items, config, flags):
+    if not items:
+        return []
+    elif not config:
+        return None
+    results = []
+    for item in items:
+        if item and flags.get("enabled"):
+            if item > 0 and item < 100:
+                results.append(item)
+            elif item >= 100 or item == -1:
+                results.append(item * 2)
+            else:
+                results.append(0)
+        elif item is None:
+            pass
+        else:
+            while item > 0:
+                item -= 1
+            results.append(item)
+    return results
+"""
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert 11 <= d["cyclomatic_complexity"] <= 20
+    assert d["complexity_risk"] == "High"
+
+
+def test_explanation_cyclomatic_very_high():
+    code = """
+def route(req, user, db, cache, logger):
+    if not req:
+        return None
+    elif not user:
+        return None
+    elif not db:
+        return None
+    if user.role == "admin" and user.active and not user.banned:
+        if req.method == "GET" or req.method == "HEAD":
+            if cache.has(req.path) and not req.bypass_cache:
+                return cache.get(req.path)
+            else:
+                result = db.query(req.path)
+                if result and not result.expired:
+                    cache.set(req.path, result)
+                    return result
+                elif result and result.expired:
+                    if cache.has_stale(req.path) or logger.warn("stale"):
+                        return cache.get_stale(req.path)
+                    else:
+                        return None
+                else:
+                    return None
+        elif req.method == "POST":
+            if user.can_write and req.body:
+                for item in req.body:
+                    if item.valid and item.size < 1024:
+                        db.insert(item)
+                    else:
+                        logger.warn("invalid item")
+            else:
+                return None
+        else:
+            return None
+    else:
+        return None
+"""
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["cyclomatic_complexity"] >= 21
+    assert d["complexity_risk"] == "Very High"
 
 
 # ── Debugging ─────────────────────────────────────────────────────────────────
@@ -228,11 +413,31 @@ def test_debug_cpp():
     d = r.json()
     assert len(d["issues"]) > 0
 
+def test_explanation_php():
+    r = client.post("/explanation/", json={"code": PHP_CODE, "language": "php"})
+    assert r.status_code == 200
+    assert r.json()["language"] == "PHP"
+
+def test_explanation_detects_php_without_hint():
+    r = client.post("/explanation/", json={"code": PHP_CODE})
+    assert r.status_code == 200
+    assert r.json()["language"] == "PHP"
+
 def test_debug_php():
     r = client.post("/debugging/", json={"code": PHP_CODE, "language": "php"})
     assert r.status_code == 200
     d = r.json()
     assert d is not None
+
+def test_debug_php_buggy_patterns():
+    r = client.post("/debugging/", json={"code": PHP_BUGGY, "language": "php"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "PHP MySQL Deprecated" in types
+    assert "PHP XSS" in types
+    assert "PHP Extract" in types
+    assert "PHP Variable Variables" in types
+    assert "PHP Error Suppression" in types
 
 def test_debug_rust():
     r = client.post("/debugging/", json={"code": RUST_CODE, "language": "rust"})
@@ -249,6 +454,12 @@ def test_debug_rust_buggy_patterns():
     assert "Expect Usage" in types
     assert "Clone Overuse" in types
 
+def test_debug_kotlin():
+    r = client.post("/debugging/", json={"code": KOTLIN_CODE, "language": "kotlin"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d is not None
+
 def test_debug_issue_has_required_fields():
     r = client.post("/debugging/", json={"code": PYTHON_BUGGY})
     assert r.status_code == 200
@@ -259,7 +470,42 @@ def test_debug_issue_has_required_fields():
         assert "severity" in issue
         assert issue["severity"] in ("error", "warning", "info")
 
+def test_js_ts_security_patterns():
+    code = """
+if (typeof x == "1") {
+    console.log("equal");
+}
 
+setTimeout("alert('hack')", 1000);
+
+async function load() {
+    await fetch("/api");
+}
+
+window.location = userInput;
+
+obj["__proto__"] = {};
+"""
+
+    r = client.post(
+        "/debugging/",
+        json={
+            "code": code,
+            "language": "javascript"
+        }
+    )
+
+    assert r.status_code == 200
+
+    data = r.json()
+
+    issue_types = [issue["type"] for issue in data["issues"]]
+
+    assert "Typeof Equality Issue" in issue_types
+    assert "setTimeout String Usage" in issue_types
+    assert "Async Await Without Try Catch" in issue_types
+    assert "Unsafe Window Location Assignment" in issue_types
+    assert "Prototype Pollution Risk" in issue_types
 # ── Suggestions ───────────────────────────────────────────────────────────────
 def test_suggestions_returns_score():
     r = client.post("/suggestions/", json={"code": PYTHON_BUGGY})
@@ -358,6 +604,7 @@ def test_full_analyze_all_languages():
         (TS_CODE, "typescript"),
         (JAVA_CODE, "java"),
         (CPP_CODE, "cpp"),
+        (PHP_CODE, "php"),
         (RUST_CODE, "rust"),
     ]:
         r = client.post("/analyze/", json={"code": code, "language": lang})
@@ -374,6 +621,7 @@ def test_missing_code_field():
 def test_unicode_code():
     r = client.post("/explanation/", json={"code": "# こんにちは\ndef hello(): pass"})
     assert r.status_code == 200
+
 
 def test_single_line_code():
     r = client.post("/analyze/", json={"code": "print('hello')"})
