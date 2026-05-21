@@ -2,14 +2,22 @@
 QyverixAI — Test Suite
 Run: cd backend && pytest -v
 """
+import io
+import zipfile
+
 import pytest
 from fastapi.testclient import TestClient
 
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from app.main import app
+from app.main import app, _request_counts
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def clear_rate_limit_state():
+    _request_counts.clear()
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -356,3 +364,101 @@ def test_unicode_code():
 def test_single_line_code():
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
+
+
+def _make_zip(files: dict[str, str | bytes]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        for name, content in files.items():
+            archive.writestr(name, content)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+def test_zip_analyze_multiple_files():
+    zip_bytes = _make_zip(
+        {
+            "src/app.py": PYTHON_CLEAN,
+            "web/app.js": JS_CODE,
+            "native/main.cpp": CPP_CODE,
+            "README.md": "# skipped",
+        }
+    )
+
+    r = client.post(
+        "/analyze/zip/",
+        files={"file": ("project.zip", zip_bytes, "application/zip")},
+    )
+
+    assert r.status_code == 200
+    d = r.json()
+    assert d["provider"] == "rule-based"
+    assert d["file_count"] == 3
+    assert 0 <= d["overall_project_score"] <= 100
+    assert d["grade"] in ("A", "B", "C", "D", "F")
+    assert len(d["files"]) == 3
+    assert {f["filename"] for f in d["files"]} == {"src/app.py", "web/app.js", "native/main.cpp"}
+    assert any(f["filename"] == "native/main.cpp" and f["language"] == "C++" for f in d["files"])
+    assert "analysis" in d["files"][0]
+    assert d["skipped_files"] == ["README.md (unsupported file type)"]
+
+
+def test_zip_analyze_rejects_non_zip_upload():
+    r = client.post(
+        "/analyze/zip/",
+        files={"file": ("project.txt", b"print('hello')", "text/plain")},
+    )
+
+    assert r.status_code == 400
+    assert "Only .zip" in r.json()["detail"]
+
+
+def test_zip_analyze_ignores_git_and_build_outputs():
+    zip_bytes = _make_zip(
+        {
+            "adas/.git/config": "[core]\nrepositoryformatversion = 0",
+            "adas/build/CMakeFiles/compiler.bin": b"\x00\x01\x02",
+            "adas/Release/app.exe": b"MZ",
+            "adas/x64/Release/main.obj": b"\x00\x01",
+            "adas/src/main.cpp": CPP_CODE,
+        }
+    )
+
+    r = client.post(
+        "/analyze/zip/",
+        files={"file": ("adas.zip", zip_bytes, "application/zip")},
+    )
+
+    assert r.status_code == 200
+    d = r.json()
+    assert d["file_count"] == 1
+    assert d["files"][0]["filename"] == "adas/src/main.cpp"
+    assert d["files"][0]["language"] == "C++"
+    assert d["skipped_files"] == []
+
+
+def test_zip_analyze_limits_source_file_count():
+    zip_bytes = _make_zip({f"file_{i}.py": "print('hello')" for i in range(25)})
+
+    r = client.post(
+        "/analyze/zip/",
+        files={"file": ("many-files.zip", zip_bytes, "application/zip")},
+    )
+
+    assert r.status_code == 200
+    d = r.json()
+    assert d["file_count"] == 20
+    assert len(d["skipped_files"]) == 5
+    assert all("file limit reached" in item for item in d["skipped_files"])
+
+
+def test_zip_analyze_rejects_total_source_size_over_limit():
+    zip_bytes = _make_zip({"huge.py": "x = 1\n" * 900_000})
+
+    r = client.post(
+        "/analyze/zip/",
+        files={"file": ("huge.zip", zip_bytes, "application/zip")},
+    )
+
+    assert r.status_code == 400
+    assert "5MB" in r.json()["detail"]

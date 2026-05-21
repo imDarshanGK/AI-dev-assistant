@@ -1,7 +1,7 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class CodeRequest(BaseModel):
@@ -75,6 +75,26 @@ class AnalyzeResponse(BaseModel):
     explanation: ExplanationResponse
     debugging: DebuggingResponse
     suggestions: SuggestionsResponse
+    analysis_time_ms: float | None = None
+
+
+class ZipAnalyzeFileResult(BaseModel):
+    filename: str
+    language: str
+    size_bytes: int
+    analysis: AnalyzeResponse
+
+
+class ZipAnalyzeResponse(BaseModel):
+    provider: str
+    model: str
+    file_count: int
+    total_size_bytes: int
+    overall_project_score: int
+    grade: str
+    summary: str
+    files: list[ZipAnalyzeFileResult]
+    skipped_files: list[str] = Field(default_factory=list)
     analysis_time_ms: float | None = None
 
 

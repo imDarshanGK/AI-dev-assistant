@@ -69,7 +69,7 @@ async def add_process_time_header(request: Request, call_next):
     ip = request.client.host if request.client else "unknown"
 
     # Apply rate limiting to analysis endpoints only
-    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
+    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/", "/analyze/zip/"):
         check_rate_limit(ip)
 
     response = await call_next(request)
@@ -93,7 +93,7 @@ async def root():
         "status": "ok",
         "version": "3.0.0",
         "message": "QyverixAI API is running.",
-        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/", "/analyze/zip/"],
     }
 
 
@@ -103,7 +103,7 @@ async def health_check():
         "status": "ok",
         "version": "3.0.0",
         "message": "QyverixAI is healthy",
-        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/", "/analyze/zip/"],
     }
 
 

@@ -1218,6 +1218,121 @@
       transform: translateX(3px)
     }
 
+    .zip-overview {
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .zip-file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .zip-file-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      overflow: hidden
+    }
+
+    .zip-file-card summary {
+      cursor: pointer;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 12px 14px;
+      list-style: none
+    }
+
+    .zip-file-card summary::-webkit-details-marker {
+      display: none
+    }
+
+    .zip-file-card summary::before {
+      content: ">";
+      color: var(--text3);
+      font-size: 0.75rem;
+      transition: transform 0.18s ease
+    }
+
+    .zip-file-card[open] summary::before {
+      transform: rotate(90deg)
+    }
+
+    .zip-file-name {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text)
+    }
+
+    .zip-file-meta {
+      color: var(--text3);
+      font-size: 0.74rem;
+      margin-left: auto
+    }
+
+    .zip-file-body {
+      border-top: 1px solid var(--border);
+      padding: 12px 14px;
+      color: var(--text2);
+      font-size: 0.84rem
+    }
+
+    .zip-mini-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0
+    }
+
+    .zip-mini-grid span,
+    .zip-skipped {
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      background: var(--bg);
+      color: var(--text3);
+      font-size: 0.74rem;
+      padding: 5px 8px
+    }
+
+    .zip-issue {
+      border-left: 3px solid var(--border2);
+      background: var(--bg);
+      border-radius: var(--r2);
+      margin-top: 8px;
+      padding: 9px 10px
+    }
+
+    .zip-issue.error {
+      border-left-color: var(--red)
+    }
+
+    .zip-issue.warning {
+      border-left-color: var(--yellow)
+    }
+
+    .zip-issue.info {
+      border-left-color: var(--accent)
+    }
+
+    .zip-issue strong {
+      color: var(--text);
+      font-size: 0.78rem
+    }
+
+    .zip-issue span {
+      float: right;
+      color: var(--text3);
+      font-size: 0.72rem
+    }
+
+    .zip-issue p {
+      margin-top: 5px
+    }
+
     .suggest-header {
       display: flex;
       align-items: center;
@@ -1906,7 +2021,7 @@
           </svg></div>
         <div class="feat-pill-info">
           <h4>File Upload</h4>
-          <p>.py .js .ts .java .cpp</p>
+          <p>.py .js .ts .java .cpp .cc .cxx .zip</p>
         </div>
       </div>
     </div>
@@ -1931,7 +2046,7 @@
                 <polyline points="17,8 12,3 7,8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none"
+              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.txt,.zip" style="display:none"
                 tabindex="-1" />
             </label>
             <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
@@ -2205,6 +2320,7 @@
       let currentResult = null;
       let selectedLang = 'python';
       let selectedMode = 'analyze';
+      let selectedZipFile = null;
 
       /* ═══════════════════════════════════════════════════════════════
          DOM REFS
@@ -2267,7 +2383,10 @@
           : '1';
       }
 
-      editor.addEventListener('input', updateEditor);
+      editor.addEventListener('input', () => {
+        selectedZipFile = null;
+        updateEditor();
+      });
       editor.addEventListener('scroll', () => {
         lineNumbers.scrollTop = editor.scrollTop;
       });
@@ -2407,16 +2526,7 @@
       document.getElementById('fileInput').addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
-        const ext = file.name.split('.').pop().toLowerCase();
-        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
-        if (langMap[ext]) setLanguage(langMap[ext]);
-        const reader = new FileReader();
-        reader.onload = ev => {
-          editor.value = ev.target.result;
-          updateEditor();
-          toast(`Loaded ${file.name}`, 'success');
-        };
-        reader.readAsText(file);
+        handleUploadedFile(file);
         e.target.value = '';
       });
 
@@ -2426,14 +2536,48 @@
         e.preventDefault();
         const file = e.dataTransfer.files[0];
         if (!file) return;
+        handleUploadedFile(file);
+      });
+
+      function handleUploadedFile(file) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext === 'zip') {
+          selectedZipFile = file;
+          selectedMode = 'analyze';
+          document.querySelectorAll('.mode-btn').forEach(x => {
+            x.classList.toggle('active', x.dataset.mode === 'analyze');
+            x.setAttribute('aria-pressed', x.dataset.mode === 'analyze' ? 'true' : 'false');
+          });
+          editor.value = `ZIP ready for project analysis: ${file.name}\n\nClick Analyze Code to scan up to 20 source files.`;
+          updateEditor();
+          resetResults();
+          toast(`Loaded ZIP ${file.name}`, 'success');
+          return;
+        }
+
+        selectedZipFile = null;
+        const langMap = {
+          py: 'python',
+          js: 'javascript',
+          ts: 'typescript',
+          java: 'java',
+          cpp: 'cpp',
+          cc: 'cpp',
+          cxx: 'cpp',
+          c: 'cpp',
+          h: 'cpp',
+          hpp: 'cpp',
+        };
+        if (langMap[ext]) setLanguage(langMap[ext]);
         const reader = new FileReader();
         reader.onload = ev => {
           editor.value = ev.target.result;
           updateEditor();
-          toast(`Dropped ${file.name}`, 'success');
+          resetResults();
+          toast(`Loaded ${file.name}`, 'success');
         };
         reader.readAsText(file);
-      });
+      }
 
       /* ═══════════════════════════════════════════════════════════════
          LANGUAGE TABS
@@ -2499,6 +2643,7 @@
          CLEAR / COPY
       ═══════════════════════════════════════════════════════════════ */
       document.getElementById('clearBtn').addEventListener('click', () => {
+        selectedZipFile = null;
         editor.value = '';
         updateEditor();
         resetResults();
@@ -2541,7 +2686,7 @@
 
       async function doAnalyze() {
         const code = editor.value.trim();
-        if (!code) { toast('Please paste some code first.', 'error'); return; }
+        if (!selectedZipFile && !code) { toast('Please paste some code first.', 'error'); return; }
 
         const base = apiUrlInput.value.replace(/\/$/, '');
         const endpointMap = {
@@ -2558,6 +2703,32 @@
         showShimmers();
 
         try {
+          if (selectedZipFile) {
+            const formData = new FormData();
+            formData.append('file', selectedZipFile);
+            const res = await fetch(`${base}/analyze/zip/`, {
+              method: 'POST',
+              body: formData,
+              signal: AbortSignal.timeout(60000),
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.detail || `HTTP ${res.status}`);
+            }
+
+            const data = await res.json();
+            currentResult = data;
+            renderZipResults(data);
+            addToHistory(`ZIP: ${selectedZipFile.name}`, data);
+            apiDot.classList.add('connected');
+            apiStatusText.textContent = 'Connected';
+            document.getElementById('engineBar').style.display = 'flex';
+            engineInfo.textContent = `${data.provider || 'rule-based'} · ${data.model || ''}`;
+            timeInfo.textContent = data.analysis_time_ms ? data.analysis_time_ms + 'ms' : '';
+            resultActions.style.display = 'flex';
+            return;
+          }
+
           const res = await fetch(`${base}${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2607,6 +2778,10 @@
          RENDER RESULTS
       ═══════════════════════════════════════════════════════════════ */
       function renderResults(result, code) {
+        if (result.files) {
+          renderZipResults(result);
+          return;
+        }
         if (result.explanation) renderExplain(result.explanation);
         if (result.debugging) renderDebug(result.debugging);
         if (result.suggestions) renderSuggest(result.suggestions);
@@ -2615,6 +2790,120 @@
         const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
         const targetTab = tabOrder[selectedMode] || 'explain';
         document.querySelector(`[data-rtab="${targetTab}"]`).click();
+      }
+
+      function renderZipResults(project) {
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'none';
+        });
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          document.getElementById(id).style.display = 'block';
+        });
+
+        document.getElementById('explainBadge').textContent = `${project.file_count} files`;
+        const totalIssues = project.files.reduce((sum, file) => sum + file.analysis.debugging.issues.length, 0);
+        const totalSuggestions = project.files.reduce((sum, file) => sum + file.analysis.suggestions.suggestions.length, 0);
+        const errorCount = project.files.reduce((sum, file) => sum + file.analysis.debugging.error_count, 0);
+        const warningCount = project.files.reduce((sum, file) => sum + file.analysis.debugging.warning_count, 0);
+        const infoCount = project.files.reduce((sum, file) => sum + file.analysis.debugging.info_count, 0);
+        document.getElementById('debugBadge').textContent = totalIssues || '0';
+        document.getElementById('suggestBadge').textContent = project.overall_project_score;
+
+        const scoreColor = project.overall_project_score >= 80 ? 'var(--green)'
+          : project.overall_project_score >= 60 ? 'var(--yellow)'
+            : 'var(--red)';
+        const circumference = 2 * Math.PI * 30;
+        const dashOffset = circumference - (project.overall_project_score / 100) * circumference;
+        const fileList = project.files.map((file, i) => {
+          const analysis = file.analysis;
+          const issueSummary = analysis.debugging.clean
+            ? 'No issues detected'
+            : `${analysis.debugging.error_count} errors · ${analysis.debugging.warning_count} warnings · ${analysis.debugging.info_count} info`;
+          return `
+      <details class="zip-file-card" ${i === 0 ? 'open' : ''}>
+        <summary>
+          <span class="zip-file-name">${escHtml(file.filename)}</span>
+          <span class="zip-file-meta">${file.language} · ${analysis.suggestions.overall_score}/100 · ${issueSummary}</span>
+        </summary>
+        <div class="zip-file-body">
+          <p>${escHtml(analysis.explanation.summary)}</p>
+          <div class="zip-mini-grid">
+            <span>${analysis.explanation.line_count} lines</span>
+            <span>${analysis.explanation.function_count} functions</span>
+            <span>${analysis.suggestions.suggestions.length} suggestions</span>
+          </div>
+          ${analysis.debugging.issues.slice(0, 4).map(issue => `
+            <div class="zip-issue ${issue.severity}">
+              <strong>${escHtml(issue.type)}</strong>
+              ${issue.line ? `<span>Line ${issue.line}</span>` : ''}
+              <p>${escHtml(issue.description)}</p>
+            </div>`).join('')}
+        </div>
+      </details>`;
+        }).join('');
+
+        const skipped = project.skipped_files.length
+          ? `<div class="zip-skipped">Skipped: ${project.skipped_files.map(escHtml).join(', ')}</div>`
+          : '';
+
+        document.getElementById('explainResult').innerHTML = `
+    <div class="zip-overview">
+      <div class="score-ring-wrap">
+        <div class="score-ring">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="30" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="${scoreColor}" stroke-width="6"
+              stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="round"/>
+          </svg>
+          <div class="score-ring-text">
+            <div class="score-num" style="color:${scoreColor}">${project.overall_project_score}</div>
+            <div class="score-grade">${project.grade}</div>
+          </div>
+        </div>
+        <div class="score-info">
+          <h3>Project Health</h3>
+          <p>${escHtml(project.summary)}</p>
+        </div>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-chip"><div class="stat-chip-num">${project.file_count}</div><div class="stat-chip-label">Files</div></div>
+        <div class="stat-chip error-chip"><div class="stat-chip-num">${errorCount}</div><div class="stat-chip-label">Errors</div></div>
+        <div class="stat-chip warn-chip"><div class="stat-chip-num">${warningCount}</div><div class="stat-chip-label">Warnings</div></div>
+        <div class="stat-chip info-chip"><div class="stat-chip-num">${infoCount}</div><div class="stat-chip-label">Info</div></div>
+      </div>
+      ${skipped}
+      <div class="zip-file-list">${fileList}</div>
+    </div>`;
+
+        document.getElementById('debugResult').innerHTML = `
+    <div class="stat-bar">
+      <div class="stat-chip error-chip"><div class="stat-chip-num">${errorCount}</div><div class="stat-chip-label">Errors</div></div>
+      <div class="stat-chip warn-chip"><div class="stat-chip-num">${warningCount}</div><div class="stat-chip-label">Warnings</div></div>
+      <div class="stat-chip info-chip"><div class="stat-chip-num">${infoCount}</div><div class="stat-chip-label">Info</div></div>
+    </div>
+    <div class="zip-file-list">${fileList}</div>`;
+
+        document.getElementById('suggestResult').innerHTML = `
+    <div class="score-ring-wrap">
+      <div class="score-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="30" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+          <circle cx="40" cy="40" r="30" fill="none" stroke="${scoreColor}" stroke-width="6"
+            stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="round"/>
+        </svg>
+        <div class="score-ring-text">
+          <div class="score-num" style="color:${scoreColor}">${project.overall_project_score}</div>
+          <div class="score-grade">${project.grade}</div>
+        </div>
+      </div>
+      <div class="score-info">
+        <h3>Project Health Score</h3>
+        <p>${totalSuggestions} improvement suggestion${totalSuggestions !== 1 ? 's' : ''} across ${project.file_count} file${project.file_count !== 1 ? 's' : ''}.</p>
+      </div>
+    </div>
+    <div class="zip-file-list">${fileList}</div>`;
+
+        document.querySelector('[data-rtab="explain"]').click();
       }
 
       function renderExplain(exp) {
@@ -2892,6 +3181,15 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
       });
 
       function buildReport(r, code) {
+        if (r.files) {
+          const lines = ['QyverixAI Project ZIP Analysis', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, `Files: ${r.file_count}`, `Overall Score: ${r.overall_project_score}/100 (${r.grade})`, r.summary, ''];
+          r.files.forEach(file => {
+            lines.push(`FILE: ${file.filename}`, `Language: ${file.language}`, `Score: ${file.analysis.suggestions.overall_score}/100 (${file.analysis.suggestions.grade})`, file.analysis.debugging.summary, `Summary: ${file.analysis.explanation.summary}`, '');
+            file.analysis.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
+          });
+          if (r.skipped_files?.length) lines.push('SKIPPED FILES', ...r.skipped_files, '');
+          return lines.join('\n');
+        }
         const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
         if (r.explanation) {
           lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
