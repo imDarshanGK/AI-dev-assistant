@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '0 0 * * *'
 
+  workflow_dispatch:
+
 permissions:
   issues: write
   pull-requests: write
@@ -33,14 +35,14 @@ jobs:
 
             If you are still working on it, please comment with an update.
 
-            Otherwise, this issue may be closed automatically after 7 more days so other contributors can work on it.
+            Otherwise, this issue may be closed automatically after 7 more days and reopened for other contributors.
 
             — QyverixAI Maintainer Bot
 
           close-issue-message: |
             This issue was closed automatically due to inactivity.
 
-            Contributors can reopen or comment `/assign` if they want to continue working on it 🚀
+            Contributors can reopen the issue or comment `/assign` if they want to continue working on it 🚀
 
           # =========================
           # Pull Requests
@@ -54,7 +56,7 @@ jobs:
           stale-pr-message: |
             👋 This PR has had no activity for 7 days.
 
-            Please push updates or comment if you still need time.
+            Please push updates or comment if you still need more time.
 
             Inactive PRs may be closed automatically after 7 more days.
 
