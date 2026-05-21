@@ -157,6 +157,35 @@ app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"]
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 
+# ── Serve frontend if built ──
+# Try several likely frontend locations (package-relative and repo-root copies).
+import logging
+logger = logging.getLogger(__name__)
+
+possible_frontends = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend")),
+    os.path.abspath(os.path.join(os.getcwd(), "frontend")),
+    os.path.abspath(os.path.join(os.getcwd(), "..", "frontend")),
+]
+FRONTEND_PATH = None
+for p in possible_frontends:
+    if os.path.isdir(p):
+        FRONTEND_PATH = p
+        logger.info(f"Mounting frontend from: {FRONTEND_PATH}")
+        app.mount("/app", StaticFiles(directory=FRONTEND_PATH, html=True), name="frontend")
+        break
+if not FRONTEND_PATH:
+    logger.info("No frontend directory found; static files will not be served.")
+
+
+@app.on_event("startup")
+def startup_check_frontend():
+    if FRONTEND_PATH:
+        try:
+            files = os.listdir(FRONTEND_PATH)
+            logger.info(f"Frontend files: {files[:50]}")
+        except Exception as e:
+            logger.warning(f"Unable to list frontend directory: {e}")
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
 @app.get("/", response_model=HealthResponse, tags=["System"])
@@ -195,15 +224,10 @@ async def ping():
     return {"message": "pong"}
 
 
-# ── Static / Frontend ─────────────────────────────────────────────────────────
-_frontend = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
-if os.path.isdir(_frontend):
-    app.mount("/app", StaticFiles(directory=_frontend, html=True), name="frontend")
-
-
 # ── Global error handler ──────────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled error: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error. Please try again."},
