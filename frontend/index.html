@@ -3195,7 +3195,7 @@
          HISTORY
       ═══════════════════════════════════════════════════════════════ */
       function addToHistory(code, result) {
-        const lang = result.explanation?.language || selectedLang;
+        const lang = result.explanation?.language || result.debugging?.language||result.suggestions?.language||selectedLang;
         const entry = {
           id: Date.now(),
           code,
@@ -3232,9 +3232,15 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
   toast('History cleared', 'info');
 });
       function loadEntry(id) {
-        const entry = history.find(h => h.id === id);
+        const entry = history.find(h => h.id === Number (id));
+        console.log(entry);
         if (!entry) return;
         editor.value = entry.code;
+
+        if(entry.lang){
+          setLanguage(entry.lang.toLowerCase());
+        }
+        
         updateEditor();
         currentResult = entry.result;
         renderResults(entry.result, entry.code);
@@ -3283,9 +3289,15 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
   toast('Favorites cleared', 'info');
 });
       function loadFav(id) {
-        const entry = favorites.find(f => f.id === id);
+        const entry = favorites.find(f => f.id === Number(id));
         if (!entry) return;
         editor.value = entry.code;
+        selectedLang = entry.lang.toLowerCase();
+        document.querySelectorAll('.lang-tab').forEach(tab =>{
+          const active = tab.dataset.lang === selectedLang;
+          tab.classList.toggle('active', active);
+          tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
         updateEditor();
         currentResult = entry.result;
         renderResults(entry.result, entry.code);
