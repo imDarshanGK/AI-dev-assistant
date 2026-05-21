@@ -4,12 +4,18 @@ Run: cd backend && pytest -v
 """
 import pytest
 from fastapi.testclient import TestClient
-from app.main import _request_counts
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from app.main import app
+from app import main as app_main
 
-client = TestClient(app)
+client = TestClient(app_main.app)
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limit_state():
+    app_main._request_counts.clear()
+    yield
+    app_main._request_counts.clear()
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -152,6 +158,29 @@ def test_health():
     assert r.json()["status"] == "ok"
 
 
+def test_rate_limit_headers_on_success_response():
+    r = client.get("/")
+    assert r.status_code == 200
+    assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+    assert r.headers["X-RateLimit-Remaining"] == str(app_main.RATE_LIMIT)
+
+
+def test_rate_limit_returns_429_with_retry_after_header():
+    payload = {"code": "print('hello')", "language": "python"}
+
+    for expected_remaining in range(app_main.RATE_LIMIT - 1, -1, -1):
+        r = client.post("/debugging/", json=payload)
+        assert r.status_code == 200
+        assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+        assert r.headers["X-RateLimit-Remaining"] == str(expected_remaining)
+
+    r = client.post("/debugging/", json=payload)
+    assert r.status_code == 429
+    assert r.headers["Retry-After"] == str(app_main.RATE_LIMIT_WINDOW_SECONDS)
+    assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+    assert r.headers["X-RateLimit-Remaining"] == "0"
+
+
 # ── Explanation ───────────────────────────────────────────────────────────────
 def test_explanation_python():
     r = client.post("/explanation/", json={"code": PYTHON_CLEAN, "language": "python"})
@@ -194,7 +223,7 @@ def test_explanation_empty_code():
 def test_explanation_too_long():
     r = client.post("/explanation/", json={"code": "x" * 60000})
     assert r.status_code == 422
-    
+
 def test_explanation_typescript():
     r = client.post("/explanation/", json={"code": TS_CODE, "language": "typescript"})
     assert r.status_code == 200
@@ -212,6 +241,124 @@ def test_explanation_cpp():
     assert r.status_code == 200
     d = r.json()
     assert d["language"] == "C++"
+
+# ── Cyclomatic Complexity ─────────────────────────────────────────────────────
+def test_explanation_cyclomatic_fields_present():
+    r = client.post("/explanation/", json={"code": PYTHON_CLEAN, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert "cyclomatic_complexity" in d
+    assert "complexity_risk" in d
+    assert isinstance(d["cyclomatic_complexity"], int)
+    assert d["complexity_risk"] in ("Simple", "Moderate", "High", "Very High")
+
+
+def test_explanation_cyclomatic_simple():
+    code = "def add(a: int, b: int) -> int:\n    return a + b\n"
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["cyclomatic_complexity"] >= 1
+    assert d["complexity_risk"] == "Simple"
+
+
+def test_explanation_cyclomatic_moderate():
+    code = """
+def validate(x, y, z):
+    if x < 0:
+        return False
+    elif y < 0:
+        return False
+    elif z < 0:
+        return False
+    elif x > 100 or y > 100:
+        return False
+    else:
+        return True
+"""
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert 6 <= d["cyclomatic_complexity"] <= 10
+    assert d["complexity_risk"] == "Moderate"
+
+
+def test_explanation_cyclomatic_high():
+    code = """
+def process(items, config, flags):
+    if not items:
+        return []
+    elif not config:
+        return None
+    results = []
+    for item in items:
+        if item and flags.get("enabled"):
+            if item > 0 and item < 100:
+                results.append(item)
+            elif item >= 100 or item == -1:
+                results.append(item * 2)
+            else:
+                results.append(0)
+        elif item is None:
+            pass
+        else:
+            while item > 0:
+                item -= 1
+            results.append(item)
+    return results
+"""
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert 11 <= d["cyclomatic_complexity"] <= 20
+    assert d["complexity_risk"] == "High"
+
+
+def test_explanation_cyclomatic_very_high():
+    code = """
+def route(req, user, db, cache, logger):
+    if not req:
+        return None
+    elif not user:
+        return None
+    elif not db:
+        return None
+    if user.role == "admin" and user.active and not user.banned:
+        if req.method == "GET" or req.method == "HEAD":
+            if cache.has(req.path) and not req.bypass_cache:
+                return cache.get(req.path)
+            else:
+                result = db.query(req.path)
+                if result and not result.expired:
+                    cache.set(req.path, result)
+                    return result
+                elif result and result.expired:
+                    if cache.has_stale(req.path) or logger.warn("stale"):
+                        return cache.get_stale(req.path)
+                    else:
+                        return None
+                else:
+                    return None
+        elif req.method == "POST":
+            if user.can_write and req.body:
+                for item in req.body:
+                    if item.valid and item.size < 1024:
+                        db.insert(item)
+                    else:
+                        logger.warn("invalid item")
+            else:
+                return None
+        else:
+            return None
+    else:
+        return None
+"""
+    r = client.post("/explanation/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["cyclomatic_complexity"] >= 21
+    assert d["complexity_risk"] == "Very High"
+
 
 # ── Debugging ─────────────────────────────────────────────────────────────────
 def test_debug_detects_zero_division():
@@ -422,6 +569,6 @@ def test_unicode_code():
     assert r.status_code == 200
 
 
-    _request_counts.clear()
+def test_single_line_code():
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
