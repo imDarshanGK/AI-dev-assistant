@@ -3,6 +3,10 @@ QyverixAI — Backend API
 FastAPI application with advanced middleware, rate limiting, and full analysis engine.
 """
 
+# Ensure environment variables from project .env are loaded before other imports
+from dotenv import find_dotenv, load_dotenv
+load_dotenv(find_dotenv(filename=".env", usecwd=True), override=False)
+
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -15,6 +19,7 @@ from contextlib import asynccontextmanager
 
 from .routers import explanation, debugging, suggestions, analyze
 from .schemas import HealthResponse
+from .services import ai_provider
 
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
@@ -38,6 +43,10 @@ def check_rate_limit(ip: str) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("🚀 QyverixAI backend starting…")
+    try:
+        print(f"LLM enabled: {ai_provider.is_enabled()}, model: {getattr(ai_provider, 'LLM_MODEL', None)}")
+    except Exception:
+        print("LLM status: unavailable")
     yield
     print("🛑 QyverixAI backend shutting down…")
 
@@ -104,6 +113,8 @@ async def health_check():
         "version": "3.0.0",
         "message": "QyverixAI is healthy",
         "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+        "llm_enabled": ai_provider.is_enabled(),
+        "llm_model": getattr(ai_provider, "LLM_MODEL", None),
     }
 
 

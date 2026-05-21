@@ -39,6 +39,8 @@ class Issue(BaseModel):
     severity: str          # "error" | "warning" | "info"
     code_snippet: str | None = None
     code_context: str | None = None  # NEW: Formatted code with line numbers
+    ai_generated: bool = False          # NEW: Indicates if the issue was AI-generated
+    ai_cached: bool = False             # NEW: Indicates if the issue was from cache
 
 
 class DebuggingResponse(BaseModel):
@@ -84,3 +86,5 @@ class HealthResponse(BaseModel):
     version: str
     message: str
     endpoints: list[str] | None = None
+    llm_enabled: bool = False
+    llm_model: str | None = None

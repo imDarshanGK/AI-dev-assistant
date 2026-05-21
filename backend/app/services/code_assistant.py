@@ -352,6 +352,7 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
         A list of detected issues with metadata and suggestions.
     """
     from .line_utils import format_code_snippet
+    from . import ai_provider
 
     lines = code.splitlines()
     found: list[dict] = []
@@ -376,6 +377,20 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                 # NEW: Add code context with line number
                 code_context = format_code_snippet(code, [i], context_lines=2)
 
+                ai_generated = False
+                ai_cached = False
+
+                if ai_provider.is_enabled():
+                    llm_fix, from_cache = ai_provider.get_fix_for_issue(
+                        bug_type = bp.name,
+                        description = description,
+                        code_context = code_context,
+                    )
+                    if llm_fix:
+                        suggestion = llm_fix   #replacing general fix
+                        ai_generated = True
+                        ai_cached = from_cache
+
                 found.append({
                     "type": bp.name,
                     "line": i,
@@ -384,6 +399,8 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                     "severity": bp.severity,
                     "code_snippet": line.strip()[:120],
                     "code_context": code_context,
+                    "ai_generated": ai_generated,
+                    "ai_cached": ai_cached,
                 })
                 break  # one hit per pattern is enough
 

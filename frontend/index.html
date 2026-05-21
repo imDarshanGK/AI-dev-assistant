@@ -1030,6 +1030,22 @@
       line-height: 1.5;
     }
 
+    /* AI-generated fix badge */
+    .ai-badge {
+      display: inline-block;
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      margin-left: 8px;
+      border-radius: 99px;
+      background: rgba(124, 58, 237, 0.15);
+      color: var(--accent2);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      cursor: default;
+      vertical-align: middle;
+      letter-spacing: 0.03em;
+    }
+
     .issue-fix::before {
       content: '';
       flex-shrink: 0;
@@ -2025,7 +2041,7 @@
             <span id="apiStatusText">Disconnected</span>
           </div>
           <div class="api-config-inner">
-            <input type="text" id="apiUrl" placeholder="http://localhost:8000" value="https://qyverixai.onrender.com"
+            <input type="text" id="apiUrl" placeholder="http://localhost:8010" value="https://qyverixai.onrender.com"
               aria-label="Backend API URL" />
             <button class="btn-clear" id="pingBtn" aria-label="Ping API">Ping</button>
           </div>

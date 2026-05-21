@@ -425,3 +425,75 @@ def test_unicode_code():
     _request_counts.clear()
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
+
+
+# ── LLM Fix Generation Tests ──────────────────────────────────────────────────
+
+def test_llm_enabled_generates_fix(monkeypatch):
+    """When LLM is enabled and returns a fix, suggestion is replaced with LLM text."""
+    from app.services import ai_provider
+
+    monkeypatch.setattr(ai_provider, "is_enabled", lambda: True)
+    monkeypatch.setattr(
+        ai_provider,
+        "get_fix_for_issue",
+        lambda bug_type, description, code_context, ttl=3600: (
+            "Use ast.literal_eval() instead of eval() to safely parse expressions.",
+            False,
+        ),
+    )
+
+    r = client.post("/debugging/", json={"code": "x = eval(user_input)", "language": "python"})
+    assert r.status_code == 200
+    issues = r.json()["issues"]
+    eval_issue = next((i for i in issues if i["type"] == "Eval Usage"), None)
+    assert eval_issue is not None, "Eval Usage issue not found"
+    assert eval_issue["suggestion"] == "Use ast.literal_eval() instead of eval() to safely parse expressions."
+    assert eval_issue["ai_generated"] is True
+    assert eval_issue["ai_cached"] is False
+
+
+def test_llm_fallback_to_rule_on_failure(monkeypatch):
+    """When LLM returns None, the original rule-based suggestion is preserved."""
+    from app.services import ai_provider
+
+    monkeypatch.setattr(ai_provider, "is_enabled", lambda: True)
+    monkeypatch.setattr(
+        ai_provider,
+        "get_fix_for_issue",
+        lambda bug_type, description, code_context, ttl=3600: (None, False),
+    )
+
+    r = client.post("/debugging/", json={"code": "x = eval(user_input)", "language": "python"})
+    assert r.status_code == 200
+    issues = r.json()["issues"]
+    eval_issue = next((i for i in issues if i["type"] == "Eval Usage"), None)
+    assert eval_issue is not None, "Eval Usage issue not found"
+    # Must contain the original static suggestion text
+    assert "ast.literal_eval" in eval_issue["suggestion"]
+    assert eval_issue["ai_generated"] is False
+
+
+def test_llm_cache_prevents_duplicate_calls(monkeypatch):
+    """Identical code submitted twice should only trigger one real LLM call."""
+    from app.services import ai_provider
+
+    call_count = {"n": 0}
+
+    def fake_call_llm_sync(system: str, user: str) -> str:
+        call_count["n"] += 1
+        return "Cached LLM fix text"
+
+    monkeypatch.setattr(ai_provider, "is_enabled", lambda: True)
+    monkeypatch.setattr(ai_provider, "call_llm_sync", fake_call_llm_sync)
+    # Clear the module-level cache so previous test runs don't interfere
+    ai_provider._LLM_FIX_CACHE.clear()
+
+    code = "x = eval(user_input)"
+    client.post("/debugging/", json={"code": code, "language": "python"})
+    client.post("/debugging/", json={"code": code, "language": "python"})
+
+    # The underlying HTTP call must have happened exactly once — second request hit cache
+    assert call_count["n"] == 1, (
+        f"Expected 1 LLM call (second should hit cache), got {call_count['n']}"
+    )
