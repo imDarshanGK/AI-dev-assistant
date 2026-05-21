@@ -13,9 +13,10 @@ client = TestClient(app_main.app)
 
 @pytest.fixture(autouse=True)
 def reset_rate_limit_state():
-    app_main._request_counts.clear()
-    yield
-    app_main._request_counts.clear()
+    from app.services.rate_limiter import default_limiter
+
+    # Clear in-memory fallback state between tests
+    default_limiter._memory_store.clear()
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -157,28 +158,43 @@ def test_health():
     assert r.status_code == 200
     assert r.json()["status"] == "ok"
 
-
 def test_rate_limit_headers_on_success_response():
+    from app.services.rate_limiter import default_limiter
+
     r = client.get("/")
+
     assert r.status_code == 200
-    assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
-    assert r.headers["X-RateLimit-Remaining"] == str(app_main.RATE_LIMIT)
+    assert r.headers["X-RateLimit-Limit"] == str(default_limiter.max_requests)
+    assert r.headers["X-RateLimit-Remaining"] == str(default_limiter.max_requests)
+
 
 
 def test_rate_limit_returns_429_with_retry_after_header():
+    from app.services.rate_limiter import default_limiter
+
     payload = {"code": "print('hello')", "language": "python"}
 
-    for expected_remaining in range(app_main.RATE_LIMIT - 1, -1, -1):
+    for expected_remaining in range(
+        default_limiter.max_requests - 1,
+        -1,
+        -1
+    ):
         r = client.post("/debugging/", json=payload)
+
         assert r.status_code == 200
-        assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+        assert r.headers["X-RateLimit-Limit"] == str(default_limiter.max_requests)
         assert r.headers["X-RateLimit-Remaining"] == str(expected_remaining)
 
     r = client.post("/debugging/", json=payload)
+
     assert r.status_code == 429
-    assert r.headers["Retry-After"] == str(app_main.RATE_LIMIT_WINDOW_SECONDS)
-    assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+    assert r.headers["Retry-After"] == str(default_limiter.window_seconds)
+    assert r.headers["X-RateLimit-Limit"] == str(default_limiter.max_requests)
     assert r.headers["X-RateLimit-Remaining"] == "0"
+
+
+
+
 
 
 # ── Explanation ───────────────────────────────────────────────────────────────
@@ -554,11 +570,12 @@ def test_full_analyze():
     assert d["analysis_time_ms"] is not None
 
 def test_full_analyze_uses_cache_for_identical_inputs():
-    from app.main import _request_counts
+    from app.services.rate_limiter import default_limiter
     from app.services.cache import cache
 
-    _request_counts.clear()
+    default_limiter._memory_store.clear()
     cache.clear_memory()
+
     payload = {"code": PYTHON_BUGGY, "language": "python"}
 
     first = client.post("/analyze/", json=payload)
@@ -569,13 +586,18 @@ def test_full_analyze_uses_cache_for_identical_inputs():
     assert first.headers["X-Cache"] == "MISS"
     assert second.headers["X-Cache"] == "HIT"
     assert second.json() == first.json()
-    _request_counts.clear()
+
+    default_limiter._memory_store.clear()
+
 
 def test_analyze_cache_expires(monkeypatch):
     from app.services import cache as cache_module
     from app.services.cache import cache
+    from app.services.rate_limiter import default_limiter
 
+    default_limiter._memory_store.clear()
     cache.clear_memory()
+    
     payload = {"code": PYTHON_BUGGY, "language": "python"}
     start = 1_700_000_000
 

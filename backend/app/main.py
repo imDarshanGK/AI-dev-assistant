@@ -3,6 +3,7 @@ QyverixAI — Backend API
 FastAPI application with advanced middleware, rate limiting, and full analysis engine.
 """
 
+from app.services.rate_limiter import default_limiter
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -10,45 +11,18 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 import time
 import os
-from collections import defaultdict
 from contextlib import asynccontextmanager
 
 from .routers import explanation, debugging, suggestions, analyze
 from .schemas import HealthResponse
 
 
-# ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
-RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
-RATE_LIMIT_WINDOW_SECONDS = 60
-_request_counts: dict[str, list[float]] = defaultdict(list)
-
-
-def check_rate_limit(ip: str) -> int:
-    """Record a request and return the remaining requests in the current window."""
-    now = time.time()
-    _request_counts[ip] = [
-        t for t in _request_counts[ip] if now - t < RATE_LIMIT_WINDOW_SECONDS
-    ]
-    if len(_request_counts[ip]) >= RATE_LIMIT:
-        return -1
-    _request_counts[ip].append(now)
-    return RATE_LIMIT - len(_request_counts[ip])
-
-
-def rate_limit_headers(remaining: int) -> dict[str, str]:
-    """Build rate limit headers for API responses."""
-    return {
-        "X-RateLimit-Limit": str(RATE_LIMIT),
-        "X-RateLimit-Remaining": str(max(remaining, 0)),
-    }
-
-
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🚀 QyverixAI backend starting…")
+    print("QyverixAI backend starting…")
     yield
-    print("🛑 QyverixAI backend shutting down…")
+    print("QyverixAI backend shutting down…")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -76,28 +50,31 @@ app.add_middleware(
 async def add_process_time_header(request: Request, call_next):
     start = time.perf_counter()
     ip = request.client.host if request.client else "unknown"
-    remaining = RATE_LIMIT
+    remaining = default_limiter.max_requests
 
-    # Apply rate limiting to analysis endpoints only
+    # Apply Redis-backed distributed rate limiting to analysis endpoints only
     if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
-        remaining = check_rate_limit(ip)
-        if remaining < 0:
+        allowed, remaining = default_limiter.is_allowed(ip)
+        if not allowed:
             elapsed = (time.perf_counter() - start) * 1000
-            headers = rate_limit_headers(0)
-            headers["Retry-After"] = str(RATE_LIMIT_WINDOW_SECONDS)
-            headers["X-Process-Time-Ms"] = f"{elapsed:.2f}"
-            headers["X-QyverixAI-Version"] = "3.0.0"
             return JSONResponse(
                 status_code=429,
                 content={
-                    "detail": f"Rate limit exceeded. Max {RATE_LIMIT} requests/minute."
+                    "detail": f"Rate limit exceeded. Max {default_limiter.max_requests} requests per {default_limiter.window_seconds}s."
                 },
-                headers=headers,
+                headers={
+                    "X-RateLimit-Limit": str(default_limiter.max_requests),
+                    "X-RateLimit-Remaining": "0",
+                    "Retry-After": str(default_limiter.window_seconds),
+                    "X-Process-Time-Ms": f"{elapsed:.2f}",
+                    "X-QyverixAI-Version": "3.0.0",
+                },
             )
 
     response = await call_next(request)
     elapsed = (time.perf_counter() - start) * 1000
-    response.headers.update(rate_limit_headers(remaining))
+    response.headers["X-RateLimit-Limit"] = str(default_limiter.max_requests)
+    response.headers["X-RateLimit-Remaining"] = str(remaining)
     response.headers["X-Process-Time-Ms"] = f"{elapsed:.2f}"
     response.headers["X-QyverixAI-Version"] = "3.0.0"
     return response
