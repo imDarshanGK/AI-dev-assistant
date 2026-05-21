@@ -103,6 +103,16 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 
+@app.middleware("http")
+async def add_cache_header(request: Request, call_next):
+    response = await call_next(request)
+
+    if request.url.path == "/analyze/" and request.method == "POST":
+        response.headers.setdefault("X-Cache", "MISS")
+
+    return response
+
+
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
 app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])

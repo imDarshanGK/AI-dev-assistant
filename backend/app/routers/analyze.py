@@ -6,9 +6,10 @@ import zipfile
 from io import BytesIO
 from pathlib import PurePosixPath
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, Response, UploadFile
 
 from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
+from ..services.cache import cache
 from ..services.code_assistant import full_analysis
 
 router = APIRouter()
@@ -83,8 +84,18 @@ def _add_skipped(skipped_files: list[str], reason: str) -> None:
 
 
 @router.post("/", response_model=AnalyzeResponse, summary="Run full analysis (explain + debug + suggest)")
-async def analyze(req: CodeRequest):
-    return full_analysis(req.code, req.language)
+async def analyze(req: CodeRequest, response: Response):
+    cache_input = f"{req.language or 'auto'}\n{req.code}"
+    cached_payload = cache.get("analyze:v1", cache_input)
+
+    if cached_payload is not None:
+        response.headers["X-Cache"] = "HIT"
+        return cached_payload
+
+    payload = full_analysis(req.code, req.language)
+    cache.set("analyze:v1", cache_input, payload)
+    response.headers["X-Cache"] = "MISS"
+    return payload
 
 
 @router.post("/zip/", response_model=ZipAnalyzeResponse, summary="Run full analysis for source files in a ZIP")
