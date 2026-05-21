@@ -2,6 +2,7 @@
 QyverixAI — Test Suite
 Run: cd backend && pytest -v
 """
+import json
 import pytest
 from fastapi.testclient import TestClient
 from app.main import _request_counts
@@ -425,3 +426,94 @@ def test_unicode_code():
     _request_counts.clear()
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
+
+
+# ── Streaming ─────────────────────────────────────────────────────────────────
+def _parse_sse_events(text: str) -> list[dict]:
+    """Parse SSE response text into a list of event dicts."""
+    events = []
+    for line in text.splitlines():
+        if line.startswith("data: "):
+            try:
+                events.append(json.loads(line[6:]))
+            except json.JSONDecodeError:
+                pass
+    return events
+
+
+def test_stream_returns_event_stream_content_type():
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    assert "text/event-stream" in r.headers.get("content-type", "")
+
+
+def test_stream_emits_all_sections():
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    events = _parse_sse_events(r.text)
+    types = [e["type"] for e in events]
+    assert "explanation" in types
+    assert "debugging" in types
+    assert "suggestions" in types
+    assert "done" in types
+
+
+def test_stream_explanation_shape():
+    r = client.post("/analyze/stream", json={"code": PYTHON_CLEAN, "language": "python"})
+    assert r.status_code == 200
+    events = _parse_sse_events(r.text)
+    exp = next(e["data"] for e in events if e["type"] == "explanation")
+    assert exp["language"] == "Python"
+    assert "summary" in exp
+    assert isinstance(exp["key_points"], list)
+
+
+def test_stream_debugging_shape():
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    events = _parse_sse_events(r.text)
+    dbg = next(e["data"] for e in events if e["type"] == "debugging")
+    assert "issues" in dbg
+    assert "clean" in dbg
+    assert isinstance(dbg["error_count"], int)
+
+
+def test_stream_suggestions_shape():
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    events = _parse_sse_events(r.text)
+    sugg = next(e["data"] for e in events if e["type"] == "suggestions")
+    assert "suggestions" in sugg
+    assert 0 <= sugg["overall_score"] <= 100
+    assert sugg["grade"] in ("A", "B", "C", "D", "F")
+
+
+def test_stream_done_has_timing():
+    r = client.post("/analyze/stream", json={"code": PYTHON_CLEAN})
+    assert r.status_code == 200
+    events = _parse_sse_events(r.text)
+    done = next(e for e in events if e["type"] == "done")
+    assert done["provider"] == "rule-based"
+    assert isinstance(done["analysis_time_ms"], float)
+
+
+def test_stream_section_order():
+    """Sections must arrive in the order: explanation → debugging → suggestions → done."""
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    events = _parse_sse_events(r.text)
+    types = [e["type"] for e in events]
+    assert types == ["explanation", "debugging", "suggestions", "done"]
+
+
+def test_stream_empty_code_rejected():
+    r = client.post("/analyze/stream", json={"code": "   "})
+    assert r.status_code == 422
+
+
+def test_stream_detects_language_from_hint():
+    r = client.post("/analyze/stream", json={"code": JS_CODE, "language": "javascript"})
+    assert r.status_code == 200
+    events = _parse_sse_events(r.text)
+    exp = next(e["data"] for e in events if e["type"] == "explanation")
+    assert exp["language"] == "JavaScript"
