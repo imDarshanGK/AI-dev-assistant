@@ -3,7 +3,7 @@ QyverixAI — Backend API
 FastAPI application with advanced middleware, rate limiting, and full analysis engine.
 """
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
@@ -19,19 +19,28 @@ from .schemas import HealthResponse
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
+RATE_LIMIT_WINDOW_SECONDS = 60
 _request_counts: dict[str, list[float]] = defaultdict(list)
 
 
-def check_rate_limit(ip: str) -> None:
+def check_rate_limit(ip: str) -> int:
+    """Record a request and return the remaining requests in the current window."""
     now = time.time()
-    window = 60.0
-    _request_counts[ip] = [t for t in _request_counts[ip] if now - t < window]
+    _request_counts[ip] = [
+        t for t in _request_counts[ip] if now - t < RATE_LIMIT_WINDOW_SECONDS
+    ]
     if len(_request_counts[ip]) >= RATE_LIMIT:
-        raise HTTPException(
-            status_code=429,
-            detail=f"Rate limit exceeded. Max {RATE_LIMIT} requests/minute.",
-        )
+        return -1
     _request_counts[ip].append(now)
+    return RATE_LIMIT - len(_request_counts[ip])
+
+
+def rate_limit_headers(remaining: int) -> dict[str, str]:
+    """Build rate limit headers for API responses."""
+    return {
+        "X-RateLimit-Limit": str(RATE_LIMIT),
+        "X-RateLimit-Remaining": str(max(remaining, 0)),
+    }
 
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
@@ -67,13 +76,28 @@ app.add_middleware(
 async def add_process_time_header(request: Request, call_next):
     start = time.perf_counter()
     ip = request.client.host if request.client else "unknown"
+    remaining = RATE_LIMIT
 
     # Apply rate limiting to analysis endpoints only
-    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/") and ip != "testclient":
-        check_rate_limit(ip)
+    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
+        remaining = check_rate_limit(ip)
+        if remaining < 0:
+            elapsed = (time.perf_counter() - start) * 1000
+            headers = rate_limit_headers(0)
+            headers["Retry-After"] = str(RATE_LIMIT_WINDOW_SECONDS)
+            headers["X-Process-Time-Ms"] = f"{elapsed:.2f}"
+            headers["X-QyverixAI-Version"] = "3.0.0"
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "detail": f"Rate limit exceeded. Max {RATE_LIMIT} requests/minute."
+                },
+                headers=headers,
+            )
 
     response = await call_next(request)
     elapsed = (time.perf_counter() - start) * 1000
+    response.headers.update(rate_limit_headers(remaining))
     response.headers["X-Process-Time-Ms"] = f"{elapsed:.2f}"
     response.headers["X-QyverixAI-Version"] = "3.0.0"
     return response
