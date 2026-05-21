@@ -73,6 +73,8 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "cpp": "C++", "c++": "C++", "cxx": "C++",
             "php": "PHP",
             "rust": "Rust", "rs": "Rust",
+            "go": "Go", "golang": "Go",
+
         }
         if normalized in mapping:
             return mapping[normalized]
