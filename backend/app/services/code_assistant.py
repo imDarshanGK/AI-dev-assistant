@@ -12,30 +12,45 @@ from dataclasses import dataclass, field
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
-    "Python": [
-        r"\bdef\s+\w+\s*\(", r"\bimport\s+\w+", r"\bprint\s*\(",
-        r":\s*$", r"\belif\b", r"\bself\b", r"#.*", r"\bNone\b",
-    ],
-    "JavaScript": [
-        r"\bconst\b|\blet\b|\bvar\b", r"function\s+\w+\s*\(",
-        r"=>\s*[{(]", r"console\.log\(", r"require\(", r"export\s+(default|const)",
-    ],
-    "TypeScript": [
-        r":\s*(string|number|boolean|any|void|never)\b",
-        r"\binterface\s+\w+", r"\btype\s+\w+\s*=",
-        r"<\w+>", r"as\s+\w+", r"readonly\s+\w+",
-    ],
-    "Java": [
-        r"\bpublic\s+(class|void|static)\b", r"\bSystem\.out\.print",
-        r"\bimport\s+java\.", r"@Override", r"\bnew\s+\w+\s*\(",
-    ],
-    "C++": [
+        "C++": [
         r"#include\s*<", r"\bstd::\w+", r"\bcout\s*<<",
         r"\bint\s+main\s*\(", r"::\w+",
     ],
-        "Go": [
-        r"\bfunc\s+\w+\s*\(", r"\bpackage\s+\w+", r"\bimport\s+\"",
-        r"fmt\.Print", r"\bgo\s+func\b", r":=",
+
+    "Go": [
+        r"\bfunc\s+\w+\s*\(",
+        r"\bpackage\s+\w+",
+        r"\bimport\s+\"",
+        r"fmt\.Print",
+        r"\bgo\s+func\b",
+        r":=",
+    ],
+
+    "PHP": [
+        r"<\?php",
+        r"\$\w+\s*=",
+        r"\becho\s+",
+        r"\bfunction\s+\w+\s*\(",
+        r"\barray\s*\(",
+        r"->\w+",
+    ],
+
+    "Rust": [
+        r"\bfn\s+\w+\s*\(",
+        r"\blet\s+mut\b",
+        r"\buse\s+std::",
+        r"println!\(",
+        r"\bimpl\b",
+        r"\bOption<\w+>",
+    ],
+
+    "Kotlin": [
+        r"\bfun\s+\w+\s*\(",
+        r"\bval\s+\w+",
+        r"\bvar\s+\w+",
+        r"println\s*\(",
+        r"data\s+class\s+\w+",
+        r":\s*\w+\s*\?",
     ],
 }
 
