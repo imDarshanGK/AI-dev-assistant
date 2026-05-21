@@ -49,6 +49,22 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"\bimpl\b",
         r"\bOption<\w+>",
     ],
+    "Kotlin": [
+        r"\bfun\s+\w+\s*\(",
+        r"\bval\s+\w+",
+        r"\bvar\s+\w+",
+        r"println\s*\(",
+        r"data\s+class\s+\w+",
+        r":\s*\w+\s*\?",
+    ],
+    "Go": [
+        r"\bfunc\s+\w+\s*\(",
+        r"\bpackage\s+\w+",
+        r"\bimport\s+\"",
+        r"\bfmt\.Print",
+        r":=\s*",
+        r"\bgoroutine\b|\bgo\s+\w+\s*\(",
+    ],
 }
 
 
