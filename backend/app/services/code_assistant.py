@@ -95,6 +95,41 @@ def detect_language(code: str, hint: str | None = None) -> str:
     return best if scores[best] > 0 else "Unknown"
 
 
+# ── Cyclomatic Complexity ──────────────────────────────────────────────────────
+_DECISION_RE = re.compile(
+    r"\b(if|elif|else|for|while|and|or|case|catch|except)\b|\?(?![?:.])",
+    re.MULTILINE,
+)
+
+_RISK_THRESHOLDS: tuple[tuple[int, str], ...] = (
+    (5,  "Simple"),
+    (10, "Moderate"),
+    (20, "High"),
+)
+
+
+def calculate_cyclomatic_complexity(code: str, language: str) -> tuple[int, str]:
+    """Calculate the cyclomatic complexity of a code snippet.
+
+    Uses a simplified McCabe formula: M = decision points + 1, where decision
+    points are control-flow keywords (if, elif, else, for, while, and, or,
+    case, catch, except) and ternary operators.
+
+    Args:
+        code: The source code to analyse.
+        language: The programming language of the code.
+
+    Returns:
+        A tuple of (score, risk) where risk is one of "Simple", "Moderate",
+        "High", or "Very High".
+    """
+    score = len(_DECISION_RE.findall(code)) + 1
+    for threshold, label in _RISK_THRESHOLDS:
+        if score <= threshold:
+            return score, label
+    return score, "Very High"
+
+
 # ── Complexity Estimation ──────────────────────────────────────────────────────
 def estimate_complexity(code: str) -> str:
     """Estimate the overall complexity level of the given code snippet.
@@ -192,6 +227,30 @@ BUG_PATTERNS: list[BugPattern] = [
                "`assert` statements are stripped when Python runs with `-O` flag.",
                "Use explicit `if not condition: raise ValueError(...)` instead.",
                "warning", ["Python"]),
+        BugPattern("Typeof Equality Issue", r'typeof\s+\w+\s*==\s*["\']',
+               "Using == in typeof checks may cause coercion issues.",
+               "Use === instead of == for type comparisons.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("setTimeout String Usage", r'setTimeout\s*\(\s*["\']|setInterval\s*\(\s*["\']',
+               "Passing strings to setTimeout/setInterval behaves like eval().",
+               "Pass a function reference instead of a string.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Async Await Without Try Catch", r'await\s+\w+\(',
+               "Await used without visible error handling.",
+               "Wrap async code inside try/catch blocks.",
+               "info", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Unsafe Window Location Assignment", r'window\.location\s*=',
+               "Direct window.location assignment may allow open redirects.",
+               "Validate URLs before redirecting users.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Prototype Pollution Risk", r'__proto__|\["__proto__"\]',
+               "Prototype pollution vulnerability risk detected.",
+               "Avoid modifying __proto__; use Object.create(null).",
+               "error", ["JavaScript", "TypeScript"]),
 
     # ── JavaScript / TypeScript ──
     BugPattern("Var Usage", r"\bvar\s+\w+",
@@ -575,6 +634,7 @@ def run_explanation(code: str, language: str) -> dict:
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
     complexity = estimate_complexity(code)
+    cyclomatic_complexity, complexity_risk = calculate_cyclomatic_complexity(code, language)
 
     func_names = re.findall(
         r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(",
@@ -626,6 +686,8 @@ def run_explanation(code: str, language: str) -> dict:
         "line_count": len(lines),
         "function_count": len(funcs),
         "class_count": len(class_names),
+        "cyclomatic_complexity": cyclomatic_complexity,
+        "complexity_risk": complexity_risk,
     }
 
 
