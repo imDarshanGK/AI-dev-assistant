@@ -38,6 +38,7 @@ class Issue(BaseModel):
     suggestion: str
     severity: str          # "error" | "warning" | "info"
     code_snippet: str | None = None
+    code_context: str | None = None  # NEW: Formatted code with line numbers
 
 
 class DebuggingResponse(BaseModel):
@@ -53,6 +54,9 @@ class DebuggingResponse(BaseModel):
 class Suggestion(BaseModel):
     category: str
     description: str
+    line_number: int | None = None              # NEW
+    line_range: list[int] | None = None         # NEW (for multi-line issues)
+    code_context: str | None = None
     example: str | None = None
     priority: str          # "high" | "medium" | "low"
 

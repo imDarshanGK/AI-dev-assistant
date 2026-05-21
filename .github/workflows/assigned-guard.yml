@@ -1,0 +1,147 @@
+name: Already Assigned Guard
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  guard:
+    # Ignore pull request comments
+    if: github.event.issue.pull_request == null
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check assignment requests
+        uses: actions/github-script@v7
+
+        with:
+          script: |
+            // Safety guards
+            if (!context.payload.issue) return;
+            if (!context.payload.comment) return;
+
+            const issue = context.payload.issue;
+
+            const comment =
+              context.payload.comment.body
+                .toLowerCase();
+
+            const sender =
+              context.payload.comment.user.login;
+
+            // Ignore maintainer and bots
+            const ignoredUsers = [
+              'imDarshanGK',
+              'github-actions[bot]'
+            ];
+
+            if (ignoredUsers.includes(sender)) {
+              return;
+            }
+
+            // Detect assignment request phrases
+            const assignmentPhrases = [
+              'can i work',
+              'can i take',
+              'assign me',
+              'assign this',
+              'i want to work',
+              'i would like to work',
+              'can i do this',
+              'please assign',
+              'i want to take',
+              'can i pick',
+              'i want this issue',
+              'can i fix this',
+              'may i work'
+            ];
+
+            const isAskingForAssignment =
+              assignmentPhrases.some(p =>
+                comment.includes(p)
+              );
+
+            if (!isAskingForAssignment) {
+              return;
+            }
+
+            // Prevent duplicate bot replies
+            const comments =
+              await github.rest.issues.listComments({
+                ...context.repo,
+                issue_number: issue.number
+              });
+
+            const alreadyReplied =
+              comments.data.some(c =>
+                c.user.login === 'github-actions[bot]' &&
+                c.body.includes(`@${sender}`)
+              );
+
+            if (alreadyReplied) {
+              return;
+            }
+
+            // Current assignees
+            const assignees = issue.assignees || [];
+
+            // Issue already assigned
+            if (assignees.length > 0) {
+
+              const assignedTo = assignees
+                .map(a => `@${a.login}`)
+                .join(', ');
+
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: issue.number,
+
+                body: `Hi @${sender} 👋
+
+This issue is already assigned to ${assignedTo}.
+
+Please check the assignees section before requesting assignment.
+
+You can explore:
+- Good First Issues:
+  https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue
+- All Open Issues:
+  https://github.com/imDarshanGK/AI-dev-assistant/issues
+
+Before contributing, please read:
+https://github.com/imDarshanGK/AI-dev-assistant/blob/main/CONTRIBUTING.md
+
+Thank you for your interest in QyverixAI 🚀`
+              });
+
+              return;
+            }
+
+            // Issue available
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: issue.number,
+
+              body: `Hi @${sender} 👋
+
+This issue is currently available.
+
+To get assigned:
+- Comment \`/assign\`
+- Or wait for a maintainer to assign you manually
+
+Before starting:
+- Read CONTRIBUTING.md
+- Make sure you can complete the issue within 7 days
+
+Contribution Guide:
+https://github.com/imDarshanGK/AI-dev-assistant/blob/main/CONTRIBUTING.md
+
+Good luck and happy coding 💪`
+            });
