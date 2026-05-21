@@ -657,6 +657,23 @@
       color: var(--text3)
     }
 
+    #charCount.warning {
+      color: #d97706;
+    }
+
+    #charCount.error {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    #charCount.warning::after {
+      content: " ⚠";
+    }
+
+    #charCount.error::after {
+      content: " 🚫";
+    }
+
     /* ── Mode Selector ── */
     .mode-row {
       display: flex;
@@ -1971,6 +1988,7 @@
 
         <div class="editor-footer">
           <span id="charCount">0 chars · 0 lines</span>
+          <span id="charWarning"></span>
           <span>Ctrl+Enter to analyze</span>
         </div>
 
@@ -2260,9 +2278,30 @@
         const lines = val ? val.split('\n').length : 0;
         const chars = val.length;
         const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
+        const LIMIT = 50000;
+        const WARN_AT = 45000;
         charCount.textContent = val
           ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
           : 'Paste or type code to begin';
+        charCount.className = '';
+        if (chars > LIMIT) {
+          charCount.classList.add('error');
+        } else if (chars > WARN_AT) {
+          charCount.classList.add('warning');
+        }
+        const warnEl = document.getElementById('charWarning');
+        if (warnEl) {
+          if (chars > LIMIT) {
+            warnEl.textContent = 'Code exceeds 50K limit — will be truncated on submit';
+            warnEl.style.color = '#dc2626';
+          } else if (chars > WARN_AT) {
+            const remaining = (LIMIT - chars).toLocaleString();
+            warnEl.textContent = 'Approaching 50K limit (' + remaining + ' chars remaining)';
+            warnEl.style.color = '#d97706';
+          } else {
+            warnEl.textContent = '';
+          }
+        }
         const lineCount = Math.max(lines, 1);
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
@@ -2544,6 +2583,10 @@
       async function doAnalyze() {
         const code = editor.value.trim();
         if (!code) { toast('Please paste some code first.', 'error'); return; }
+        if (code.length > 50000) {
+          toast('Code exceeds 50,000 character limit and will be truncated.', 'error');
+          return;
+        }
 
         const base = apiUrlInput.value.replace(/\/$/, '');
         const endpointMap = {
