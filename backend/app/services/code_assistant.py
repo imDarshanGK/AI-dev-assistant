@@ -391,18 +391,10 @@ BUG_PATTERNS: list[BugPattern] = [
 
 
 def run_bug_detection(code: str, language: str) -> list[dict]:
-    """Run rule-based bug detection for the provided source code.
+    """Run rule-based bug detection for the provided source code."""
 
-    Args:
-        code: The source code to analyse.
-        language: The detected or selected programming language.
-
-    Returns:
-        A list of detected issues with metadata and suggestions.
-    """
     from .line_utils import format_code_snippet
 
-    lines = code.splitlines()
     found: list[dict] = []
     seen: set[str] = set()
 
@@ -410,34 +402,35 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
         if language not in bp.languages and "All" not in bp.languages:
             continue
 
-        for i, line in enumerate(lines, start=1):
-            match = re.search(bp.pattern, code, re.IGNORECASE | re.MULTILINE)
+        match = re.search(bp.pattern, code, re.IGNORECASE | re.MULTILINE)
 
-            if match:
-                match_line = code[:match.start()].count("\n") + 1
-                key = f"{bp.name}:{match_line}"
+        if match:
+            match_line = code[:match.start()].count("\n") + 1
+            key = f"{bp.name}:{match_line}"
 
-                if key in seen:
-                    continue
-                seen.add(key)
+            if key in seen:
+                continue
 
-                # Format divisor hint for ZeroDivisionError
-                description = bp.description
-                suggestion = bp.suggestion
+            seen.add(key)
 
-                # NEW: Add code context with line number
-                code_context = format_code_snippet(code, [i], context_lines=2)
+            description = bp.description
+            suggestion = bp.suggestion
 
-                found.append({
-                    "type": bp.name,
-                    "line": i,
-                    "description": description,
-                    "suggestion": suggestion,
-                    "severity": bp.severity,
-                    "code_snippet": line.strip()[:120],
-                    "code_context": code_context,
-                })
-                break  # one hit per pattern is enough
+            code_context = format_code_snippet(
+                code,
+                [match_line],
+                context_lines=2
+            )
+
+            found.append({
+                "type": bp.name,
+                "line": match_line,
+                "description": description,
+                "suggestion": suggestion,
+                "severity": bp.severity,
+                "code_snippet": code.splitlines()[match_line - 1].strip()[:120],
+                "code_context": code_context,
+            })
 
     return found
 
