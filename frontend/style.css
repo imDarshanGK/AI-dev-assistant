@@ -577,3 +577,77 @@ body {
   .features, .app-section { padding: 2rem 1rem; }
   .section-label { padding: 0 1rem; }
 }
+@media (max-width: 480px) {
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Hero buttons */
+  .hero-cta {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .hero-cta .btn-primary,
+  .hero-cta .btn-ghost {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Main app layout */
+  .app-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Header actions */
+  .panel-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Tabs */
+  .mode-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tab {
+    flex: 1 1 100%;
+  }
+
+  /* API row */
+  .api-url-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .api-input {
+    width: 100%;
+  }
+
+  /* Editor */
+  .code-editor {
+    min-height: 300px;
+    font-size: 14px;
+  }
+
+  /* Footer */
+  .footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    padding: 1.5rem 1rem;
+  }
+
+  .footer-left,
+  .footer-right {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
