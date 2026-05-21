@@ -4,7 +4,6 @@ Run: cd backend && pytest -v
 """
 import pytest
 from fastapi.testclient import TestClient
-
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app import main as app_main
@@ -29,6 +28,17 @@ function greet($user) {
 }
 $arr = array(1, 2, 3);
 $obj->method();
+?>
+"""
+
+PHP_BUGGY = """
+<?php
+$id = $_GET['id'];
+$result = mysql_query("SELECT * FROM users WHERE id=" . $id);
+echo $_POST['username'];
+extract($_GET);
+$$varname = "dynamic";
+$data = @file_get_contents($url);
 ?>
 """
 
@@ -124,6 +134,16 @@ fn main() {
 }
 """
 
+KOTLIN_CODE = """
+fun greet(name: String): String {
+    return "Hello $name"
+}
+val message: String? = null
+var count = 0
+data class User(val name: String, val age: Int)
+println("Hello World")
+"""
+
 # ── Health ────────────────────────────────────────────────────────────────────
 def test_root():
     r = client.get("/")
@@ -204,6 +224,23 @@ def test_explanation_too_long():
     r = client.post("/explanation/", json={"code": "x" * 60000})
     assert r.status_code == 422
 
+def test_explanation_typescript():
+    r = client.post("/explanation/", json={"code": TS_CODE, "language": "typescript"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "TypeScript"
+
+def test_explanation_java():
+    r = client.post("/explanation/", json={"code": JAVA_CODE, "language": "java"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Java"
+
+def test_explanation_cpp():
+    r = client.post("/explanation/", json={"code": CPP_CODE, "language": "cpp"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "C++"
 
 # ── Debugging ─────────────────────────────────────────────────────────────────
 def test_debug_detects_zero_division():
@@ -258,11 +295,31 @@ def test_debug_cpp():
     d = r.json()
     assert len(d["issues"]) > 0
 
+def test_explanation_php():
+    r = client.post("/explanation/", json={"code": PHP_CODE, "language": "php"})
+    assert r.status_code == 200
+    assert r.json()["language"] == "PHP"
+
+def test_explanation_detects_php_without_hint():
+    r = client.post("/explanation/", json={"code": PHP_CODE})
+    assert r.status_code == 200
+    assert r.json()["language"] == "PHP"
+
 def test_debug_php():
     r = client.post("/debugging/", json={"code": PHP_CODE, "language": "php"})
     assert r.status_code == 200
     d = r.json()
     assert d is not None
+
+def test_debug_php_buggy_patterns():
+    r = client.post("/debugging/", json={"code": PHP_BUGGY, "language": "php"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "PHP MySQL Deprecated" in types
+    assert "PHP XSS" in types
+    assert "PHP Extract" in types
+    assert "PHP Variable Variables" in types
+    assert "PHP Error Suppression" in types
 
 def test_debug_rust():
     r = client.post("/debugging/", json={"code": RUST_CODE, "language": "rust"})
@@ -279,6 +336,12 @@ def test_debug_rust_buggy_patterns():
     assert "Expect Usage" in types
     assert "Clone Overuse" in types
 
+def test_debug_kotlin():
+    r = client.post("/debugging/", json={"code": KOTLIN_CODE, "language": "kotlin"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d is not None
+
 def test_debug_issue_has_required_fields():
     r = client.post("/debugging/", json={"code": PYTHON_BUGGY})
     assert r.status_code == 200
@@ -289,7 +352,42 @@ def test_debug_issue_has_required_fields():
         assert "severity" in issue
         assert issue["severity"] in ("error", "warning", "info")
 
+def test_js_ts_security_patterns():
+    code = """
+if (typeof x == "1") {
+    console.log("equal");
+}
 
+setTimeout("alert('hack')", 1000);
+
+async function load() {
+    await fetch("/api");
+}
+
+window.location = userInput;
+
+obj["__proto__"] = {};
+"""
+
+    r = client.post(
+        "/debugging/",
+        json={
+            "code": code,
+            "language": "javascript"
+        }
+    )
+
+    assert r.status_code == 200
+
+    data = r.json()
+
+    issue_types = [issue["type"] for issue in data["issues"]]
+
+    assert "Typeof Equality Issue" in issue_types
+    assert "setTimeout String Usage" in issue_types
+    assert "Async Await Without Try Catch" in issue_types
+    assert "Unsafe Window Location Assignment" in issue_types
+    assert "Prototype Pollution Risk" in issue_types
 # ── Suggestions ───────────────────────────────────────────────────────────────
 def test_suggestions_returns_score():
     r = client.post("/suggestions/", json={"code": PYTHON_BUGGY})
@@ -334,6 +432,7 @@ def test_full_analyze_all_languages():
         (TS_CODE, "typescript"),
         (JAVA_CODE, "java"),
         (CPP_CODE, "cpp"),
+        (PHP_CODE, "php"),
         (RUST_CODE, "rust"),
     ]:
         r = client.post("/analyze/", json={"code": code, "language": lang})
@@ -350,6 +449,7 @@ def test_missing_code_field():
 def test_unicode_code():
     r = client.post("/explanation/", json={"code": "# こんにちは\ndef hello(): pass"})
     assert r.status_code == 200
+
 
 def test_single_line_code():
     r = client.post("/analyze/", json={"code": "print('hello')"})
