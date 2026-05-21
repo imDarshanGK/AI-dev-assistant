@@ -44,6 +44,8 @@ SOURCE_EXTENSIONS = {
     ".hpp": "cpp",
     ".php": "php",
     ".rs": "rust",
+    ".kt": "kotlin",
+    ".kts": "kotlin",
     ".txt": None,
 }
 

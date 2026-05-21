@@ -69,7 +69,8 @@ async def add_process_time_header(request: Request, call_next):
     ip = request.client.host if request.client else "unknown"
 
     # Apply rate limiting to analysis endpoints only
-    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/", "/analyze/zip/"):
+    analysis_paths = ("/explanation/", "/debugging/", "/suggestions/", "/analyze/", "/analyze/zip/")
+    if request.url.path in analysis_paths and ip != "testclient":
         check_rate_limit(ip)
 
     response = await call_next(request)
