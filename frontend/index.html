@@ -3256,19 +3256,13 @@
         if (!code) { toast('Please paste some code first.', 'error'); return; }
         if (editor.value.length >= CHAR_MAX) return;
 
-        const base = getApiBase();
+        const base = apiUrlInput.value.replace(/\/$/, '');
         const endpointMap = {
-          analyze: '/analyze/',
           explain: '/explanation/',
           debug: '/debugging/',
           suggest: '/suggestions/',
         };
-        const endpoint = endpointMap[selectedMode] || '/analyze/';
-
-        // Loading state
-        analyzeBtn.classList.add('loading');
-        analyzeBtn.disabled = true;
-        showShimmers();
+        const endpoint = endpointMap[selectedMode] || '/explanation/';
 
         try {
           if (selectedZipFile) {
@@ -3310,11 +3304,8 @@
           const data = await res.json();
           const elapsed = res.headers.get('X-Process-Time-Ms');
 
-          // Normalize to full analysis shape
           let result;
-          if (selectedMode === 'analyze') {
-            result = data;
-          } else if (selectedMode === 'explain') {
+          if (selectedMode === 'explain') {
             result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
           } else if (selectedMode === 'debug') {
             result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
@@ -3330,9 +3321,8 @@
           document.getElementById('engineBar').style.display = 'flex';
           engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
           if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
-          else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
-          resultActions.style.display = 'flex';
 
+          resultActions.style.display = 'flex';
         } catch (err) {
           toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
           resetResults();
@@ -3340,6 +3330,77 @@
           analyzeBtn.classList.remove('loading');
           analyzeBtn.disabled = editor.value.length >= CHAR_MAX;
         }
+      }
+
+      /**
+       * Stream the full analysis via POST /analyze/stream (SSE).
+       * Renders each section (explain → debug → suggest) as its chunk arrives,
+       * replacing the shimmer placeholder progressively.
+       */
+      async function doAnalyzeStream(code) {
+        const base = apiUrlInput.value.replace(/\/$/, '');
+        const res = await fetch(`${base}/analyze/stream`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, language: selectedLang }),
+          signal: AbortSignal.timeout(30000),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let result = { explanation: null, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+        let firstSection = true;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // SSE lines end with \n\n — split on that to get complete events
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop() || '';   // keep any incomplete trailing chunk
+
+          for (const part of parts) {
+            for (const line of part.split('\n')) {
+              if (!line.startsWith('data: ')) continue;
+              let event;
+              try { event = JSON.parse(line.slice(6)); } catch { continue; }
+
+              if (event.type === 'explanation') {
+                result.explanation = event.data;
+                renderExplain(event.data);
+                if (firstSection) {
+                  document.querySelector('[data-rtab="explain"]').click();
+                  firstSection = false;
+                }
+              } else if (event.type === 'debugging') {
+                result.debugging = event.data;
+                renderDebug(event.data);
+              } else if (event.type === 'suggestions') {
+                result.suggestions = event.data;
+                renderSuggest(event.data);
+              } else if (event.type === 'done') {
+                result.provider = event.provider || 'rule-based';
+                result.model = event.model || '';
+                result.analysis_time_ms = event.analysis_time_ms;
+                document.getElementById('engineBar').style.display = 'flex';
+                engineInfo.textContent = result.provider + ' · ' + result.model;
+                if (event.analysis_time_ms) timeInfo.textContent = event.analysis_time_ms + 'ms';
+                resultActions.style.display = 'flex';
+              }
+            }
+          }
+        }
+
+        currentResult = result;
+        addToHistory(code, result);
       }
 
       /* ═══════════════════════════════════════════════════════════════
