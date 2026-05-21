@@ -2,6 +2,7 @@ import hashlib
 import json
 import logging
 import time
+from collections import OrderedDict
 from threading import Lock
 
 from ..config import settings
@@ -11,7 +12,7 @@ logger = logging.getLogger("ai_assistant.api")
 
 class AppCache:
     def __init__(self):
-        self._memory_store: dict[str, tuple[float, dict]] = {}
+        self._memory_store: OrderedDict[str, tuple[float, dict]] = OrderedDict()
         self._memory_lock = Lock()
         self._redis_client = None
         self._backend = "memory"
@@ -30,7 +31,7 @@ class AppCache:
         return self._backend
 
     def _make_key(self, namespace: str, code: str) -> str:
-        digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
+        digest = hashlib.md5(code.encode("utf-8")).hexdigest()
         return f"ai-assistant:{namespace}:{digest}"
 
     def get(self, namespace: str, code: str) -> dict | None:
@@ -57,6 +58,7 @@ class AppCache:
                 self._memory_store.pop(key, None)
                 return None
 
+            self._memory_store.move_to_end(key)
             return payload
 
     def set(self, namespace: str, code: str, payload: dict) -> None:
@@ -74,6 +76,14 @@ class AppCache:
         expires_at = time.time() + settings.cache_ttl_seconds
         with self._memory_lock:
             self._memory_store[key] = (expires_at, payload)
+            self._memory_store.move_to_end(key)
+
+            while len(self._memory_store) > settings.cache_max_entries:
+                self._memory_store.popitem(last=False)
+
+    def clear_memory(self) -> None:
+        with self._memory_lock:
+            self._memory_store.clear()
 
 
 cache = AppCache()
