@@ -1118,6 +1118,30 @@
       border: 1px solid var(--red);
     }
 
+    .risk-Simple {
+      background: rgba(34, 197, 94, 0.12);
+      color: var(--green);
+      border: 1px solid var(--green);
+    }
+
+    .risk-Moderate {
+      background: rgba(234, 179, 8, 0.12);
+      color: var(--yellow);
+      border: 1px solid var(--yellow);
+    }
+
+    .risk-High {
+      background: rgba(249, 115, 22, 0.12);
+      color: var(--orange);
+      border: 1px solid var(--orange);
+    }
+
+    .risk-Very-High {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--red);
+      border: 1px solid var(--red);
+    }
+
     .key-points {
       list-style: none
     }
@@ -1271,6 +1295,178 @@
       color: var(--text2);
       white-space: pre;
       overflow-x: auto;
+    }
+
+    /* ── Diff View ── */
+    .diff-wrapper {
+      margin-top: 10px;
+      border-radius: var(--r2);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+    }
+
+    .diff-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.7rem;
+      color: var(--text3);
+      font-family: var(--font-ui);
+      gap: 8px;
+    }
+
+    .diff-header-labels {
+      display: flex;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .diff-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 600;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .diff-label-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .diff-label-before .diff-label-dot { background: var(--red); }
+    .diff-label-after  .diff-label-dot { background: var(--green); }
+
+    .diff-view {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: none;
+    }
+
+    @media (max-width: 640px) {
+      .diff-view {
+        grid-template-columns: 1fr;
+      }
+      .diff-col:first-child {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+
+    .diff-col {
+      overflow-x: auto;
+      background: var(--bg);
+    }
+
+    .diff-col:first-child {
+      border-right: 1px solid var(--border);
+    }
+
+    .diff-line {
+      display: flex;
+      align-items: flex-start;
+      padding: 2px 0;
+      min-height: 22px;
+      line-height: 1.6;
+      white-space: pre;
+    }
+
+    .diff-line-num {
+      min-width: 32px;
+      padding: 0 6px;
+      text-align: right;
+      color: var(--text3);
+      user-select: none;
+      font-size: 0.65rem;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      margin-right: 8px;
+      line-height: 1.6;
+    }
+
+    .diff-line-content {
+      padding-right: 12px;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    .diff-line-removed {
+      background: rgba(242, 87, 87, 0.13);
+    }
+
+    .diff-line-removed .diff-line-num {
+      background: rgba(242, 87, 87, 0.18);
+      color: var(--red);
+    }
+
+    .diff-line-removed .diff-line-content {
+      color: var(--red);
+    }
+
+    .diff-line-added {
+      background: rgba(34, 212, 123, 0.10);
+    }
+
+    .diff-line-added .diff-line-num {
+      background: rgba(34, 212, 123, 0.15);
+      color: var(--green);
+    }
+
+    .diff-line-added .diff-line-content {
+      color: var(--green);
+    }
+
+    .diff-line-equal {
+      background: transparent;
+    }
+
+    .diff-line-equal .diff-line-content {
+      color: var(--text2);
+    }
+
+    .diff-line-placeholder {
+      background: var(--bg3);
+      opacity: 0.4;
+    }
+
+    .btn-copy-fix {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      border: 1px solid rgba(34, 212, 123, 0.3);
+      background: rgba(34, 212, 123, 0.08);
+      color: var(--green);
+      transition: all var(--transition);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn-copy-fix:hover {
+      background: rgba(34, 212, 123, 0.18);
+      border-color: var(--green);
+      transform: translateY(-1px);
+    }
+
+    .btn-copy-fix:active {
+      transform: translateY(0);
+    }
+
+    .btn-copy-fix svg {
+      flex-shrink: 0;
     }
 
     /* ── Clean State ── */
@@ -2043,6 +2239,18 @@
         </div>
       </div>
 
+    <!-- Result tabs -->
+    <div class="result-tabs" role="tablist" aria-label="Analysis Results">
+      <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain" tabindex="0">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Explain <span class="tab-badge" id="explainBadge"></span>
+      </button>
+      <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug" tabindex="-1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/><path d="M14.5 3.5L16 2"/><path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5"/><path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5"/><line x1="12" y1="12" x2="12" y2="16"/><path d="M4.5 15H2"/><path d="M22 15h-2.5"/><path d="M4.5 19l-2 2"/><path d="M19.5 19l2 2"/></svg> Debug <span class="tab-badge" id="debugBadge"></span>
+      </button>
+      <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest" tabindex="-1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg> Improve <span class="tab-badge" id="suggestBadge"></span>
+      </button>
+    </div>
       <!-- Results Panel -->
       <div class="panel">
         <div class="panel-header">
@@ -2392,6 +2600,96 @@
           }
         }
 
+/* ═══════════════════════════════════════════════════════════════
+   MODE BUTTONS
+═══════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.mode-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    selectedMode = b.dataset.mode;
+    document.querySelectorAll('.mode-btn').forEach(x => {
+      x.classList.remove('active');
+      x.setAttribute('aria-pressed', 'false');
+    });
+    b.classList.add('active');
+    b.setAttribute('aria-pressed', 'true');
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   RESULT TABS
+═══════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.result-tab').forEach((t, index, tabs) => {
+  t.addEventListener('click', () => {
+    const tab = t.dataset.rtab;
+
+    document.querySelectorAll('.result-tab').forEach(x => {
+      x.classList.remove('active');
+      x.setAttribute('aria-selected', 'false');
+    });
+
+    document.querySelectorAll('.result-pane').forEach(x =>
+      x.classList.remove('active')
+    );
+
+    t.classList.add('active');
+    t.setAttribute('aria-selected', 'true');
+
+    document.getElementById(`pane-${tab}`).classList.add('active');
+  });
+
+  t.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      tabs[(index + 1) % tabs.length].focus();
+    }
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      tabs[(index - 1 + tabs.length) % tabs.length].focus();
+    }
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      t.click();
+    }
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   CLEAR / COPY
+═══════════════════════════════════════════════════════════════ */
+document.getElementById('clearBtn').addEventListener('click', () => {
+  editor.value = '';
+  updateEditor();
+  resetResults();
+});
+document.getElementById('copyBtn').addEventListener('click', () => {
+  if (!editor.value.trim()) return;
+  navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   API PING
+═══════════════════════════════════════════════════════════════ */
+async function pingApi() {
+  const base = apiUrlInput.value.replace(/\/$/, '');
+  try {
+    const r = await fetch(`${base}/health`, {signal: AbortSignal.timeout(5000)});
+    if (r.ok) {
+      apiDot.classList.add('connected');
+      apiStatusText.textContent = 'Connected';
+      toast('API is reachable', 'success');
+    } else {
+      apiDot.classList.remove('connected');
+      apiStatusText.textContent = 'Error ' + r.status;
+    }
+  } catch {
+    apiDot.classList.remove('connected');
+    apiStatusText.textContent = 'Unreachable';
+    toast('Cannot reach API. Check the URL.', 'error');
+  }
+}
+document.getElementById('pingBtn').addEventListener('click', pingApi);
         // CTRL + ENTER
         else if (
           e.key === 'Enter' &&
@@ -2638,6 +2936,7 @@
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
       ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
+      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
     </div>
     <ul class="key-points">
       ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
@@ -2694,6 +2993,152 @@
         el.innerHTML = statBar + cards;
       }
 
+      /* ═══════════════════════════════════════════════════════════════
+         PURE-JS LINE DIFF (LCS-based)
+      ═══════════════════════════════════════════════════════════════ */
+      function computeDiff(originalText, fixedText) {
+        const aLines = originalText.split('\n');
+        const bLines = fixedText.split('\n');
+        const m = aLines.length, n = bLines.length;
+
+        // Build LCS table
+        const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+        for (let i = 1; i <= m; i++) {
+          for (let j = 1; j <= n; j++) {
+            dp[i][j] = aLines[i - 1] === bLines[j - 1]
+              ? dp[i - 1][j - 1] + 1
+              : Math.max(dp[i - 1][j], dp[i][j - 1]);
+          }
+        }
+
+        // Backtrack to get edit script
+        const left = [];   // original column (removed + equal)
+        const right = [];  // fixed column    (added + equal)
+        let i = m, j = n;
+        const edits = [];
+        while (i > 0 || j > 0) {
+          if (i > 0 && j > 0 && aLines[i - 1] === bLines[j - 1]) {
+            edits.push({ type: 'equal', a: aLines[i - 1], b: bLines[j - 1] });
+            i--; j--;
+          } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+            edits.push({ type: 'added', b: bLines[j - 1] });
+            j--;
+          } else {
+            edits.push({ type: 'removed', a: aLines[i - 1] });
+            i--;
+          }
+        }
+        edits.reverse();
+
+        // Separate into two column lists
+        let aIdx = 0, bIdx = 0;
+        edits.forEach(e => {
+          if (e.type === 'equal') {
+            left.push({ type: 'equal', text: e.a, num: ++aIdx });
+            right.push({ type: 'equal', text: e.b, num: ++bIdx });
+          } else if (e.type === 'removed') {
+            left.push({ type: 'removed', text: e.a, num: ++aIdx });
+            right.push({ type: 'placeholder', text: '' });
+          } else {
+            left.push({ type: 'placeholder', text: '' });
+            right.push({ type: 'added', text: e.b, num: ++bIdx });
+          }
+        });
+        return { left, right };
+      }
+
+      function renderDiffCol(lines) {
+        return lines.map(l => {
+          if (l.type === 'placeholder') {
+            return `<div class="diff-line diff-line-placeholder"><span class="diff-line-num"></span><span class="diff-line-content"> </span></div>`;
+          }
+          const cls = l.type === 'removed' ? 'diff-line-removed'
+            : l.type === 'added' ? 'diff-line-added'
+              : 'diff-line-equal';
+          const prefix = l.type === 'removed' ? '− ' : l.type === 'added' ? '+ ' : '  ';
+          return `<div class="diff-line ${cls}"><span class="diff-line-num">${l.num}</span><span class="diff-line-content">${prefix}${escHtml(l.text)}</span></div>`;
+        }).join('');
+      }
+
+      /* Find the region of the editor code that best matches the fixed snippet.
+         Returns the matching original lines (as a string) or null if nothing found. */
+      function findOriginalSnippet(editorCode, fixedCode) {
+        if (!editorCode || !fixedCode) return null;
+        const fixedLines  = fixedCode.split('\n').map(l => l.trim()).filter(Boolean);
+        const editorLines = editorCode.split('\n');
+        if (!fixedLines.length || !editorLines.length) return null;
+
+        let bestScore = 0, bestStart = -1;
+
+        for (let i = 0; i < editorLines.length; i++) {
+          let score = 0;
+          for (let j = 0; j < fixedLines.length && i + j < editorLines.length; j++) {
+            const el = editorLines[i + j].trim();
+            const fl = fixedLines[j].trim();
+            if (!el || !fl) continue;
+            if (el === fl) {
+              score += 2;
+            } else if (fl.length > 6 && el.includes(fl.slice(0, Math.min(fl.length, 18)))) {
+              score += 1;
+            } else if (el.length > 6 && fl.includes(el.slice(0, Math.min(el.length, 18)))) {
+              score += 1;
+            }
+          }
+          if (score > bestScore) { bestScore = score; bestStart = i; }
+        }
+
+        if (bestStart === -1 || bestScore < 1) return null;
+
+        // Extract the matched region (same number of lines as the fixed snippet)
+        const start = Math.max(0, bestStart);
+        const end   = Math.min(editorLines.length, bestStart + fixedLines.length);
+        return editorLines.slice(start, end).join('\n');
+      }
+
+      /* Build the side-by-side diff HTML for one suggestion's example */
+      function buildDiffHtml(originalSnippet, fixedCode, copyId) {
+        const diff = computeDiff(originalSnippet, fixedCode);
+        const hasChanges = diff.left.some(l  => l.type === 'removed') ||
+                           diff.right.some(r => r.type === 'added');
+        // If nothing changed (identical), just show as fixed-code block
+        if (!hasChanges) {
+          const lines = fixedCode.split('\n').map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+          return `
+          <div class="diff-wrapper">
+            <div class="diff-header">
+              <div class="diff-header-labels">
+                <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
+              </div>
+              <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy fixed
+              </button>
+            </div>
+            <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
+          </div>`;
+        }
+        return `
+        <div class="diff-wrapper">
+          <div class="diff-header">
+            <div class="diff-header-labels">
+              <span class="diff-label diff-label-before"><span class="diff-label-dot"></span>Before</span>
+              <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>After</span>
+            </div>
+            <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy fixed
+            </button>
+          </div>
+          <div class="diff-view">
+            <div class="diff-col">${renderDiffCol(diff.left)}</div>
+            <div class="diff-col">${renderDiffCol(diff.right)}</div>
+          </div>
+        </div>`;
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+         RENDER SUGGESTIONS (with diff view)
+      ═══════════════════════════════════════════════════════════════ */
       function renderSuggest(sugg) {
         document.getElementById('emptySuggest').style.display = 'none';
         const el = document.getElementById('suggestResult');
@@ -2731,17 +3176,98 @@
 
         const cards = sugg.suggestions.length === 0
           ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
-          : sugg.suggestions.map((s, i) => `
+          : sugg.suggestions.map((s, i) => {
+
+            let exampleHtml = '';
+            if (s.example) {
+              const copyId  = `copy-fix-${i}`;
+              const rawLines = s.example.split('\n');
+
+              // Case 1: example has unified diff markers (- / +)
+              const hasMarkers = rawLines.some(l => /^[\-\+]/.test(l) && l.length > 1);
+              if (hasMarkers) {
+                const originalText = rawLines.filter(l => !l.startsWith('+')).map(l => l.replace(/^-\s?/, '')).join('\n');
+                const fixedText    = rawLines.filter(l => !l.startsWith('-')).map(l => l.replace(/^\+\s?/, '')).join('\n');
+                exampleHtml = buildDiffHtml(originalText, fixedText, copyId);
+
+              // Case 2: two blocks separated by a blank line (before \n\n after)
+              } else {
+                const blankIdx = rawLines.findIndex(l => l.trim() === '');
+                if (blankIdx > 0 && blankIdx < rawLines.length - 1) {
+                  const originalText = rawLines.slice(0, blankIdx).join('\n');
+                  const fixedText    = rawLines.slice(blankIdx + 1).join('\n');
+                  exampleHtml = buildDiffHtml(originalText, fixedText, copyId);
+
+                // Case 3 (most common from API): single fixed-code block
+                // → find matching region in editor as "Before", diff against example as "After"
+                } else {
+                  const originalSnippet = findOriginalSnippet(editor.value, s.example);
+                  if (originalSnippet) {
+                    exampleHtml = buildDiffHtml(originalSnippet, s.example, copyId);
+                  } else {
+                    // No match – show fixed code as green "Fixed Code" block
+                    const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+                    exampleHtml = `
+                    <div class="diff-wrapper">
+                      <div class="diff-header">
+                        <div class="diff-header-labels">
+                          <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
+                        </div>
+                        <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                          Copy fixed
+                        </button>
+                      </div>
+                      <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
+                    </div>`;
+                  }
+                }
+              }
+            }
+
+            return `
       <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
           <span class="suggest-cat">${s.category}</span>
           <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${s.priority} priority</span>
         </div>
         <div class="suggest-desc">${s.description}</div>
-        ${s.example ? `<pre class="suggest-example">${escHtml(s.example)}</pre>` : ''}
-      </div>`).join('');
+        ${exampleHtml}
+      </div>`;
+          }).join('');
 
         el.innerHTML = ring + cards;
+
+        // Wire up "Copy fixed" buttons after DOM insertion
+        sugg.suggestions.forEach((s, i) => {
+          if (!s.example) return;
+          const btn = document.getElementById(`copy-fix-${i}`);
+          if (!btn) return;
+
+          // Always copy the after/fixed code
+          const rawLines   = s.example.split('\n');
+          const hasMarkers = rawLines.some(l => /^[\-\+]/.test(l) && l.length > 1);
+          let fixedCode;
+          if (hasMarkers) {
+            fixedCode = rawLines.filter(l => !l.startsWith('-')).map(l => l.replace(/^\+\s?/, '')).join('\n');
+          } else {
+            const blankIdx = rawLines.findIndex(l => l.trim() === '');
+            fixedCode = blankIdx > 0 && blankIdx < rawLines.length - 1
+              ? rawLines.slice(blankIdx + 1).join('\n')
+              : s.example;
+          }
+
+          btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(fixedCode).then(() => {
+              btn.textContent = '\u2713 Copied!';
+              btn.style.background = 'rgba(34,212,123,0.25)';
+              setTimeout(() => {
+                btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy fixed`;
+                btn.style.background = '';
+              }, 2000);
+            }).catch(() => toast('Copy failed', 'error'));
+          });
+        });
       }
 
       /* ═══════════════════════════════════════════════════════════════
