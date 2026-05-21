@@ -1,0 +1,83 @@
+name: Stale Issues and PRs
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Mark stale issues and PRs
+        uses: actions/stale@v9
+
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # =========================
+          # Issues
+          # =========================
+
+          days-before-issue-stale: 14
+          days-before-issue-close: 7
+
+          stale-issue-label: stale
+
+          stale-issue-message: |
+            👋 This issue has had no activity for 14 days.
+
+            If you are still working on it, please comment with an update.
+
+            Otherwise, this issue may be closed automatically after 7 more days and reopened for other contributors.
+
+            — QyverixAI Maintainer Bot
+
+          close-issue-message: |
+            This issue was closed automatically due to inactivity.
+
+            Contributors can reopen the issue or comment `/assign` if they want to continue working on it 🚀
+
+          # =========================
+          # Pull Requests
+          # =========================
+
+          days-before-pr-stale: 7
+          days-before-pr-close: 7
+
+          stale-pr-label: stale
+
+          stale-pr-message: |
+            👋 This PR has had no activity for 7 days.
+
+            Please push updates or comment if you still need more time.
+
+            Inactive PRs may be closed automatically after 7 more days.
+
+          close-pr-message: |
+            This PR was closed automatically due to inactivity.
+
+            Feel free to reopen it when ready 🚀
+
+          # =========================
+          # Exempt labels
+          # =========================
+
+          exempt-issue-labels: >
+            pinned,
+            security,
+            in-progress,
+            level:advanced
+
+          exempt-pr-labels: >
+            pinned,
+            security
+
+          # Remove stale label if updated
+          remove-stale-when-updated: true

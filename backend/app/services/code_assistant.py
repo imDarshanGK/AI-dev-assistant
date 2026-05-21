@@ -95,6 +95,41 @@ def detect_language(code: str, hint: str | None = None) -> str:
     return best if scores[best] > 0 else "Unknown"
 
 
+# ── Cyclomatic Complexity ──────────────────────────────────────────────────────
+_DECISION_RE = re.compile(
+    r"\b(if|elif|else|for|while|and|or|case|catch|except)\b|\?(?![?:.])",
+    re.MULTILINE,
+)
+
+_RISK_THRESHOLDS: tuple[tuple[int, str], ...] = (
+    (5,  "Simple"),
+    (10, "Moderate"),
+    (20, "High"),
+)
+
+
+def calculate_cyclomatic_complexity(code: str, language: str) -> tuple[int, str]:
+    """Calculate the cyclomatic complexity of a code snippet.
+
+    Uses a simplified McCabe formula: M = decision points + 1, where decision
+    points are control-flow keywords (if, elif, else, for, while, and, or,
+    case, catch, except) and ternary operators.
+
+    Args:
+        code: The source code to analyse.
+        language: The programming language of the code.
+
+    Returns:
+        A tuple of (score, risk) where risk is one of "Simple", "Moderate",
+        "High", or "Very High".
+    """
+    score = len(_DECISION_RE.findall(code)) + 1
+    for threshold, label in _RISK_THRESHOLDS:
+        if score <= threshold:
+            return score, label
+    return score, "Very High"
+
+
 # ── Complexity Estimation ──────────────────────────────────────────────────────
 def estimate_complexity(code: str) -> str:
     """Estimate the overall complexity level of the given code snippet.
@@ -599,6 +634,7 @@ def run_explanation(code: str, language: str) -> dict:
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
     complexity = estimate_complexity(code)
+    cyclomatic_complexity, complexity_risk = calculate_cyclomatic_complexity(code, language)
 
     func_names = re.findall(
         r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(",
@@ -650,6 +686,8 @@ def run_explanation(code: str, language: str) -> dict:
         "line_count": len(lines),
         "function_count": len(funcs),
         "class_count": len(class_names),
+        "cyclomatic_complexity": cyclomatic_complexity,
+        "complexity_risk": complexity_risk,
     }
 
 
