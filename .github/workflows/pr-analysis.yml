@@ -1,7 +1,7 @@
 name: PR Analysis
 
 # Secrets needed:
-# - QYVERIXAI_API_KEY: API key for QyverixAI
+# - QYVERIXAI_API_KEY: optional API key for QyverixAI; public mode is used when omitted
 # - GITHUB_TOKEN: automatically provided by GitHub Actions, no setup needed
 
 on:
@@ -26,7 +26,7 @@ jobs:
       - name: Analyze changed files and post PR comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          QYVERIXAI_API_KEY: ${{ secrets.QYVERIXAI_API_KEY }}
+                    QYVERIXAI_API_KEY: ${{ secrets.QYVERIXAI_API_KEY || 'public' }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           QYVERIXAI_API_URL: https://qyverixai.onrender.com/analyze/
         run: |
@@ -48,6 +48,7 @@ jobs:
           head_sha = event["pull_request"]["head"]["sha"]
           repository = os.environ["GITHUB_REPOSITORY"]
           api_key = os.environ.get("QYVERIXAI_API_KEY", "").strip()
+          use_public_mode = not api_key or api_key.lower() == "public"
           qyverixai_url = os.environ.get("QYVERIXAI_API_URL", "https://qyverixai.onrender.com/analyze/").strip()
           github_token = os.environ["GITHUB_TOKEN"]
           github_api = os.environ.get("GITHUB_API_URL", "https://api.github.com").rstrip("/")
@@ -87,9 +88,6 @@ jobs:
                   return exc.code, data
 
           def qyverixai_request(filename: str, content: str) -> dict:
-              if not api_key:
-                  raise RuntimeError("Missing QYVERIXAI_API_KEY")
-
               language = {
                   ".py": "Python",
                   ".js": "JavaScript",
@@ -107,7 +105,7 @@ jobs:
                   data=json.dumps(payload).encode("utf-8"),
                   method="POST",
                   headers={
-                      "Authorization": f"Bearer {api_key}",
+                      **({"Authorization": f"Bearer {api_key}"} if not use_public_mode else {}),
                       "Content-Type": "application/json",
                       "Accept": "application/json",
                   },
