@@ -235,6 +235,28 @@ def test_explanation_ruby():
     d = r.json()
     assert d["language"] == "Ruby"
 
+def test_explanation_detects_ruby_without_hint():
+    r = client.post("/explanation/", json={"code": RUBY_CODE})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Ruby"
+    assert d["function_count"] >= 1
+
+def test_explanation_detects_ruby_with_complex_requires_without_hint():
+    code = """
+    require "net/http"
+    require "my-gem"
+    require_relative "../path/to/helper"
+    
+    def hello
+      puts "Hello"
+    end
+    """
+    r = client.post("/explanation/", json={"code": code})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Ruby"
+
 # ── Debugging ─────────────────────────────────────────────────────────────────
 def test_debug_detects_zero_division():
     r = client.post("/debugging/", json={"code": "result = a / b", "language": "python"})
