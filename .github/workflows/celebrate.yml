@@ -8,7 +8,6 @@ jobs:
   celebrate:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/github-script@v7
         with:
@@ -16,7 +15,6 @@ jobs:
             const sender = context.payload.pull_request.user.login;
             const prNumber = context.payload.pull_request.number;
 
-            // Get contributor merged PRs
             const { data: prs } = await github.rest.pulls.list({
               ...context.repo,
               state: 'closed',
@@ -29,33 +27,31 @@ jobs:
               pr.number !== prNumber
             );
 
-            // Only celebrate first merged PR
             if (mergedByUser.length === 0) {
-
               await github.rest.issues.createComment({
                 ...context.repo,
                 issue_number: prNumber,
-                body:
-`# 🎉 First Contribution Merged!
-
-Congratulations @${sender} 🚀
-
-Your first contribution has been successfully merged into **QyverixAI**.
-
-Welcome to the contributor community — thank you for improving the project 💙
-
-## What's next?
-- Explore more open issues
-- Try intermediate-level tasks
-- Continue building your open source profile
-
-## Helpful links
-- Issues: https://github.com/${context.repo.owner}/${context.repo.repo}/issues
-- Contributing Guide: https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTING.md
-
-Thank you for contributing to QyverixAI ⭐`
+                body: [
+                  '# First Contribution Merged!',
+                  '',
+                  `Congratulations @${sender}`,
+                  '',
+                  'Your first contribution has been successfully merged into **QyverixAI**.',
+                  '',
+                  'Welcome to the contributor community - thank you for improving the project.',
+                  '',
+                  "## What's next?",
+                  '- Explore more open issues',
+                  '- Try intermediate-level tasks',
+                  '- Continue building your open source profile',
+                  '',
+                  '## Helpful links',
+                  `- Issues: https://github.com/${context.repo.owner}/${context.repo.repo}/issues`,
+                  `- Contributing Guide: https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTING.md`,
+                  '',
+                  'Thank you for contributing to QyverixAI.'
+                ].join('\n')
               });
-
             } else {
               console.log('Not first merged PR.');
             }
