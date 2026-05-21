@@ -1,10 +1,19 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class CodeRequest(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "code": "def add(a, b):\n    return a + b\n\nresult = add(1, 2)\nprint(result)",
+                "language": "python",
+            }
+        }
+    )
+
     code: str
     language: str | None = None
 
