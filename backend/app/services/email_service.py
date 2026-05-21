@@ -11,7 +11,7 @@ import smtplib
 from sqlalchemy.orm import Session
 
 from ..config import settings
-from ..models import DigestSubscription, QueryHistory, User
+from ..models import QueryHistory, User
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
