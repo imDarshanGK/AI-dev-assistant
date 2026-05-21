@@ -1,0 +1,54 @@
+name: PR Size Label
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const additions = pr.additions;
+            const deletions = pr.deletions;
+            const total = additions + deletions;
+
+            let size, color;
+            if (total < 50)       { size = 'size/XS'; color = '3cbf00'; }
+            else if (total < 150) { size = 'size/S';  color = '5d9801'; }
+            else if (total < 400) { size = 'size/M';  color = 'e1b12c'; }
+            else if (total < 800) { size = 'size/L';  color = 'eb6420'; }
+            else                  { size = 'size/XL'; color = 'ee0701'; }
+
+            // Create label if not exists
+            try {
+              await github.rest.issues.createLabel({
+                ...context.repo,
+                name: size,
+                color: color
+              });
+            } catch(e) {}
+
+            // Remove old size labels
+            const labels = await github.rest.issues.listLabelsOnIssue({
+              ...context.repo,
+              issue_number: pr.number
+            });
+            for (const l of labels.data) {
+              if (l.name.startsWith('size/')) {
+                await github.rest.issues.removeLabel({
+                  ...context.repo,
+                  issue_number: pr.number,
+                  name: l.name
+                });
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              ...context.repo,
+              issue_number: pr.number,
+              labels: [size]
+            });
