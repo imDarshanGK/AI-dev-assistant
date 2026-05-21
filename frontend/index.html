@@ -39,71 +39,66 @@
       --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    [data-theme="light"] {
-      --bg: #f4f6fb;
-      --bg2: #ffffff;
-      --bg3: #eef1f7;
-      --border: rgba(0, 0, 0, 0.07);
-      --border2: rgba(0, 0, 0, 0.13);
-      --text: #111827;
-      --text2: #4b5563;
-      --text3: #9ca3af;
-      --shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-      --shadow2: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      function renderHistory() {
+        if (!history.length) {
+          historyList.innerHTML = '<div class="list-empty">No history yet. Run your first analysis.</div>';
+          return;
+        }
+        historyList.innerHTML = history.map(h => `
+    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="Load history entry for ${h.lang} at ${h.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+      <span class="history-lang">${h.lang || '?'}</span>
+      <span class="history-thumb">${escHtml(h.preview)}…</span>
+      <span class="history-meta">${h.ts}</span>
+    </div>`).join('');
+      }
     }
 
     /* ═══════════════════════════════════════════════════════════════
-   RESET & BASE
+   ANALYZE CORE LOGIC PIPELINE
 ═══════════════════════════════════════════════════════════════ */
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0
-    }
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const resultActions = document.getElementById('resultActions');
+    const engineInfo = document.getElementById('engineInfo');
+    const timeInfo = document.getElementById('timeInfo');
 
-    html {
-      scroll-behavior: smooth;
-      font-size: 16px
-    }
+    analyzeBtn.addEventListener('click', doAnalyze);
 
-    body {
-      font-family: var(--font-ui);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-      line-height: 1.6;
-      transition: background var(--transition), color var(--transition);
-    }
+    async function doAnalyze() {
+      const code = editor.value.trim();
+      if (!code) {
+        toast('Please paste some code first.', 'error');
+        return;
+      }
+      const base = apiUrlInput.value.replace(/\/$/, '');
+      const endpointMap = { analyze: '/analyze/', explain: '/explanation/', debug: '/debugging/', suggest: '/suggestions/' };
+      const endpoint = endpointMap[selectedMode] || '/analyze/';
 
-    ::selection {
-      background: var(--accent);
-      color: #fff
-    }
+      analyzeBtn.classList.add('loading');
+      analyzeBtn.disabled = true;
+      showShimmers();
 
-    *:focus-visible {
-      outline: 3px solid var(--accent);
-      outline-offset: 3px;
-      box-shadow: 0 0 0 4px rgba(91, 156, 246, 0.4);
-      border-radius: 2px;
-    }
+      try {
+        const res = await fetch(`${base}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, language: selectedLang }),
+          signal: AbortSignal.timeout(30000),
+        });
 
-    /* ═══════════════════════════════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════════════════════════════ */
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--bg)
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--border2);
+document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
+  if (!confirm('Clear all history? This cannot be undone.')) return;
+  const base = apiUrlInput.value.replace(/\/$/, '');
+  const entries = await fetch(`${base}/history/?limit=100`).then(r => r.json()).catch(() => []);
+  for (const e of entries) {
+    fetch(`${base}/history/${e.id}`, { method: 'DELETE' }).catch(() => {});
+  }
+  history = [];
+  localStorage.removeItem('qyx_history');
+  renderHistory();
+  toast('History cleared', 'info');
+});
       border-radius: 99px
     }
 
@@ -3836,6 +3831,21 @@
       /* ═══════════════════════════════════════════════════════════════
          HISTORY
       ═══════════════════════════════════════════════════════════════ */
+      async function saveHistoryToBackend(code, lang, result) {
+        try {
+          const base = apiUrlInput.value.replace(/\/$/, '');
+          const score = result.suggestions?.overall_score ?? null;
+          const issue_count = result.debugging?.error_count ?? null;
+          await fetch(`${base}/history/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language: lang, score, issue_count }),
+          });
+        } catch (_) {
+          // backend unavailable — localStorage fallback is still active
+        }
+      }
+
       function addToHistory(code, result) {
         const lang = result.explanation?.language || result.debugging?.language||result.suggestions?.language||selectedLang;
         const entry = {
@@ -3850,6 +3860,7 @@
         if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
         localStorage.setItem('qyx_history', JSON.stringify(history));
         renderHistory();
+        saveHistoryToBackend(code, lang, result);
       }
 
       function renderHistory() {
@@ -3865,9 +3876,14 @@
     </div>`).join('');
       }
 
-      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
 
+        const base = apiUrlInput.value.replace(/\/$/, '');
+        const entries = await fetch(`${base}/history/?limit=100`).then(r => r.json()).catch(() => []);
+        for (const e of entries) {
+          fetch(`${base}/history/${e.id}`, { method: 'DELETE' }).catch(() => {});
+        }
         history = [];
         localStorage.removeItem('qyx_history');
         renderHistory();

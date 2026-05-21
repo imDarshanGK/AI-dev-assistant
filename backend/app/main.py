@@ -10,14 +10,12 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 import time
 import os
-from collections import defaultdict
 from contextlib import asynccontextmanager
 
-
-from .routers import explanation, debugging, suggestions, analyze, subscribe, share
+from .routers import explanation, debugging, suggestions, analyze, subscribe, share, history
 from .services.scheduler import start_scheduler, stop_scheduler
-
 from .schemas import HealthResponse
+from .services import database
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
@@ -48,6 +46,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await database.init_db()
     print("🚀 QyverixAI backend starting…")
     start_scheduler()
     yield
@@ -127,9 +126,10 @@ async def add_cache_header(request: Request, call_next):
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
 app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
-app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
+app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
+app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
 app.include_router(share.router)
+app.include_router(history.router,     prefix="/history",     tags=["History"])
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
@@ -145,7 +145,9 @@ async def root():
             "/suggestions/",
             "/analyze/",
             "/analyze/zip/",
+            "/subscribe/",
             "/share/",
+            "/history/",
         ],
     }
 
@@ -162,7 +164,9 @@ async def health_check():
             "/suggestions/",
             "/analyze/",
             "/analyze/zip/",
+            "/subscribe/",
             "/share/",
+            "/history/",
         ],
     }
 
