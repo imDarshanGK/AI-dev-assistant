@@ -2,15 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.models import FavoriteResult, QueryHistory, User
-from app.schemas import (
+from ..database import get_db
+from ..models import FavoriteResult, QueryHistory, User
+from ..schemas import (
     FavoriteCreateRequest,
     FavoriteRecord,
     HistoryCreateRequest,
     HistoryRecord,
 )
-from app.security import get_current_user
+from ..security import get_current_user
 
 router = APIRouter(prefix="/user", tags=["User Data"])
 
