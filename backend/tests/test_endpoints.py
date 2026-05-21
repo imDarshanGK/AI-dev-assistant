@@ -61,6 +61,12 @@ def test_debugging_clean_code():
     assert data["clean"] is True
     assert len(data["issues"]) == 0
 
+def test_debugging_detects_nameerror_risk():
+    r = client.post("/debugging/", json={"code": "print(Hello)"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "NameError Risk" in types
+
 def test_debugging_detects_hardcoded_secret():
     r = client.post("/debugging/", json={"code": "password = 'hunter2'"})
     assert r.status_code == 200
