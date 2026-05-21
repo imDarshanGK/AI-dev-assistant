@@ -20,7 +20,7 @@ jobs:
             const labels = [];
 
             if (title.includes("bug") || title.includes("fix")) {
-              labels.push("bug");
+              labels.push("type:bug");
             }
 
             if (
@@ -32,11 +32,11 @@ jobs:
             }
 
             if (title.includes("test")) {
-              labels.push("testing");
+              labels.push("type:testing");
             }
 
             if (title.includes("doc")) {
-              labels.push("documentation");
+              labels.push("type:docs");
             }
 
             if (title.includes("frontend") || title.includes("ui")) {
