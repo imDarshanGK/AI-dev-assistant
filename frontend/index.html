@@ -2965,7 +2965,7 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
 
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
   if (!confirm('Clear all favorites? This cannot be undone.')) return;
-
+  
   favorites = [];
   localStorage.removeItem('qyx_favorites');
   renderFavorites();

@@ -6,18 +6,18 @@ backend:
   - changed-files:
       - any-glob-to-any-file: 'backend/**'
 
-"type: docs":
+type: docs:
   - changed-files:
       - any-glob-to-any-file:
           - '*.md'
           - 'docs/**'
 
-"type: testing":
+type: testing:
   - changed-files:
       - any-glob-to-any-file:
           - 'tests/**'
           - 'backend/tests/**'
 
-".github":
+.github:
   - changed-files:
       - any-glob-to-any-file: '.github/**'
