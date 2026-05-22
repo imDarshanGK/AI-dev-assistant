@@ -71,5 +71,14 @@ class Settings:
     llm_max_retries: int = _int_env("LLM_MAX_RETRIES", 3)
     llm_retry_backoff: float = _float_env("LLM_RETRY_BACKOFF", 1.0)
 
+    # ── Email / Digest ──────────────────────────────────────────
+    smtp_host: str = os.getenv("SMTP_HOST", "")
+    smtp_port: int = _int_env("SMTP_PORT", 587)
+    smtp_user: str = os.getenv("SMTP_USER", "")
+    smtp_pass: str = os.getenv("SMTP_PASS", "")
+    email_from: str = os.getenv("EMAIL_FROM", "noreply@qyverixai.app")
+    digest_enabled: bool = _bool_env("DIGEST_ENABLED", False)
+    digest_base_url: str = os.getenv("DIGEST_BASE_URL", "https://qyverixai.onrender.com")
+
 
 settings = Settings()

@@ -103,6 +103,23 @@ cd backend
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
+### Environment Setup
+
+Copy `.env.example` to `.env`
+
+```bash
+cp .env.example .env
+```
+
+Update the environment variable values if needed before running the app.
+
+Important variables:
+- `JWT_SECRET`
+- `DATABASE_URL`
+- `RATE_LIMIT_PER_MINUTE`
+- `LLM_API_KEY` (optional)
+
+The app can still run without external AI providers when `LLM_ENABLED=false`.
 
 | Endpoint | URL |
 |---|---|
