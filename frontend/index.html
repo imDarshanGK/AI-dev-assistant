@@ -1594,6 +1594,29 @@
       color: var(--red)
     }
 
+    .btn-export {
+      padding: 8px 16px;
+      border-radius: var(--r2);
+      background: rgba(91, 156, 246, 0.12);
+      border: 1px solid transparent;
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-export:hover {
+      background: rgba(91, 156, 246, 0.18);
+      border-color: rgba(91, 156, 246, 0.22);
+      transform: translateY(-1px);
+    }
+
+    .btn-export:active {
+      transform: translateY(0);
+    }
+
     .list-empty {
       display: flex;
       align-items: center;
@@ -2162,7 +2185,11 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">Query History</div>
-          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history">Clear</button>
+          <div class="panel-actions">
+            <button class="btn-export" id="exportHistoryJsonBtn" aria-label="Export history as JSON">JSON</button>
+            <button class="btn-export" id="exportHistoryCsvBtn" aria-label="Export history as CSV">CSV</button>
+            <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history">Clear</button>
+          </div>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
           <div class="list-empty">No history yet. Run your first analysis.</div>
@@ -2171,7 +2198,11 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">Saved Favorites</div>
-          <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites">Clear</button>
+          <div class="panel-actions">
+            <button class="btn-export" id="exportFavsJsonBtn" aria-label="Export Favorites as JSON">JSON</button>
+            <button class="btn-export" id="exportFavsCsvBtn" aria-label="Export Favorites as CSV">CSV</button>
+            <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites">Clear</button>
+          </div>
         </div>
         <div class="fav-list" id="favList" aria-live="polite">
           <div class="list-empty">No favorites saved yet.</div>
@@ -3137,6 +3168,106 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
+
+
+      /* ═══════════════════════════════════════════════════════════════
+         EXPORT AS CSV / JSON
+      ═══════════════════════════════════════════════════════════════ */
+
+      document.getElementById('exportHistoryJsonBtn').addEventListener('click', () => exportCollection('history', 'json'));
+      document.getElementById('exportHistoryCsvBtn').addEventListener('click', () => exportCollection('history', 'csv'));
+      document.getElementById('exportFavsJsonBtn').addEventListener('click', () => exportCollection('favorites', 'json'));
+      document.getElementById('exportFavsCsvBtn').addEventListener('click', () => exportCollection('favorites', 'csv'));
+
+      function exportCollection(kind, format) {
+        const items = kind === 'history' ? history : favorites;
+
+        if (!items.length) {
+          toast(`No ${kind} available to export.`, 'info');
+          return;
+        }
+      
+        const filename = `qyverixai-${kind}-${format}-${new Date().toISOString().slice(0, 10)}.${format}`;
+        const base = apiUrlInput.value.replace(/\/$/, '');
+        const endpoint = `${base}/export/${kind}/${format}`;
+      
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: items }),
+        })
+          .then(async (resp) => {
+            if (!resp.ok) {
+              throw new Error(`Server returned ${resp.status}`);
+            }
+
+            const blob = await resp.blob();
+            const a = document.createElement('a');
+
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+
+            toast(`Exported ${kind} as ${format.toUpperCase()}.`, 'success');
+          })
+          .catch(() => {
+            toast('Export API unavailable, downloading locally.', 'info');
+            downloadLocalExport(kind, format, items, filename);
+          });
+      }
+      
+      function downloadLocalExport(kind, format, items, filename) {
+        let content;
+        let mime;
+      
+        if (format === 'json') {
+          content = JSON.stringify(items, null, 2);
+          mime = 'application/json';
+        } else {
+          const columns = Array.from(
+            items.reduce((keys, item) => {
+              if (item && typeof item === 'object') {
+                Object.keys(item).forEach((key) => keys.add(key));
+              }
+
+              return keys;
+            }, new Set())
+          );
+          const rows = [columns.join(',')];
+
+          items.forEach((item) => {
+            const values = columns.map((col) => {
+              let value = item[col];
+
+              if (value === undefined || value === null) return '';
+              if (typeof value === 'object') value = JSON.stringify(value);
+
+              return `"${String(value).replace(/"/g, '""')}"`;
+            });
+
+            rows.push(values.join(','));
+          });
+
+          content = rows.join('\r\n');
+          mime = 'text/csv';
+        }
+      
+        const blob = new Blob([content], { type: `${mime};charset=utf-8` });
+        const a = document.createElement('a');
+
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        URL.revokeObjectURL(a.href);
+      }
+
       /* ═══════════════════════════════════════════════════════════════
          DOWNLOAD
       ═══════════════════════════════════════════════════════════════ */

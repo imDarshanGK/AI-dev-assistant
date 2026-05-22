@@ -105,6 +105,11 @@ class UnsubscribeRequest(BaseModel):
     token: str
 
 
+# ── Export ────────────────────────────────────────────────────────────────────
+class ExportRequest(BaseModel):
+    data: list[dict] | list[str] | list[int] | list[float] | list[bool] = []
+
+
 # ── Health ────────────────────────────────────────────────────────────────────
 class HealthResponse(BaseModel):
     status: str
