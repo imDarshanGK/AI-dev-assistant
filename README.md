@@ -96,7 +96,14 @@ git clone https://github.com/imDarshanGK/AI-dev-assistant.git
 cd AI-dev-assistant
 ```
 
-### 2 - Run the backend
+### 2 - Configure
+
+```bash
+cp .env.example .env
+# Edit .env to set your JWT_SECRET and any LLM_API_KEY if needed
+```
+
+### 3 - Run the backend
 
 ```bash
 cd backend
@@ -110,7 +117,7 @@ uvicorn app.main:app --reload
 | Interactive docs | http://localhost:8000/docs |
 | Health check | http://localhost:8000/health |
 
-### 3 - Open the frontend
+### 4 - Open the frontend
 
 ```bash
 # No build step required - open directly in your browser
