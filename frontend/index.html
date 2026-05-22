@@ -844,6 +844,25 @@
       color: var(--accent)
     }
 
+    /* ── Debug badge severity colours ── */
+    .tab-badge--error {
+      background: rgba(242, 87, 87, 0.18) !important;
+      color: var(--red) !important;
+      box-shadow: 0 0 6px rgba(242, 87, 87, 0.25);
+    }
+
+    .tab-badge--warning {
+      background: rgba(245, 200, 66, 0.18) !important;
+      color: var(--yellow) !important;
+      box-shadow: 0 0 6px rgba(245, 200, 66, 0.2);
+    }
+
+    .tab-badge--clean {
+      background: rgba(34, 212, 123, 0.18) !important;
+      color: var(--green) !important;
+      box-shadow: 0 0 6px rgba(34, 212, 123, 0.2);
+    }
+
     .result-content {
       padding: 20px;
       min-height: 280px;
@@ -3032,8 +3051,22 @@
         const el = document.getElementById('debugResult');
         el.style.display = 'block';
 
-        const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
-        document.getElementById('debugBadge').textContent = badge || '0';
+        const badgeEl = document.getElementById('debugBadge');
+        // Remove previous severity classes
+        badgeEl.classList.remove('tab-badge--error', 'tab-badge--warning', 'tab-badge--clean');
+
+        if (dbg.clean) {
+          badgeEl.textContent = '✓';
+          badgeEl.classList.add('tab-badge--clean');
+        } else if (dbg.error_count > 0) {
+          badgeEl.textContent = dbg.error_count;
+          badgeEl.classList.add('tab-badge--error');
+        } else {
+          // Only warnings / info, no errors
+          const count = dbg.warning_count || dbg.issues.length;
+          badgeEl.textContent = count || '0';
+          badgeEl.classList.add('tab-badge--warning');
+        }
 
         if (dbg.clean) {
           el.innerHTML = `
@@ -3378,7 +3411,9 @@
           document.getElementById(id).style.display = 'flex';
         });
         ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => {
-          document.getElementById(id).textContent = '';
+          const b = document.getElementById(id);
+          b.textContent = '';
+          b.classList.remove('tab-badge--error', 'tab-badge--warning', 'tab-badge--clean');
         });
         resultActions.style.display = 'none';
         document.getElementById('engineBar').style.display = 'none';
