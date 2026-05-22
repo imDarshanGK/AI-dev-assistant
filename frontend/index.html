@@ -611,9 +611,10 @@
 
     /* ── Code Editor ── */
     .editor-wrap {
-      position: relative;
-      display: flex
-    }
+  position: relative;
+  height: 500px;
+  overflow: hidden;
+}
 
     .line-numbers {
       padding: 16px 0 16px 12px;
@@ -629,20 +630,67 @@
     }
 
     #codeEditor {
-      width: 100%;
-      min-height: 300px;
-      max-height: 500px;
-      padding: 16px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.7;
-      color: var(--text);
-      background: transparent;
-      border: none;
-      outline: none;
-      resize: vertical;
-      tab-size: 2;
-    }
+      position: absolute;
+
+      top: 0;
+      left: 44px;
+
+      width: calc(100% - 44px);
+     height: 100%;
+
+  margin: 0;
+  padding: 16px;
+
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+
+  border: none;
+  outline: none;
+
+  tab-size: 2;
+
+  z-index: 2;
+
+  background: transparent;
+
+  color: transparent;
+
+  caret-color: var(--text);
+
+  resize: none;
+
+  overflow: auto;
+}
+.editor-preview {
+  position: absolute;
+
+  top: 0;
+  left: 44px;
+
+  width: calc(100% - 44px);
+  height: 100%;
+
+  margin: 0;
+  padding: 16px;
+
+  overflow: auto;
+
+  pointer-events: none;
+
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+
+  white-space: pre;
+
+  z-index: 1;
+}
+
+#highlightedCode {
+  display: block;
+  min-height: 100%;
+}
 
     .editor-footer {
       display: flex;
@@ -2214,6 +2262,8 @@
          DOM REFS
       ═══════════════════════════════════════════════════════════════ */
       const editor = document.getElementById('codeEditor');
+      const highlightedCode = document.getElementById('highlightedCode');
+      const preview = document.querySelector('.editor-preview'); 
       const lineNumbers = document.getElementById('lineNumbers');
       const charCount = document.getElementById('charCount');
       const analyzeBtn = document.getElementById('analyzeBtn');
@@ -2260,23 +2310,64 @@
          EDITOR
       ═══════════════════════════════════════════════════════════════ */
       function updateEditor() {
-        const val = editor.value;
-        const lines = val ? val.split('\n').length : 0;
-        const chars = val.length;
-        const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-        charCount.textContent = val
-          ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
-          : 'Paste or type code to begin';
-        const lineCount = Math.max(lines, 1);
-        lineNumbers.innerHTML = val
-          ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
-          : '1';
-      }
+
+  const val = editor.value;
+
+  const lines = val ? val.split('\n').length : 0;
+
+  const chars = val.length;
+
+  const nonBlank =
+    val
+      ? val.split('\n').filter(l => l.trim()).length
+      : 0;
+
+  charCount.textContent = val
+    ? chars.toLocaleString() +
+      ' chars · ' +
+      lines +
+      ' lines · ' +
+      nonBlank +
+      ' non-blank'
+    : 'Paste or type code to begin';
+
+  const lineCount = Math.max(lines, 1);
+
+  lineNumbers.innerHTML =
+    Array.from(
+      { length: lineCount },
+      (_, i) => i + 1
+    ).join('<br>');
+
+  // ===== SYNTAX HIGHLIGHTING =====
+
+  let safeCode = val;
+
+  // Prevent last-line Prism bug
+  if (safeCode.endsWith('\n')) {
+    safeCode += ' ';
+  }
+
+  highlightedCode.textContent = safeCode;
+
+  highlightedCode.className =
+    `language-${selectedLang}`;
+
+  Prism.highlightElement(highlightedCode);
+}
 
       editor.addEventListener('input', updateEditor);
       editor.addEventListener('scroll', () => {
-        lineNumbers.scrollTop = editor.scrollTop;
-      });
+
+  lineNumbers.scrollTop =
+    editor.scrollTop;
+
+  preview.scrollTop =
+    editor.scrollTop;
+
+  preview.scrollLeft =
+    editor.scrollLeft;
+});
 
       // Tab key support
       editor.addEventListener('keydown', e => {
@@ -3068,12 +3159,19 @@ int main() {
       const savedUrl = localStorage.getItem('qyx_apiUrl');
       if (savedUrl) apiUrlInput.value = savedUrl;
     </script>
-    <script
-     src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js">
-    </script>
-    <script 
-     src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js">
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
 
 </body>
 
