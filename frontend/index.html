@@ -3059,7 +3059,7 @@
       }
 
 document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-  if (!confirm('Clear all history? This cannot be undone.')) return;
+  if (!window.confirm('Are you sure you want to clear your history? This cannot be undone.')) return;
 
   history = [];
   localStorage.removeItem('qyx_history');
@@ -3116,7 +3116,7 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
       }
 
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
-  if (!confirm('Clear all favorites? This cannot be undone.')) return;
+  if (!window.confirm('Are you sure you want to clear your favorites? This cannot be undone.')) return;
   
   favorites = [];
   localStorage.removeItem('qyx_favorites');
