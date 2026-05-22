@@ -33,6 +33,14 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"#include\s*<", r"\bstd::\w+", r"\bcout\s*<<",
         r"\bint\s+main\s*\(", r"::\w+",
     ],
+    "Swift": [
+        r"\bfunc\s+\w+\s*\(",
+        r"\bvar\s+\w+\s*:",
+        r"\blet\s+\w+\s*=",
+        r"print\s*\(",
+        r"import\s+\w+",
+        r"guard\s+let\b",
+    ],
     "PHP": [
         r"<\?php",
         r"\$\w+\s*=",
@@ -79,6 +87,7 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "typescript": "TypeScript", "ts": "TypeScript",
             "java": "Java",
             "cpp": "C++", "c++": "C++", "cxx": "C++",
+            "swift": "Swift",
             "php": "PHP",
             "rust": "Rust", "rs": "Rust",
         }
