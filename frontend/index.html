@@ -2164,8 +2164,8 @@
         <!-- Editor -->
         <div class="editor-wrap">
           <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…"
-            spellcheck="false" autocorrect="off" autocapitalize="off" aria-label="Code Editor"></textarea>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…  >      
+    <button id="clear-editor-btn" style="display: none; padding: 5px 10px; cursor: pointer;">Clear Text</button>
         </div>
 
         <div class="editor-footer">
@@ -2181,7 +2181,7 @@
                 <rect x="3" y="3" width="7" height="7" />
                 <rect x="14" y="3" width="7" height="7" />
                 <rect x="3" y="14" width="7" height="7" />
-                <rect x="14" y="14" width="7" height="7" />
+               <rect x="14" y="14" width="7" height="7" />
               </svg></span>
             <span class="mode-btn-label">Full</span>
           </button>
@@ -3489,6 +3489,23 @@ int main() {
       const savedUrl = localStorage.getItem('qyx_apiUrl');
       if (savedUrl) apiUrlInput.value = savedUrl;
     </script>
+   <script>
+  const codeEditor = document.getElementById('codeEditor');
+  const clearEditorBtn = document.getElementById('clear-editor-btn');
+
+  if (codeEditor && clearEditorBtn) {
+    codeEditor.addEventListener('input', () => {
+      clearEditorBtn.style.display = codeEditor.value.length > 0 ? 'inline-block' : 'none';
+    });
+
+    clearEditorBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      codeEditor.value = '';
+      clearEditorBtn.style.display = 'none';
+      codeEditor.focus();
+    });
+  }
+</script>
 </body>
 
 </html>
