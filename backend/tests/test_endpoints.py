@@ -13,6 +13,13 @@ from app.main import app
 client = TestClient(app)
 
 
+@pytest.fixture(autouse=True)
+def reset_rate_limit_state():
+    _request_counts.clear()
+    yield
+    _request_counts.clear()
+
+
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 PHP_CODE = """
 <?php
