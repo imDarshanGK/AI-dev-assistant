@@ -162,7 +162,7 @@ def clear_favorites(
 
 @router.get("/progress", response_model=ProgressDashboardResponse)
 def get_progress_dashboard(
-    current_user: User = Depends(get_current_user), 
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     # Fetch the last 30 analyses ordered by execution sequence descending
@@ -172,7 +172,7 @@ def get_progress_dashboard(
         .order_by(QueryHistory.id.desc())
         .limit(30)
     ).scalars().all()
-    
+
     # Reverse to keep it chronological (oldest to newest) for chart layouts
     records = list(reversed(records))
 
@@ -186,19 +186,19 @@ def get_progress_dashboard(
 
     history_points = []
     scores = []
-    
+
     for record in records:
         data = record.result_json or {}
-        
+
         # Ensure fallback defaults match correct types if metrics are missing
         score = float(data.get("quality_score", 0.0))
         errors = int(data.get("errors_detected", 0))
         lang = str(data.get("language", "Unknown"))
-        
+
         scores.append(score)
-        
+
         timestamp = record.created_at.isoformat() if hasattr(record.created_at, "isoformat") else str(record.created_at)
-        
+
         history_points.append(
             AnalysisProgressPoint(
                 id=record.id,
@@ -212,7 +212,7 @@ def get_progress_dashboard(
     # Statistical Calculations
     average_score = sum(scores) / len(scores) if scores else 0.0
     best_score = max(scores) if scores else 0.0
-    
+
     # "Most Improved" calculated as the net gain from the earliest point in the sequence to your highest record peak
     most_improved = max(scores) - scores[0] if len(scores) > 1 else 0.0
     if most_improved < 0:

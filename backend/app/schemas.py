@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 from pydantic import BaseModel, field_validator
-from pydantic import BaseModel
 from typing import List
+
 
 class CodeRequest(BaseModel):
     code: str
@@ -20,7 +20,7 @@ class CodeRequest(BaseModel):
         return v
 
 
-# ── Explanation ────────────────────────────────────────────────────────────────
+# ── Explanation ──────────────────────────────────────────────────────────────
 class ExplanationResponse(BaseModel):
     language: str
     summary: str
@@ -33,7 +33,7 @@ class ExplanationResponse(BaseModel):
     complexity_risk: str
 
 
-# ── Debugging ─────────────────────────────────────────────────────────────────
+# ── Debugging ────────────────────────────────────────────────────────────────
 class Issue(BaseModel):
     type: str
     line: int | None
@@ -53,7 +53,7 @@ class DebuggingResponse(BaseModel):
     info_count: int
 
 
-# ── Suggestions ───────────────────────────────────────────────────────────────
+# ── Suggestions ──────────────────────────────────────────────────────────────
 class Suggestion(BaseModel):
     category: str
     description: str
@@ -71,7 +71,7 @@ class SuggestionsResponse(BaseModel):
     next_step: str
 
 
-# ── Full Analysis ─────────────────────────────────────────────────────────────
+# ── Full Analysis ────────────────────────────────────────────────────────────
 class AnalyzeResponse(BaseModel):
     provider: str
     model: str
@@ -81,7 +81,7 @@ class AnalyzeResponse(BaseModel):
     analysis_time_ms: float | None = None
 
 
-# ── Weekly Digest / Subscription ───────────────────────────────
+# ── Weekly Digest / Subscription ─────────────────────────────
 class SubscribeRequest(BaseModel):
     email: str
 
@@ -106,12 +106,13 @@ class UnsubscribeRequest(BaseModel):
     token: str
 
 
-# ── Health ────────────────────────────────────────────────────────────────────
+# ── Health ───────────────────────────────────────────────────────────────────
 class HealthResponse(BaseModel):
     status: str
     version: str
     message: str
     endpoints: list[str] | None = None
+
 
 class AnalysisProgressPoint(BaseModel):
     id: int
@@ -119,6 +120,7 @@ class AnalysisProgressPoint(BaseModel):
     errors_count: int
     language: str
     created_at: str
+
 
 class ProgressDashboardResponse(BaseModel):
     history: List[AnalysisProgressPoint]
