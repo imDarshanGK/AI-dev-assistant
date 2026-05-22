@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import secrets
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
@@ -52,7 +52,7 @@ def compute_subscriber_stats(db: Session, email: str) -> dict | None:
     if not user:
         return None
 
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     week_ago = now - timedelta(days=7)
     two_weeks_ago = now - timedelta(days=14)
 

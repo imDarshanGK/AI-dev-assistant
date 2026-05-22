@@ -9,3 +9,4 @@ python-multipart>=0.0.9
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
 apscheduler>=3.10.0
+redis>=5.0.0  # Optional for distributed rate limiting

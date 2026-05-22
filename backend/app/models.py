@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -12,7 +12,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(256))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     histories = relationship("QueryHistory", back_populates="user", cascade="all, delete-orphan")
     favorites = relationship("FavoriteResult", back_populates="user", cascade="all, delete-orphan")
@@ -26,7 +26,7 @@ class QueryHistory(Base):
     action: Mapped[str] = mapped_column(String(50))
     code: Mapped[str] = mapped_column(Text)
     result_json: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="histories")
 
@@ -40,7 +40,7 @@ class FavoriteResult(Base):
     action: Mapped[str] = mapped_column(String(50))
     code: Mapped[str] = mapped_column(Text)
     result_json: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="favorites")
 
@@ -52,7 +52,7 @@ class DigestSubscription(Base):
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     is_active: Mapped[bool] = mapped_column(default=True)
     unsubscribe_token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    subscribed_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    subscribed_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     last_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
@@ -64,4 +64,4 @@ class SharedSnippet(Base):
     action: Mapped[str] = mapped_column(String(50))
     code: Mapped[str] = mapped_column(Text)
     result_json: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))

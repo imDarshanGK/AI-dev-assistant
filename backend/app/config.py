@@ -42,6 +42,10 @@ def _bool_env(name: str, default: bool) -> bool:
     return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _str_env(name: str, default: str) -> str:
+    return os.getenv(name, default).strip()
+
+
 class Settings:
     """Application settings loaded from environment variables."""
 
@@ -49,8 +53,10 @@ class Settings:
     ai_model: str = os.getenv("AI_MODEL", "local-rule-engine-v1")
     max_code_chars: int = _int_env("MAX_CODE_CHARS", 20000)
     max_request_bytes: int = _int_env("MAX_REQUEST_BYTES", 1048576)
+    rate_limit_per_minute: int = _int_env("RATE_LIMIT_PER_MINUTE", 30)
     rate_limit_requests: int = _int_env("RATE_LIMIT_REQUESTS", 120)
     rate_limit_window_seconds: int = _int_env("RATE_LIMIT_WINDOW_SECONDS", 60)
+    rate_limiter_backend: str = _str_env("RATE_LIMITER_BACKEND", "auto")
     cache_enabled: bool = _bool_env("CACHE_ENABLED", True)
     cache_ttl_seconds: int = _int_env("CACHE_TTL_SECONDS", 300)
     cache_max_entries: int = _int_env("CACHE_MAX_ENTRIES", 100)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -41,7 +41,7 @@ def _send_weekly_digests() -> None:
                 continue
             ok = send_digest(stats, sub.unsubscribe_token)
             if ok:
-                sub.last_sent_at = datetime.now(UTC)
+                sub.last_sent_at = datetime.now(timezone.utc)
                 sent += 1
             else:
                 log.warning("Failed to deliver digest to %s", sub.email)

@@ -332,6 +332,7 @@ Compatible with **OpenAI**, **Groq** (free tier), **Together AI**, **Ollama** (l
 | Variable | Default | Description |
 |---|---|---|
 | `RATE_LIMIT_PER_MINUTE` | `30` | Max requests per IP per minute |
+| `RATE_LIMITER_BACKEND` | `auto` | Rate limiter backend: `auto`, `memory`, or `redis` |
 | `LLM_ENABLED` | `false` | Enable LLM provider |
 | `LLM_API_KEY` | — | API key for your LLM provider |
 | `LLM_BASE_URL` | `https://api.openai.com/v1` | LLM base URL |
@@ -339,6 +340,29 @@ Compatible with **OpenAI**, **Groq** (free tier), **Together AI**, **Ollama** (l
 | `LLM_TIMEOUT_SECONDS` | `30` | Request timeout in seconds |
 
 Copy `.env.example` to `.env` and fill in values as needed.
+
+---
+
+## Distributed Rate Limiting (Optional)
+
+For multi-instance deployments (horizontal scaling), enable Redis-backed rate limiting:
+
+```bash
+REDIS_URL=redis://localhost:6379
+RATE_LIMITER_BACKEND=auto              # auto-detect, or force "redis"
+```
+
+**Benefits:**
+- ✅ Rate limits are shared across all backend instances
+- ✅ No per-instance request quota duplication
+- ✅ Scales horizontally without coordination
+
+**Without Redis:** Rate limiting is per-instance (in-memory). Each instance gets its own 30 requests/minute quota.
+
+**Configuration Options:**
+- `RATE_LIMITER_BACKEND=auto` (default): Use Redis if `REDIS_URL` is set, otherwise fall back to in-memory
+- `RATE_LIMITER_BACKEND=memory`: Force in-memory (single instance)
+- `RATE_LIMITER_BACKEND=redis`: Force Redis (error if unavailable)
 
 ---
 

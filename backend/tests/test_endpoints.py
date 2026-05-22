@@ -7,15 +7,22 @@ from fastapi.testclient import TestClient
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app import main as app_main
+from app.config import settings
 
 client = TestClient(app_main.app)
 
 
 @pytest.fixture(autouse=True)
 def reset_rate_limit_state():
-    app_main._request_counts.clear()
+    # Ensure rate_limiter is initialized if not already
+    if app_main.rate_limiter is None:
+        from app.services.rate_limiter import RateLimiter
+        app_main.rate_limiter = RateLimiter(settings)
+
+    app_main.rate_limiter.reset()
     yield
-    app_main._request_counts.clear()
+    if app_main.rate_limiter:
+        app_main.rate_limiter.reset()
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -161,23 +168,23 @@ def test_health():
 def test_rate_limit_headers_on_success_response():
     r = client.get("/")
     assert r.status_code == 200
-    assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
-    assert r.headers["X-RateLimit-Remaining"] == str(app_main.RATE_LIMIT)
+    assert r.headers["X-RateLimit-Limit"] == str(settings.rate_limit_per_minute)
+    assert r.headers["X-RateLimit-Remaining"] == str(settings.rate_limit_per_minute)
 
 
 def test_rate_limit_returns_429_with_retry_after_header():
     payload = {"code": "print('hello')", "language": "python"}
 
-    for expected_remaining in range(app_main.RATE_LIMIT - 1, -1, -1):
+    for expected_remaining in range(settings.rate_limit_per_minute - 1, -1, -1):
         r = client.post("/debugging/", json=payload)
         assert r.status_code == 200
-        assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+        assert r.headers["X-RateLimit-Limit"] == str(settings.rate_limit_per_minute)
         assert r.headers["X-RateLimit-Remaining"] == str(expected_remaining)
 
     r = client.post("/debugging/", json=payload)
     assert r.status_code == 429
-    assert r.headers["Retry-After"] == str(app_main.RATE_LIMIT_WINDOW_SECONDS)
-    assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
+    assert r.headers["Retry-After"] == str(settings.rate_limit_window_seconds)
+    assert r.headers["X-RateLimit-Limit"] == str(settings.rate_limit_per_minute)
     assert r.headers["X-RateLimit-Remaining"] == "0"
 
 
@@ -554,10 +561,10 @@ def test_full_analyze():
     assert d["analysis_time_ms"] is not None
 
 def test_full_analyze_uses_cache_for_identical_inputs():
-    from app.main import _request_counts
     from app.services.cache import cache
 
-    _request_counts.clear()
+    if app_main.rate_limiter:
+        app_main.rate_limiter.reset()
     cache.clear_memory()
     payload = {"code": PYTHON_BUGGY, "language": "python"}
 
@@ -569,7 +576,8 @@ def test_full_analyze_uses_cache_for_identical_inputs():
     assert first.headers["X-Cache"] == "MISS"
     assert second.headers["X-Cache"] == "HIT"
     assert second.json() == first.json()
-    _request_counts.clear()
+    if app_main.rate_limiter:
+        app_main.rate_limiter.reset()
 
 def test_analyze_cache_expires(monkeypatch):
     from app.services import cache as cache_module
