@@ -366,7 +366,7 @@
       font-size: clamp(2.8rem, 6vw, 5rem);
       font-weight: 800;
       letter-spacing: -0.04em;
-      line-height: 1.05;
+      line-height: 1.16;
       margin-bottom: 20px;
     }
 
@@ -376,6 +376,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      display: inline-block;
     }
 
     .hero-sub {
@@ -1121,6 +1122,30 @@
       border: 1px solid var(--red);
     }
 
+    .risk-Simple {
+      background: rgba(34, 197, 94, 0.12);
+      color: var(--green);
+      border: 1px solid var(--green);
+    }
+
+    .risk-Moderate {
+      background: rgba(234, 179, 8, 0.12);
+      color: var(--yellow);
+      border: 1px solid var(--yellow);
+    }
+
+    .risk-High {
+      background: rgba(249, 115, 22, 0.12);
+      color: var(--orange);
+      border: 1px solid var(--orange);
+    }
+
+    .risk-Very-High {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--red);
+      border: 1px solid var(--red);
+    }
+
     .key-points {
       list-style: none
     }
@@ -1274,6 +1299,178 @@
       color: var(--text2);
       white-space: pre;
       overflow-x: auto;
+    }
+
+    /* ── Diff View ── */
+    .diff-wrapper {
+      margin-top: 10px;
+      border-radius: var(--r2);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+    }
+
+    .diff-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.7rem;
+      color: var(--text3);
+      font-family: var(--font-ui);
+      gap: 8px;
+    }
+
+    .diff-header-labels {
+      display: flex;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .diff-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 600;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .diff-label-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .diff-label-before .diff-label-dot { background: var(--red); }
+    .diff-label-after  .diff-label-dot { background: var(--green); }
+
+    .diff-view {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: none;
+    }
+
+    @media (max-width: 640px) {
+      .diff-view {
+        grid-template-columns: 1fr;
+      }
+      .diff-col:first-child {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+
+    .diff-col {
+      overflow-x: auto;
+      background: var(--bg);
+    }
+
+    .diff-col:first-child {
+      border-right: 1px solid var(--border);
+    }
+
+    .diff-line {
+      display: flex;
+      align-items: flex-start;
+      padding: 2px 0;
+      min-height: 22px;
+      line-height: 1.6;
+      white-space: pre;
+    }
+
+    .diff-line-num {
+      min-width: 32px;
+      padding: 0 6px;
+      text-align: right;
+      color: var(--text3);
+      user-select: none;
+      font-size: 0.65rem;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      margin-right: 8px;
+      line-height: 1.6;
+    }
+
+    .diff-line-content {
+      padding-right: 12px;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    .diff-line-removed {
+      background: rgba(242, 87, 87, 0.13);
+    }
+
+    .diff-line-removed .diff-line-num {
+      background: rgba(242, 87, 87, 0.18);
+      color: var(--red);
+    }
+
+    .diff-line-removed .diff-line-content {
+      color: var(--red);
+    }
+
+    .diff-line-added {
+      background: rgba(34, 212, 123, 0.10);
+    }
+
+    .diff-line-added .diff-line-num {
+      background: rgba(34, 212, 123, 0.15);
+      color: var(--green);
+    }
+
+    .diff-line-added .diff-line-content {
+      color: var(--green);
+    }
+
+    .diff-line-equal {
+      background: transparent;
+    }
+
+    .diff-line-equal .diff-line-content {
+      color: var(--text2);
+    }
+
+    .diff-line-placeholder {
+      background: var(--bg3);
+      opacity: 0.4;
+    }
+
+    .btn-copy-fix {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      border: 1px solid rgba(34, 212, 123, 0.3);
+      background: rgba(34, 212, 123, 0.08);
+      color: var(--green);
+      transition: all var(--transition);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn-copy-fix:hover {
+      background: rgba(34, 212, 123, 0.18);
+      border-color: var(--green);
+      transform: translateY(-1px);
+    }
+
+    .btn-copy-fix:active {
+      transform: translateY(0);
+    }
+
+    .btn-copy-fix svg {
+      flex-shrink: 0;
     }
 
     /* ── Clean State ── */
@@ -1737,8 +1934,62 @@
       }
     }
   </style>
-</head>
+.stat-bar{
+  display:flex;gap:8px;flex-wrap:wrap;
+  margin-bottom:16px;
+}
+.stat-chip{
+  flex:1;min-width:80px;
+  padding:10px 14px;border-radius:var(--r2);
+  background:var(--bg3);border:1px solid var(--border);
+  text-align:center;
+}
+.stat-chip-num{
+  font-family:var(--font-disp);font-size:1.4rem;font-weight:800;
+  line-height:1;
+}
+.stat-chip-label{font-size:0.7rem;color:var(--text3);margin-top:2px}
+.stat-chip.error-chip .stat-chip-num{color:var(--red)}
+.stat-chip.warn-chip .stat-chip-num{color:var(--yellow)}
+.stat-chip.info-chip .stat-chip-num{color:var(--accent)}
 
+/* responsive */
+@media(max-width:600px){
+  .hero h1{font-size:2.2rem}
+  nav{flex-wrap:wrap;gap:8px}
+  .nav-links .nav-link span{display:none}
+  .hero{padding:50px 0 40px}
+  .hero-sub{font-size:0.98rem}
+  .features-row{gap:8px;padding:16px 0 40px}
+  .feat-pill{padding:10px 14px;min-width:140px}
+  .workspace{gap:14px}
+  .panel-header{padding:12px 14px}
+  .mode-row{gap:6px;padding:10px 14px}
+  .mode-btn{padding:8px 4px;font-size:0.74rem}
+  .analyze-row{padding:10px 14px}
+  .btn-analyze{padding:14px}
+  .result-content{min-height:280px;max-height:420px;padding:14px}
+  .bottom-grid{gap:14px}
+  .history-list,.fav-list{max-height:200px}
+  .score-ring-wrap{flex-direction:column;text-align:center;gap:12px}
+  .stat-bar{gap:6px}
+  .stat-chip{padding:8px 10px}
+  .stat-chip-num{font-size:1.2rem}
+  #toastContainer{bottom:12px;right:12px;left:12px}
+  .toast{min-width:unset;width:100%}
+  .hero-cta{gap:8px}
+  .btn{padding:11px 18px;font-size:0.85rem}
+}
+@media(max-width:400px){
+  .app{padding:0 14px 60px}
+  .hero h1{font-size:1.9rem}
+  .feat-pill-info p{display:none}
+  .lang-tab{padding:7px 10px;font-size:0.72rem}
+  .result-tab{padding:9px 12px;font-size:0.75rem}
+}
+</style>
+<link rel="icon" href="data:,">
+</head>
 <body>
   <div class="bg-orb bg-orb-1"></div>
   <div class="bg-orb bg-orb-2"></div>
@@ -1853,6 +2104,135 @@
         <div class="editor-wrap">
           <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
           <textarea id="codeEditor" spellcheck="false" placeholder="Write or paste your implementation code matrix block structures here..." aria-label="Code Editor Content Input Container Field Matrix Element"></textarea>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<div class="app">
+
+<!-- ── NAV ──────────────────────────────────────────────────── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-hex">Q</div>
+    QyverixAI
+    <span style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.25);letter-spacing:0.04em;margin-left:4px">v3.0</span>
+  </a>
+  <div class="nav-links">
+    <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+      <span>API Docs</span>
+    </a>
+    <button class="theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle dark mode" aria-pressed="false">
+      <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    Open Source · AI-Powered · Free
+  </div>
+  <h1>Debug. Understand.<br/><em>Ship faster.</em></h1>
+  <p class="hero-sub">
+    Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.
+  </p>
+  <div class="hero-cta">
+    <button class="btn btn-primary" onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21"/></svg>
+      Start Analyzing
+    </button>
+    <button class="btn btn-secondary" onclick="loadSample()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
+      Try Sample Code
+    </button>
+    <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      Star on GitHub
+    </a>
+  </div>
+</section>
+
+<!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
+<div class="features-row">
+  <div class="feat-pill">
+    <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+    <div class="feat-pill-info">
+      <h4>40+ Bug Patterns</h4>
+      <p>Python, JS, TS, Java, C++</p>
+    </div>
+  </div>
+  <div class="feat-pill">
+    <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+    <div class="feat-pill-info">
+      <h4>Code Explanation</h4>
+      <p>Plain English breakdowns</p>
+    </div>
+  </div>
+  <div class="feat-pill">
+    <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
+    <div class="feat-pill-info">
+      <h4>Smart Suggestions</h4>
+      <p>Quality score + grade</p>
+    </div>
+  </div>
+  <div class="feat-pill">
+    <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+    <div class="feat-pill-info">
+      <h4>Dark / Light Mode</h4>
+      <p>Persisted preference</p>
+    </div>
+  </div>
+  <div class="feat-pill">
+    <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+    <div class="feat-pill-info">
+      <h4>File Upload</h4>
+      <p>.py .js .ts .java .cpp</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── WORKSPACE ─────────────────────────────────────────────── -->
+<section id="workspace" class="workspace">
+
+  <!-- Editor Panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span></span>
+        Code Editor
+      </div>
+      <div class="panel-actions">
+        <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button" aria-label="Upload code file" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1"/>
+        </label>
+        <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
+        <button class="icon-btn" id="copyBtn" title="Copy code" aria-label="Copy code to clipboard">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Language tabs -->
+    <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
+      <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
+      <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
+      <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
+      <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
+      <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
+    </div>
+        <!-- Editor -->
+        <div class="editor-wrap">
+          <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…"
+            spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" aria-label="Code Editor"></textarea>
         </div>
 
         <div class="editor-footer">
@@ -1912,6 +2292,40 @@
         <div class="result-tabs" role="tablist" aria-label="Analysis Results Framework">
           <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <button class="btn-analyze" id="analyzeBtn" aria-label="Analyze Code">
+            <div class="spinner" id="spinner" aria-hidden="true"></div>
+            <span class="btn-text">Analyze Code</span>
+          </button>
+        </div>
+      </div>
+      <!-- Results Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Analysis Results</div>
+          <div class="panel-actions" id="resultActions" style="display:none">
+            <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save analysis to favorites"><svg
+                width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg></button>
+            <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Result tabs -->
+        <div class="result-tabs" role="tablist" aria-label="Analysis Results">
+          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true"
+            aria-controls="pane-explain">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
               <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
               <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
             </svg> Explain <span class="tab-badge" id="explainBadge"></span>
@@ -2099,6 +2513,248 @@
       java: `// Java Class Anti-pattern Analysis Sample Case Matrix Configuration\npublic class CoreProcessor {\n    public void handleExecutionFlow() {\n        // Anti-pattern 1: Empty generic exception catch blocks tracking pipeline definitions patterns elements suppress parameters\n        try {\n            Thread.sleep(1000);\n        } catch (Exception e) {\n            // Left blank intentionally\n        }\n        \n        // Anti-pattern 2: NullPointerException verification parameter elements metrics risks elements allocations structures paths layers targets configurations blocks\n        String uninitializedString = null;\n        System.out.println(uninitializedString.length());\n    }\n}`,
       cpp: `// C++ Native Memory Compilation Implementation Tracking Sample Parameters Grid Row Context Anti pattern code\n#include <iostream>\nusing namespace std; \n\nvoid processData() {\n    // Anti-pattern 1: Memory leaks leaks allocations references heap pointer declarations arrays sequences configurations instances tracking without delete context blocks definitions arrays mappings values objects structures boundaries validation pipelines systems boundaries context allocations\n    int* dataBuffer = new int[100]; \n    dataBuffer[0] = 42;\n    cout << "Processing structure internal heap array block execution identity verification data pointer value parameter: " << dataBuffer[0] << endl;\n    // Missing delete deletion definitions elements pipeline structural clean steps allocations mappings elements boundary targets nodes matrix layout array targets blocks tracking mappings arrays elements rows layer definitions matrix grid context configuration arrays structural memory structures targets elements rows profiles layers indicators definitions blocks instances element lines contexts definitions systems blocks metrics context layer bounds structures contexts specifications elements data components boundaries tracking matrix items line indicators blocks definitions logic configurations parameters mapping elements rows logic context parameters blocks maps schemas configurations profiles items array block element lines schemas structural metrics profiles indicators patterns components targets lines maps structures blocks elements components limits definitions contexts system definitions parameters models specification tracking definitions specifications bounds tracking structures matrix lines schemas component data configuration targets block layout data indicators matrix rows mapping schemas structures configurations metrics patterns targets lines schemas matrix parameters block rows context profiles mapping fields structural elements targets elements components boundaries patterns layout elements components bounds tracking layouts elements context components layers parameters parameters specs indicators items array indicators indicators fields schemas patterns targets layers indicators components variables patterns targets profile components constraints items array indices indicators items components indicators patterns mappings metrics items layers metrics components metrics configurations metrics arrays lines components bounds configuration parameters tracking components metrics indicators boundaries arrays layers patterns targets models constraints metrics parameters patterns lines layers tracking profiles specs lines specs metrics items arrays specifications items definitions contexts layers spec tracking maps components tracking structures parameters logic data analysis metrics monitoring records indicators constraints indices parameters components limits layouts specifications definitions parameters boundaries lines properties indicator metrics configurations indicators lines layers fields variables context metrics boundaries patterns structures maps fields columns indicators maps layers indices targets specifications rows indicators blocks indicators targets indicators fields structures configurations components properties constraints elements tracking properties parameters definitions specifications parameters tracking parameters profiles specifications tracking parameters tracking structures bounds lines context validation mappings arrays columns layers properties configurations components maps bounds criteria mappings tracking properties indicators patterns mappings indicators tracking profiles logic targets metrics parameters tracking configurations tracking structural components criteria criteria specifications constraints logic parameters variables boundaries constraints components components constraints limits configurations indices constraints items maps rows bounds columns configurations parameters specs variables context properties tracking properties layout patterns maps structural metrics configurations profiles maps structures properties specifications models bounds layouts limits configurations criteria columns properties definitions specifications bounds profiles specs logic lines layouts tracking mapping structural dimensions logic specifications parameters tracking patterns schemas bounds arrays maps metrics boundaries columns tracking specifications validation profiles parameters logic criteria specifications dimensions indicators arrays tracking data components components parameters specifications bounds lines parameters logic boundaries criteria layouts variables parameters dimensions columns profiles specifications tracking criteria logic specifications specifications models parameters specifications monitoring components criteria monitoring profiles specifications parameters tracking structural definitions criteria parameters properties constraints tracking specs indicators monitoring columns criteria bounds profiles specifications tracking bounds profiles specifications logic tracking criteria monitoring properties tracking layout structures tracking constraints parameters specifications tracking profiles parameters tracking metrics monitoring columns criteria monitoring parameters parameters constraints profiles metrics dimensions criteria profiles criteria dimensions tracking profiles parameters tracking definitions tracking layout profiles specifications indicators monitoring columns tracking profiles tracking bounds profiles monitoring monitoring boundaries tracking logic profiles tracking criteria dimensions parameters monitoring indicators criteria profiles tracking parameters monitoring models monitoring tracking columns tracking layout criteria monitoring models tracking metrics criteria boundaries tracking layout boundaries monitoring tracking limits definitions boundaries tracking profiles parameters criteria monitoring parameters specifications limits definitions parameters variables properties variables constraints monitoring monitoring parameters dimensions variables tracking specs boundaries properties limits specs parameters boundaries logic properties bounds layouts variables tracking specs boundaries tracking metrics layouts boundaries limits definitions monitoring monitoring monitoring metrics models constraints metrics tracking specifications dimensions parameters variables properties layout components parameters criteria dimensions logic models metrics limits variables definitions parameters structural tracking specs parameters criteria monitoring columns logic profiles specs boundaries properties layout parameters criteria dimensions boundaries variables specifications variables properties criteria specifications criteria boundaries specifications limits definitions metrics monitoring parameters structural context variables components profiles tracking parameters criteria tracking elements blocks contexts systems\n}`
     };
+  </div><!-- /app -->
+  
+
+    <!-- ── FOOTER ─────────────────────────────────────────────────── -->
+    <footer>
+      <div class="app" style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;justify-content:space-between;">
+        <div>
+          <div class="footer-logo">QyverixAI</div>
+          <p>
+            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
+            · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
+            · MIT License
+          </p>
+          <p style="font-size:0.75rem">Built for the open source community</p>
+        </div>
+        <div style="max-width:320px;">
+          <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
+          <form id="digestForm" style="display:flex;gap:6px;">
+            <input type="email" id="digestEmail" placeholder="your@email.com" required
+                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
+            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
+          </form>
+          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
+    <div id="toastContainer"></div>
+
+    <script>
+      /* ═══════════════════════════════════════════════════════════════
+         STATE
+      ═══════════════════════════════════════════════════════════════ */
+      const MAX_HISTORY = 50;
+      let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+      let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
+      let currentResult = null;
+      let selectedLang = 'python';
+      let selectedMode = 'analyze';
+
+      /* ═══════════════════════════════════════════════════════════════
+         DOM REFS
+      ═══════════════════════════════════════════════════════════════ */
+      const editor = document.getElementById('codeEditor');
+      const lineNumbers = document.getElementById('lineNumbers');
+      const charCount = document.getElementById('charCount');
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const spinner = document.getElementById('spinner');
+      const apiUrlInput = document.getElementById('apiUrl');
+      const apiDot = document.getElementById('apiDot');
+      const apiStatusText = document.getElementById('apiStatusText');
+      const historyList = document.getElementById('historyList');
+      const favList = document.getElementById('favList');
+      const resultActions = document.getElementById('resultActions');
+      const engineInfo = document.getElementById('engineInfo');
+      const timeInfo = document.getElementById('timeInfo');
+
+      /* ═══════════════════════════════════════════════════════════════
+         THEME
+      ═══════════════════════════════════════════════════════════════ */
+      // dark mode → moon, light mode → sun
+      function setThemeIcon(theme) {
+        const icon = document.getElementById('themeIcon');
+        if (!icon) return;
+        if (theme === 'dark') {
+          icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+        } else {
+          icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+        }
+        const btn = document.getElementById('themeToggle');
+        btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+        btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+      }
+
+      const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      setThemeIcon(savedTheme);
+
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme');
+        const next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('qyx_theme', next);
+        setThemeIcon(next);
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         EDITOR
+      ═══════════════════════════════════════════════════════════════ */
+      function updateEditor() {
+        const val = editor.value;
+        const lines = val ? val.split('\n').length : 0;
+        const chars = val.length;
+        const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
+        charCount.textContent = val
+          ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
+          : 'Paste or type code to begin';
+        const lineCount = Math.max(lines, 1);
+        lineNumbers.innerHTML = val
+          ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
+          : '1';
+      }
+
+      function looksLikeRestoredPageSource(text) {
+        return /<\s*html|<\s*style|<\s*script|function\s+updateEditor\s*\(|\.stat-bar|\.hero\s*\{|\.workspace\s*\{/i.test(text);
+      }
+
+      function normalizeEditorOnLoad() {
+        if (looksLikeRestoredPageSource(editor.value || '')) {
+          editor.value = '';
+          updateEditor();
+        }
+      }
+
+      normalizeEditorOnLoad();
+      window.addEventListener('pageshow', normalizeEditorOnLoad);
+      setTimeout(normalizeEditorOnLoad, 0);
+
+      editor.addEventListener('input', updateEditor);
+      editor.addEventListener('scroll', () => {
+        lineNumbers.scrollTop = editor.scrollTop;
+      });
+
+      // Tab key support
+      editor.addEventListener('keydown', e => {
+
+        // TAB SUPPORT
+        if (e.key === 'Tab' && !e.shiftKey) {
+
+          e.preventDefault();
+
+          const start = editor.selectionStart;
+          const end = editor.selectionEnd;
+
+          editor.value =
+            editor.value.substring(0, start) +
+            '    ' +
+            editor.value.substring(end);
+
+          editor.selectionStart =
+            editor.selectionEnd =
+            start + 4;
+
+          updateEditor();
+        }
+
+        // AUTO INDENT ON ENTER
+        else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+
+          e.preventDefault();
+
+          const start = editor.selectionStart;
+          const end = editor.selectionEnd;
+
+          const value = editor.value;
+
+          // Find current line
+          const lineStart =
+            value.lastIndexOf('\n', start - 1) + 1;
+
+          const currentLine =
+            value.substring(lineStart, start);
+
+          // Preserve existing indentation
+          const indentMatch = currentLine.match(/^\s*/);
+
+          let indent = indentMatch
+            ? indentMatch[0]
+            : '';
+
+          const trimmed = currentLine.trim();
+
+          // Python indentation
+          if (
+            selectedLang === 'python' &&
+            trimmed.endsWith(':')
+          ) {
+            indent += '    ';
+          }
+
+          // JavaScript / TypeScript / Java / C++
+          else if (
+            ['javascript', 'typescript', 'java', 'cpp']
+              .includes(selectedLang) &&
+            trimmed.endsWith('{')
+          ) {
+            indent += '    ';
+          }
+
+          editor.value =
+            value.substring(0, start) +
+            '\n' + indent +
+            value.substring(end);
+
+          editor.selectionStart =
+            editor.selectionEnd =
+            start + 1 + indent.length;
+
+          updateEditor();
+        }
+
+        // SMART BACKSPACE
+        else if (e.key === 'Backspace') {
+
+          const start = editor.selectionStart;
+          const end = editor.selectionEnd;
+
+          // Only if no text selected
+          if (start === end) {
+
+            const value = editor.value;
+
+            // Text before cursor
+            const beforeCursor =
+              value.substring(0, start);
+
+            // Current line
+            const lineStart =
+              beforeCursor.lastIndexOf('\n') + 1;
+
+            const currentLine =
+              beforeCursor.substring(lineStart);
+
+            // Remove full indentation level
+            if (currentLine.endsWith('    ')) {
+
+              e.preventDefault();
+
+              editor.value =
+                value.substring(0, start - 4) +
+                value.substring(end);
+
+              editor.selectionStart =
+                editor.selectionEnd =
+                start - 4;
+
+              updateEditor();
+            }
+          }
+        }
+      });
 
     /* ═══════════════════════════════════════════════════════════════
    THEME
@@ -2345,6 +3001,372 @@
           document.getElementById('statMostImproved').textContent = 'Stable';
           document.getElementById('statMostImproved').style.color = 'var(--yellow)';
         }
+      /* ═══════════════════════════════════════════════════════════════
+         RENDER RESULTS
+      ═══════════════════════════════════════════════════════════════ */
+      function renderResults(result, code) {
+        if (result.explanation) renderExplain(result.explanation);
+        if (result.debugging) renderDebug(result.debugging);
+        if (result.suggestions) renderSuggest(result.suggestions);
+
+        // Auto-switch to relevant tab
+        const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
+        const targetTab = tabOrder[selectedMode] || 'explain';
+        document.querySelector(`[data-rtab="${targetTab}"]`).click();
+      }
+
+      function renderExplain(exp) {
+        document.getElementById('emptyExplain').style.display = 'none';
+        const el = document.getElementById('explainResult');
+        el.style.display = 'block';
+        document.getElementById('explainBadge').textContent = exp.complexity;
+
+        el.innerHTML = `
+    <div class="explain-summary" tabindex="0">${exp.summary}</div>
+    <div class="explain-meta">
+      <div class="meta-chip complexity-${exp.complexity}">
+        <div class="dot"></div>${exp.complexity}
+      </div>
+      <div class="meta-chip">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
+        ${exp.language}
+      </div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
+      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
+      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
+    </div>
+    <ul class="key-points">
+      ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
+    </ul>
+  `;
+      }
+
+      function renderDebug(dbg) {
+        document.getElementById('emptyDebug').style.display = 'none';
+        const el = document.getElementById('debugResult');
+        el.style.display = 'block';
+
+        const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
+        document.getElementById('debugBadge').textContent = badge || '0';
+
+        if (dbg.clean) {
+          el.innerHTML = `
+      <div class="clean-state">
+        <div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
+        <h3>No issues detected!</h3>
+        <p>Your code passed all ${40}+ pattern checks. Keep it up!</p>
+      </div>`;
+          return;
+        }
+
+        const statBar = `
+    <div class="stat-bar">
+      <div class="stat-chip error-chip">
+        <div class="stat-chip-num">${dbg.error_count}</div>
+        <div class="stat-chip-label">Errors</div>
+      </div>
+      <div class="stat-chip warn-chip">
+        <div class="stat-chip-num">${dbg.warning_count}</div>
+        <div class="stat-chip-label">Warnings</div>
+      </div>
+      <div class="stat-chip info-chip">
+        <div class="stat-chip-num">${dbg.info_count}</div>
+        <div class="stat-chip-label">Info</div>
+      </div>
+    </div>`;
+
+        const cards = dbg.issues.map((issue, i) => `
+    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
+      <div class="issue-header">
+        <span class="issue-badge">${issue.severity}</span>
+        <span class="issue-type">${issue.type}</span>
+        ${issue.line ? `<span class="issue-line">Line ${issue.line}</span>` : ''}
+      </div>
+      <div class="issue-desc">${issue.description}</div>
+      ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
+      <div class="issue-fix">${issue.suggestion}</div>
+    </div>`).join('');
+
+        el.innerHTML = statBar + cards;
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+         PURE-JS LINE DIFF (LCS-based)
+      ═══════════════════════════════════════════════════════════════ */
+      function computeDiff(originalText, fixedText) {
+        const aLines = originalText.split('\n');
+        const bLines = fixedText.split('\n');
+        const m = aLines.length, n = bLines.length;
+
+        // Build LCS table
+        const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+        for (let i = 1; i <= m; i++) {
+          for (let j = 1; j <= n; j++) {
+            dp[i][j] = aLines[i - 1] === bLines[j - 1]
+              ? dp[i - 1][j - 1] + 1
+              : Math.max(dp[i - 1][j], dp[i][j - 1]);
+          }
+        }
+
+        // Backtrack to get edit script
+        const left = [];   // original column (removed + equal)
+        const right = [];  // fixed column    (added + equal)
+        let i = m, j = n;
+        const edits = [];
+        while (i > 0 || j > 0) {
+          if (i > 0 && j > 0 && aLines[i - 1] === bLines[j - 1]) {
+            edits.push({ type: 'equal', a: aLines[i - 1], b: bLines[j - 1] });
+            i--; j--;
+          } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+            edits.push({ type: 'added', b: bLines[j - 1] });
+            j--;
+          } else {
+            edits.push({ type: 'removed', a: aLines[i - 1] });
+            i--;
+          }
+        }
+        edits.reverse();
+
+        // Separate into two column lists
+        let aIdx = 0, bIdx = 0;
+        edits.forEach(e => {
+          if (e.type === 'equal') {
+            left.push({ type: 'equal', text: e.a, num: ++aIdx });
+            right.push({ type: 'equal', text: e.b, num: ++bIdx });
+          } else if (e.type === 'removed') {
+            left.push({ type: 'removed', text: e.a, num: ++aIdx });
+            right.push({ type: 'placeholder', text: '' });
+          } else {
+            left.push({ type: 'placeholder', text: '' });
+            right.push({ type: 'added', text: e.b, num: ++bIdx });
+          }
+        });
+        return { left, right };
+      }
+
+      function renderDiffCol(lines) {
+        return lines.map(l => {
+          if (l.type === 'placeholder') {
+            return `<div class="diff-line diff-line-placeholder"><span class="diff-line-num"></span><span class="diff-line-content"> </span></div>`;
+          }
+          const cls = l.type === 'removed' ? 'diff-line-removed'
+            : l.type === 'added' ? 'diff-line-added'
+              : 'diff-line-equal';
+          const prefix = l.type === 'removed' ? '− ' : l.type === 'added' ? '+ ' : '  ';
+          return `<div class="diff-line ${cls}"><span class="diff-line-num">${l.num}</span><span class="diff-line-content">${prefix}${escHtml(l.text)}</span></div>`;
+        }).join('');
+      }
+
+      /* Find the region of the editor code that best matches the fixed snippet.
+         Returns the matching original lines (as a string) or null if nothing found. */
+      function findOriginalSnippet(editorCode, fixedCode) {
+        if (!editorCode || !fixedCode) return null;
+        const fixedLines  = fixedCode.split('\n').map(l => l.trim()).filter(Boolean);
+        const editorLines = editorCode.split('\n');
+        if (!fixedLines.length || !editorLines.length) return null;
+
+        let bestScore = 0, bestStart = -1;
+
+        for (let i = 0; i < editorLines.length; i++) {
+          let score = 0;
+          for (let j = 0; j < fixedLines.length && i + j < editorLines.length; j++) {
+            const el = editorLines[i + j].trim();
+            const fl = fixedLines[j].trim();
+            if (!el || !fl) continue;
+            if (el === fl) {
+              score += 2;
+            } else if (fl.length > 6 && el.includes(fl.slice(0, Math.min(fl.length, 18)))) {
+              score += 1;
+            } else if (el.length > 6 && fl.includes(el.slice(0, Math.min(el.length, 18)))) {
+              score += 1;
+            }
+          }
+          if (score > bestScore) { bestScore = score; bestStart = i; }
+        }
+
+        if (bestStart === -1 || bestScore < 1) return null;
+
+        // Extract the matched region (same number of lines as the fixed snippet)
+        const start = Math.max(0, bestStart);
+        const end   = Math.min(editorLines.length, bestStart + fixedLines.length);
+        return editorLines.slice(start, end).join('\n');
+      }
+
+      /* Build the side-by-side diff HTML for one suggestion's example */
+      function buildDiffHtml(originalSnippet, fixedCode, copyId) {
+        const diff = computeDiff(originalSnippet, fixedCode);
+        const hasChanges = diff.left.some(l  => l.type === 'removed') ||
+                           diff.right.some(r => r.type === 'added');
+        // If nothing changed (identical), just show as fixed-code block
+        if (!hasChanges) {
+          const lines = fixedCode.split('\n').map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+          return `
+          <div class="diff-wrapper">
+            <div class="diff-header">
+              <div class="diff-header-labels">
+                <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
+              </div>
+              <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy fixed
+              </button>
+            </div>
+            <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
+          </div>`;
+        }
+        return `
+        <div class="diff-wrapper">
+          <div class="diff-header">
+            <div class="diff-header-labels">
+              <span class="diff-label diff-label-before"><span class="diff-label-dot"></span>Before</span>
+              <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>After</span>
+            </div>
+            <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy fixed
+            </button>
+          </div>
+          <div class="diff-view">
+            <div class="diff-col">${renderDiffCol(diff.left)}</div>
+            <div class="diff-col">${renderDiffCol(diff.right)}</div>
+          </div>
+        </div>`;
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+         RENDER SUGGESTIONS (with diff view)
+      ═══════════════════════════════════════════════════════════════ */
+      function renderSuggest(sugg) {
+        document.getElementById('emptySuggest').style.display = 'none';
+        const el = document.getElementById('suggestResult');
+        el.style.display = 'block';
+        document.getElementById('suggestBadge').textContent = sugg.suggestions.length || '0';
+
+        const scoreColor = sugg.overall_score >= 80 ? 'var(--green)'
+          : sugg.overall_score >= 60 ? 'var(--yellow)'
+            : 'var(--red)';
+
+        const circumference = 2 * Math.PI * 30;
+        const dashOffset = circumference - (sugg.overall_score / 100) * circumference;
+
+        const ring = `
+    <div class="score-ring-wrap">
+      <div class="score-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="30" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+          <circle cx="40" cy="40" r="30" fill="none" stroke="${scoreColor}" stroke-width="6"
+            stroke-dasharray="${circumference}"
+            stroke-dashoffset="${dashOffset}"
+            stroke-linecap="round"
+            style="transition:stroke-dashoffset 1s ease"/>
+        </svg>
+        <div class="score-ring-text">
+          <div class="score-num" style="color:${scoreColor}">${sugg.overall_score}</div>
+          <div class="score-grade">${sugg.grade}</div>
+        </div>
+      </div>
+      <div class="score-info">
+        <h3>Quality Score</h3>
+        <p>${sugg.next_step}</p>
+      </div>
+    </div>`;
+
+        const cards = sugg.suggestions.length === 0
+          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
+          : sugg.suggestions.map((s, i) => {
+
+            let exampleHtml = '';
+            if (s.example) {
+              const copyId  = `copy-fix-${i}`;
+              const rawLines = s.example.split('\n');
+
+              // Case 1: example has unified diff markers (- / +)
+              const hasMarkers = rawLines.some(l => /^[\-\+]/.test(l) && l.length > 1);
+              if (hasMarkers) {
+                const originalText = rawLines.filter(l => !l.startsWith('+')).map(l => l.replace(/^-\s?/, '')).join('\n');
+                const fixedText    = rawLines.filter(l => !l.startsWith('-')).map(l => l.replace(/^\+\s?/, '')).join('\n');
+                exampleHtml = buildDiffHtml(originalText, fixedText, copyId);
+
+              // Case 2: two blocks separated by a blank line (before \n\n after)
+              } else {
+                const blankIdx = rawLines.findIndex(l => l.trim() === '');
+                if (blankIdx > 0 && blankIdx < rawLines.length - 1) {
+                  const originalText = rawLines.slice(0, blankIdx).join('\n');
+                  const fixedText    = rawLines.slice(blankIdx + 1).join('\n');
+                  exampleHtml = buildDiffHtml(originalText, fixedText, copyId);
+
+                // Case 3 (most common from API): single fixed-code block
+                // → find matching region in editor as "Before", diff against example as "After"
+                } else {
+                  const originalSnippet = findOriginalSnippet(editor.value, s.example);
+                  if (originalSnippet) {
+                    exampleHtml = buildDiffHtml(originalSnippet, s.example, copyId);
+                  } else {
+                    // No match – show fixed code as green "Fixed Code" block
+                    const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+                    exampleHtml = `
+                    <div class="diff-wrapper">
+                      <div class="diff-header">
+                        <div class="diff-header-labels">
+                          <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
+                        </div>
+                        <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                          Copy fixed
+                        </button>
+                      </div>
+                      <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
+                    </div>`;
+                  }
+                }
+              }
+            }
+
+            return `
+      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
+        <div class="suggest-header">
+          <span class="suggest-cat">${s.category}</span>
+          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${s.priority} priority</span>
+        </div>
+        <div class="suggest-desc">${s.description}</div>
+        ${exampleHtml}
+      </div>`;
+          }).join('');
+
+        el.innerHTML = ring + cards;
+
+        // Wire up "Copy fixed" buttons after DOM insertion
+        sugg.suggestions.forEach((s, i) => {
+          if (!s.example) return;
+          const btn = document.getElementById(`copy-fix-${i}`);
+          if (!btn) return;
+
+          // Always copy the after/fixed code
+          const rawLines   = s.example.split('\n');
+          const hasMarkers = rawLines.some(l => /^[\-\+]/.test(l) && l.length > 1);
+          let fixedCode;
+          if (hasMarkers) {
+            fixedCode = rawLines.filter(l => !l.startsWith('-')).map(l => l.replace(/^\+\s?/, '')).join('\n');
+          } else {
+            const blankIdx = rawLines.findIndex(l => l.trim() === '');
+            fixedCode = blankIdx > 0 && blankIdx < rawLines.length - 1
+              ? rawLines.slice(blankIdx + 1).join('\n')
+              : s.example;
+          }
+
+          btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(fixedCode).then(() => {
+              btn.textContent = '\u2713 Copied!';
+              btn.style.background = 'rgba(34,212,123,0.25)';
+              setTimeout(() => {
+                btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy fixed`;
+                btn.style.background = '';
+              }, 2000);
+            }).catch(() => toast('Copy failed', 'error'));
+          });
+        });
+      }
 
         // Order history chronologically (oldest to newest) for chart timeline mapping
         const timelineRecords = [...data.history].reverse();
@@ -2434,6 +3456,36 @@
 
       } catch (error) {
         console.error("Pipeline analytics data extraction failure:", error);
+      /* ═══════════════════════════════════════════════════════════════
+         HISTORY
+      ═══════════════════════════════════════════════════════════════ */
+      function addToHistory(code, result) {
+        const lang = result.explanation?.language || result.debugging?.language||result.suggestions?.language||selectedLang;
+        const entry = {
+          id: Date.now(),
+          code,
+          result,
+          lang,
+          ts: new Date().toLocaleTimeString(),
+          preview: code.slice(0, 60).replace(/\n/g, ' '),
+        };
+        history.unshift(entry);
+        if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+        localStorage.setItem('qyx_history', JSON.stringify(history));
+        renderHistory();
+      }
+
+      function renderHistory() {
+        if (!history.length) {
+          historyList.innerHTML = '<div class="list-empty">No history yet. Run your first analysis.</div>';
+          return;
+        }
+        historyList.innerHTML = history.map(h => `
+    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="Load history entry for ${h.lang} at ${h.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+      <span class="history-lang">${h.lang || '?'}</span>
+      <span class="history-thumb">${escHtml(h.preview)}…</span>
+      <span class="history-meta">${h.ts}</span>
+    </div>`).join('');
       }
     }
 
@@ -2468,6 +3520,29 @@
           body: JSON.stringify({ code, language: selectedLang }),
           signal: AbortSignal.timeout(30000),
         });
+document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+  if (!window.confirm('Are you sure you want to clear your history? This cannot be undone.')) return;
+
+  history = [];
+  localStorage.removeItem('qyx_history');
+  renderHistory();
+  toast('History cleared', 'info');
+});
+      function loadEntry(id) {
+        const entry = history.find(h => h.id === Number (id));
+        console.log(entry);
+        if (!entry) return;
+        editor.value = entry.code;
+
+        if(entry.lang){
+          setLanguage(entry.lang.toLowerCase());
+        }
+        
+        updateEditor();
+        currentResult = entry.result;
+        renderResults(entry.result, entry.code);
+        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+      }
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
@@ -2508,6 +3583,28 @@
       } finally {
         analyzeBtn.classList.remove('loading');
         analyzeBtn.disabled = false;
+document.getElementById('clearFavsBtn').addEventListener('click', () => {
+  if (!window.confirm('Are you sure you want to clear your favorites? This cannot be undone.')) return;
+  
+  favorites = [];
+  localStorage.removeItem('qyx_favorites');
+  renderFavorites();
+  toast('Favorites cleared', 'info');
+});
+      function loadFav(id) {
+        const entry = favorites.find(f => f.id === Number(id));
+        if (!entry) return;
+        editor.value = entry.code;
+        selectedLang = entry.lang.toLowerCase();
+        document.querySelectorAll('.lang-tab').forEach(tab =>{
+          const active = tab.dataset.lang === selectedLang;
+          tab.classList.toggle('active', active);
+          tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        updateEditor();
+        currentResult = entry.result;
+        renderResults(entry.result, entry.code);
+        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
     }
 
@@ -2773,6 +3870,44 @@
     renderFavorites();
     updateEditor();
   </script>
+      // Save API URL
+      apiUrlInput.addEventListener('change', () => {
+        localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
+      });
+      const savedUrl = localStorage.getItem('qyx_apiUrl');
+      if (savedUrl) apiUrlInput.value = savedUrl;
+
+      /* ═══════════════════════════════════════════════════════════════
+         DIGEST SUBSCRIBE
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('digestForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('digestEmail').value.trim();
+        const btn = document.getElementById('digestBtn');
+        btn.disabled = true;
+        btn.textContent = 'Subscribing…';
+        const base = apiUrlInput.value.replace(/\/$/, '');
+        try {
+          const r = await fetch(`${base}/subscribe/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const data = await r.json();
+          if (r.ok) {
+            toast(data.message, 'success');
+            document.getElementById('digestEmail').value = '';
+          } else {
+            toast(data.detail || 'Subscription failed', 'error');
+          }
+        } catch {
+          toast('Could not reach the server.', 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Subscribe';
+        }
+      });
+    </script>
 </body>
 
 </html>
