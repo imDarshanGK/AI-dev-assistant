@@ -635,3 +635,15 @@ def test_unicode_code():
 def test_single_line_code():
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
+# ── Swift Detection (issue #62) ──
+SAMPLE_SWIFT = "import Foundation\nfunc greet() {\n    let msg = \"Hello\"\n    print(msg)\n}\nvar score: Int = 0\n"
+
+def test_explanation_swift():
+    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT})
+    assert r.status_code == 200
+    assert r.json()["language"] == "Swift"
+
+def test_explanation_swift_with_hint():
+    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT, "language": "swift"})
+    assert r.status_code == 200
+    assert r.json()["language"] == "Swift"
