@@ -17,7 +17,8 @@ import os
 from collections import defaultdict
 from contextlib import asynccontextmanager
 
-from .routers import explanation, debugging, suggestions, analyze
+from .routers import explanation, debugging, suggestions, analyze, subscribe
+from .services.scheduler import start_scheduler, stop_scheduler
 from .schemas import HealthResponse
 from .services import ai_provider
 
@@ -57,6 +58,7 @@ async def lifespan(app: FastAPI):
     except Exception:
         print("LLM status: unavailable")
     yield
+    stop_scheduler()
     print("🛑 QyverixAI backend shutting down…")
 
 
@@ -127,6 +129,7 @@ app.include_router(explanation.router, prefix="/explanation", tags=["Explanation
 app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
+app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────

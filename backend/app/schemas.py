@@ -82,6 +82,31 @@ class AnalyzeResponse(BaseModel):
     analysis_time_ms: float | None = None
 
 
+# ── Weekly Digest / Subscription ───────────────────────────────
+class SubscribeRequest(BaseModel):
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        if len(v) > 320:
+            raise ValueError("Email too long")
+        return v
+
+
+class SubscribeResponse(BaseModel):
+    message: str
+    email: str
+
+
+class UnsubscribeRequest(BaseModel):
+    email: str
+    token: str
+
+
 # ── Health ────────────────────────────────────────────────────────────────────
 class HealthResponse(BaseModel):
     status: str
