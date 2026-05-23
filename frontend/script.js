@@ -19,21 +19,51 @@ const historyContainer = document.getElementById('historyContainer');
 const favContainer = document.getElementById('favContainer');
 const themeToggle = document.getElementById('themeToggle');
 const API_URL_STORAGE_KEY = 'qyverix_api_url';
+const THEME_STORAGE_KEY = 'qyverix_theme';
+const LEGACY_THEME_STORAGE_KEY = 'qyx_theme';
+const prefersLightTheme = window.matchMedia('(prefers-color-scheme: light)');
 
 // ── Theme ──
-const savedTheme = localStorage.getItem('qyverix_theme') || 'dark';
-if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+function readStoredTheme() {
+  const primaryTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (primaryTheme === 'dark' || primaryTheme === 'light') return primaryTheme;
+
+  const legacyTheme = localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+  if (legacyTheme === 'dark' || legacyTheme === 'light') {
+    localStorage.setItem(THEME_STORAGE_KEY, legacyTheme);
+    return legacyTheme;
+  }
+
+  return null;
+}
+
+function getPreferredTheme() {
+  return readStoredTheme() || (prefersLightTheme.matches ? 'light' : 'dark');
+}
+
+function applyTheme(theme, { persist = false } = {}) {
+  document.documentElement.setAttribute('data-theme', theme);
+  if (persist) {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }
+}
+
+applyTheme(getPreferredTheme());
 
 themeToggle.addEventListener('click', () => {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
-  localStorage.setItem('qyverix_theme', isLight ? 'dark' : 'light');
+  applyTheme(isLight ? 'dark' : 'light', { persist: true });
 
   const themeToggleBtn = document.getElementById('themeToggle');
   if (themeToggleBtn) {
     themeToggleBtn.setAttribute('aria-label', isLight ? 'Toggle dark mode' : 'Toggle light mode');
     themeToggleBtn.setAttribute('aria-pressed', isLight ? 'false' : 'true');
   }
+});
+
+prefersLightTheme.addEventListener('change', (event) => {
+  if (readStoredTheme()) return;
+  applyTheme(event.matches ? 'light' : 'dark');
 });
 
 const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';

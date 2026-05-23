@@ -5,6 +5,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QyverixAI — AI Developer Assistant</title>
+  <script>
+    (() => {
+      const themeKeys = ['qyx_theme', 'qyverix_theme'];
+      const storedTheme = themeKeys
+        .map((key) => localStorage.getItem(key))
+        .find((value) => value === 'dark' || value === 'light');
+      const systemTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', storedTheme || systemTheme);
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
   <link
@@ -2255,23 +2265,46 @@
         btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
       }
 
-      const savedTheme = localStorage.getItem('qyx_theme');
+      const THEME_STORAGE_KEY = 'qyx_theme';
+      const LEGACY_THEME_STORAGE_KEY = 'qyverix_theme';
+      const prefersLightTheme = window.matchMedia('(prefers-color-scheme: light)');
 
-      const initialTheme = savedTheme
-       ? savedTheme
-       : window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
+      function readStoredTheme() {
+        const primaryTheme = localStorage.getItem(THEME_STORAGE_KEY);
+        if (primaryTheme === 'dark' || primaryTheme === 'light') return primaryTheme;
 
-      document.documentElement.setAttribute('data-theme', initialTheme);
-      setThemeIcon(initialTheme);
+        const legacyTheme = localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+        if (legacyTheme === 'dark' || legacyTheme === 'light') {
+          localStorage.setItem(THEME_STORAGE_KEY, legacyTheme);
+          return legacyTheme;
+        }
+
+        return null;
+      }
+
+      function getPreferredTheme() {
+        return readStoredTheme() || (prefersLightTheme.matches ? 'light' : 'dark');
+      }
+
+      function applyTheme(theme, { persist = false } = {}) {
+        document.documentElement.setAttribute('data-theme', theme);
+        if (persist) {
+          localStorage.setItem(THEME_STORAGE_KEY, theme);
+        }
+        setThemeIcon(theme);
+      }
+
+      applyTheme(getPreferredTheme());
 
       document.getElementById('themeToggle').addEventListener('click', () => {
         const cur = document.documentElement.getAttribute('data-theme');
         const next = cur === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('qyx_theme', next);
-        setThemeIcon(next);
+        applyTheme(next, { persist: true });
+      });
+
+      prefersLightTheme.addEventListener('change', (event) => {
+        if (readStoredTheme()) return;
+        applyTheme(event.matches ? 'light' : 'dark');
       });
 
       /* ═══════════════════════════════════════════════════════════════
