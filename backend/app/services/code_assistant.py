@@ -1371,6 +1371,7 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         "error_count": len(errors),
         "warning_count": len(warnings),
         "info_count": len(infos),
+        "code": code,
     }
 
     sugg = run_suggestions(code, language)

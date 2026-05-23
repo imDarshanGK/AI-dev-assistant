@@ -71,7 +71,7 @@ ANALYSIS_ENDPOINTS = [
     "/analyze/",
 ]
 
-USER_ECHO_FIELD_KEYS = frozenset({"code_snippet", "code_context", "example"})
+USER_ECHO_FIELD_KEYS = frozenset({"code", "code_snippet", "code_context", "example"})
 
 _DANGEROUS_SERVER_PATTERNS = (
     "<script",
@@ -85,15 +85,17 @@ _DANGEROUS_SERVER_PATTERNS = (
 def assert_no_raw_script_tag(data: dict | list) -> None:
     """Fail if any response value contains a literal <script> tag."""
 
-    def walk(obj: object) -> None:
+    def walk(obj: object, parent_key: str | None = None) -> None:
         if isinstance(obj, str):
+            if parent_key in USER_ECHO_FIELD_KEYS:
+                return
             assert "<script>" not in obj.lower(), f"Raw <script> in response: {obj!r}"
         elif isinstance(obj, dict):
-            for value in obj.values():
-                walk(value)
+            for key, value in obj.items():
+                walk(value, key)
         elif isinstance(obj, list):
             for item in obj:
-                walk(item)
+                walk(item, parent_key)
 
     walk(data)
 

@@ -1,7 +1,10 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator
+import json
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .config import settings
 from .sanitize import sanitize_code_input
@@ -66,6 +69,7 @@ class DebuggingResponse(BaseModel):
     error_count: int
     warning_count: int
     info_count: int
+    code: str
 
 
 # ── Suggestions ───────────────────────────────────────────────────────────────
@@ -216,9 +220,10 @@ class FavoriteRecord(BaseModel):
 
 # ── Share ─────────────────────────────────────────────────────────────────────
 class ShareCreateRequest(BaseModel):
-    action: str = Field(..., min_length=3, max_length=50)
+    action: str = Field("share", min_length=3, max_length=50)
     code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
-    result_json: str = Field(..., min_length=1, max_length=100_000)
+    result: dict[str, Any] | None = Field(default=None)
+    result_json: str | None = Field(default=None)
 
     @field_validator("action")
     @classmethod
@@ -232,15 +237,34 @@ class ShareCreateRequest(BaseModel):
 
     @field_validator("result_json")
     @classmethod
-    def sanitize_result_json_field(cls, v: str) -> str:
+    def sanitize_result_json(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
         return validate_stored_result_json(v)
+
+    @model_validator(mode="before")
+    @classmethod
+    def parse_result_json(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values.get("result") is None and values.get("result_json") is not None:
+            try:
+                values["result"] = json.loads(values["result_json"])
+            except ValueError as exc:
+                raise ValueError("result_json must be valid JSON") from exc
+        return values
+
+    @model_validator(mode="after")
+    @classmethod
+    def ensure_result_present(cls, model: "ShareCreateRequest") -> "ShareCreateRequest":
+        if model.result is None:
+            raise ValueError("result or result_json is required")
+        return model
 
 
 class ShareRecord(BaseModel):
-    token: str
+    id: str
     action: str
     code: str
-    result_json: str
+    result: dict[str, Any]
     created_at: str
 
 
