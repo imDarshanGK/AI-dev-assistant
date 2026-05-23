@@ -12,12 +12,14 @@ import time
 import os
 from contextlib import asynccontextmanager
 
-from .routers import explanation, debugging, suggestions, analyze, subscribe
+
+from .routers import explanation, debugging, suggestions, analyze, subscribe, share
 from .services.scheduler import start_scheduler, stop_scheduler
 from .services.rate_limiter import RateLimiter
 from .config import settings
 from .schemas import HealthResponse
 
+from .schemas import HealthResponse
 
 
 # ── Rate limiter (distributed, with Redis fallback) ────────────────────────────
@@ -95,6 +97,26 @@ async def add_process_time_header(request: Request, call_next):
                     },
                     headers=headers,
                 )
+    if request.url.path in (
+        "/explanation/",
+        "/debugging/",
+        "/suggestions/",
+        "/analyze/",
+    ):
+        remaining = check_rate_limit(ip)
+        if remaining < 0:
+            elapsed = (time.perf_counter() - start) * 1000
+            headers = rate_limit_headers(0)
+            headers["Retry-After"] = str(RATE_LIMIT_WINDOW_SECONDS)
+            headers["X-Process-Time-Ms"] = f"{elapsed:.2f}"
+            headers["X-QyverixAI-Version"] = "3.0.0"
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "detail": f"Rate limit exceeded. Max {RATE_LIMIT} requests/minute."
+                },
+                headers=headers,
+            )
 
     response = await call_next(request)
     elapsed = (time.perf_counter() - start) * 1000
@@ -116,10 +138,11 @@ async def add_cache_header(request: Request, call_next):
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
-app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
+app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
-app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
+app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
+app.include_router(share.router)
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
@@ -129,7 +152,13 @@ async def root():
         "status": "ok",
         "version": "3.0.0",
         "message": "QyverixAI API is running.",
-        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+        "endpoints": [
+            "/explanation/",
+            "/debugging/",
+            "/suggestions/",
+            "/analyze/",
+            "/share/",
+        ],
     }
 
 
@@ -139,7 +168,13 @@ async def health_check():
         "status": "ok",
         "version": "3.0.0",
         "message": "QyverixAI is healthy",
-        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+        "endpoints": [
+            "/explanation/",
+            "/debugging/",
+            "/suggestions/",
+            "/analyze/",
+            "/share/",
+        ],
     }
 
 

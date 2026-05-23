@@ -8,11 +8,11 @@ from __future__ import annotations
 import os
 import httpx
 
-LLM_ENABLED  = os.getenv("LLM_ENABLED", "false").lower() == "true"
-LLM_API_KEY  = os.getenv("LLM_API_KEY", "")
+LLM_ENABLED = os.getenv("LLM_ENABLED", "false").lower() == "true"
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
-LLM_MODEL    = os.getenv("LLM_MODEL", "gpt-4o-mini")
-LLM_TIMEOUT  = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
+LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
+LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
 
 
 async def call_llm(system: str, user: str) -> str | None:
@@ -28,7 +28,7 @@ async def call_llm(system: str, user: str) -> str | None:
         "model": LLM_MODEL,
         "messages": [
             {"role": "system", "content": system},
-            {"role": "user",   "content": user},
+            {"role": "user", "content": user},
         ],
         "temperature": 0.2,
         "max_tokens": 1024,
