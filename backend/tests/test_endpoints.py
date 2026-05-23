@@ -13,6 +13,13 @@ from app.main import app
 client = TestClient(app)
 
 
+@pytest.fixture(autouse=True)
+def reset_rate_limit_state():
+    _request_counts.clear()
+    yield
+    _request_counts.clear()
+
+
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 PHP_CODE = """
 <?php
@@ -581,6 +588,35 @@ def test_stream_detects_language_from_hint():
     events = _parse_sse_events(r.text)
     exp = next(e["data"] for e in events if e["type"] == "explanation")
     assert exp["language"] == "JavaScript"
+
+
+# ── GET /analyze/stream (issue #128 spec) ─────────────────────────────────────
+def test_get_stream_returns_event_stream_content_type():
+    r = client.get("/analyze/stream", params={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    assert "text/event-stream" in r.headers.get("content-type", "")
+
+
+def test_get_stream_emits_all_sections():
+    r = client.get("/analyze/stream", params={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    types = [e["type"] for e in _parse_sse_events(r.text)]
+    assert types == ["explanation", "debugging", "suggestions", "done"]
+
+
+def test_get_stream_with_language_hint():
+    r = client.get("/analyze/stream", params={"code": JS_CODE, "language": "javascript"})
+    assert r.status_code == 200
+    events = _parse_sse_events(r.text)
+    exp = next(e["data"] for e in events if e["type"] == "explanation")
+    assert exp["language"] == "JavaScript"
+
+
+def test_get_stream_empty_code_rejected():
+    r = client.get("/analyze/stream", params={"code": "   "})
+    assert r.status_code in (400, 422)
+
+
 # ── Swift Detection (issue #62) ──
 SAMPLE_SWIFT = "import Foundation\nfunc greet() {\n    let msg = \"Hello\"\n    print(msg)\n}\nvar score: Int = 0\n"
 

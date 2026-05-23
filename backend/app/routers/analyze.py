@@ -1,12 +1,13 @@
-"""Full analysis router — POST /analyze/ and POST /analyze/stream"""
+"""Full analysis router — GET /analyze/stream, POST /analyze/stream, POST /analyze/"""
 import asyncio
 import json
 import time
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import StreamingResponse
 
 from ..schemas import CodeRequest, AnalyzeResponse
+from ..services.cache import cache
 from ..services.code_assistant import (
     detect_language,
     full_analysis,
@@ -14,11 +15,6 @@ from ..services.code_assistant import (
     run_explanation,
     run_suggestions,
 )
-"""Full analysis router — POST /analyze/"""
-from fastapi import APIRouter, Response
-from ..schemas import CodeRequest, AnalyzeResponse
-from ..services.cache import cache
-from ..services.code_assistant import full_analysis
 
 router = APIRouter()
 
@@ -62,19 +58,42 @@ async def _stream_analysis(code: str, language_hint: str | None):
     yield f"data: {json.dumps({'type': 'done', 'provider': 'rule-based', 'model': 'qyverix-engine-v3', 'analysis_time_ms': elapsed_ms})}\n\n"
 
 
+_SSE_HEADERS = {
+    "Cache-Control": "no-cache",
+    "X-Accel-Buffering": "no",  # disable Nginx buffering for SSE
+}
+
+
+@router.get(
+    "/stream",
+    summary="Stream analysis results section by section (SSE) — issue #128 spec",
+    response_class=StreamingResponse,
+)
+async def analyze_stream_get(
+    code: str = Query(..., min_length=1, max_length=50000, description="Source code to analyze"),
+    language: str | None = Query(None, description="Optional language hint"),
+):
+    """GET variant as specified in issue #128: GET /analyze/stream?code=..."""
+    if not code.strip():
+        raise HTTPException(status_code=422, detail="code must not be empty")
+    return StreamingResponse(
+        _stream_analysis(code.strip(), language),
+        media_type="text/event-stream",
+        headers=_SSE_HEADERS,
+    )
+
+
 @router.post(
     "/stream",
     summary="Stream analysis results section by section (SSE)",
     response_class=StreamingResponse,
 )
-async def analyze_stream(req: CodeRequest):
+async def analyze_stream_post(req: CodeRequest):
+    """POST variant — backward compatible with existing frontend and tests."""
     return StreamingResponse(
         _stream_analysis(req.code, req.language),
         media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",  # disable Nginx buffering for SSE
-        },
+        headers=_SSE_HEADERS,
     )
 
 
