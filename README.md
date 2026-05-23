@@ -63,6 +63,7 @@ No account required. No API key needed. Works fully offline. Fully open source.
 | **Dark / Light Mode** | Persisted across sessions |
 | **Query History** | Last 50 analyses saved locally |
 | **Saved Favorites** | Bookmark and reload any analysis |
+| **Share Links** | Generate a short-lived URL for any analysis and send it to teammates |
 | **Download Results** | Export full report as `.txt` |
 | **LLM-Ready** | Plug in OpenAI, Groq, Ollama, or any OpenAI-compatible provider via env vars |
 | **Rate Limiting** | 30 requests/minute per IP - configurable |
@@ -103,6 +104,23 @@ cd backend
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
+### Environment Setup
+
+Copy `.env.example` to `.env`
+
+```bash
+cp .env.example .env
+```
+
+Update the environment variable values if needed before running the app.
+
+Important variables:
+- `JWT_SECRET`
+- `DATABASE_URL`
+- `RATE_LIMIT_PER_MINUTE`
+- `LLM_API_KEY` (optional)
+
+The app can still run without external AI providers when `LLM_ENABLED=false`.
 
 | Endpoint | URL |
 |---|---|
@@ -218,6 +236,16 @@ All three analyses in one response with timing.
   "analysis_time_ms": 1.84
 }
 ```
+
+---
+
+### `POST /share/` and `GET /share/{id}`
+
+Create a share link for a saved analysis, then load it back by ID for seven days after creation.
+
+`POST /share/` accepts `{ "code": "...", "result": { ... } }` and returns `{ "id": "short_id" }`.
+
+`GET /share/{id}` returns the saved `{ code, result, created_at }` payload or `404` if the share is missing or expired.
 
 ---
 
