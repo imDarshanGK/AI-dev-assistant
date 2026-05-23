@@ -1,16 +1,24 @@
 frontend:
+  - "frontend/**"
   - changed-files:
       - any-glob-to-any-file: 'frontend/**'
 
 backend:
+  - "backend/**"
   - changed-files:
       - any-glob-to-any-file: 'backend/**'
+
+documentation:
+  - "**/*.md"
 
 type: docs:
   - changed-files:
       - any-glob-to-any-file:
           - '*.md'
           - 'docs/**'
+
+testing:
+  - "tests/**"
 
 type: testing:
   - changed-files:

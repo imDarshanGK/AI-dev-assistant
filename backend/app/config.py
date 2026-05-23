@@ -2,7 +2,6 @@ import os
 
 from dotenv import find_dotenv, load_dotenv
 
-
 # Load .env from current directory or parent directories if present.
 load_dotenv(find_dotenv(filename=".env", usecwd=True), override=False)
 
@@ -68,6 +67,17 @@ class Settings:
     llm_base_url: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
     llm_model: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
     llm_timeout_seconds: int = _int_env("LLM_TIMEOUT_SECONDS", 30)
+
+    # ── Email / Digest ──────────────────────────────────────────
+    smtp_host: str = os.getenv("SMTP_HOST", "")
+    smtp_port: int = _int_env("SMTP_PORT", 587)
+    smtp_user: str = os.getenv("SMTP_USER", "")
+    smtp_pass: str = os.getenv("SMTP_PASS", "")
+    email_from: str = os.getenv("EMAIL_FROM", "noreply@qyverixai.app")
+    digest_enabled: bool = _bool_env("DIGEST_ENABLED", False)
+    digest_base_url: str = os.getenv(
+        "DIGEST_BASE_URL", "https://qyverixai.onrender.com"
+    )
 
 
 settings = Settings()
