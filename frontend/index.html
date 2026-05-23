@@ -9,9 +9,6 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet" />
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-
   <style>
     /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -1512,7 +1509,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
-   BOTTOM PANELS — History, Favorites & Progress Tabs
+   BOTTOM PANELS — History & Favorites
 ═══════════════════════════════════════════════════════════════ */
     .bottom-grid {
       display: grid;
@@ -1577,178 +1574,115 @@
       border-radius: 99px;
       background: var(--bg3);
       color: var(--accent);
-      border: 1px solid rgba(91, 156, 246, 0.15);
-      text-transform: uppercase;
-    }
-
-    .list-empty {
-      font-size: 0.8rem;
-      color: var(--text3);
-      text-align: center;
-      padding: 32px 0;
+      border: 1px solid rgba(91, 156, 246, 0.2);
+      flex-shrink: 0;
     }
 
     .btn-clear {
-      font-size: 0.72rem;
-      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: var(--r2);
       background: none;
       border: 1px solid var(--border);
       color: var(--text3);
-      padding: 4px 10px;
-      border-radius: 4px;
+      font-size: 0.75rem;
       cursor: pointer;
       transition: all var(--transition);
     }
 
     .btn-clear:hover {
-      color: var(--red);
-      border-color: rgba(242, 87, 87, 0.25);
-      background: rgba(242, 87, 87, 0.05);
+      border-color: var(--red);
+      color: var(--red)
     }
 
-    /* ═══════════════════════════════════════════════════════════════
-   SETTINGS POPUP
-═══════════════════════════════════════════════════════════════ */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(5, 6, 8, 0.8);
-      backdrop-filter: blur(8px);
-      z-index: 1000;
+    .list-empty {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity var(--transition);
+      height: 80px;
+      font-size: 0.82rem;
+      color: var(--text3);
     }
 
-    .modal-backdrop.active {
-      opacity: 1;
-      pointer-events: auto
+    /* ═══════════════════════════════════════════════════════════════
+   API CONFIG
+═══════════════════════════════════════════════════════════════ */
+    .api-config-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
     }
 
-    .modal {
-      background: var(--bg2);
-      border: 1px solid var(--border2);
-      width: 100%;
-      max-width: 460px;
-      border-radius: var(--r);
-      box-shadow: var(--shadow);
-      transform: scale(0.95);
-      transition: transform var(--transition);
-      overflow: hidden;
-    }
-
-    .modal-backdrop.active .modal {
-      transform: scale(1)
-    }
-
-    .modal-body {
-      padding: 24px
-    }
-
-    .modal-body h3 {
-      font-family: var(--font-disp);
-      font-size: 1.25rem;
-      font-weight: 800;
-      margin-bottom: 6px
-    }
-
-    .modal-body p {
-      font-size: 0.85rem;
-      color: var(--text2);
-      margin-bottom: 20px
-    }
-
-    .form-group {
-      margin-bottom: 16px
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text2);
-      margin-bottom: 6px;
-    }
-
-    .input-text {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: var(--r2);
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 13px;
-      outline: none;
-      transition: all var(--transition);
-    }
-
-    .input-text:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(91, 156, 246, 0.15);
-    }
-
-    .api-status-bar {
+    .api-config-inner {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.78rem;
-      color: var(--text2);
-      margin-top: 8px;
+      gap: 8px
     }
 
-    .status-dot {
-      width: 6px;
-      height: 6px;
+    .api-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text3)
+    }
+
+    .api-dot {
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--text3);
+      animation: blink 2s infinite;
     }
 
-    .status-dot.connected {
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
+    .api-dot.connected {
+      background: var(--green)
     }
 
-    .modal-footer {
-      background: var(--bg3);
-      padding: 14px 24px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      border-top: 1px solid var(--border);
+    #apiUrl {
+      flex: 1;
+      padding: 7px 12px;
+      border-radius: var(--r2);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      outline: none;
+      transition: border-color var(--transition);
     }
 
-    /* ── Toast Notifications ── */
+    #apiUrl:focus {
+      border-color: var(--accent)
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════════ */
     #toastContainer {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      z-index: 9999;
       display: flex;
       flex-direction: column;
       gap: 8px;
+      z-index: 9999;
     }
 
     .toast {
-      background: var(--bg2);
-      border: 1px solid var(--border2);
-      color: var(--text);
       padding: 12px 18px;
       border-radius: var(--r2);
+      background: var(--bg2);
+      border: 1px solid var(--border2);
       box-shadow: var(--shadow);
-      font-size: 0.85rem;
-      font-weight: 500;
+      font-size: 0.84rem;
       display: flex;
       align-items: center;
       gap: 10px;
-      min-width: 280px;
-      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      min-width: 220px;
+      animation: toastIn 0.3s ease;
+      color: var(--text);
     }
 
     @keyframes toastIn {
@@ -1837,103 +1771,23 @@
 ═══════════════════════════════════════════════════════════════ */
     .result-actions {
       display: flex;
+      align-items: center;
       gap: 8px;
-      padding: 12px 18px;
-      background: var(--bg3);
+      padding: 10px 16px;
       border-top: 1px solid var(--border);
-      justify-content: flex-end;
+    }
+
+    .result-actions .icon-btn {
+      font-size: 11px;
+      gap: 4px;
+      width: auto;
+      padding: 0 10px;
+      height: 28px
     }
 
     /* ═══════════════════════════════════════════════════════════════
-   RESPONSIVE OVERRIDES
+   STAT BAR (quick summary at top of result)
 ═══════════════════════════════════════════════════════════════ */
-    @media(max-width:600px) {
-      .hero {
-        padding: 40px 0 24px
-      }
-
-      .features-row {
-        padding-bottom: 24px
-      }
-
-      .result-content {
-        min-height: 280px;
-        max-height: 420px;
-        padding: 14px
-      }
-
-      .bottom-grid {
-        gap: 14px
-      }
-
-      .history-list,
-      .fav-list {
-        max-height: 200px
-      }
-
-      .score-ring-wrap {
-        flex-direction: column;
-        text-align: center;
-        gap: 12px
-      }
-
-      .stat-bar {
-        gap: 6px
-      }
-
-      .stat-chip {
-        padding: 8px 10px
-      }
-
-      .stat-chip-num {
-        font-size: 1.2rem
-      }
-
-      #toastContainer {
-        bottom: 12px;
-        right: 12px;
-        left: 12px
-      }
-
-      .toast {
-        min-width: unset;
-        width: 100%
-      }
-
-      .hero-cta {
-        gap: 8px
-      }
-
-      .btn {
-        padding: 11px 18px;
-        font-size: 0.85rem
-      }
-    }
-
-    @media(max-width:400px) {
-      .app {
-        padding: 0 14px 60px
-      }
-
-      .hero h1 {
-        font-size: 1.9rem
-      }
-
-      .feat-pill-info p {
-        display: none
-      }
-
-      .lang-tab {
-        padding: 7px 10px;
-        font-size: 0.72rem
-      }
-
-      .result-tab {
-        padding: 9px 12px;
-        font-size: 0.75rem
-      }
-    }
-  </style>
 .stat-bar{
   display:flex;gap:8px;flex-wrap:wrap;
   margin-bottom:16px;
@@ -1991,120 +1845,83 @@
 <link rel="icon" href="data:,">
 </head>
 <body>
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  
-  <div class="app">
-    <nav>
-      <a href="#" class="nav-logo">
-        <div class="logo-hex">Q</div> QyverixAI
-        <span style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.2);margin-left:4px;letter-spacing:0.03em;text-transform:uppercase">v1.2</span>
-      </a>
-      <div class="nav-links">
-        <button class="nav-link" id="openSettingsBtn" aria-label="Open network API endpoint configurations">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg> Configure API
-        </button>
-        <button class="theme-btn" id="themeToggleBtn" aria-label="Toggle structural visualization color theme view mode">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        </button>
-      </div>
-    </nav>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
 
-    <header class="hero">
-      <div class="hero-badge">
-        <span class="badge-dot"></span> Next-Gen Static Rule Engine
-      </div>
-      <h1>Debug. Understand.<br /><em>Ship faster.</em></h1>
-      <p class="hero-sub">
-        Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.
-      </p>
-      <div class="hero-cta">
-        <button class="btn btn-primary" onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polygon points="5,3 19,12 5,21" />
-          </svg> Start Analyzing
-        </button>
-        <button class="btn btn-secondary" onclick="loadSample()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="16,18 22,12 16,6" />
-            <polyline points="8,6 2,12 8,18" />
-          </svg> Try Sample Code
-        </button>
-        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.28 1.83 1.28 1.05 1.81 2.77 1.29 3.45.99.1-.76.41-1.29.75-1.59-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.23-3.22-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23.96-.27 1.98-.41 3-.41s2.04.14 3 .41c2.3-1.55 3.3-1.23 3.3-1.23.66 1.65.25 2.87.12 3.17.76.84 1.23 1.91 1.23 3.22 0 4.61-2.82 5.62-5.5 5.92.42.36.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
-          </svg> GitHub
-        </a>
-      </div>
-    </header>
+<div class="app">
 
-    <div class="features-row">
-      <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(34,212,123,0.1);color:var(--green)">✓</div>
-        <div class="feat-pill-info">
-          <h4>Zero Data Overhead</h4>
-          <p>Local state sandbox execution</p>
-        </div>
-      </div>
-      <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(91,156,246,0.1);color:var(--accent)">⚓</div>
-        <div class="feat-pill-info">
-          <h4>Lint Ecosystem</h4>
-          <p>Structural validation pipeline</p>
-        </div>
-      </div>
-      <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(124,58,237,0.1);color:var(--accent2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-          </svg></div>
-        <div class="feat-pill-info">
-          <h4>File Upload</h4>
-          <p>.py .js .ts .java .cpp</p>
-        </div>
-      </div>
+<!-- ── NAV ──────────────────────────────────────────────────── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-hex">Q</div>
+    QyverixAI
+    <span style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.25);letter-spacing:0.04em;margin-left:4px">v3.0</span>
+  </a>
+  <div class="nav-links">
+    <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+      <span>API Docs</span>
+    </a>
+    <button class="theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle dark mode" aria-pressed="false">
+      <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    Open Source · AI-Powered · Free
+  </div>
+  <h1>Debug. Understand.<br/><em>Ship faster.</em></h1>
+  <p class="hero-sub">
+    Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.
+  </p>
+  <div class="hero-cta">
+    <button class="btn btn-primary" onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21"/></svg>
+      Start Analyzing
+    </button>
+    <button class="btn btn-secondary" onclick="loadSample()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
+      Try Sample Code
+    </button>
+    <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      Star on GitHub
+    </a>
+  </div>
+</section>
+
+<!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
+<div class="features-row">
+  <div class="feat-pill">
+    <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+    <div class="feat-pill-info">
+      <h4>40+ Bug Patterns</h4>
+      <p>Python, JS, TS, Java, C++</p>
     </div>
-
-    <section id="workspace" class="workspace">
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">
-            <span></span> Code Editor
-          </div>
-          <div class="panel-actions">
-            <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button" aria-label="Upload code file" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17,8 12,3 7,8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1" />
-            </label>
-            <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="lang-tabs" role="tablist" aria-label="Programming Languages Support">
-          <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
-          <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
-          <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
-          <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
-        </div>
-
-        <div class="editor-wrap">
-          <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
-          <textarea id="codeEditor" spellcheck="false" placeholder="Write or paste your implementation code matrix block structures here..." aria-label="Code Editor Content Input Container Field Matrix Element"></textarea>
-
+  </div>
+  <div class="feat-pill">
+    <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+    <div class="feat-pill-info">
+      <h4>Code Explanation</h4>
+      <p>Plain English breakdowns</p>
+    </div>
+  </div>
+  <div class="feat-pill">
+    <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
+    <div class="feat-pill-info">
+      <h4>Smart Suggestions</h4>
+      <p>Quality score + grade</p>
+    </div>
+  </div>
+  <div class="feat-pill">
     <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
     <div class="feat-pill-info">
       <h4>Dark / Light Mode</h4>
@@ -2160,30 +1977,33 @@
         </div>
 
         <div class="editor-footer">
-          <span id="charCount">Paste or type code to begin</span>
-          <span id="langDisplay" style="text-transform:uppercase;font-weight:600;color:var(--accent)">python</span>
+          <span id="charCount">0 chars · 0 lines</span>
+          <span>Ctrl+Enter to analyze</span>
         </div>
 
-        <div class="mode-row" role="tablist" aria-label="Analysis Mode Optimization View Selection Matrices Grid">
+        <!-- Mode buttons -->
+        <div class="mode-row" role="tablist" aria-label="Analysis Modes">
           <button class="mode-btn active" data-mode="analyze" role="tab" aria-selected="true">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14,2 14,8 20,8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <polyline points="10 9 9 9 8 9" />
+            <span class="mode-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
               </svg></span>
-            <span class="mode-btn-label">Full Audit</span>
+            <span class="mode-btn-label">Full</span>
           </button>
           <button class="mode-btn" data-mode="explain" role="tab" aria-selected="false">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
               </svg></span>
             <span class="mode-btn-label">Explain</span>
           </button>
           <button class="mode-btn" data-mode="debug" role="tab" aria-selected="false">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M8 2l1.5 1.5" />
                 <path d="M14.5 3.5L16 2" />
                 <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
@@ -2197,25 +2017,29 @@
             <span class="mode-btn-label">Debug</span>
           </button>
           <button class="mode-btn" data-mode="suggest" role="tab" aria-selected="false">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
               </svg></span>
             <span class="mode-btn-label">Improve</span>
           </button>
         </div>
 
-        <div class="analyze-row">
-          <button class="btn-analyze" id="analyzeBtn" aria-label="Trigger source code compilation sequence rule assessment framework">
-            <div class="spinner" aria-hidden="true"></div>
-            <span class="btn-text">Execute Analysis</span>
-          </button>
+        <!-- API URL -->
+        <div class="api-config-row">
+          <div class="api-status" aria-live="polite">
+            <div class="api-dot" id="apiDot" aria-hidden="true"></div>
+            <span id="apiStatusText">Disconnected</span>
+          </div>
+          <div class="api-config-inner">
+            <input type="text" id="apiUrl" placeholder="http://localhost:8000" value="https://qyverixai.onrender.com"
+              aria-label="Backend API URL" />
+            <button class="btn-clear" id="pingBtn" aria-label="Ping API">Ping</button>
+          </div>
         </div>
-      </div>
 
-      <div class="panel" id="resultBlock">
-        <div class="result-tabs" role="tablist" aria-label="Analysis Results Framework">
-          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <!-- Analyze -->
+        <div class="analyze-row">
           <button class="btn-analyze" id="analyzeBtn" aria-label="Analyze Code">
             <div class="spinner" id="spinner" aria-hidden="true"></div>
             <span class="btn-text">Analyze Code</span>
@@ -2255,7 +2079,8 @@
             </svg> Explain <span class="tab-badge" id="explainBadge"></span>
           </button>
           <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
               <path d="M8 2l1.5 1.5" />
               <path d="M14.5 3.5L16 2" />
               <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
@@ -2268,79 +2093,70 @@
             </svg> Debug <span class="tab-badge" id="debugBadge"></span>
           </button>
           <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
               <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
             </svg> Improve <span class="tab-badge" id="suggestBadge"></span>
           </button>
         </div>
 
         <div class="result-content">
+          <!-- Explain Pane -->
           <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
             <div class="empty-state" id="emptyExplain">
-              <div class="empty-icon">⌨</div>
-              <h3>No Overview Yet</h3>
-              <p>Execute audit pipeline to generate code structures parameters logic explanation.</p>
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg></div>
+              <h3>No analysis yet</h3>
+              <p>Paste your code and click Analyze to see results</p>
             </div>
             <div id="explainResult" style="display:none"></div>
           </div>
-
-          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Issue Tracker Panel">
+          <!-- Debug Pane -->
+          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel">
             <div class="empty-state" id="emptyDebug">
-              <div class="empty-icon">🪲</div>
-              <h3>No Tracked Anomalies</h3>
-              <p>Run code compilation execution checks matrix overview to detect underlying anti-patterns.</p>
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <path d="M8 2l1.5 1.5" />
+                  <path d="M14.5 3.5L16 2" />
+                  <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
+                  <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
+                  <line x1="12" y1="12" x2="12" y2="16" />
+                  <path d="M4.5 15H2" />
+                  <path d="M22 15h-2.5" />
+                  <path d="M4.5 19l-2 2" />
+                  <path d="M19.5 19l2 2" />
+                </svg></div>
+              <h3>No bugs scanned</h3>
+              <p>Run analysis to detect issues in your code</p>
             </div>
             <div id="debugResult" style="display:none"></div>
           </div>
-
-          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Enhancements Panel">
+          <!-- Suggest Pane -->
+          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel">
             <div class="empty-state" id="emptySuggest">
-              <div class="empty-icon">⚡</div>
-              <h3>Optimization Recommendations</h3>
-              <p>Submit software structures logic blocks context to get improvement ideas</p>
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+                </svg></div>
+              <h3>No suggestions yet</h3>
+              <p>Run analysis to get improvement ideas</p>
             </div>
             <div id="suggestResult" style="display:none"></div>
           </div>
         </div>
 
-        <div id="engineBar" style="padding:8px 18px;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);display:none;gap:16px">
+        <!-- Analysis time footer -->
+        <div id="engineBar"
+          style="padding:8px 18px;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);display:none;gap:16px">
           <span id="engineInfo"></span>
           <span id="timeInfo"></span>
-        </div>
-
-        <div class="result-actions" id="resultActions" style="display:none">
-          <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save analysis result tracking schema to favorite matrix row structure items">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </button>
         </div>
       </div>
     </section>
 
-feat/progress-tracking-dashboard
-
-    <!-- ── HISTORY, FAVORITES & PROGRESS ─────────────────────────── -->
-main
-    <div class="bottom-sections-wrap" style="margin-top: 24px;">
-      <div class="result-tabs" style="margin-bottom: 16px; border-bottom: 1px solid var(--border);" role="tablist">
-        <button class="result-tab active" id="tabBtnHistory" onclick="switchBottomTab('history')" role="tab" aria-selected="true">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> History &amp; Favs
-        </button>
-        <button class="result-tab" id="tabBtnProgress" onclick="switchBottomTab('progress')" role="tab" aria-selected="false">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Developer Progress
-        </button>
-      </div>
-
-      <div id="paneBottomHistory" class="bottom-grid">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Query History</div>
-            <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history">Clear</button>
-          </div>
-          <div class="history-list" id="historyList" aria-live="polite">
-            <div class="list-empty">No history yet. Run your first analysis.</div>
-          </div>
     <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
     <div class="bottom-grid">
       <div class="panel">
@@ -2352,82 +2168,6 @@ main
           <div class="list-empty">No history yet. Run your first analysis.</div>
         </div>
       </div>
-
-      <div id="paneBottomProgress" style="display: none; animation: paneIn 0.22s ease;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
-          <div class="panel" style="padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em;">Average Score</span>
-            <span id="statAvgScore" style="font-family: var(--font-disp); font-size: 2rem; font-weight: 800; color: var(--accent); margin-top: 4px;">--</span>
-          </div>
-          <div class="panel" style="padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em;">Best Score</span>
-            <span id="statBestScore" style="font-family: var(--font-disp); font-size: 2rem; font-weight: 800; color: var(--green); margin-top: 4px;">--</span>
-          </div>
-          <div class="panel" style="padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em;">Most Improved</span>
-            <span id="statMostImproved" style="font-family: var(--font-disp); font-size: 1.4rem; font-weight: 800; color: var(--yellow); margin-top: 4px; text-align: center;">--</span>
-          </div>
-feat/progress-tracking-dashboard
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
-          <div class="panel" style="padding: 18px; min-height: 320px; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 14px;">Quality Score Trend &amp; Errors Detected</div>
-            <div style="position: relative; width: 100%; flex: 1; min-height: 240px;">
-              <canvas id="trendChart"></canvas>
-            </div>
-          </div>
-          <div class="panel" style="padding: 18px; min-height: 320px; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 14px;">Languages Distribution</div>
-            <div style="position: relative; width: 100%; flex: 1; min-height: 240px; display: flex; align-items: center; justify-content: center;">
-              <canvas id="langChart"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div><footer>
-    <div class="app">
-      <div class="footer-logo">QyverixAI</div>
-      <p>
-        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a> · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a> · MIT License
-      </p>
-      <p style="margin-top:8px;font-size:0.75rem">Built for the open source community</p>
-    </div>
-  </footer>
-
-  <div id="toastContainer"></div>
-
-  <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-    <div class="modal">
-      <div class="modal-body">
-        <h3 id="settingsTitle">API Configuration Settings</h3>
-        <p>Set custom connectivity environment routing addresses to deploy remote processing configurations.</p>
-        <div class="form-group">
-          <label for="apiUrlInput">Backend Router Base Target Endpoint Url</label>
-          <input type="text" id="apiUrlInput" class="input-text" value="http://localhost:8000" placeholder="http://127.0.0.1:8000" />
-          <div class="api-status-bar">
-            <span class="status-dot" id="apiStatusDot"></span>
-            <span id="apiStatusText">Unknown Sync Route Status State</span>
-            <button class="btn-clear" id="pingBtn" style="margin-left:auto;padding:2px 8px;font-size:0.68rem">Test Connection Ping</button>
-
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
-          <div class="panel" style="padding: 18px; min-height: 320px; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 14px;">Quality Score Trend &amp; Errors Detected</div>
-            <div style="position: relative; width: 100%; flex: 1; min-height: 240px;">
-              <canvas id="trendChart"></canvas>
-            </div>
-          </div>
-          <div class="panel" style="padding: 18px; min-height: 320px; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 14px;">Languages Distribution</div>
-            <div style="position: relative; width: 100%; flex: 1; min-height: 240px; display: flex; align-items: center; justify-content: center;">
-              <canvas id="langChart"></canvas>
-            </div>
-main
-          </div>
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">Saved Favorites</div>
@@ -2437,34 +2177,8 @@ main
           <div class="list-empty">No favorites saved yet.</div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="closeSettingsBtn" style="padding:8px 16px;font-size:0.8rem">Dismiss Config Grid View</button>
-      </div>
     </div>
-  </div>
 
-  <script>
-    /* ═══════════════════════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════════════════════ */
-    const MAX_HISTORY = 50;
-    let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
-    let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
-    let selectedLang = 'python';
-    let selectedMode = 'analyze';
-    let currentResult = null;
-
-    // Progress Visualization Dashboard Global Chart Core Object Instances
-    let trendChartInstance = null;
-    let langChartInstance = null;
-
-    const SAMPLES = {
-      python: `def process_user_data(users):\n    # Anti-pattern 1: Mutable default parameters pattern\n    # Anti-pattern 2: Using range(len()) instead of enumerate()\n    for i in range(len(users)):\n        user = users[i]\n        if user['status'] == 'active':\n            print(f"Processing data row item structure {user['name']}")\n\ndef aggregate_metrics(data=[]):\n    data.append(42)\n    return data`,
-      javascript: `// JavaScript Implementation Anti-pattern Sample Matrix Block code\nfunction evaluateSystemState(records) {\n    // Anti-pattern 1: Loose evaluation operator checking checks comparisons\n    if (records == null) return;\n    \n    // Anti-pattern 2: pollutions of variable blocks to global contexts scopes\n    for (i = 0; i < records.length; i++) {\n        var item = records[i];\n        console.log("Analyzing record token parameter identity index value context item identification ID: " + item.id);\n    }\n}`,
-      typescript: `// TypeScript Framework Type Override Structs Verification Code Example block\ninterface DataNode { id: string; val: number; }\n\nfunction verifyDataTree(nodes: any[]): void {\n    // Anti-pattern 1: Loop pollution using structural array map operations without returning mutations variables values inside array\n    nodes.map(n => {\n        if(n.id === undefined) {\n            // Anti-pattern 2: Heavy continuous casting configurations bypass parameters checks arrays verification types systems elements safety layers contexts definitions\n            (n as any).flag = "error";\n        }\n    });\n}`,
-      java: `// Java Class Anti-pattern Analysis Sample Case Matrix Configuration\npublic class CoreProcessor {\n    public void handleExecutionFlow() {\n        // Anti-pattern 1: Empty generic exception catch blocks tracking pipeline definitions patterns elements suppress parameters\n        try {\n            Thread.sleep(1000);\n        } catch (Exception e) {\n            // Left blank intentionally\n        }\n        \n        // Anti-pattern 2: NullPointerException verification parameter elements metrics risks elements allocations structures paths layers targets configurations blocks\n        String uninitializedString = null;\n        System.out.println(uninitializedString.length());\n    }\n}`,
-      cpp: `// C++ Native Memory Compilation Implementation Tracking Sample Parameters Grid Row Context Anti pattern code\n#include <iostream>\nusing namespace std; \n\nvoid processData() {\n    // Anti-pattern 1: Memory leaks leaks allocations references heap pointer declarations arrays sequences configurations instances tracking without delete context blocks definitions arrays mappings values objects structures boundaries validation pipelines systems boundaries context allocations\n    int* dataBuffer = new int[100]; \n    dataBuffer[0] = 42;\n    cout << "Processing structure internal heap array block execution identity verification data pointer value parameter: " << dataBuffer[0] << endl;\n    // Missing delete deletion definitions elements pipeline structural clean steps allocations mappings elements boundary targets nodes matrix layout array targets blocks tracking mappings arrays elements rows layer definitions matrix grid context configuration arrays structural memory structures targets elements rows profiles layers indicators definitions blocks instances element lines contexts definitions systems blocks metrics context layer bounds structures contexts specifications elements data components boundaries tracking matrix items line indicators blocks definitions logic configurations parameters mapping elements rows logic context parameters blocks maps schemas configurations profiles items array block element lines schemas structural metrics profiles indicators patterns components targets lines maps structures blocks elements components limits definitions contexts system definitions parameters models specification tracking definitions specifications bounds tracking structures matrix lines schemas component data configuration targets block layout data indicators matrix rows mapping schemas structures configurations metrics patterns targets lines schemas matrix parameters block rows context profiles mapping fields structural elements targets elements components boundaries patterns layout elements components bounds tracking layouts elements context components layers parameters parameters specs indicators items array indicators indicators fields schemas patterns targets layers indicators components variables patterns targets profile components constraints items array indices indicators items components indicators patterns mappings metrics items layers metrics components metrics configurations metrics arrays lines components bounds configuration parameters tracking components metrics indicators boundaries arrays layers patterns targets models constraints metrics parameters patterns lines layers tracking profiles specs lines specs metrics items arrays specifications items definitions contexts layers spec tracking maps components tracking structures parameters logic data analysis metrics monitoring records indicators constraints indices parameters components limits layouts specifications definitions parameters boundaries lines properties indicator metrics configurations indicators lines layers fields variables context metrics boundaries patterns structures maps fields columns indicators maps layers indices targets specifications rows indicators blocks indicators targets indicators fields structures configurations components properties constraints elements tracking properties parameters definitions specifications parameters tracking parameters profiles specifications tracking parameters tracking structures bounds lines context validation mappings arrays columns layers properties configurations components maps bounds criteria mappings tracking properties indicators patterns mappings indicators tracking profiles logic targets metrics parameters tracking configurations tracking structural components criteria criteria specifications constraints logic parameters variables boundaries constraints components components constraints limits configurations indices constraints items maps rows bounds columns configurations parameters specs variables context properties tracking properties layout patterns maps structural metrics configurations profiles maps structures properties specifications models bounds layouts limits configurations criteria columns properties definitions specifications bounds profiles specs logic lines layouts tracking mapping structural dimensions logic specifications parameters tracking patterns schemas bounds arrays maps metrics boundaries columns tracking specifications validation profiles parameters logic criteria specifications dimensions indicators arrays tracking data components components parameters specifications bounds lines parameters logic boundaries criteria layouts variables parameters dimensions columns profiles specifications tracking criteria logic specifications specifications models parameters specifications monitoring components criteria monitoring profiles specifications parameters tracking structural definitions criteria parameters properties constraints tracking specs indicators monitoring columns criteria bounds profiles specifications tracking bounds profiles specifications logic tracking criteria monitoring properties tracking layout structures tracking constraints parameters specifications tracking profiles parameters tracking metrics monitoring columns criteria monitoring parameters parameters constraints profiles metrics dimensions criteria profiles criteria dimensions tracking profiles parameters tracking definitions tracking layout profiles specifications indicators monitoring columns tracking profiles tracking bounds profiles monitoring monitoring boundaries tracking logic profiles tracking criteria dimensions parameters monitoring indicators criteria profiles tracking parameters monitoring models monitoring tracking columns tracking layout criteria monitoring models tracking metrics criteria boundaries tracking layout boundaries monitoring tracking limits definitions boundaries tracking profiles parameters criteria monitoring parameters specifications limits definitions parameters variables properties variables constraints monitoring monitoring parameters dimensions variables tracking specs boundaries properties limits specs parameters boundaries logic properties bounds layouts variables tracking specs boundaries tracking metrics layouts boundaries limits definitions monitoring monitoring monitoring metrics models constraints metrics tracking specifications dimensions parameters variables properties layout components parameters criteria dimensions logic models metrics limits variables definitions parameters structural tracking specs parameters criteria monitoring columns logic profiles specs boundaries properties layout parameters criteria dimensions boundaries variables specifications variables properties criteria specifications criteria boundaries specifications limits definitions metrics monitoring parameters structural context variables components profiles tracking parameters criteria tracking elements blocks contexts systems\n}`
-    };
   </div><!-- /app -->
   
 
@@ -2708,251 +2422,208 @@ main
         }
       });
 
-    /* ═══════════════════════════════════════════════════════════════
-   THEME
-═══════════════════════════════════════════════════════════════ */
-    function setThemeIcon(theme) {
-      const btn = document.getElementById('themeToggleBtn');
-      if (theme === 'light') {
-        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
-      } else {
-        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-      }
-    }
-    const currentTheme = localStorage.getItem('qyx_theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    setThemeIcon(currentTheme);
-
-    document.getElementById('themeToggleBtn').addEventListener('click', () => {
-      const cur = document.documentElement.getAttribute('data-theme');
-      const next = cur === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('qyx_theme', next);
-      setThemeIcon(next);
-      // Redraw charts to update text colors in case the active view is visible
-      if (document.getElementById('paneBottomProgress').style.display !== 'none') {
-        refreshProgressDashboard();
-      }
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-   EDITOR
-═══════════════════════════════════════════════════════════════ */
-    const editor = document.getElementById('codeEditor');
-    const lineNumbers = document.getElementById('lineNumbers');
-    const charCount = document.getElementById('charCount');
-    const langDisplay = document.getElementById('langDisplay');
-
-    function updateEditor() {
-      const val = editor.value;
-      const lines = val ? val.split('\n').length : 0;
-      const chars = val.length;
-      const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-      charCount.textContent = val ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank' : 'Paste or type code to begin';
-      const lineCount = Math.max(lines, 1);
-      lineNumbers.innerHTML = val ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>') : '1';
-    }
-    editor.addEventListener('input', updateEditor);
-    editor.addEventListener('scroll', () => {
-      lineNumbers.scrollTop = editor.scrollTop;
-    });
-
-    editor.addEventListener('keydown', e => {
-      if (e.key === 'Tab' && !e.shiftKey) {
-        e.preventDefault();
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-        editor.value = editor.value.substring(0, start) + '    ' + editor.value.substring(end);
-        editor.selectionStart = editor.selectionEnd = start + 4;
-        updateEditor();
-      } else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-        const value = editor.value;
-        const lineStart = value.lastIndexOf('\n', start - 1) + 1;
-        const currentLine = value.substring(lineStart, start);
-        const indentMatch = currentLine.match(/^\s*/);
-        let indent = indentMatch ? indentMatch[0] : '';
-        const trimmed = currentLine.trim();
-
-        if (selectedLang === 'python' && trimmed.endsWith(':')) {
-          indent += '    ';
-        } else if (['javascript', 'typescript', 'java', 'cpp'].includes(selectedLang) && trimmed.endsWith('{')) {
-          indent += '    ';
-        }
-        editor.value = value.substring(0, start) + '\n' + indent + value.substring(end);
-        editor.selectionStart = editor.selectionEnd = start + 1 + indent.length;
-        updateEditor();
-      } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        doAnalyze();
-      }
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-   FILE UPLOAD & DRAG/DROP
-═══════════════════════════════════════════════════════════════ */
-    document.getElementById('fileInput').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const ext = file.name.split('.').pop().toLowerCase();
-      const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
-      if (langMap[ext]) setLanguage(langMap[ext]);
-      const reader = new FileReader();
-      reader.onload = ev => {
-        editor.value = ev.target.result;
-        updateEditor();
-        toast(`Loaded ${file.name}`, 'success');
-      };
-      reader.readAsText(file);
-      e.target.value = '';
-    });
-
-    document.body.addEventListener('dragover', e => e.preventDefault());
-    document.body.addEventListener('drop', e => {
-      e.preventDefault();
-      const file = e.dataTransfer.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        editor.value = ev.target.result;
-        updateEditor();
-        toast(`Dropped ${file.name}`, 'success');
-      };
-      reader.readAsText(file);
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-   LANGUAGE TABS
-═══════════════════════════════════════════════════════════════ */
-    function setLanguage(lang) {
-      selectedLang = lang;
-      langDisplay.textContent = lang;
-      document.querySelectorAll('.lang-tab').forEach(t => {
-        const isActive = t.dataset.lang === lang;
-        t.classList.toggle('active', isActive);
-        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      /* ═══════════════════════════════════════════════════════════════
+         FILE UPLOAD
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('fileInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const ext = file.name.split('.').pop().toLowerCase();
+        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
+        if (langMap[ext]) setLanguage(langMap[ext]);
+        const reader = new FileReader();
+        reader.onload = ev => {
+          editor.value = ev.target.result;
+          updateEditor();
+          toast(`Loaded ${file.name}`, 'success');
+        };
+        reader.readAsText(file);
+        e.target.value = '';
       });
-      const currentCode = editor.value.trim();
-      const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
-      if (isSample || !currentCode) {
-        editor.value = SAMPLES[lang] || SAMPLES.python;
-        updateEditor();
-      }
-    }
-    document.querySelectorAll('.lang-tab').forEach(t => {
-      t.addEventListener('click', () => setLanguage(t.dataset.lang));
-    });
 
-    /* ═══════════════════════════════════════════════════════════════
-   MODE BUTTONS
-═══════════════════════════════════════════════════════════════ */
-    document.querySelectorAll('.mode-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        selectedMode = b.dataset.mode;
-        document.querySelectorAll('.mode-btn').forEach(x => {
-          const isActive = x.dataset.mode === selectedMode;
-          x.classList.toggle('active', isActive);
-          x.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      /* Drag and drop */
+      document.body.addEventListener('dragover', e => e.preventDefault());
+      document.body.addEventListener('drop', e => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          editor.value = ev.target.result;
+          updateEditor();
+          toast(`Dropped ${file.name}`, 'success');
+        };
+        reader.readAsText(file);
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         LANGUAGE TABS
+      ═══════════════════════════════════════════════════════════════ */
+      function setLanguage(lang) {
+        selectedLang = lang;
+
+        // 1. Update the visual tabs
+        document.querySelectorAll('.lang-tab').forEach(t => {
+          const isActive = t.dataset.lang === lang;
+          t.classList.toggle('active', isActive);
+          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
-        toast(`Switched mode to ${selectedMode}`, 'info');
+
+        // 2. Check if the editor currently contains one of the samples
+        const currentCode = editor.value.trim();
+        const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
+
+        // 3. If it is a sample, swap it to the new language's sample automatically
+        if (isSample) {
+          editor.value = SAMPLES[lang] || SAMPLES.python;
+          updateEditor();
+        }
+      }
+
+      document.querySelectorAll('.lang-tab').forEach(t => {
+        t.addEventListener('click', () => setLanguage(t.dataset.lang));
       });
-    });
 
-    function loadSample() {
-      editor.value = SAMPLES[selectedLang] || SAMPLES.python;
-      updateEditor();
-      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      toast('Sample code loaded — click Execute Analysis!', 'success');
-    }
+      /* ═══════════════════════════════════════════════════════════════
+         MODE BUTTONS
+      ═══════════════════════════════════════════════════════════════ */
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          selectedMode = b.dataset.mode;
+          document.querySelectorAll('.mode-btn').forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-pressed', 'false');
+          });
+          b.classList.add('active');
+          b.setAttribute('aria-pressed', 'true');
+        });
+      });
 
-    /* ═══════════════════════════════════════════════════════════════
-   SETTINGS & API LIFECYCLE
-═══════════════════════════════════════════════════════════════ */
-    const settingsModal = document.getElementById('settingsModal');
-    const apiUrlInput = document.getElementById('apiUrlInput');
-    const apiDot = document.getElementById('apiStatusDot');
-    const apiStatusText = document.getElementById('apiStatusText');
+      /* ═══════════════════════════════════════════════════════════════
+         RESULT TABS
+      ═══════════════════════════════════════════════════════════════ */
+      document.querySelectorAll('.result-tab').forEach(t => {
+        t.addEventListener('click', () => {
+          const tab = t.dataset.rtab;
+          document.querySelectorAll('.result-tab').forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
+          t.classList.add('active');
+          t.setAttribute('aria-selected', 'true');
+          document.getElementById(`pane-${tab}`).classList.add('active');
+        });
+      });
 
-    const savedUrl = localStorage.getItem('qyx_apiUrl');
-    if (savedUrl) apiUrlInput.value = savedUrl;
+      /* ═══════════════════════════════════════════════════════════════
+         CLEAR / COPY
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        editor.value = '';
+        updateEditor();
+        resetResults();
+      });
+      document.getElementById('copyBtn').addEventListener('click', () => {
+        if (!editor.value.trim()) return;
+        navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
+      });
 
-    document.getElementById('openSettingsBtn').addEventListener('click', () => settingsModal.classList.add('active'));
-    document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsModal.classList.remove('active'));
-    settingsModal.addEventListener('click', e => { if (e.target === settingsModal) settingsModal.classList.remove('active'); });
+      /* ═══════════════════════════════════════════════════════════════
+         API PING
+      ═══════════════════════════════════════════════════════════════ */
+      async function pingApi() {
+        const base = apiUrlInput.value.replace(/\/$/, '');
+        try {
+          const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+          if (r.ok) {
+            apiDot.classList.add('connected');
+            apiStatusText.textContent = 'Connected';
+            toast('API is reachable', 'success');
+          } else {
+            apiDot.classList.remove('connected');
+            apiStatusText.textContent = 'Error ' + r.status;
+          }
+        } catch {
+          apiDot.classList.remove('connected');
+          apiStatusText.textContent = 'Unreachable';
+          toast('Cannot reach API. Check the URL.', 'error');
+        }
+      }
+      document.getElementById('pingBtn').addEventListener('click', pingApi);
 
-    async function pingApi() {
-      const base = apiUrlInput.value.replace(/\/$/, '');
-      apiStatusText.textContent = 'Pinging...';
-      try {
-        const res = await fetch(`${base}/history/score-history`).catch(() => fetch(`${base}/health`));
-        if (res.ok) {
+      // Auto-ping on load
+      setTimeout(pingApi, 800);
+
+      /* ═══════════════════════════════════════════════════════════════
+         ANALYZE
+      ═══════════════════════════════════════════════════════════════ */
+      analyzeBtn.addEventListener('click', doAnalyze);
+
+      async function doAnalyze() {
+        const code = editor.value.trim();
+        if (!code) { toast('Please paste some code first.', 'error'); return; }
+
+        const base = apiUrlInput.value.replace(/\/$/, '');
+        const endpointMap = {
+          analyze: '/analyze/',
+          explain: '/explanation/',
+          debug: '/debugging/',
+          suggest: '/suggestions/',
+        };
+        const endpoint = endpointMap[selectedMode] || '/analyze/';
+
+        // Loading state
+        analyzeBtn.classList.add('loading');
+        analyzeBtn.disabled = true;
+        showShimmers();
+
+        try {
+          const res = await fetch(`${base}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language: selectedLang }),
+            signal: AbortSignal.timeout(30000),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          const elapsed = res.headers.get('X-Process-Time-Ms');
+
+          // Normalize to full analysis shape
+          let result;
+          if (selectedMode === 'analyze') {
+            result = data;
+          } else if (selectedMode === 'explain') {
+            result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+          } else if (selectedMode === 'debug') {
+            result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+          } else {
+            result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
+          }
+
+          currentResult = result;
+          renderResults(result, code);
+          addToHistory(code, result);
           apiDot.classList.add('connected');
-          apiStatusText.textContent = 'Connected & Verified';
-        } else {
-          throw new Error();
+          apiStatusText.textContent = 'Connected';
+          document.getElementById('engineBar').style.display = 'flex';
+          engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
+          if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
+          else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
+          resultActions.style.display = 'flex';
+
+        } catch (err) {
+          toast(`Error: ${err.message}`, 'error');
+          resetResults();
+        } finally {
+          analyzeBtn.classList.remove('loading');
+          analyzeBtn.disabled = false;
         }
-      } catch {
-        apiDot.classList.remove('connected');
-        apiStatusText.textContent = 'Unreachable';
       }
-    }
-    document.getElementById('pingBtn').addEventListener('click', pingApi);
-    apiUrlInput.addEventListener('change', () => {
-      localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
-      pingApi();
-    });
-    setTimeout(pingApi, 800);
 
-    /* ═══════════════════════════════════════════════════════════════
-   BOTTOM NAVIGATION PROGRESS MANAGEMENT PIPELINE
-   ═══════════════════════════════════════════════════════════════ */
-    function switchBottomTab(target) {
-      const isHistory = target === 'history';
-      
-      document.getElementById('tabBtnHistory').classList.toggle('active', isHistory);
-      document.getElementById('tabBtnHistory').setAttribute('aria-selected', isHistory ? 'true' : 'false');
-      document.getElementById('paneBottomHistory').style.display = isHistory ? 'grid' : 'none';
-
-      document.getElementById('tabBtnProgress').classList.toggle('active', !isHistory);
-      document.getElementById('tabBtnProgress').setAttribute('aria-selected', !isHistory ? 'true' : 'false');
-      document.getElementById('paneBottomProgress').style.display = !isHistory ? 'block' : 'none';
-
-      if (!isHistory) {
-        refreshProgressDashboard();
-      }
-    }
-
-    async function refreshProgressDashboard() {
-      const base = apiUrlInput.value.replace(/\/$/, '');
-      try {
-        const res = await fetch(`${base}/history/score-history`);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const data = await res.json();
-        
-        if (!data.history || data.history.length === 0) {
-          document.getElementById('statAvgScore').textContent = '0';
-          document.getElementById('statBestScore').textContent = '0';
-          document.getElementById('statMostImproved').textContent = 'N/A';
-          return;
-        }
-
-        // Render Summary Data Cards Metrics
-        document.getElementById('statAvgScore').textContent = Math.round(data.summary.average_score || 0);
-        document.getElementById('statBestScore').textContent = data.summary.best_score || 0;
-        
-        const change = data.summary.most_improved;
-        if (change > 0) {
-          document.getElementById('statMostImproved').textContent = `+${change} pts`;
-          document.getElementById('statMostImproved').style.color = 'var(--green)';
-        } else if (change < 0) {
-          document.getElementById('statMostImproved').textContent = `${change} pts`;
-          document.getElementById('statMostImproved').style.color = 'var(--red)';
-        } else {
-          document.getElementById('statMostImproved').textContent = 'Stable';
-          document.getElementById('statMostImproved').style.color = 'var(--yellow)';
-        }
       /* ═══════════════════════════════════════════════════════════════
          RENDER RESULTS
       ═══════════════════════════════════════════════════════════════ */
@@ -3320,94 +2991,40 @@ main
         });
       }
 
-        // Order history chronologically (oldest to newest) for chart timeline mapping
-        const timelineRecords = [...data.history].reverse();
-        const labels = timelineRecords.map(item => {
-          const d = new Date(item.timestamp);
-          return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      /* ═══════════════════════════════════════════════════════════════
+         SHIMMER LOADING
+      ═══════════════════════════════════════════════════════════════ */
+      function showShimmers() {
+        const shims = '<div class="shimmer-card"></div>'.repeat(3);
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          const el = document.getElementById(id);
+          el.style.display = 'block';
+          el.innerHTML = shims;
         });
-        const scores = timelineRecords.map(item => item.quality_score);
-        const errors = timelineRecords.map(item => item.error_count);
-
-        const currentStyle = getComputedStyle(document.documentElement);
-        const text2Color = currentStyle.getPropertyValue('--text2').trim() || '#8892a4';
-        const accentColor = currentStyle.getPropertyValue('--accent').trim() || '#5b9cf6';
-        const redColor = currentStyle.getPropertyValue('--red').trim() || '#f25757';
-        const borderCl = currentStyle.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.07)';
-
-        // 1. Dual Axis Trend Configuration Line Chart Layout Matrix
-        if (trendChartInstance) trendChartInstance.destroy();
-        const trendCtx = document.getElementById('trendChart').getContext('2d');
-        trendChartInstance = new Chart(trendCtx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: 'Quality Score',
-                data: scores,
-                borderColor: accentColor,
-                backgroundColor: 'rgba(91, 156, 246, 0.08)',
-                borderWidth: 2,
-                tension: 0.25,
-                fill: true,
-                yAxisID: 'y'
-              },
-              {
-                label: 'Errors Detected',
-                data: errors,
-                borderColor: redColor,
-                backgroundColor: 'transparent',
-                borderWidth: 1.5,
-                borderDash: [5, 5],
-                tension: 0.1,
-                yAxisID: 'y1'
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { labels: { color: text2Color, font: { family: 'Inter', weight: 500 } } }
-            },
-            scales: {
-              x: { grid: { color: borderCl }, ticks: { color: text2Color, maxRotation: 45, minRotation: 45 } },
-              y: { min: 0, max: 100, position: 'left', grid: { color: borderCl }, ticks: { color: text2Color } },
-              y1: { min: 0, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: text2Color, stepSize: 1 } }
-            }
-          }
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'none';
         });
+      }
 
-        // 2. Languages Distribution Pie Layout Architecture
-        if (langChartInstance) langChartInstance.destroy();
-        const langCtx = document.getElementById('langChart').getContext('2d');
-        const distribution = data.summary.languages_distribution || {};
-        const langLabels = Object.keys(distribution);
-        const langValues = Object.values(distribution);
-
-        langChartInstance = new Chart(langCtx, {
-          type: 'pie',
-          data: {
-            labels: langLabels,
-            datasets: [{
-              data: langValues,
-              backgroundColor: [accentColor, '#7c3aed', '#22d47b', '#f5c842', '#f5923e', '#f25757'],
-              borderWidth: 1,
-              borderColor: borderCl
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'bottom', labels: { color: text2Color, font: { family: 'Inter', size: 11 } } }
-            }
-          }
+      function resetResults() {
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          const el = document.getElementById(id);
+          el.style.display = 'none';
+          el.innerHTML = '';
         });
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'flex';
+        });
+        ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => {
+          document.getElementById(id).textContent = '';
+        });
+        resultActions.style.display = 'none';
+        document.getElementById('engineBar').style.display = 'none';
+        engineInfo.textContent = '';
+        timeInfo.textContent = '';
+        currentResult = null;
+      }
 
-      } catch (error) {
-        console.error("Pipeline analytics data extraction failure:", error);
       /* ═══════════════════════════════════════════════════════════════
          HISTORY
       ═══════════════════════════════════════════════════════════════ */
@@ -3439,41 +3056,9 @@ main
       <span class="history-meta">${h.ts}</span>
     </div>`).join('');
       }
-    }
 
-    /* ═══════════════════════════════════════════════════════════════
-   ANALYZE CORE LOGIC PIPELINE
-═══════════════════════════════════════════════════════════════ */
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const resultActions = document.getElementById('resultActions');
-    const engineInfo = document.getElementById('engineInfo');
-    const timeInfo = document.getElementById('timeInfo');
-
-    analyzeBtn.addEventListener('click', doAnalyze);
-
-    async function doAnalyze() {
-      const code = editor.value.trim();
-      if (!code) {
-        toast('Please paste some code first.', 'error');
-        return;
-      }
-      const base = apiUrlInput.value.replace(/\/$/, '');
-      const endpointMap = { analyze: '/analyze/', explain: '/explanation/', debug: '/debugging/', suggest: '/suggestions/' };
-      const endpoint = endpointMap[selectedMode] || '/analyze/';
-
-      analyzeBtn.classList.add('loading');
-      analyzeBtn.disabled = true;
-      showShimmers();
-
-      try {
-        const res = await fetch(`${base}${endpoint}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, language: selectedLang }),
-          signal: AbortSignal.timeout(30000),
-        });
 document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-  if (!window.confirm('Are you sure you want to clear your history? This cannot be undone.')) return;
+  if (!confirm('Clear all history? This cannot be undone.')) return;
 
   history = [];
   localStorage.removeItem('qyx_history');
@@ -3496,47 +3081,41 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
 
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || `HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        const elapsed = res.headers.get('X-Process-Time-Ms') || "140";
+      /* ═══════════════════════════════════════════════════════════════
+         FAVORITES
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('favBtn').addEventListener('click', () => {
+        if (!currentResult || !editor.value.trim()) return;
+        const entry = {
+          id: Date.now(),
+          code: editor.value,
+          result: currentResult,
+          lang: currentResult.explanation?.language || selectedLang,
+          ts: new Date().toLocaleDateString(),
+          preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
+        };
+        favorites.unshift(entry);
+        if (favorites.length > 30) favorites = favorites.slice(0, 30);
+        localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
+        renderFavorites();
+        toast('Saved to favorites', 'success');
+      });
 
-        let result;
-        if (selectedMode === 'analyze') {
-          result = data;
-        } else if (selectedMode === 'explain') {
-          result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-        } else if (selectedMode === 'debug') {
-          result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-        } else {
-          result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
+      function renderFavorites() {
+        if (!favorites.length) {
+          favList.innerHTML = '<div class="list-empty">No favorites saved yet.</div>';
+          return;
         }
+        favList.innerHTML = favorites.map(f => `
+    <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="Load favorite entry for ${f.lang} at ${f.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
+      <span class="history-lang">${f.lang || '?'}</span>
+      <span class="history-thumb">${escHtml(f.preview)}…</span>
+      <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+    </div>`).join('');
+      }
 
-        currentResult = result;
-        renderResults(result, code);
-        addToHistory(code, result);
-        
-        apiDot.classList.add('connected');
-        apiStatusText.textContent = 'Connected';
-        document.getElementById('engineBar').style.display = 'flex';
-        engineInfo.innerHTML = `<strong>Engine:</strong> ${result.provider || 'Core Static Core'}`;
-        timeInfo.innerHTML = `<strong>Latency:</strong> ${elapsed}ms`;
-        
-        // Live auto reload dashboard execution
-        if (document.getElementById('paneBottomProgress').style.display !== 'none') {
-          refreshProgressDashboard();
-        }
-
-      } catch (err) {
-        toast(err.message || 'Analysis processing crash runtime exception.', 'error');
-        resetResults();
-      } finally {
-        analyzeBtn.classList.remove('loading');
-        analyzeBtn.disabled = false;
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
-  if (!window.confirm('Are you sure you want to clear your favorites? This cannot be undone.')) return;
+  if (!confirm('Clear all favorites? This cannot be undone.')) return;
   
   favorites = [];
   localStorage.removeItem('qyx_favorites');
@@ -3558,270 +3137,185 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-   RENDERING UTILITIES
-═══════════════════════════════════════════════════════════════ */
-    function renderResults(res, code) {
-      // Direct dynamic orchestration to sub render modules
-      if (res.explanation) renderExplain(res.explanation);
-      if (res.debugging) renderDebug(res.debugging);
-      if (res.suggestions) renderSuggest(res.suggestions);
-      
-      // Auto toggle operational target display tabs rows
-      let primaryTab = 'explain';
-      if (!res.explanation && res.debugging) primaryTab = 'debug';
-      if (!res.explanation && !res.debugging && res.suggestions) primaryTab = 'suggest';
-      switchResultTab(primaryTab);
-      resultActions.style.display = 'flex';
-    }
-
-    function switchResultTab(tabKey) {
-      document.querySelectorAll('.result-tab').forEach(btn => {
-        const active = btn.dataset.rtab === tabKey;
-        btn.classList.toggle('active', active);
-        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      /* ═══════════════════════════════════════════════════════════════
+         DOWNLOAD
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('downloadBtn').addEventListener('click', () => {
+        if (!currentResult) return;
+        const text = buildReport(currentResult, editor.value);
+        const blob = new Blob([text], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `qyverixai-report-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast('Report downloaded', 'success');
       });
-      document.querySelectorAll('.result-pane').forEach(p => {
-        p.style.display = p.id === `pane-${tabKey}` ? 'block' : 'none';
-      });
-    }
 
-    document.querySelectorAll('.result-tab[data-rtab]').forEach(btn => {
-      btn.addEventListener('click', () => switchResultTab(btn.dataset.rtab));
-    });
-
-    function renderExplain(exp) {
-      document.getElementById('emptyExplain').style.display = 'none';
-      const el = document.getElementById('explainResult');
-      el.style.display = 'block';
-      el.innerHTML = `
-        <div class="explain-summary">${renderMarkdown(exp.summary)}</div>
-        <div class="explain-meta">
-          <div class="meta-chip complexity-${exp.complexity_score}"><span class="dot"></span> ${exp.complexity_score}</div>
-          <div class="meta-chip">Lines: ${exp.line_count}</div>
-          <div class="meta-chip">Functions: ${exp.function_count}</div>
-        </div>
-        <ul class="key-points">
-          ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
-        </ul>`;
-    }
-
-    function renderDebug(dbg) {
-      document.getElementById('emptyDebug').style.display = 'none';
-      const el = document.getElementById('debugResult');
-      el.style.display = 'block';
-      document.getElementById('debugBadge').textContent = dbg.issues ? dbg.issues.length : '0';
-
-      if (dbg.clean || !dbg.issues || dbg.issues.length === 0) {
-        el.innerHTML = `
-          <div class="clean-state">
-            <div class="clean-icon">🍃</div>
-            <h3>Codebase Is Clean</h3>
-            <p>No optimization constraints detected.</p>
-          </div>`;
-        return;
+      function buildReport(r, code) {
+        const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
+        if (r.explanation) {
+          lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
+        }
+        if (r.debugging) {
+          lines.push('── DEBUGGING ──', r.debugging.summary, '');
+          r.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
+        }
+        if (r.suggestions) {
+          lines.push('── SUGGESTIONS ──', `Score: ${r.suggestions.overall_score}/100 (${r.suggestions.grade})`, r.suggestions.next_step, '');
+          r.suggestions.suggestions.forEach(s => lines.push(`[${s.priority.toUpperCase()}] ${s.category}: ${s.description}`, ''));
+        }
+        lines.push('── CODE ──', '', code);
+        return lines.join('\n');
       }
-      el.innerHTML = dbg.issues.map((iss, i) => `
-        <div class="issue-card ${iss.severity}" style="animation-delay:${i * 0.05}s">
-          <div class="issue-header">
-            <span class="issue-badge">${iss.severity}</span>
-            <span class="issue-type">${iss.type}</span>
-            <span class="issue-line">Line ${iss.line_number}</span>
-          </div>
-          <div class="issue-desc">${iss.description}</div>
-          ${iss.snippet ? `<pre class="issue-snippet">${escHtml(iss.snippet)}</pre>` : ''}
-          ${iss.fix_suggestion ? `<div class="issue-fix">${renderMarkdown(iss.fix_suggestion)}</div>` : ''}
-        </div>`).join('');
-    }
 
-    function renderSuggest(sugg) {
-      document.getElementById('emptySuggest').style.display = 'none';
-      const el = document.getElementById('suggestResult');
-      el.style.display = 'block';
-      document.getElementById('suggestBadge').textContent = sugg.suggestions ? sugg.suggestions.length : '0';
-
-      const ring = `
-        <div class="score-ring-wrap">
-          <div class="score-ring">
-            <svg width="80" height="80"><circle cx="40" cy="40" r="34" stroke="var(--border2)" stroke-width="6" fill="transparent"/>
-            <circle cx="40" cy="40" r="34" stroke="var(--accent)" stroke-width="6" fill="transparent" stroke-dasharray="${2 * Math.PI * 34}" stroke-dashoffset="${2 * Math.PI * 34 * (1 - (sugg.quality_score || 0) / 100)}"/></svg>
-            <div class="score-ring-text"><span class="score-num">${sugg.quality_score || 0}</span><span class="score-grade">SCORE</span></div>
-          </div>
-          <div class="score-info"><h3>Quality Index Overview</h3><p>${sugg.next_step || 'Code review completed validation loop parameters.'}</p></div>
-        </div>`;
-
-      if (!sugg.suggestions || sugg.suggestions.length === 0) {
-        el.innerHTML = ring + `<div class="clean-state"><h3>Flawless Architecture</h3><p>Code conforms perfectly to target guidelines standard parameters design rules matrix templates.</p></div>`;
-        return;
+      /* ═══════════════════════════════════════════════════════════════
+         TOAST
+      ═══════════════════════════════════════════════════════════════ */
+      function toast(msg, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        el.className = 'toast ' + type;
+        const icons = { success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>', error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' };
+        el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + msg + '</span>';
+        container.appendChild(el);
+        setTimeout(() => {
+          el.classList.add('fadeout');
+          el.addEventListener('animationend', () => el.remove());
+        }, 3000);
       }
-      const cards = sugg.suggestions.map((s, i) => `
-        <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s">
-          <div class="suggest-header"><span class="suggest-cat">${s.category}</span><span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${s.priority} priority</span></div>
-          <div class="suggest-desc">${s.description}</div>
-          ${s.example ? `<pre class="suggest-example">${escHtml(s.example)}</pre>` : ''}
-        </div>`).join('');
-      el.innerHTML = ring + cards;
-    }
 
-    /* ═══════════════════════════════════════════════════════════════
-   SHIMMER LOADING UTILITIES
-═══════════════════════════════════════════════════════════════ */
-    function showShimmers() {
-      const shims = '<div class="shimmer-card"></div>'.repeat(3);
-      ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
-        const el = document.getElementById(id);
-        el.style.display = 'block';
-        el.innerHTML = shims;
-      });
-      ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => document.getElementById(id).style.display = 'none');
-    }
+      /* ═══════════════════════════════════════════════════════════════
+         HELPERS
+      ═══════════════════════════════════════════════════════════════ */
+      function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+      function renderMarkdown(s) {
+        return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
+      }
 
-    function resetResults() {
-      ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
-        const el = document.getElementById(id);
-        el.style.display = 'none';
-        el.innerHTML = '';
-      });
-      ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => document.getElementById(id).style.display = 'flex');
-      ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => document.getElementById(id).textContent = '');
-      resultActions.style.display = 'none';
-      document.getElementById('engineBar').style.display = 'none';
-      currentResult = null;
-    }
+      /* ═══════════════════════════════════════════════════════════════
+         SAMPLE CODE LOADER
+      ═══════════════════════════════════════════════════════════════ */
+      const SAMPLES = {
+        python: `// Python Sample
+  import os
 
-    /* ═══════════════════════════════════════════════════════════════
-   HISTORY & FAVORITES DATA ORCHESTRATION SANDBOX
-═══════════════════════════════════════════════════════════════ */
-    function addToHistory(code, result) {
-      const preview = code.substring(0, 60).replace(/\n/g, ' ');
-      const id = 'hist_' + Date.now();
-      const item = { id, code, result, preview, lang: selectedLang, ts: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-      history.unshift(item);
-      if (history.length > MAX_HISTORY) history.pop();
-      localStorage.setItem('qyx_history', JSON.stringify(history));
+# [!] Hardcoded secret - security risk
+password = "supersecret123"
+
+def calculate(a, b):
+    # [!] No type hints, potential ZeroDivisionError
+    result = a / b
+    return result
+
+def fetch_data(url):
+    import requests
+    # [!] No error handling for network call
+    response = requests.get(url)
+    return response.json()
+
+def process_items(items=[]):  # [!] Mutable default argument
+    results = ""
+    for item in items:
+        results += str(item)  # [!] String concat in loop
+    return results
+
+from os import *  # [!] Wildcard import
+
+x = eval("1 + 2")  # [!] Unsafe eval
+
+calculate(10, 0)`,
+        javascript: `// JavaScript Sample
+  var counter = 0;
+
+function loadUser(id) {
+  // [!] Promise not awaited
+  fetch('/api/users/' + id).then(r => r.json());
+
+  if (counter == "0") {  // [!] Loose equality
+    console.log("No users loaded");
+    document.getElementById("output").innerHTML = id;  // [!] XSS risk
+  }
+
+  var result = null;
+  return result;
+}
+
+loadUser(42);`,
+        typescript: `// TypeScript Sample
+interface User {
+  id: number;
+  name: string;
+  email?: string; 
+}
+
+function sendWelcomeEmail(user: User) {
+  // Anti-pattern: Non-null assertion operator (!) used dangerously
+  // If user.email is undefined, this will cause a runtime error in the compiled JS
+  console.log("Sending email to: " + user.email!.toLowerCase());
+}
+
+const newUser: User = { id: 1, name: "Alice" };
+sendWelcomeEmail(newUser);`,
+        java: `// Java Sample
+public class Main {
+    public static void main(String[] args) {
+        String name1 = new String("Vaibhav");
+        String name2 = new String("Vaibhav");
+
+        // Anti-pattern 1: Using == for string comparison instead of .equals()
+        if (name1 == name2) {
+            System.out.println("Names are the same");
+        } else {
+            System.out.println("Names are different (Reference comparison failed)");
+        }
+
+        // Anti-pattern 2: NullPointerException risk
+        String uninitializedString = null;
+        System.out.println(uninitializedString.length());
+    }
+}`,
+        cpp: `// C++ Sample
+#include <iostream>
+
+// Anti-pattern 1: using namespace std in global scope
+using namespace std; 
+
+void processData() {
+    // Anti-pattern 2: Memory Leak
+    // Allocating memory on the heap but never freeing it with 'delete'
+    int* dataBuffer = new int[100]; 
+    
+    dataBuffer[0] = 42;
+    cout << "Processing value: " << dataBuffer[0] << endl;
+    
+    // Memory leak occurs here when the function exits 
+    // because 'delete[] dataBuffer;' is missing.
+}
+
+int main() {
+    processData();
+    return 0;
+}`
+      };
+
+      function loadSample() {
+        const sample = SAMPLES[selectedLang] || SAMPLES.python;
+        editor.value = sample;
+        updateEditor();
+        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+        toast('Sample code loaded — click Analyze!', 'success');
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+         INIT
+      ═══════════════════════════════════════════════════════════════ */
       renderHistory();
-    }
-
-    function renderHistory() {
-      const container = document.getElementById('historyList');
-      if (!history.length) {
-        container.innerHTML = '<div class="list-empty">No history logs yet. Run code parameters audit to generate index traces mappings tracking records data pipelines assets rows.</div>';
-        return;
-      }
-      container.innerHTML = history.map(h => `
-        <div class="history-item" onclick="loadHistoryItem('${h.id}')" role="button" tabindex="0" aria-label="Reload query history block context implementation trace log">
-          <span class="history-lang">${h.lang}</span>
-          <span class="history-thumb">${escHtml(h.preview)}…</span>
-          <span class="history-meta">${h.ts}</span>
-        </div>`).join('');
-    }
-
-    window.loadHistoryItem = function(id) {
-      const entry = history.find(h => h.id === id);
-      if (!entry) return;
-      editor.value = entry.code;
-      updateEditor();
-      selectedLang = entry.lang;
-      setLanguage(entry.lang);
-      currentResult = entry.result;
-      renderResults(entry.result, entry.code);
-      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      toast('History audit entry tracking metrics re-hydrated.', 'success');
-    };
-
-    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-      if (!confirm('Flush local logs sequence trace storage configurations maps? This operation cannot be rolled back.')) return;
-      history = [];
-      localStorage.removeItem('qyx_history');
-      renderHistory();
-      if (document.getElementById('paneBottomProgress').style.display !== 'none') refreshProgressDashboard();
-      toast('History logs wiped out.', 'info');
-    });
-
-    // Favorites Implementation Core Setup 
-    document.getElementById('favBtn').addEventListener('click', () => {
-      if (!currentResult) return;
-      const code = editor.value;
-      if (favorites.some(f => f.code === code)) {
-        toast('Code signature layout block template registry trace item matches an existing favored asset row index.', 'info');
-        return;
-      }
-      const preview = code.substring(0, 60).replace(/\n/g, ' ');
-      const item = { id: 'fav_' + Date.now(), code, result: currentResult, preview, lang: selectedLang, ts: new Date().toLocaleDateString() };
-      favorites.unshift(item);
-      localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
       renderFavorites();
-      toast('Saved directly to favorites inventory.', 'success');
-    });
 
-    function renderFavorites() {
-      const favList = document.getElementById('favList');
-      if (!favorites.length) {
-        favList.innerHTML = '<div class="list-empty">No favorite references bookmarked yet.</div>';
-        return;
-      }
-      favList.innerHTML = favorites.map(f => `
-        <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="Load favored bookmark snapshot state">
-          <span class="history-lang">${f.lang}</span>
-          <span class="history-thumb">${escHtml(f.preview)}…</span>
-          <span class="history-meta" style="opacity:0.5">⭐</span>
-        </div>`).join('');
-    }
-
-    window.loadFav = function(id) {
-      const entry = favorites.find(f => f.id === id);
-      if (!entry) return;
-      editor.value = entry.code;
-      updateEditor();
-      setLanguage(entry.lang);
-      currentResult = entry.result;
-      renderResults(entry.result, entry.code);
-      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      toast('Favored snippet execution framework trace loaded.', 'success');
-    };
-
-    document.getElementById('clearFavsBtn').addEventListener('click', () => {
-      if (!confirm('Delete all favorites? This cannot be undone.')) return;
-      favorites = [];
-      localStorage.removeItem('qyx_favorites');
-      renderFavorites();
-      toast('Favorites cleared', 'info');
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-   HELPERS & SYSTEM INITIALIZATION
-═══════════════════════════════════════════════════════════════ */
-    function escHtml(s) {
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    function renderMarkdown(s) {
-      if (!s) return '';
-      return String(s)
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
-    }
-
-    function toast(msg, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      const icons = { success: '✓', error: '⚠️', info: 'ℹ' };
-      el.innerHTML = `<span class="toast-icon">${icons[type] || '✓'}</span><span>${msg}</span>`;
-      container.appendChild(el);
-      setTimeout(() => {
-        el.classList.add('fadeout');
-        el.addEventListener('animationend', () => el.remove());
-      }, 3400);
-    }
-
-    // Run core routines inside boot cycle
-    renderHistory();
-    renderFavorites();
-    updateEditor();
-  </script>
       // Save API URL
       apiUrlInput.addEventListener('change', () => {
         localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
