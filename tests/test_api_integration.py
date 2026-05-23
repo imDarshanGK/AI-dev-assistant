@@ -77,15 +77,11 @@ def long_function_without_purpose():
     assert "overall_score" in data, "Response should have overall_score"
     assert "grade" in data, "Response should have grade"
     
-    # Verify at least some suggestions have line tracking
-    has_line_tracking = False
     for suggestion in data["suggestions"]:
         # New fields should be present
         assert "line_number" in suggestion, "Suggestion should have line_number field"
         assert "line_range" in suggestion, "Suggestion should have line_range field"
         
-        if suggestion.get("line_number") or suggestion.get("line_range"):
-            has_line_tracking = True
     
     print("✅ test_suggestions_endpoint_with_line_ranges PASSED\n")
 
