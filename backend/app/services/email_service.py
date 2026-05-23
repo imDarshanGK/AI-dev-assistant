@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 from ..config import settings
 from ..models import QueryHistory, User
 
-
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 
@@ -33,6 +32,7 @@ def _parse_score(result_json: str) -> int | None:
 def _most_common_bug(issues: list[dict]) -> str | None:
     """Return the most frequent bug type from a list of debug issues."""
     from collections import Counter
+
     types = [i.get("type", "Unknown") for i in issues if i.get("type")]
     if not types:
         return None
@@ -212,8 +212,12 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
 
 def _build_text(stats: dict, unsubscribe_url: str) -> str:
     """Plain-text fallback for the digest email."""
-    score = f"Average Score: {stats['avg_score']}/100" if stats['avg_score'] is not None else ""
-    bug = f"Most Common Bug: {stats['top_bug']}" if stats['top_bug'] else ""
+    score = (
+        f"Average Score: {stats['avg_score']}/100"
+        if stats["avg_score"] is not None
+        else ""
+    )
+    bug = f"Most Common Bug: {stats['top_bug']}" if stats["top_bug"] else ""
     return (
         f"QyverixAI Weekly Digest\n"
         f"{stats['week_start']} \u2013 {stats['week_end']}\n\n"
@@ -239,10 +243,14 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
         return False
 
     base = settings.digest_base_url.rstrip("/")
-    unsubscribe_url = f"{base}/unsubscribe/?email={stats['email']}&token={unsubscribe_token}"
+    unsubscribe_url = (
+        f"{base}/unsubscribe/?email={stats['email']}&token={unsubscribe_token}"
+    )
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"QyverixAI Weekly Digest — {stats['week_start']} to {stats['week_end']}"
+    msg["Subject"] = (
+        f"QyverixAI Weekly Digest — {stats['week_start']} to {stats['week_end']}"
+    )
     msg["From"] = settings.email_from
     msg["To"] = stats["email"]
 
@@ -259,5 +267,8 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
         return True
     except Exception as exc:
         import logging
-        logging.getLogger(__name__).warning("Failed to send digest to %s: %s", stats["email"], exc)
+
+        logging.getLogger(__name__).warning(
+            "Failed to send digest to %s: %s", stats["email"], exc
+        )
         return False
