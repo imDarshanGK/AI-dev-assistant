@@ -142,6 +142,7 @@ class DebuggingResponse(BaseModel):
 
 
 class SuggestionsResponse(BaseModel):
+    suggestions: list[dict]
     overall_score: int
     grade: str
     next_step: str | None = None
