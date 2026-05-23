@@ -57,11 +57,10 @@ class DigestSubscription(Base):
 
 
 class SharedSnippet(Base):
-    __tablename__ = "shared_snippets"
+    __tablename__ = "shares"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    action: Mapped[str] = mapped_column(String(50))
     code: Mapped[str] = mapped_column(Text)
     result_json: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
