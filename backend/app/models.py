@@ -45,12 +45,22 @@ class FavoriteResult(Base):
     user = relationship("User", back_populates="favorites")
 
 
+class DigestSubscription(Base):
+    __tablename__ = "digest_subscriptions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    unsubscribe_token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    subscribed_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    last_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
 class SharedSnippet(Base):
-    __tablename__ = "shared_snippets"
+    __tablename__ = "shares"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    action: Mapped[str] = mapped_column(String(50))
     code: Mapped[str] = mapped_column(Text)
     result_json: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))

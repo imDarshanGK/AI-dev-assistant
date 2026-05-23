@@ -33,6 +33,14 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"#include\s*<", r"\bstd::\w+", r"\bcout\s*<<",
         r"\bint\s+main\s*\(", r"::\w+",
     ],
+    "Swift": [
+        r"\bfunc\s+\w+\s*\(",
+        r"\bvar\s+\w+\s*:",
+        r"\blet\s+\w+\s*=",
+        r"print\s*\(",
+        r"import\s+\w+",
+        r"guard\s+let\b",
+    ],
     "PHP": [
         r"<\?php",
         r"\$\w+\s*=",
@@ -48,6 +56,14 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"println!\(",
         r"\bimpl\b",
         r"\bOption<\w+>",
+    ],
+    "Kotlin": [
+        r"\bfun\s+\w+\s*\(",
+        r"\bval\s+\w+",
+        r"\bvar\s+\w+",
+        r"println\s*\(",
+        r"data\s+class\s+\w+",
+        r":\s*\w+\s*\?",
     ],
 }
 
@@ -71,6 +87,8 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "typescript": "TypeScript", "ts": "TypeScript",
             "java": "Java",
             "cpp": "C++", "c++": "C++", "cxx": "C++",
+            "swift": "Swift",
+            "php": "PHP",
             "rust": "Rust", "rs": "Rust",
         }
         if normalized in mapping:
@@ -84,6 +102,41 @@ def detect_language(code: str, hint: str | None = None) -> str:
 
     best = max(scores, key=lambda lang_key: scores[lang_key])
     return best if scores[best] > 0 else "Unknown"
+
+
+# ── Cyclomatic Complexity ──────────────────────────────────────────────────────
+_DECISION_RE = re.compile(
+    r"\b(if|elif|else|for|while|and|or|case|catch|except)\b|\?(?![?:.])",
+    re.MULTILINE,
+)
+
+_RISK_THRESHOLDS: tuple[tuple[int, str], ...] = (
+    (5,  "Simple"),
+    (10, "Moderate"),
+    (20, "High"),
+)
+
+
+def calculate_cyclomatic_complexity(code: str, language: str) -> tuple[int, str]:
+    """Calculate the cyclomatic complexity of a code snippet.
+
+    Uses a simplified McCabe formula: M = decision points + 1, where decision
+    points are control-flow keywords (if, elif, else, for, while, and, or,
+    case, catch, except) and ternary operators.
+
+    Args:
+        code: The source code to analyse.
+        language: The programming language of the code.
+
+    Returns:
+        A tuple of (score, risk) where risk is one of "Simple", "Moderate",
+        "High", or "Very High".
+    """
+    score = len(_DECISION_RE.findall(code)) + 1
+    for threshold, label in _RISK_THRESHOLDS:
+        if score <= threshold:
+            return score, label
+    return score, "Very High"
 
 
 # ── Complexity Estimation ──────────────────────────────────────────────────────
@@ -118,7 +171,7 @@ class BugPattern:
     description: str
     suggestion: str
     severity: str
-    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++", "Rust"])
+    languages: list[str] = field(default_factory=lambda: ["Python", "JavaScript", "TypeScript", "Java", "C++", "PHP", "Rust"])
 
 
 BUG_PATTERNS: list[BugPattern] = [
@@ -183,6 +236,30 @@ BUG_PATTERNS: list[BugPattern] = [
                "`assert` statements are stripped when Python runs with `-O` flag.",
                "Use explicit `if not condition: raise ValueError(...)` instead.",
                "warning", ["Python"]),
+        BugPattern("Typeof Equality Issue", r'typeof\s+\w+\s*==\s*["\']',
+               "Using == in typeof checks may cause coercion issues.",
+               "Use === instead of == for type comparisons.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("setTimeout String Usage", r'setTimeout\s*\(\s*["\']|setInterval\s*\(\s*["\']',
+               "Passing strings to setTimeout/setInterval behaves like eval().",
+               "Pass a function reference instead of a string.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Async Await Without Try Catch", r'await\s+\w+\(',
+               "Await used without visible error handling.",
+               "Wrap async code inside try/catch blocks.",
+               "info", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Unsafe Window Location Assignment", r'window\.location\s*=',
+               "Direct window.location assignment may allow open redirects.",
+               "Validate URLs before redirecting users.",
+               "warning", ["JavaScript", "TypeScript"]),
+
+    BugPattern("Prototype Pollution Risk", r'__proto__|\["__proto__"\]',
+               "Prototype pollution vulnerability risk detected.",
+               "Avoid modifying __proto__; use Object.create(null).",
+               "error", ["JavaScript", "TypeScript"]),
 
     # ── JavaScript / TypeScript ──
     BugPattern("Var Usage", r"\bvar\s+\w+",
@@ -257,6 +334,105 @@ BUG_PATTERNS: list[BugPattern] = [
                "Comparing signed `int` with unsigned `.size()` — undefined behavior on overflow.",
                "Cast to `(int)` or use `std::ssize()` (C++20).",
                "warning", ["C++"]),
+    BugPattern("Void Main", r"\bvoid\s+main\s*\(",
+               "`void main()` is non-standard C++ and results in a compilation error.",
+               "Use `int main()` and return 0 at the end.",
+               "error", ["C++"]),
+    BugPattern("Single Quotes for String", r"'[^'\\]{2,}'",
+               "Single quotes are used for strings. In C++, single quotes are strictly for single characters.",
+               "Use double quotes `\"...\"` for string literals.",
+               "error", ["C++"]),
+    BugPattern("Missing Semicolon", r"^(?!.*\b(if|for|while|switch|catch)\b)(?!.*[{}#])(?!^\s*(int|float|double|char|long|short|bool|string|void)\s+\w+\s*\([^)]*\)\s*$).*\b(cout|cin|return|int|float|double|char|long|short|bool|string)\b[^;]*[^\s;]\s*$",
+               "Missing semicolon at the end of the statement.",
+               "Add a semicolon `;` at the end of the line.",
+               "error", ["C++"]),
+
+    BugPattern("Incomplete Assignment", r"=\s*$",
+               "Statement ends abruptly with an assignment operator.",
+               "Provide a value for the assignment.",
+               "error", ["C++", "Java", "Python", "JavaScript", "TypeScript"]),
+    BugPattern("Semicolon After Loop", r"\b(for|while)\s*\([^)]*\)\s*;",
+               "Semicolon immediately after loop condition creates an empty loop body.",
+               "Remove the semicolon so the loop executes the intended block.",
+               "error", ["C++", "Java", "JavaScript", "TypeScript"]),
+    BugPattern("Type Mismatch: String to Int", r"\b(int|long|short)\s+[a-zA-Z_]\w*\s*=\s*\"[^\"]*\"",
+               "Attempting to assign a string literal to an integer variable.",
+               "Use `std::string` for strings, or parse the string using `std::stoi`.",
+               "error", ["C++", "Java"]),
+    BugPattern("Uninitialized Variable Risk", r"^\s*(int|float|double|char|long|short)\s+[a-zA-Z_]\w*\s*;\s*$",
+               "Variable is declared without an initial value. Using it before assignment causes undefined behavior.",
+               "Initialize the variable upon declaration (e.g., `= 0;`).",
+               "warning", ["C++"]),
+    BugPattern("Float Equality", r"==\s*\d+\.\d+",
+               "Directly comparing floating point numbers with `==` is unsafe due to precision issues.",
+               "Compare the absolute difference with an epsilon value (e.g., `abs(a - b) < 1e-9`).",
+               "warning", ["C++", "Java", "Python", "JavaScript"]),
+    BugPattern("Variable Length Array", r"\b(int|float|double|char|long|short)\s+[a-zA-Z_]\w*\s*\[\s*[a-zA-Z_]\w*\s*\]\s*;",
+               "Using a variable to define an array size (VLA) is not standard C++ and fails on some compilers.",
+               "Use `std::vector` for dynamically sized arrays.",
+               "error", ["C++"]),
+    BugPattern("Negative Array Index", r"\[\s*-\s*\d+\s*\]",
+               "Hardcoded negative index detected. In C++ this accesses memory out of bounds.",
+               "Ensure array indices are 0 or greater.",
+               "error", ["C++", "Java", "JavaScript", "TypeScript"]),
+    BugPattern("C-Style Array", r"\b(int|float|double|char|long|short)\s+[a-zA-Z_]\w*\s*\[\s*\d+\s*\]\s*;",
+               "Raw C-style arrays do not carry their size and unsafely decay to pointers.",
+               "Use `std::array<T, N>` for fixed-size arrays.",
+               "info", ["C++"]),
+    BugPattern("Vector Pass by Value", r"\b\w+\s*\(\s*std::vector\s*<\s*[\w:]+\s*>\s+\w+\s*[,)]",
+               "Passing a `std::vector` by value creates a full, expensive copy.",
+               "Pass by const reference (e.g., `const std::vector<T>&`) unless you need to mutate a copy.",
+               "warning", ["C++"]),
+    BugPattern("Vector Unsigned Underflow", r"\.size\(\)\s*-\s*1",
+               "Vector `.size()` is unsigned. If empty, subtracting 1 causes an underflow to a huge number.",
+               "Always check `.empty()` first, or cast size to a signed integer.",
+               "error", ["C++"]),
+    BugPattern("malloc in C++", r"\bmalloc\s*\(",
+               "C-style `malloc` allocates memory but does not call C++ constructors.",
+               "Use `new` or `std::make_unique` instead.",
+               "error", ["C++"]),
+    BugPattern("Dangling Pointer Return", r"return\s+&\s*\w+\s*;",
+               "Returning the address of a local variable creates a dangling pointer.",
+               "Return by value, or allocate on the heap and return a smart pointer.",
+               "error", ["C++"]),
+    BugPattern("Missing Hash in Include", r"^\s*include\s*[<\"]",
+               "Preprocessor directives must start with a `#`.",
+               "Add a `#` at the beginning of the line (e.g., `#include`).",
+               "error", ["C++"]),
+    BugPattern("Semicolon in Condition", r"\b(if|while|switch)\s*\([^)]*;\s*\)",
+               "Condition blocks (if, while, switch) should not contain semicolons.",
+               "Remove the semicolon from inside the parentheses.",
+               "error", ["C++", "Java", "JavaScript", "TypeScript"]),
+    BugPattern("Malformed For-Loop", r"\bfor\s*\([^;:]*(?:;[^;:]*)?\)",
+               "A traditional for-loop must contain exactly two semicolons.",
+               "Ensure you have two semicolons separating the initialization, condition, and increment statements.",
+               "error", ["C++", "Java", "JavaScript", "TypeScript"]),
+
+    # ── PHP ──
+    BugPattern("PHP MySQL Deprecated", r"\bmysql_\w+\s*\(",
+               "`mysql_*` functions are removed in PHP 7+ — critical compatibility issue.",
+               "Use `mysqli_*` or PDO with prepared statements instead.",
+               "error", ["PHP"]),
+    BugPattern("PHP SQL Injection", r"\$_(GET|POST|REQUEST|COOKIE)\[.+\].*\b(mysql_query|mysqli_query|pg_query)\b",
+               "User input passed directly to a database query — SQL injection risk.",
+               "Use prepared statements with parameterised queries via PDO or mysqli.",
+               "error", ["PHP"]),
+    BugPattern("PHP XSS", r"echo\s+.*\$_(GET|POST|REQUEST|COOKIE)",
+               "Unescaped user input echoed directly — Cross-Site Scripting (XSS) vulnerability.",
+               "Wrap output with `htmlspecialchars($var, ENT_QUOTES, 'UTF-8')`.",
+               "error", ["PHP"]),
+    BugPattern("PHP Extract", r"\bextract\s*\(\s*\$_(GET|POST|REQUEST|COOKIE)",
+               "`extract()` on user input can overwrite arbitrary variables — severe security risk.",
+               "Never call `extract()` on untrusted data. Access keys explicitly instead.",
+               "error", ["PHP"]),
+    BugPattern("PHP Variable Variables", r"\$\$\w+",
+               "Variable variables (`$$var`) make code unpredictable and hard to debug.",
+               "Use an associative array instead of variable variables.",
+               "warning", ["PHP"]),
+    BugPattern("PHP Error Suppression", r"@\w+\s*\(",
+               "The `@` error suppression operator hides errors silently.",
+               "Handle errors explicitly with try/catch or check return values.",
+               "warning", ["PHP"]),
 
     # ── Rust ──
     BugPattern("Unwrap Usage", r"\.unwrap\s*\(\s*\)",
@@ -507,6 +683,17 @@ def run_suggestions(code: str, language: str) -> dict:
                 "priority": "medium",
             })
 
+    # std::endl Performance (only if in a file with loops)
+    if language == "C++":
+        if re.search(r"<<\s*(std::)?endl\b", code) and re.search(r"\b(for|while)\b", code):
+            suggestions.append({
+                "category": "Performance",
+                "description": "Code contains both a loop and `std::endl`. If `std::endl` is used inside the loop, it flushes the buffer on every iteration, severely degrading performance.",
+                "example": "std::cout << value << '\\n';",
+                "priority": "medium",
+            })
+
+    # Score
     # Score calculation
     deductions = sum({"high": 15, "medium": 7, "low": 3}.get(s["priority"], 5) for s in suggestions)
     score = max(0, min(100, 100 - deductions))
@@ -540,6 +727,7 @@ def run_explanation(code: str, language: str) -> dict:
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
     complexity = estimate_complexity(code)
+    cyclomatic_complexity, complexity_risk = calculate_cyclomatic_complexity(code, language)
 
     func_names = re.findall(
         r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(",
@@ -549,7 +737,10 @@ def run_explanation(code: str, language: str) -> dict:
 
     class_names = re.findall(r"class\s+(\w+)", code)
 
-    imports = re.findall(r"import\s+([\w,\s]+)|from\s+(\w+)\s+import|\buse\s+([\w:]+)", code)
+    imports = re.findall(
+        r"import\s+([\w,\s]+)|from\s+(\w+)\s+import|\buse\s+([\w:]+)|require(_once)?\s*\(|include(_once)?\s*\(",
+        code,
+    )
     import_count = len(imports)
 
     has_loops = bool(re.search(r"\bfor\b|\bwhile\b", code))
@@ -588,6 +779,8 @@ def run_explanation(code: str, language: str) -> dict:
         "line_count": len(lines),
         "function_count": len(funcs),
         "class_count": len(class_names),
+        "cyclomatic_complexity": cyclomatic_complexity,
+        "complexity_risk": complexity_risk,
     }
 
 
