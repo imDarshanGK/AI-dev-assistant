@@ -49,7 +49,7 @@ async def call_llm(system: str, user: str) -> str | None:
         "model": LLM_MODEL,
         "messages": [
             {"role": "system", "content": system},
-            {"role": "user",   "content": user},
+            {"role": "user", "content": user},
         ],
         "temperature": 0.2,
         "max_tokens": 1024,
