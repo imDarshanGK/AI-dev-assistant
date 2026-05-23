@@ -5,12 +5,10 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import FavoriteResult, QueryHistory, User
 from ..schemas import (
-    AnalysisProgressPoint,
     FavoriteCreateRequest,
     FavoriteRecord,
     HistoryCreateRequest,
     HistoryRecord,
-    ProgressDashboardResponse,
 )
 from ..security import get_current_user
 
@@ -29,7 +27,7 @@ def list_history(current_user: User = Depends(get_current_user), db: Session = D
             action=record.action,
             code=record.code,
             result_json=record.result_json,
-            created_at=record.created_at.isoformat() if hasattr(record.created_at, "isoformat") else str(record.created_at),
+            created_at=record.created_at.isoformat(),
         )
         for record in records
     ]
@@ -56,7 +54,7 @@ def create_history(
         action=record.action,
         code=record.code,
         result_json=record.result_json,
-        created_at=record.created_at.isoformat() if hasattr(record.created_at, "isoformat") else str(record.created_at),
+        created_at=record.created_at.isoformat(),
     )
 
 
@@ -100,7 +98,7 @@ def list_favorites(current_user: User = Depends(get_current_user), db: Session =
             action=record.action,
             code=record.code,
             result_json=record.result_json,
-            created_at=record.created_at.isoformat() if hasattr(record.created_at, "isoformat") else str(record.created_at),
+            created_at=record.created_at.isoformat(),
         )
         for record in records
     ]
@@ -129,7 +127,7 @@ def create_favorite(
         action=record.action,
         code=record.code,
         result_json=record.result_json,
-        created_at=record.created_at.isoformat() if hasattr(record.created_at, "isoformat") else str(record.created_at),
+        created_at=record.created_at.isoformat(),
     )
 
 
@@ -158,69 +156,3 @@ def clear_favorites(
     result = db.execute(delete(FavoriteResult).where(FavoriteResult.user_id == current_user.id))
     db.commit()
     return {"status": "cleared", "deleted": result.rowcount or 0}
-
-
-@router.get("/progress", response_model=ProgressDashboardResponse)
-def get_progress_dashboard(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    # Fetch the last 30 analyses ordered by execution sequence descending
-    records = db.execute(
-        select(QueryHistory)
-        .where(QueryHistory.user_id == current_user.id)
-        .order_by(QueryHistory.id.desc())
-        .limit(30)
-    ).scalars().all()
-
-    # Reverse to keep it chronological (oldest to newest) for chart layouts
-    records = list(reversed(records))
-
-    if not records:
-        return ProgressDashboardResponse(
-            history=[],
-            average_score=0.0,
-            best_score=0.0,
-            most_improved=0.0
-        )
-
-    history_points = []
-    scores = []
-
-    for record in records:
-        data = record.result_json or {}
-
-        # Ensure fallback defaults match correct types if metrics are missing
-        score = float(data.get("quality_score", 0.0))
-        errors = int(data.get("errors_detected", 0))
-        lang = str(data.get("language", "Unknown"))
-
-        scores.append(score)
-
-        timestamp = record.created_at.isoformat() if hasattr(record.created_at, "isoformat") else str(record.created_at)
-
-        history_points.append(
-            AnalysisProgressPoint(
-                id=record.id,
-                score=score,
-                errors_count=errors,
-                language=lang,
-                created_at=timestamp,
-            )
-        )
-
-    # Statistical Calculations
-    average_score = sum(scores) / len(scores) if scores else 0.0
-    best_score = max(scores) if scores else 0.0
-
-    # "Most Improved" calculated as the net gain from the earliest point in the sequence to your highest record peak
-    most_improved = max(scores) - scores[0] if len(scores) > 1 else 0.0
-    if most_improved < 0:
-        most_improved = 0.0
-
-    return ProgressDashboardResponse(
-        history=history_points,
-        average_score=round(average_score, 2),
-        best_score=round(best_score, 2),
-        most_improved=round(most_improved, 2)
-    )

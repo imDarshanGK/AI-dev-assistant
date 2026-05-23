@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 from pydantic import BaseModel, field_validator
-from typing import List
 
 
 class CodeRequest(BaseModel):
@@ -25,6 +24,7 @@ class CodeRequest(BaseModel):
 
 # ── Explanation ──────────────────────────────────────────────────────────
 main
+# ── Explanation ────────────────────────────────────────────────────────────────
 class ExplanationResponse(BaseModel):
     language: str
     summary: str
@@ -42,14 +42,15 @@ feat/progress-tracking-dashboard
 
 # ── Debugging ───────────────────────────────────────────────────────────
 main
+# ── Debugging ─────────────────────────────────────────────────────────────────
 class Issue(BaseModel):
     type: str
     line: int | None
     description: str
     suggestion: str
-    severity: str
+    severity: str          # "error" | "warning" | "info"
     code_snippet: str | None = None
-    code_context: str | None = None
+    code_context: str | None = None  # NEW: Formatted code with line numbers
 
 
 class DebuggingResponse(BaseModel):
@@ -64,14 +65,15 @@ class DebuggingResponse(BaseModel):
 feat/progress-tracking-dashboard
 # ── Suggestions ──────────────────────────────────────────────────────────────# ── Suggestions ──────────────────────────────────────────────────────────
 main
+# ── Suggestions ───────────────────────────────────────────────────────────────
 class Suggestion(BaseModel):
     category: str
     description: str
-    line_number: int | None = None
-    line_range: list[int] | None = None
+    line_number: int | None = None              # NEW
+    line_range: list[int] | None = None         # NEW (for multi-line issues)
     code_context: str | None = None
     example: str | None = None
-    priority: str
+    priority: str          # "high" | "medium" | "low"
 
 
 class SuggestionsResponse(BaseModel):
@@ -86,6 +88,7 @@ feat/progress-tracking-dashboard
 
 # ── Full Analysis ─────────────────────────────────────────────────────────
 main
+# ── Full Analysis ─────────────────────────────────────────────────────────────
 class AnalyzeResponse(BaseModel):
     provider: str
     model: str
@@ -101,7 +104,10 @@ class SubscribeRequest(BaseModel):
 
     @field_validator("email")
     @classmethod
-    def validate_email(cls, v: str) -> str:
+    def email_must_be_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
         if len(v) > 320:
             raise ValueError("Email too long")
         return v
