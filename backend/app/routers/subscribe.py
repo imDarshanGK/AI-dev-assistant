@@ -22,9 +22,9 @@ def subscribe(body: SubscribeRequest, db: Session = Depends(get_db)):
     """
     email = body.email.strip().lower()
 
-    existing = db.query(DigestSubscription).filter(
-        DigestSubscription.email == email
-    ).first()
+    existing = (
+        db.query(DigestSubscription).filter(DigestSubscription.email == email).first()
+    )
 
     if existing:
         if existing.is_active:
@@ -61,20 +61,29 @@ def unsubscribe(body: UnsubscribeRequest, db: Session = Depends(get_db)):
     """
     email = body.email.strip().lower()
 
-    sub = db.query(DigestSubscription).filter(
-        DigestSubscription.email == email,
-        DigestSubscription.is_active.is_(True),
-    ).first()
+    sub = (
+        db.query(DigestSubscription)
+        .filter(
+            DigestSubscription.email == email,
+            DigestSubscription.is_active.is_(True),
+        )
+        .first()
+    )
 
     if not sub:
-        raise HTTPException(status_code=404, detail="Subscription not found or already inactive.")
+        raise HTTPException(
+            status_code=404, detail="Subscription not found or already inactive."
+        )
 
     if sub.unsubscribe_token != body.token:
         raise HTTPException(status_code=403, detail="Invalid unsubscribe token.")
 
     sub.is_active = False
     db.commit()
-    return {"message": "You've been unsubscribed from the weekly digest.", "email": email}
+    return {
+        "message": "You've been unsubscribed from the weekly digest.",
+        "email": email,
+    }
 
 
 @router.get("/unsubscribe")
@@ -84,10 +93,14 @@ def unsubscribe_via_get(
     db: Session = Depends(get_db),
 ):
     """GET-based unsubscribe for one-click links in email."""
-    sub = db.query(DigestSubscription).filter(
-        DigestSubscription.email == email.strip().lower(),
-        DigestSubscription.is_active.is_(True),
-    ).first()
+    sub = (
+        db.query(DigestSubscription)
+        .filter(
+            DigestSubscription.email == email.strip().lower(),
+            DigestSubscription.is_active.is_(True),
+        )
+        .first()
+    )
 
     if not sub:
         return {"message": "Subscription not found or already inactive."}

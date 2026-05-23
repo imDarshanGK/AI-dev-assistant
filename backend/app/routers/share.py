@@ -87,14 +87,19 @@ def create_share(payload: ShareCreateRequest, db: Session = Depends(database.get
             continue
 
     if not token:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not create share token")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not create share token",
+        )
 
     return ShareCreateResponse(id=token)
 
 
 @router.get("/{token}", response_model=ShareRecord)
 def get_share(token: str, db: Session = Depends(database.get_db)):
-    record = db.execute(select(SharedSnippet).where(SharedSnippet.token == token)).scalar_one_or_none()
+    record = db.execute(
+        select(SharedSnippet).where(SharedSnippet.token == token)
+    ).scalar_one_or_none()
     if record is None:
         # If the direct ORM lookup didn't find a row, try a raw lookup on the
         # session's bound connection to detect an expired entry that may have
@@ -103,7 +108,9 @@ def get_share(token: str, db: Session = Depends(database.get_db)):
         try:
             temp_db = database.SessionLocal()
             try:
-                row = temp_db.execute(select(SharedSnippet.created_at).where(SharedSnippet.token == token)).first()
+                row = temp_db.execute(
+                    select(SharedSnippet.created_at).where(SharedSnippet.token == token)
+                ).first()
             finally:
                 temp_db.close()
         except OperationalError:
@@ -113,13 +120,20 @@ def get_share(token: str, db: Session = Depends(database.get_db)):
             created_at = row[0]
             if _to_utc(created_at) < _now() - SHARE_TTL:
                 try:
-                    db.execute(delete(SharedSnippet).where(SharedSnippet.token == token))
+                    db.execute(
+                        delete(SharedSnippet).where(SharedSnippet.token == token)
+                    )
                     db.commit()
                 except Exception:
                     pass
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result has expired")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Shared result has expired",
+                )
 
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shared result not found"
+        )
 
     # If the record exists but is expired, remove it and return 404.
     if _is_expired(record):
@@ -128,7 +142,9 @@ def get_share(token: str, db: Session = Depends(database.get_db)):
             db.commit()
         except Exception:
             pass
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result has expired")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shared result has expired"
+        )
 
     return ShareRecord(
         id=record.token,
