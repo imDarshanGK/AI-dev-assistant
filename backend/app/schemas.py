@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from pydantic import BaseModel, field_validator
+from typing import List
 
 
 class CodeRequest(BaseModel):
@@ -19,7 +20,7 @@ class CodeRequest(BaseModel):
         return v
 
 
-# ── Explanation ────────────────────────────────────────────────────────────────
+# ── Explanation ──────────────────────────────────────────────────────────
 class ExplanationResponse(BaseModel):
     language: str
     summary: str
@@ -32,15 +33,15 @@ class ExplanationResponse(BaseModel):
     complexity_risk: str
 
 
-# ── Debugging ─────────────────────────────────────────────────────────────────
+# ── Debugging ───────────────────────────────────────────────────────────
 class Issue(BaseModel):
     type: str
     line: int | None
     description: str
     suggestion: str
-    severity: str          # "error" | "warning" | "info"
+    severity: str
     code_snippet: str | None = None
-    code_context: str | None = None  # NEW: Formatted code with line numbers
+    code_context: str | None = None
 
 
 class DebuggingResponse(BaseModel):
@@ -52,15 +53,15 @@ class DebuggingResponse(BaseModel):
     info_count: int
 
 
-# ── Suggestions ───────────────────────────────────────────────────────────────
+# ── Suggestions ──────────────────────────────────────────────────────────
 class Suggestion(BaseModel):
     category: str
     description: str
-    line_number: int | None = None              # NEW
-    line_range: list[int] | None = None         # NEW (for multi-line issues)
+    line_number: int | None = None
+    line_range: list[int] | None = None
     code_context: str | None = None
     example: str | None = None
-    priority: str          # "high" | "medium" | "low"
+    priority: str
 
 
 class SuggestionsResponse(BaseModel):
@@ -70,7 +71,7 @@ class SuggestionsResponse(BaseModel):
     next_step: str
 
 
-# ── Full Analysis ─────────────────────────────────────────────────────────────
+# ── Full Analysis ─────────────────────────────────────────────────────────
 class AnalyzeResponse(BaseModel):
     provider: str
     model: str
@@ -86,10 +87,7 @@ class SubscribeRequest(BaseModel):
 
     @field_validator("email")
     @classmethod
-    def email_must_be_valid(cls, v: str) -> str:
-        v = v.strip().lower()
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Invalid email address")
+    def validate_email(cls, v: str) -> str:
         if len(v) > 320:
             raise ValueError("Email too long")
         return v
@@ -111,3 +109,98 @@ class HealthResponse(BaseModel):
     version: str
     message: str
     endpoints: list[str] | None = None
+class HealthResponse(BaseModel):
+    status: str
+    version: str
+    message: str
+    endpoints: list[str] | None = None
+
+
+class HistoryRecord(BaseModel):
+    id: int
+    action: str
+    code: str
+    result_json: dict | None = None
+    created_at: str
+
+
+class HistoryCreateRequest(BaseModel):
+    action: str
+    code: str
+    result_json: dict | None = None
+
+
+class FavoriteRecord(BaseModel):
+    id: int
+    title: str
+    action: str
+    code: str
+    result_json: dict | None = None
+    created_at: str
+
+
+class FavoriteCreateRequest(BaseModel):
+    title: str
+    action: str
+    code: str
+    result_json: dict | None = None
+
+
+class AnalysisProgressPoint(BaseModel):
+    id: int
+    score: float
+    errors_count: int
+    language: str
+    created_at: str
+
+
+class ProgressDashboardResponse(BaseModel):
+    history: List[AnalysisProgressPoint]
+    average_score: float
+    best_score: float
+    most_improved: float
+
+
+class HistoryRecord(BaseModel):
+    id: int
+    action: str
+    code: str
+    result_json: dict | None = None
+    created_at: str
+
+
+class HistoryCreateRequest(BaseModel):
+    action: str
+    code: str
+    result_json: dict | None = None
+
+
+class FavoriteRecord(BaseModel):
+    id: int
+    title: str
+    action: str
+    code: str
+    result_json: dict | None = None
+    created_at: str
+
+
+class FavoriteCreateRequest(BaseModel):
+    title: str
+    action: str
+    code: str
+    result_json: dict | None = None
+
+
+class AnalysisProgressPoint(BaseModel):
+    id: int
+    score: float
+    errors_count: int
+    language: str
+    created_at: str
+
+
+class ProgressDashboardResponse(BaseModel):
+    history: List[AnalysisProgressPoint]
+    average_score: float
+    best_score: float
+    most_improved: float
