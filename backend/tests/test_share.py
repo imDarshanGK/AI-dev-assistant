@@ -13,7 +13,9 @@ from app.models import SharedSnippet
 
 def _configure_test_db(monkeypatch, tmp_path):
     db_path = tmp_path / "share-tests.db"
-    engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
+    engine = create_engine(
+        f"sqlite:///{db_path}", connect_args={"check_same_thread": False}
+    )
     session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     monkeypatch.setattr(database, "engine", engine)
     monkeypatch.setattr(database, "SessionLocal", session_local)
