@@ -19,7 +19,6 @@ from .services.scheduler import start_scheduler, stop_scheduler
 
 from .schemas import HealthResponse
 
-
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
 RATE_LIMIT_WINDOW_SECONDS = 60
@@ -84,7 +83,12 @@ async def add_process_time_header(request: Request, call_next):
     remaining = RATE_LIMIT
 
     # Apply rate limiting to analysis endpoints only
-    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
+    if request.url.path in (
+        "/explanation/",
+        "/debugging/",
+        "/suggestions/",
+        "/analyze/",
+    ):
         remaining = check_rate_limit(ip)
         if remaining < 0:
             elapsed = (time.perf_counter() - start) * 1000
@@ -120,12 +124,11 @@ async def add_cache_header(request: Request, call_next):
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
-app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
+app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
-app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
+app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
 app.include_router(share.router)
-
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
@@ -135,7 +138,13 @@ async def root():
         "status": "ok",
         "version": "3.0.0",
         "message": "QyverixAI API is running.",
-        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/", "/share/"],
+        "endpoints": [
+            "/explanation/",
+            "/debugging/",
+            "/suggestions/",
+            "/analyze/",
+            "/share/",
+        ],
     }
 
 
@@ -145,7 +154,13 @@ async def health_check():
         "status": "ok",
         "version": "3.0.0",
         "message": "QyverixAI is healthy",
-        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/", "/share/"],
+        "endpoints": [
+            "/explanation/",
+            "/debugging/",
+            "/suggestions/",
+            "/analyze/",
+            "/share/",
+        ],
     }
 
 

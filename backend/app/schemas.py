@@ -1,8 +1,6 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-
-from typing import Any, List
 from pydantic import BaseModel, field_validator
 
 
@@ -16,78 +14,73 @@ class CodeRequest(BaseModel):
         v = v.strip()
         if not v:
             raise ValueError("code must not be empty")
-        # Reject extremely large payloads to avoid DoS / performance issues
-        if len(v) > 50000:
-            raise ValueError("code field too long")
+        if len(v) > 50_000:
+            raise ValueError("code exceeds 50,000 character limit")
         return v
 
 
-# ── Share ────────────────────────────────────────────────────────────────────
-class ShareCreateRequest(BaseModel):
-    code: str
-    result: Any
-
-
-class ShareCreateResponse(BaseModel):
-    id: str
-
-
-class ShareRecord(BaseModel):
-    id: str
-    code: str
-    result: Any
-    created_at: str
-
-
-# ── History & Favorites ───────────────────────────────────────────────────────
-class HistoryRecord(BaseModel):
-    id: int
-    action: str
-    code: str
-    result_json: dict | None = None
-    created_at: str
-
-
-class HistoryCreateRequest(BaseModel):
-    action: str
-    code: str
-    result_json: dict | None = None
-
-
-class FavoriteRecord(BaseModel):
-    id: int
-    title: str
-    action: str
-    code: str
-    result_json: dict | None = None
-    created_at: str
-
-
-class FavoriteCreateRequest(BaseModel):
-    title: str
-    action: str
-    code: str
-    result_json: dict | None = None
-
-
-# ── Progress Tracking ─────────────────────────────────────────────────────────
-class AnalysisProgressPoint(BaseModel):
-    id: int
-    score: float
-    errors_count: int
+# ── Explanation ────────────────────────────────────────────────────────────────
+class ExplanationResponse(BaseModel):
     language: str
-    created_at: str
+    summary: str
+    key_points: list[str]
+    complexity: str
+    line_count: int
+    function_count: int
+    class_count: int
+    cyclomatic_complexity: int
+    complexity_risk: str
 
 
-class ProgressDashboardResponse(BaseModel):
-    history: List[AnalysisProgressPoint]
-    average_score: float
-    best_score: float
-    most_improved: float
+# ── Debugging ─────────────────────────────────────────────────────────────────
+class Issue(BaseModel):
+    type: str
+    line: int | None
+    description: str
+    suggestion: str
+    severity: str          # "error" | "warning" | "info"
+    code_snippet: str | None = None
+    code_context: str | None = None  # NEW: Formatted code with line numbers
+
+
+class DebuggingResponse(BaseModel):
+    issues: list[Issue]
+    summary: str
+    clean: bool
+    error_count: int
+    warning_count: int
+    info_count: int
+
+
+# ── Suggestions ───────────────────────────────────────────────────────────────
+class Suggestion(BaseModel):
+    category: str
+    description: str
+    line_number: int | None = None              # NEW
+    line_range: list[int] | None = None         # NEW (for multi-line issues)
+    code_context: str | None = None
+    example: str | None = None
+    priority: str          # "high" | "medium" | "low"
+
+
+class SuggestionsResponse(BaseModel):
+    suggestions: list[Suggestion]
+    overall_score: int
+    grade: str
+    next_step: str
+
+
+# ── Full Analysis ─────────────────────────────────────────────────────────────
+class AnalyzeResponse(BaseModel):
+    provider: str
+    model: str
+    explanation: ExplanationResponse
+    debugging: DebuggingResponse
+    suggestions: SuggestionsResponse
     analysis_time_ms: float | None = None
 
 
-# ── Weekly Digest / Subscription ───────────────────────────────────────────────
+# ── Weekly Digest / Subscription ───────────────────────────────
 class SubscribeRequest(BaseModel):
     email: str
 
@@ -118,39 +111,3 @@ class HealthResponse(BaseModel):
     version: str
     message: str
     endpoints: list[str] | None = None
-
-
-# ── Explanation / Debugging / Suggestions response models ───────────────────
-class ExplanationResponse(BaseModel):
-    language: str
-    summary: str
-    key_points: list[str] | None = None
-    complexity: str | None = None
-    line_count: int | None = None
-    cyclomatic_complexity: int | None = None
-    complexity_risk: str | None = None
-    function_count: int | None = None
-
-
-class DebuggingResponse(BaseModel):
-    issues: list[dict]
-    summary: str
-    clean: bool
-    error_count: int
-    warning_count: int
-    info_count: int
-
-
-class SuggestionsResponse(BaseModel):
-    overall_score: int
-    grade: str
-    next_step: str | None = None
-
-
-class AnalyzeResponse(BaseModel):
-    provider: str
-    analysis_time_ms: float | None = None
-    explanation: dict | ExplanationResponse | None = None
-    debugging: dict | DebuggingResponse | None = None
-    suggestions: dict | SuggestionsResponse | None = None
-
