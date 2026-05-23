@@ -2540,8 +2540,8 @@ main
         btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
       }
 
-     const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-     const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
       document.documentElement.setAttribute('data-theme', savedTheme);
       setThemeIcon(savedTheme);
 
