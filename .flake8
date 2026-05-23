@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 120
+extend-ignore = E203, W503, E501
+per-file-ignores =
+	backend/tests/*: E402,F401,F841
