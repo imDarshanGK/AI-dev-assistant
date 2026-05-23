@@ -2157,67 +2157,24 @@
       </div>
     </section>
 
-    <!-- ── HISTORY, FAVORITES & PROGRESS ─────────────────────────── -->
-    <div class="bottom-sections-wrap" style="margin-top: 24px;">
-      <div class="result-tabs" style="margin-bottom: 16px; border-bottom: 1px solid var(--border);" role="tablist">
-        <button class="result-tab active" id="tabBtnHistory" onclick="switchBottomTab('history')" role="tab" aria-selected="true">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> History &amp; Favs
-        </button>
-        <button class="result-tab" id="tabBtnProgress" onclick="switchBottomTab('progress')" role="tab" aria-selected="false">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Developer Progress
-        </button>
-      </div>
-
-      <div id="paneBottomHistory" class="bottom-grid">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Query History</div>
-            <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history">Clear</button>
-          </div>
-          <div class="history-list" id="historyList" aria-live="polite">
-            <div class="list-empty">No history yet. Run your first analysis.</div>
-          </div>
+    <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
+    <div class="bottom-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Query History</div>
+          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history">Clear</button>
         </div>
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Saved Favorites</div>
-            <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites">Clear</button>
-          </div>
-          <div class="fav-list" id="favList" aria-live="polite">
-            <div class="list-empty">No favorites saved yet.</div>
-          </div>
+        <div class="history-list" id="historyList" aria-live="polite">
+          <div class="list-empty">No history yet. Run your first analysis.</div>
         </div>
       </div>
-
-      <div id="paneBottomProgress" style="display: none; animation: paneIn 0.22s ease;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
-          <div class="panel" style="padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em;">Average Score</span>
-            <span id="statAvgScore" style="font-family: var(--font-disp); font-size: 2rem; font-weight: 800; color: var(--accent); margin-top: 4px;">--</span>
-          </div>
-          <div class="panel" style="padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em;">Best Score</span>
-            <span id="statBestScore" style="font-family: var(--font-disp); font-size: 2rem; font-weight: 800; color: var(--green); margin-top: 4px;">--</span>
-          </div>
-          <div class="panel" style="padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em;">Most Improved</span>
-            <span id="statMostImproved" style="font-family: var(--font-disp); font-size: 1.4rem; font-weight: 800; color: var(--yellow); margin-top: 4px; text-align: center;">--</span>
-          </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Saved Favorites</div>
+          <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites">Clear</button>
         </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
-          <div class="panel" style="padding: 18px; min-height: 320px; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 14px;">Quality Score Trend &amp; Errors Detected</div>
-            <div style="position: relative; width: 100%; flex: 1; min-height: 240px;">
-              <canvas id="trendChart"></canvas>
-            </div>
-          </div>
-          <div class="panel" style="padding: 18px; min-height: 320px; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 14px;">Languages Distribution</div>
-            <div style="position: relative; width: 100%; flex: 1; min-height: 240px; display: flex; align-items: center; justify-content: center;">
-              <canvas id="langChart"></canvas>
-            </div>
-          </div>
+        <div class="fav-list" id="favList" aria-live="polite">
+          <div class="list-empty">No favorites saved yet.</div>
         </div>
       </div>
     </div>
@@ -2307,9 +2264,6 @@
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('qyx_theme', next);
         setThemeIcon(next);
-        if (document.getElementById('paneBottomProgress').style.display !== 'none') {
-          refreshProgressDashboard();
-        }
       });
 
       /* ═══════════════════════════════════════════════════════════════
@@ -3109,120 +3063,8 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
   history = [];
   localStorage.removeItem('qyx_history');
   renderHistory();
-  if (document.getElementById('paneBottomProgress').style.display !== 'none') {
-    refreshProgressDashboard();
-  }
   toast('History cleared', 'info');
 });
-
-      let progressTrendChart = null;
-      let progressLangChart = null;
-
-      function switchBottomTab(tabKey) {
-        const historyPane = document.getElementById('paneBottomHistory');
-        const progressPane = document.getElementById('paneBottomProgress');
-        const historyBtn = document.getElementById('tabBtnHistory');
-        const progressBtn = document.getElementById('tabBtnProgress');
-
-        const showProgress = tabKey === 'progress';
-        historyPane.style.display = showProgress ? 'none' : 'grid';
-        progressPane.style.display = showProgress ? 'block' : 'none';
-
-        historyBtn.classList.toggle('active', !showProgress);
-        progressBtn.classList.toggle('active', showProgress);
-        historyBtn.setAttribute('aria-selected', (!showProgress).toString());
-        progressBtn.setAttribute('aria-selected', showProgress.toString());
-
-        if (showProgress) refreshProgressDashboard();
-      }
-
-      async function refreshProgressDashboard() {
-        const avgScore = document.getElementById('statAvgScore');
-        const bestScore = document.getElementById('statBestScore');
-        const mostImproved = document.getElementById('statMostImproved');
-
-        try {
-          const base = apiUrlInput.value.replace(/\/$/, '');
-          const response = await fetch(`${base}/user/progress`, { headers: { 'Accept': 'application/json' } });
-          if (!response.ok) throw new Error('Failed to load progress data');
-          const data = await response.json();
-          const historyRows = Array.isArray(data.history) ? data.history : [];
-
-          avgScore.textContent = Number(data.average_score || 0).toFixed(1);
-          bestScore.textContent = Number(data.best_score || 0).toFixed(1);
-          mostImproved.textContent = `${Number(data.most_improved || 0).toFixed(1)}%`;
-
-          const labels = historyRows.map(item => new Date(item.created_at).toLocaleDateString());
-          const scores = historyRows.map(item => item.score);
-          const errors = historyRows.map(item => item.errors_count);
-          const languages = {};
-          historyRows.forEach(item => { languages[item.language] = (languages[item.language] || 0) + 1; });
-
-          const trendCtx = document.getElementById('trendChart');
-          const langCtx = document.getElementById('langChart');
-
-          if (progressTrendChart) progressTrendChart.destroy();
-          if (progressLangChart) progressLangChart.destroy();
-
-          progressTrendChart = new Chart(trendCtx, {
-            type: 'line',
-            data: {
-              labels,
-              datasets: [
-                {
-                  label: 'Quality Score',
-                  data: scores,
-                  borderColor: '#5b9cf6',
-                  backgroundColor: 'rgba(91,156,246,0.12)',
-                  tension: 0.35,
-                  fill: true,
-                  yAxisID: 'y'
-                },
-                {
-                  label: 'Errors Detected',
-                  data: errors,
-                  borderColor: '#f97373',
-                  backgroundColor: 'rgba(249,115,115,0.12)',
-                  tension: 0.35,
-                  yAxisID: 'y1'
-                }
-              ]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--fg') } } },
-              scales: {
-                x: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text2') } },
-                y: { beginAtZero: true, ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text2') } },
-                y1: {
-                  beginAtZero: true,
-                  position: 'right',
-                  grid: { drawOnChartArea: false },
-                  ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text2') }
-                }
-              }
-            }
-          });
-
-          progressLangChart = new Chart(langCtx, {
-            type: 'pie',
-            data: {
-              labels: Object.keys(languages),
-              datasets: [{
-                data: Object.values(languages),
-                backgroundColor: ['#5b9cf6', '#8b5cf6', '#22c55e', '#f59e0b', '#ef4444', '#14b8a6']
-              }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-          });
-        } catch (error) {
-          avgScore.textContent = '--';
-          bestScore.textContent = '--';
-          mostImproved.textContent = '--';
-          console.error(error);
-        }
-      }
       function loadEntry(id) {
         const entry = history.find(h => h.id === Number (id));
         console.log(entry);
@@ -3278,9 +3120,6 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
   favorites = [];
   localStorage.removeItem('qyx_favorites');
   renderFavorites();
-  if (document.getElementById('paneBottomProgress').style.display !== 'none') {
-    refreshProgressDashboard();
-  }
   toast('Favorites cleared', 'info');
 });
       function loadFav(id) {
