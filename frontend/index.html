@@ -2455,6 +2455,9 @@
         e.preventDefault();
         const file = e.dataTransfer.files[0];
         if (!file) return;
+        const ext = file.name.split('.').pop().toLowerCase();
+        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
+        if (langMap[ext]) setLanguage(langMap[ext]);
         const reader = new FileReader();
         reader.onload = ev => {
           editor.value = ev.target.result;
