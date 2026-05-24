@@ -1,8 +1,18 @@
-"""Pydantic request / response models for QyverixAI."""
-
 from __future__ import annotations
-from pydantic import BaseModel, field_validator
+import json
+from pydantic import BaseModel, field_validator, BeforeValidator, ConfigDict
+from typing import Any, Annotated
 
+# Safely parse text database strings back into genuine Python dictionaries
+def auto_parse_json(v: Any) -> Any:
+    if isinstance(v, str):
+        try:
+            return json.loads(v)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+    return v
+
+FlexibleDict = Annotated[dict[str, Any], BeforeValidator(auto_parse_json)]
 
 class CodeRequest(BaseModel):
     code: str
@@ -111,3 +121,41 @@ class HealthResponse(BaseModel):
     version: str
     message: str
     endpoints: list[str] | None = None
+
+
+# ── User Data (History & Favorites) ──────────────────────────────────────────
+
+class HistoryCreateRequest(BaseModel):
+    action: str
+    code: str
+    result_json: dict[str, Any]
+
+
+class HistoryRecord(BaseModel):
+    id: int
+    user_id: int
+    action: str
+    code: str
+    result_json: FlexibleDict
+    created_at: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FavoriteCreateRequest(BaseModel):
+    title: str
+    action: str
+    code: str
+    result_json: dict[str, Any]
+
+
+class FavoriteRecord(BaseModel):
+    id: int
+    user_id: int
+    title: str
+    action: str
+    code: str
+    result_json: FlexibleDict
+    created_at: str
+
+    model_config = ConfigDict(from_attributes=True)

@@ -24,6 +24,7 @@ def list_history(current_user: User = Depends(get_current_user), db: Session = D
     return [
         HistoryRecord(
             id=record.id,
+            user_id=record.user_id,
             action=record.action,
             code=record.code,
             result_json=record.result_json,
@@ -51,6 +52,7 @@ def create_history(
 
     return HistoryRecord(
         id=record.id,
+        user_id=record.user_id,
         action=record.action,
         code=record.code,
         result_json=record.result_json,
@@ -94,6 +96,7 @@ def list_favorites(current_user: User = Depends(get_current_user), db: Session =
     return [
         FavoriteRecord(
             id=record.id,
+            user_id=record.user_id,
             title=record.title,
             action=record.action,
             code=record.code,
@@ -123,6 +126,7 @@ def create_favorite(
 
     return FavoriteRecord(
         id=record.id,
+        user_id=record.user_id,
         title=record.title,
         action=record.action,
         code=record.code,
