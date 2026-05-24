@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QyverixAI — AI Developer Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet" />
@@ -2285,9 +2286,16 @@
         btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
       }
 
-      const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      setThemeIcon(savedTheme);
+      const savedTheme = localStorage.getItem('qyx_theme');
+
+      const initialTheme = savedTheme
+       ? savedTheme
+       : window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+
+      document.documentElement.setAttribute('data-theme', initialTheme);
+      setThemeIcon(initialTheme);
 
       document.getElementById('themeToggle').addEventListener('click', () => {
         const cur = document.documentElement.getAttribute('data-theme');

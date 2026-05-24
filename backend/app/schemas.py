@@ -116,3 +116,16 @@ class HealthResponse(BaseModel):
     version: str
     message: str
     endpoints: list[str] | None = None
+
+
+# ── Share / Snippets ───────────────────────────────────────────────────────────
+class ShareCreateRequest(BaseModel):
+    code: str
+    result: dict
+
+
+class ShareRecord(BaseModel):
+    id: str
+    code: str
+    result: dict
+    created_at: str
