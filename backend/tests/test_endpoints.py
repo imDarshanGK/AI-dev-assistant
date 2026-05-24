@@ -162,6 +162,33 @@ def test_health():
     assert r.json()["status"] == "ok"
 
 
+def test_parse_allowed_origins_uses_safe_defaults():
+    assert app_main.parse_allowed_origins(None) == [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
+
+def test_parse_allowed_origins_trims_and_filters_empty_values():
+    assert app_main.parse_allowed_origins(
+        " https://app.example.com, ,https://admin.example.com "
+    ) == ["https://app.example.com", "https://admin.example.com"]
+
+
+def test_build_cors_options_honors_frontend_origins_env(monkeypatch):
+    monkeypatch.setenv(
+        "FRONTEND_ORIGINS",
+        "https://app.example.com,https://admin.example.com",
+    )
+
+    options = app_main.build_cors_options()
+    assert options["allow_origins"] == [
+        "https://app.example.com",
+        "https://admin.example.com",
+    ]
+    assert options["allow_credentials"] is True
+
+
 def test_rate_limit_headers_on_success_response():
     r = client.get("/")
     assert r.status_code == 200

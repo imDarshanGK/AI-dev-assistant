@@ -45,6 +45,23 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
     }
 
 
+def parse_allowed_origins(raw_origins: str | None) -> list[str]:
+    if raw_origins is None:
+        raw_origins = "http://localhost:3000,http://127.0.0.1:3000"
+
+    origins = [origin.strip() for origin in raw_origins.split(",")]
+    return [origin for origin in origins if origin]
+
+
+def build_cors_options() -> dict[str, object]:
+    return {
+        "allow_origins": parse_allowed_origins(os.getenv("FRONTEND_ORIGINS")),
+        "allow_credentials": True,
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+    }
+
+
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -67,13 +84,7 @@ app = FastAPI(
 
 # ── Middleware ────────────────────────────────────────────────────────────────
 app.add_middleware(GZipMiddleware, minimum_size=1000)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, **build_cors_options())
 
 
 @app.middleware("http")
