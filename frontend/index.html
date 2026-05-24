@@ -2651,21 +2651,23 @@
         const el = document.getElementById('explainResult');
         el.style.display = 'block';
         document.getElementById('explainBadge').textContent = exp.complexity;
+        const complexityToken = sanitizeToken(exp.complexity, 'unknown');
+        const riskToken = sanitizeToken(exp.complexity_risk || 'simple', 'simple');
 
         el.innerHTML = `
-    <div class="explain-summary" tabindex="0">${exp.summary}</div>
+    <div class="explain-summary" tabindex="0">${renderMarkdown(exp.summary)}</div>
     <div class="explain-meta">
-      <div class="meta-chip complexity-${exp.complexity}">
-        <div class="dot"></div>${exp.complexity}
+      <div class="meta-chip complexity-${complexityToken}">
+        <div class="dot"></div>${escHtml(exp.complexity)}
       </div>
       <div class="meta-chip">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-        ${exp.language}
+        ${escHtml(exp.language)}
       </div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
-      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
-      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${escHtml(exp.line_count)} lines</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${escHtml(exp.function_count)} fn${exp.function_count !== 1 ? 's' : ''}</div>
+      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + escHtml(exp.class_count) + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
+      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${riskToken}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${escHtml(exp.cyclomatic_complexity)} &middot; ${escHtml(exp.complexity_risk)}</div>` : ''}
     </div>
     <ul class="key-points">
       ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
@@ -2707,17 +2709,17 @@
       </div>
     </div>`;
 
-        const cards = dbg.issues.map((issue, i) => `
-    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
-      <div class="issue-header">
-        <span class="issue-badge">${issue.severity}</span>
-        <span class="issue-type">${issue.type}</span>
-        ${issue.line ? `<span class="issue-line">Line ${issue.line}</span>` : ''}
-      </div>
-      <div class="issue-desc">${issue.description}</div>
-      ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
-      <div class="issue-fix">${issue.suggestion}</div>
-    </div>`).join('');
+	        const cards = dbg.issues.map((issue, i) => `
+	    <div class="issue-card ${sanitizeToken(issue.severity, 'info')}" style="animation-delay:${i * 0.05}s" tabindex="0">
+	      <div class="issue-header">
+	        <span class="issue-badge">${escHtml(issue.severity)}</span>
+	        <span class="issue-type">${escHtml(issue.type)}</span>
+	        ${issue.line ? `<span class="issue-line">Line ${escHtml(issue.line)}</span>` : ''}
+	      </div>
+	      <div class="issue-desc">${renderMarkdown(issue.description)}</div>
+	      ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
+	      <div class="issue-fix">${renderMarkdown(issue.suggestion)}</div>
+	    </div>`).join('');
 
         el.innerHTML = statBar + cards;
       }
@@ -2893,15 +2895,15 @@
             style="transition:stroke-dashoffset 1s ease"/>
         </svg>
         <div class="score-ring-text">
-          <div class="score-num" style="color:${scoreColor}">${sugg.overall_score}</div>
-          <div class="score-grade">${sugg.grade}</div>
-        </div>
-      </div>
-      <div class="score-info">
-        <h3>Quality Score</h3>
-        <p>${sugg.next_step}</p>
-      </div>
-    </div>`;
+	        <div class="score-num" style="color:${scoreColor}">${escHtml(sugg.overall_score)}</div>
+	        <div class="score-grade">${escHtml(sugg.grade)}</div>
+	        </div>
+	      </div>
+	      <div class="score-info">
+	        <h3>Quality Score</h3>
+	        <p>${renderMarkdown(sugg.next_step)}</p>
+	      </div>
+	    </div>`;
 
         const cards = sugg.suggestions.length === 0
           ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
@@ -2955,14 +2957,14 @@
             }
 
             return `
-      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
-        <div class="suggest-header">
-          <span class="suggest-cat">${s.category}</span>
-          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${s.priority} priority</span>
-        </div>
-        <div class="suggest-desc">${s.description}</div>
-        ${exampleHtml}
-      </div>`;
+	      <div class="suggest-card priority-${sanitizeToken(s.priority, 'medium')}" style="animation-delay:${i * 0.05}s" tabindex="0">
+	        <div class="suggest-header">
+	          <span class="suggest-cat">${escHtml(s.category)}</span>
+	          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${escHtml(s.priority)} priority</span>
+	        </div>
+	        <div class="suggest-desc">${renderMarkdown(s.description)}</div>
+	        ${exampleHtml}
+	      </div>`;
           }).join('');
 
         el.innerHTML = ring + cards;
@@ -3199,8 +3201,16 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
       function escHtml(s) {
         return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
+      function sanitizeToken(value, fallback = 'unknown') {
+        const sanitized = String(value ?? '')
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+        return sanitized || fallback;
+      }
       function renderMarkdown(s) {
-        return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        return escHtml(s ?? '')
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
           .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
       }
 
