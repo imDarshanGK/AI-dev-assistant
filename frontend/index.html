@@ -2540,14 +2540,16 @@
       /* ═══════════════════════════════════════════════════════════════
          API PING
       ═══════════════════════════════════════════════════════════════ */
-      async function pingApi() {
+      async function pingApi({ notify = false } = {}) {
         const base = apiUrlInput.value.replace(/\/$/, '');
         try {
           const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
           if (r.ok) {
             apiDot.classList.add('connected');
             apiStatusText.textContent = 'Connected';
-            toast('API is reachable', 'success');
+            if (notify) {
+              toast('API is reachable', 'success');
+            }
           } else {
             apiDot.classList.remove('connected');
             apiStatusText.textContent = 'Error ' + r.status;
@@ -2555,10 +2557,12 @@
         } catch {
           apiDot.classList.remove('connected');
           apiStatusText.textContent = 'Unreachable';
-          toast('Cannot reach API. Check the URL.', 'error');
+          if (notify) {
+            toast('Cannot reach API. Check the URL.', 'error');
+          }
         }
       }
-      document.getElementById('pingBtn').addEventListener('click', pingApi);
+      document.getElementById('pingBtn').addEventListener('click', () => pingApi({ notify: true }));
 
       // Auto-ping on load
       setTimeout(pingApi, 800);
