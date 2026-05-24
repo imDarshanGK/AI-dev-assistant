@@ -495,6 +495,7 @@ def test_debug_kotlin():
     assert d is not None
 
 
+
 def test_debug_cpp_syntax_errors():
     code = "void main() {\n    cout << 'Hello World'\n}"
     r = client.post("/debugging/", json={"code": code, "language": "cpp"})
@@ -690,3 +691,89 @@ def test_explanation_swift_with_hint():
     r = client.post("/explanation/", json={"code": SAMPLE_SWIFT, "language": "swift"})
     assert r.status_code == 200
     assert r.json()["language"] == "Swift"
+
+
+def test_debug_kotlin_hint_aliases():
+    """Both 'kotlin' and 'kt' hint aliases resolve to Kotlin language detection."""
+    code = "val x = 1"
+    for hint in ("kotlin", "kt"):
+        r = client.post("/debugging/", json={"code": code, "language": hint})
+        assert r.status_code == 200, f"hint '{hint}' returned HTTP {r.status_code}"
+
+
+def test_debug_kotlin_force_unwrap():
+    """!! (not-null assertion) should be flagged as 'Kotlin Force Unwrap'."""
+    code = "val length = str!!.length"
+    r = client.post("/debugging/", json={"code": code, "language": "kotlin"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "Kotlin Force Unwrap" in types
+
+
+def test_debug_kotlin_blocking_coroutine():
+    """runBlocking usage should be flagged as 'Kotlin Blocking Coroutine'."""
+    code = "runBlocking {\n    doWork()\n}"
+    r = client.post("/debugging/", json={"code": code, "language": "kotlin"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "Kotlin Blocking Coroutine" in types
+
+
+def test_debug_kotlin_global_scope():
+    """GlobalScope.launch should be flagged as 'Kotlin GlobalScope'."""
+    code = "GlobalScope.launch {\n    fetchData()\n}"
+    r = client.post("/debugging/", json={"code": code, "language": "kotlin"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "Kotlin GlobalScope" in types
+
+
+def test_debug_kotlin_thread_sleep():
+    """Thread.sleep() should be flagged as 'Kotlin Thread Sleep'."""
+    code = "Thread.sleep(1000)"
+    r = client.post("/debugging/", json={"code": code, "language": "kotlin"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "Kotlin Thread Sleep" in types
+
+
+# ── Magic Number Regression Tests ──────────────────────────────────────────────
+
+def test_suggestions_magic_number_starting_with_1_is_flagged():
+    """Numbers like 1000, 1024, 100 starting with 1 must be detected as magic numbers."""
+    code = "limit = 1000\nmax_size = 1024\ntimeout = 100"
+    r = client.post("/suggestions/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    descriptions = [s["description"] for s in r.json()["suggestions"]]
+    assert any("Magic" in d for d in descriptions), (
+        "Magic numbers starting with 1 (1000, 1024, 100) were not detected"
+    )
+
+
+def test_suggestions_magic_number_10_is_flagged():
+    """The number 10 (smallest two-digit number) must be flagged as a magic number."""
+    code = "time.sleep(10)"
+    r = client.post("/suggestions/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    descriptions = [s["description"] for s in r.json()["suggestions"]]
+    assert any("Magic" in d for d in descriptions), "Magic number 10 was not detected"
+
+
+def test_suggestions_single_digit_not_flagged_as_magic():
+    """Single-digit numbers (1-9) must NOT be flagged as magic numbers."""
+    code = "x = 5\ny = 3\nz = 9"
+    r = client.post("/suggestions/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    readability = [s for s in r.json()["suggestions"]
+                   if s["category"] == "Readability" and "Magic" in s["description"]]
+    assert len(readability) == 0, "Single-digit numbers were wrongly flagged as magic"
+
+
+def test_suggestions_magic_number_in_identifier_not_flagged():
+    """Numbers embedded in identifiers like sha256 or http2 must NOT be flagged."""
+    code = "import hashlib\nhash = hashlib.sha256(data).hexdigest()\nprotocol = 'http2'"
+    r = client.post("/suggestions/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    readability = [s for s in r.json()["suggestions"]
+                   if s["category"] == "Readability" and "Magic" in s["description"]]
+    assert len(readability) == 0, "Numbers inside identifiers were wrongly flagged as magic"
