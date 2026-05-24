@@ -1,7 +1,6 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from typing import List
 from pydantic import BaseModel, field_validator
 
 
@@ -33,7 +32,7 @@ class ExplanationResponse(BaseModel):
     complexity_risk: str
 
 
-# ── Debugging ──────────────────────────────────────────────────────────────────
+# ── Debugging ─────────────────────────────────────────────────────────────────
 class Issue(BaseModel):
     type: str
     line: int | None
@@ -53,7 +52,7 @@ class DebuggingResponse(BaseModel):
     info_count: int
 
 
-# ── Suggestions ────────────────────────────────────────────────────────────────
+# ── Suggestions ───────────────────────────────────────────────────────────────
 class Suggestion(BaseModel):
     category: str
     description: str
@@ -71,7 +70,7 @@ class SuggestionsResponse(BaseModel):
     next_step: str
 
 
-# ── Full Analysis ──────────────────────────────────────────────────────────────
+# ── Full Analysis ─────────────────────────────────────────────────────────────
 class AnalyzeResponse(BaseModel):
     provider: str
     model: str
@@ -81,7 +80,7 @@ class AnalyzeResponse(BaseModel):
     analysis_time_ms: float | None = None
 
 
-# ── Weekly Digest / Subscription ───────────────────────────────────────────────
+# ── Weekly Digest / Subscription ───────────────────────────────
 class SubscribeRequest(BaseModel):
     email: str
 
@@ -114,48 +113,14 @@ class HealthResponse(BaseModel):
     endpoints: list[str] | None = None
 
 
-# ── History & Favorites ───────────────────────────────────────────────────────
-class HistoryRecord(BaseModel):
-    id: int
-    action: str
+# ── Share / Snippets ───────────────────────────────────────────────────────────
+class ShareCreateRequest(BaseModel):
     code: str
-    result_json: dict | None = None
+    result: dict
+
+
+class ShareRecord(BaseModel):
+    id: str
+    code: str
+    result: dict
     created_at: str
-
-
-class HistoryCreateRequest(BaseModel):
-    action: str
-    code: str
-    result_json: dict | None = None
-
-
-class FavoriteRecord(BaseModel):
-    id: int
-    title: str
-    action: str
-    code: str
-    result_json: dict | None = None
-    created_at: str
-
-
-class FavoriteCreateRequest(BaseModel):
-    title: str
-    action: str
-    code: str
-    result_json: dict | None = None
-
-
-# ── Progress Tracking ─────────────────────────────────────────────────────────
-class AnalysisProgressPoint(BaseModel):
-    id: int
-    score: float
-    errors_count: int
-    language: str
-    created_at: str
-
-
-class ProgressDashboardResponse(BaseModel):
-    history: List[AnalysisProgressPoint]
-    average_score: float
-    best_score: float
-    most_improved: float
