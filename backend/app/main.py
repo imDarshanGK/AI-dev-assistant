@@ -43,6 +43,29 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
     }
 
 
+# ── Upload size limit ────────────────────────────────────────────────────────
+MAX_UPLOAD_SIZE_BYTES: int = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", "1048576"))
+
+# Endpoints that accept request bodies and should be size-gated.
+_SIZE_GATED_PATHS: set[str] = {
+    "/explanation/",
+    "/debugging/",
+    "/suggestions/",
+    "/analyze/",
+}
+
+
+def _payload_too_large_response(limit: int) -> JSONResponse:
+    """Return a 413 JSON response with the configured limit expressed in KB."""
+    limit_kb = limit // 1024
+    return JSONResponse(
+        status_code=413,
+        content={
+            "detail": f"Payload too large. Maximum allowed size is {limit_kb} KB."
+        },
+    )
+
+
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -111,6 +134,48 @@ async def add_cache_header(request: Request, call_next):
         response.headers.setdefault("X-Cache", "MISS")
 
     return response
+
+
+@app.middleware("http")
+async def payload_size_guard(request: Request, call_next):
+    """Stream-read the request body, enforce MAX_UPLOAD_SIZE_BYTES, then
+    reconstruct the stream so downstream handlers can call request.json()."""
+
+    # Only gate POST/PUT/PATCH on the analysis endpoints
+    if request.method not in {"POST", "PUT", "PATCH"}:
+        return await call_next(request)
+
+    if request.url.path not in _SIZE_GATED_PATHS:
+        return await call_next(request)
+
+    # Re-read the env var at request time so tests can monkeypatch it.
+    limit: int = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", "1048576"))
+
+    # ── Fast-path: reject immediately when Content-Length is declared ──
+    content_length_header = request.headers.get("content-length")
+    if content_length_header is not None:
+        try:
+            declared = int(content_length_header)
+            if declared > limit:
+                return _payload_too_large_response(limit)
+        except ValueError:
+            pass  # non-integer header — fall through to streaming check
+
+    # ── Stream-read the body and enforce the byte limit ───────────────
+    chunks: list[bytes] = []
+    total = 0
+    async for chunk in request.stream():
+        total += len(chunk)
+        if total > limit:
+            return _payload_too_large_response(limit)
+        chunks.append(chunk)
+
+    # ── Reconstruct the consumed stream for downstream handlers ───────
+    # Setting _body lets Starlette's body()/stream()/json() reuse the
+    # cached bytes without hitting the "Stream consumed" RuntimeError.
+    request._body = b"".join(chunks)
+
+    return await call_next(request)
 
 
 # ── Routers ───────────────────────────────────────────────────────────────────

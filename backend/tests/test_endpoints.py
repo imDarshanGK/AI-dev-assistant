@@ -635,3 +635,138 @@ def test_unicode_code():
 def test_single_line_code():
     r = client.post("/analyze/", json={"code": "print('hello')"})
     assert r.status_code == 200
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Issue #202 — Input size validation & streaming for large uploads
+# ══════════════════════════════════════════════════════════════════════════════
+
+_ANALYSIS_ENDPOINTS: list[str] = [
+    "/explanation/",
+    "/debugging/",
+    "/suggestions/",
+    "/analyze/",
+]
+
+
+class TestPayloadSizeGate:
+    """Tests for the payload_size_guard middleware (Issue #202)."""
+
+    # ── 1. Small payload (< limit) → 200 on every endpoint ───────────────
+    @pytest.mark.parametrize("endpoint", _ANALYSIS_ENDPOINTS)
+    def test_small_payload_passes(self, endpoint: str) -> None:
+        """A normal, small payload must be accepted by all endpoints."""
+        payload = {"code": "print('hello')", "language": "python"}
+        r = client.post(endpoint, json=payload)
+        assert r.status_code == 200, (
+            f"{endpoint} returned {r.status_code} for a small payload"
+        )
+
+    # ── 2. Payload at exactly (limit - 50 bytes) → passes size gate ──────
+    def test_payload_at_limit_minus_50_passes(self) -> None:
+        """A payload whose serialised size is limit-50 must NOT be rejected
+        by the size gate (it may still fail Pydantic validation → 422)."""
+        import json as _json
+
+        limit = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", "1048576"))
+        # Build a payload that serialises to exactly (limit - 50) bytes.
+        # The JSON envelope {"code":"...", "language":"python"} is ~30 bytes,
+        # so we pad the code field with 'x' characters.
+        envelope_overhead = len(
+            _json.dumps({"code": "", "language": "python"}).encode()
+        )
+        code_size = limit - 50 - envelope_overhead
+        payload = {"code": "x" * code_size, "language": "python"}
+        raw = _json.dumps(payload).encode()
+        assert len(raw) == limit - 50  # sanity-check our math
+
+        r = client.post(
+            "/explanation/",
+            content=raw,
+            headers={"Content-Type": "application/json"},
+        )
+        # 200 (accepted) or 422 (Pydantic rejects the code content) — NOT 413
+        assert r.status_code in (200, 422), (
+            f"Expected 200 or 422, got {r.status_code}"
+        )
+
+    # ── 3. Payload at (limit + 1 KB) → 413 on every endpoint ────────────
+    @pytest.mark.parametrize("endpoint", _ANALYSIS_ENDPOINTS)
+    def test_oversized_payload_returns_413(self, endpoint: str) -> None:
+        """A payload exceeding the limit by 1 KB must be rejected with 413."""
+        import json as _json
+
+        limit = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", "1048576"))
+        big_body = "x" * (limit + 1024)
+        raw = _json.dumps({"code": big_body}).encode()
+
+        r = client.post(
+            endpoint,
+            content=raw,
+            headers={"Content-Type": "application/json"},
+        )
+        assert r.status_code == 413, (
+            f"{endpoint} returned {r.status_code}, expected 413"
+        )
+        body = r.json()
+        assert "Payload too large" in body["detail"]
+        assert "KB" in body["detail"]
+
+    # ── 4. Lying Content-Length header → 413 ──────────────────────────────
+    def test_lying_content_length_returns_413(self) -> None:
+        """If Content-Length claims more than the limit, reject immediately
+        even if the actual body is tiny."""
+        import json as _json
+
+        limit = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", "1048576"))
+        small_body = _json.dumps({"code": "print(1)"}).encode()
+
+        r = client.post(
+            "/explanation/",
+            content=small_body,
+            headers={
+                "Content-Type": "application/json",
+                "Content-Length": str(limit + 1),
+            },
+        )
+        assert r.status_code == 413
+
+    # ── 5. Empty JSON body {} → 422 (Pydantic, NOT 413) ─────────────────
+    def test_empty_json_body_returns_422(self) -> None:
+        """An empty JSON object {} is valid size-wise but fails Pydantic
+        validation (missing 'code' field), so it must return 422."""
+        r = client.post(
+            "/explanation/",
+            json={},
+        )
+        assert r.status_code == 422
+
+    # ── 6. Dynamic limit via env var ─────────────────────────────────────
+    def test_dynamic_limit_via_env_var(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Setting MAX_UPLOAD_SIZE_BYTES=512 must lower the limit
+        dynamically (the middleware re-reads os.getenv each request)."""
+        import json as _json
+
+        monkeypatch.setenv("MAX_UPLOAD_SIZE_BYTES", "512")
+
+        # A payload larger than 512 bytes should now be rejected.
+        big_enough = "x" * 600
+        raw = _json.dumps({"code": big_enough}).encode()
+
+        r = client.post(
+            "/debugging/",
+            content=raw,
+            headers={"Content-Type": "application/json"},
+        )
+        assert r.status_code == 413, (
+            f"Expected 413 with 512-byte limit, got {r.status_code}"
+        )
+
+        # A payload well under 512 bytes should still pass.
+        small = _json.dumps({"code": "x = 1", "language": "python"}).encode()
+        r2 = client.post(
+            "/debugging/",
+            content=small,
+            headers={"Content-Type": "application/json"},
+        )
+        assert r2.status_code == 200
