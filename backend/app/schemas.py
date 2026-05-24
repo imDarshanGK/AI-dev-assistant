@@ -80,6 +80,44 @@ class AnalyzeResponse(BaseModel):
     analysis_time_ms: float | None = None
 
 
+# ── Authentication ────────────────────────────────────────────────────────────
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        if len(v) > 320:
+            raise ValueError("Email too long")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        return v
+
+
+class LoginRequest(SignupRequest):
+    pass
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    user_id: int
+    email: str
+
+
+class UserProfileResponse(BaseModel):
+    user_id: int
+    email: str
+
+
 # ── Weekly Digest / Subscription ───────────────────────────────
 class SubscribeRequest(BaseModel):
     email: str
