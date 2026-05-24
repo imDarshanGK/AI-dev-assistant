@@ -72,7 +72,10 @@ def test_detects_out_of_range_list_index():
     code = "numbers = [1, 2, 3]\nvalue = numbers[100]"
 
     assert "Index Error Risk" in issue_types(code)
-    assert any("Index 100 is out of range" in description for description in issue_descriptions(code))
+    assert any(
+        "Index 100 is out of range" in description
+        for description in issue_descriptions(code)
+    )
 
 
 def test_detects_out_of_range_string_index():
@@ -86,7 +89,10 @@ def test_detects_out_of_range_string_index():
     code = 'greeting = "hi"\nletter = greeting[5]'
 
     assert "Index Error Risk" in issue_types(code)
-    assert any("Index 5 is out of range" in description for description in issue_descriptions(code))
+    assert any(
+        "Index 5 is out of range" in description
+        for description in issue_descriptions(code)
+    )
 
 
 def test_detects_string_integer_concatenation():
