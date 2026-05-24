@@ -1579,6 +1579,30 @@
       flex-shrink: 0;
     }
 
+    .history-remove {
+      margin-left: auto;
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text3);
+      cursor: pointer;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .history-remove:hover,
+    .history-remove:focus-visible {
+      background: rgba(255, 107, 107, 0.12);
+      color: #ff6b6b;
+      border-color: rgba(255, 107, 107, 0.35);
+      outline: none;
+    }
+
     .btn-clear {
       padding: 6px 14px;
       border-radius: var(--r2);
@@ -2214,7 +2238,7 @@
       /* ═══════════════════════════════════════════════════════════════
          STATE
       ═══════════════════════════════════════════════════════════════ */
-      const MAX_HISTORY = 50;
+      const MAX_HISTORY = 20;
       let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
@@ -3062,6 +3086,9 @@
       <span class="history-lang">${h.lang || '?'}</span>
       <span class="history-thumb">${escHtml(h.preview)}…</span>
       <span class="history-meta">${h.ts}</span>
+      <button type="button" class="history-remove" onclick="removeHistoryEntry('${h.id}', event)" aria-label="Remove history entry for ${h.lang || 'unknown language'} at ${h.ts}">
+        ×
+      </button>
     </div>`).join('');
       }
 
@@ -3074,8 +3101,7 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
   toast('History cleared', 'info');
 });
       function loadEntry(id) {
-        const entry = history.find(h => h.id === Number (id));
-        console.log(entry);
+        const entry = history.find(h => h.id === Number(id));
         if (!entry) return;
         editor.value = entry.code;
 
@@ -3087,6 +3113,14 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
         currentResult = entry.result;
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function removeHistoryEntry(id, event) {
+        event.stopPropagation();
+        history = history.filter(h => h.id !== Number(id));
+        localStorage.setItem('qyx_history', JSON.stringify(history));
+        renderHistory();
+        toast('History entry removed', 'info');
       }
 
       /* ═══════════════════════════════════════════════════════════════
@@ -3119,6 +3153,9 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
       <span class="history-lang">${f.lang || '?'}</span>
       <span class="history-thumb">${escHtml(f.preview)}…</span>
       <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+      <button type="button" class="history-remove" onclick="removeFavoriteEntry('${f.id}', event)" aria-label="Remove favorite entry for ${f.lang || 'unknown language'} at ${f.ts}">
+        ×
+      </button>
     </div>`).join('');
       }
 
@@ -3144,6 +3181,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         currentResult = entry.result;
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function removeFavoriteEntry(id, event) {
+        event.stopPropagation();
+        favorites = favorites.filter(f => f.id !== Number(id));
+        localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
+        renderFavorites();
+        toast('Favorite entry removed', 'info');
       }
       /* ═══════════════════════════════════════════════════════════════
          DOWNLOAD
