@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 import time
 import os
+from collections import defaultdict
 from contextlib import asynccontextmanager
 
 from .routers import explanation, debugging, suggestions, analyze, subscribe, share, history
