@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QyverixAI — AI Developer Assistant</title>
+  <link rel="icon" href="./public/favicon.ico" type="image/x-icon" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
@@ -612,6 +613,92 @@
     .editor-wrap {
       position: relative;
       display: flex
+    }
+
+    .editor-wrap.drag-active::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 2px dashed var(--accent);
+      border-radius: 0;
+      background: rgba(91, 156, 246, 0.08);
+      pointer-events: none;
+    }
+
+    .dropzone-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(91, 156, 246, 0.08), rgba(124, 58, 237, 0.06));
+      flex-wrap: wrap;
+    }
+
+    .dropzone-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .dropzone-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+
+    .dropzone-hint {
+      font-size: 0.74rem;
+      color: var(--text2);
+      font-family: var(--font-mono);
+    }
+
+    .dropzone-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .dropzone-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border2);
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 0.7rem;
+      color: var(--text2);
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+
+    .dropzone-upload-btn {
+      padding: 8px 12px;
+      border-radius: var(--r2);
+      border: 1px solid var(--border2);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.76rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .dropzone-upload-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(91, 156, 246, 0.06);
+    }
+
+    .dropzone-banner.drag-active {
+      background: linear-gradient(135deg, rgba(91, 156, 246, 0.14), rgba(124, 58, 237, 0.1));
+      border-bottom-color: var(--accent);
     }
 
     .line-numbers {
@@ -2161,8 +2248,28 @@
           <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
         </div>
 
+        <div class="dropzone-banner" id="dropzoneBanner" role="button" tabindex="0"
+          aria-label="Drag and drop a code file here or browse to upload one">
+          <div class="dropzone-copy">
+            <span class="dropzone-title">Drop a code file straight into the editor</span>
+            <span class="dropzone-hint">Supports .py, .js, .ts, .java, .cpp, .txt and auto-selects the language when possible.</span>
+          </div>
+          <div class="dropzone-actions">
+            <span class="dropzone-pill">Drag & drop enabled</span>
+            <label class="dropzone-upload-btn" for="fileInput">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17,8 12,3 7,8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Browse files
+            </label>
+          </div>
+        </div>
+
         <!-- Editor -->
-        <div class="editor-wrap">
+        <div class="editor-wrap" id="editorDropzone">
           <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
           <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…"
             spellcheck="false" autocorrect="off" autocapitalize="off" aria-label="Code Editor"></textarea>
@@ -2406,6 +2513,8 @@
       ═══════════════════════════════════════════════════════════════ */
       const editor = document.getElementById('codeEditor');
       const lineNumbers = document.getElementById('lineNumbers');
+      const editorDropzone = document.getElementById('editorDropzone');
+      const dropzoneBanner = document.getElementById('dropzoneBanner');
       const charCount = document.getElementById('charCount');
       const analyzeBtn = document.getElementById('analyzeBtn');
       const spinner = document.getElementById('spinner');
@@ -2417,6 +2526,15 @@
       const resultActions = document.getElementById('resultActions');
       const engineInfo = document.getElementById('engineInfo');
       const timeInfo = document.getElementById('timeInfo');
+      const fileInput = document.getElementById('fileInput');
+
+      const SUPPORTED_UPLOAD_LANGS = {
+        py: 'python',
+        js: 'javascript',
+        ts: 'typescript',
+        java: 'java',
+        cpp: 'cpp',
+      };
 
       /* ═══════════════════════════════════════════════════════════════
          THEME
@@ -2468,6 +2586,29 @@
       editor.addEventListener('scroll', () => {
         lineNumbers.scrollTop = editor.scrollTop;
       });
+
+      function loadFileIntoEditor(file, sourceLabel) {
+        if (!file) return;
+
+        const ext = file.name.split('.').pop()?.toLowerCase() || '';
+        if (SUPPORTED_UPLOAD_LANGS[ext]) {
+          setLanguage(SUPPORTED_UPLOAD_LANGS[ext]);
+        }
+
+        const reader = new FileReader();
+        reader.onload = ev => {
+          editor.value = typeof ev.target?.result === 'string' ? ev.target.result : '';
+          updateEditor();
+          editor.focus();
+          toast(`${sourceLabel} ${file.name}`, 'success');
+        };
+        reader.readAsText(file);
+      }
+
+      function setDropzoneActive(isActive) {
+        editorDropzone.classList.toggle('drag-active', isActive);
+        dropzoneBanner.classList.toggle('drag-active', isActive);
+      }
 
       // Tab key support
       editor.addEventListener('keydown', e => {
@@ -2591,35 +2732,46 @@
       /* ═══════════════════════════════════════════════════════════════
          FILE UPLOAD
       ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('fileInput').addEventListener('change', e => {
+      fileInput.addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
-        const ext = file.name.split('.').pop().toLowerCase();
-        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
-        if (langMap[ext]) setLanguage(langMap[ext]);
-        const reader = new FileReader();
-        reader.onload = ev => {
-          editor.value = ev.target.result;
-          updateEditor();
-          toast(`Loaded ${file.name}`, 'success');
-        };
-        reader.readAsText(file);
+        loadFileIntoEditor(file, 'Loaded');
         e.target.value = '';
       });
 
+      dropzoneBanner.addEventListener('click', e => {
+        if (e.target.closest('label')) return;
+        fileInput.click();
+      });
+
+      dropzoneBanner.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          fileInput.click();
+        }
+      });
+
       /* Drag and drop */
-      document.body.addEventListener('dragover', e => e.preventDefault());
+      ['dragenter', 'dragover'].forEach(eventName => {
+        document.body.addEventListener(eventName, e => {
+          e.preventDefault();
+          setDropzoneActive(true);
+        });
+      });
+
+      ['dragleave', 'dragend'].forEach(eventName => {
+        document.body.addEventListener(eventName, e => {
+          if (e.relatedTarget) return;
+          setDropzoneActive(false);
+        });
+      });
+
       document.body.addEventListener('drop', e => {
         e.preventDefault();
+        setDropzoneActive(false);
         const file = e.dataTransfer.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-          editor.value = ev.target.result;
-          updateEditor();
-          toast(`Dropped ${file.name}`, 'success');
-        };
-        reader.readAsText(file);
+        loadFileIntoEditor(file, 'Dropped');
       });
 
       /* ═══════════════════════════════════════════════════════════════
