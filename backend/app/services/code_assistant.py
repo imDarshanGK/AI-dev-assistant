@@ -83,6 +83,15 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"data\s+class\s+\w+",
         r":\s*\w+\s*\?",
     ],
+    "Ruby": [
+        r"\bdef\s+\w+",
+        r"\bend\b",
+        r"\bputs\b",
+        r"\brequire\s+['\"]",
+        r"\bclass\s+\w+",
+        r"\bdo\s*\|",
+        r"\.each\s*\|",
+    ],
 }
 
 

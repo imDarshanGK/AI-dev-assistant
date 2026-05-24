@@ -146,6 +146,34 @@ data class User(val name: String, val age: Int)
 println("Hello World")
 """
 
+RUBY_CODE = """
+class Animal
+  def initialize(name)
+    @name = name
+  end
+
+  def speak
+    puts "Hello from #{@name}"
+  end
+end
+
+require 'json'
+
+animals = ["cat", "dog", "bird"]
+animals.each do |animal|
+  puts animal
+end
+"""
+
+
+def test_ruby_language_detection():
+    response = client.post(
+        "/explanation/",
+        json={"code": RUBY_CODE, "language": "Ruby"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["language"] == "Ruby"
 
 # ── Health ────────────────────────────────────────────────────────────────────
 def test_root():
