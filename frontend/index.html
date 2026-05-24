@@ -2636,6 +2636,10 @@
          RENDER RESULTS
       ═══════════════════════════════════════════════════════════════ */
       function renderResults(result, code) {
+        setResultPaneState('explain', Boolean(result.explanation));
+        setResultPaneState('debug', Boolean(result.debugging));
+        setResultPaneState('suggest', Boolean(result.suggestions));
+
         if (result.explanation) renderExplain(result.explanation);
         if (result.debugging) renderDebug(result.debugging);
         if (result.suggestions) renderSuggest(result.suggestions);
@@ -2644,6 +2648,25 @@
         const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
         const targetTab = tabOrder[selectedMode] || 'explain';
         document.querySelector(`[data-rtab="${targetTab}"]`).click();
+      }
+
+      function setResultPaneState(kind, hasData) {
+        const emptyState = document.getElementById(`empty${kind.charAt(0).toUpperCase()}${kind.slice(1)}`);
+        const resultPane = document.getElementById(`${kind}Result`);
+        const badge = document.getElementById(`${kind}Badge`);
+
+        if (!emptyState || !resultPane) return;
+
+        if (hasData) {
+          emptyState.style.display = 'none';
+          resultPane.style.display = 'block';
+          return;
+        }
+
+        emptyState.style.display = 'flex';
+        resultPane.style.display = 'none';
+        resultPane.innerHTML = '';
+        if (badge) badge.textContent = '';
       }
 
       function renderExplain(exp) {
