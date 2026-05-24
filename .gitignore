@@ -42,3 +42,8 @@ logs/
 
 # Node (if frontend tooling added later)
 node_modules/
+ 
+# Database files
+*.db
+assistant.db
+backend/assistant.db
