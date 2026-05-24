@@ -576,6 +576,31 @@ def test_add():
     assert d["overall_score"] >= 60  # clean code should score reasonably
 
 
+def test_suggestions_detect_magic_numbers_starting_with_one():
+    code = """
+import time
+
+TIMEOUT_FALLBACK = 5
+
+def fetch_data():
+    time.sleep(10)
+    limit = 1000
+    return limit
+"""
+    r = client.post("/suggestions/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+
+    readability_suggestions = [
+        suggestion for suggestion in d["suggestions"]
+        if suggestion["category"] == "Readability"
+    ]
+
+    assert readability_suggestions
+    assert "Magic numbers detected" in readability_suggestions[0]["description"]
+    assert readability_suggestions[0]["line_number"] in (6, 7)
+
+
 # ── Full Analysis ─────────────────────────────────────────────────────────────
 def test_full_analyze():
     r = client.post("/analyze/", json={"code": PYTHON_BUGGY})
