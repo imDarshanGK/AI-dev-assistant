@@ -2,7 +2,6 @@ import os
 
 from dotenv import find_dotenv, load_dotenv
 
-
 # Load .env from current directory or parent directories if present.
 load_dotenv(find_dotenv(filename=".env", usecwd=True), override=False)
 
@@ -76,7 +75,9 @@ class Settings:
     smtp_pass: str = os.getenv("SMTP_PASS", "")
     email_from: str = os.getenv("EMAIL_FROM", "noreply@qyverixai.app")
     digest_enabled: bool = _bool_env("DIGEST_ENABLED", False)
-    digest_base_url: str = os.getenv("DIGEST_BASE_URL", "https://qyverixai.onrender.com")
+    digest_base_url: str = os.getenv(
+        "DIGEST_BASE_URL", "https://qyverixai.onrender.com"
+    )
 
 
 settings = Settings()

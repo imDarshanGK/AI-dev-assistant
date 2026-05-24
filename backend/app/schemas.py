@@ -159,3 +159,14 @@ class FavoriteRecord(BaseModel):
     created_at: str
 
     model_config = ConfigDict(from_attributes=True)
+# ── Share / Snippets ───────────────────────────────────────────────────────────
+class ShareCreateRequest(BaseModel):
+    code: str
+    result: dict
+
+
+class ShareRecord(BaseModel):
+    id: str
+    code: str
+    result: dict
+    created_at: str
