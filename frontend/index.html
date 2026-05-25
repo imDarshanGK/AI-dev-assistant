@@ -2505,18 +2505,30 @@
   </div><!-- /app -->
 
 
-  <!-- ── FOOTER ─────────────────────────────────────────────────── -->
-  <footer>
-    <div class="app">
-      <div class="footer-logo">QyverixAI</div>
-      <p>
-        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" data-i18n="nav_github">GitHub</a>
-        · <a href="https://qyverixai.onrender.com/docs" target="_blank" data-i18n="nav_api_docs">API Docs</a>
-        · <span data-i18n="footer_license">MIT License</span>
-      </p>
-      <p style="margin-top:8px;font-size:0.75rem" data-i18n="footer_built_for">Built for the open source community</p>
-      
-  </footer>
+    <!-- ── FOOTER ─────────────────────────────────────────────────── -->
+    <footer>
+      <div class="app" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:space-between;">
+        <div style="min-width:220px;">
+          <div class="footer-logo">QyverixAI</div>
+          <p>
+            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" data-i18n="nav_github">GitHub</a>
+            · <a href="https://qyverixai.onrender.com/docs" target="_blank" data-i18n="nav_api_docs">API Docs</a>
+            · <span data-i18n="footer_license">MIT License</span>
+          </p>
+          <p style="margin-top:8px;font-size:0.75rem" data-i18n="footer_built_for">Built for the open source community</p>
+        </div>
+
+        <div style="max-width:360px;">
+          <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
+          <form id="digestForm" style="display:flex;gap:6px;">
+            <input type="email" id="digestEmail" placeholder="your@email.com" required
+                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);">
+            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
+          </form>
+          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
+        </div>
+      </div>
+    </footer>
 
   <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
   <div id="toastContainer"></div>
