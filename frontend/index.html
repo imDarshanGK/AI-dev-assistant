@@ -605,25 +605,30 @@
     /* ── Language Tabs ── */
     .lang-tabs {
       display: flex;
-      gap: 0;
+      gap: 8px;
       border-bottom: 1px solid var(--border);
       overflow-x: auto;
       scrollbar-width: none;
+      align-items: center;
+      padding-bottom: 4px;
     }
 
     .lang-tab {
-      padding: 8px 16px;
+      padding: 8px 18px;
       font-size: 0.78rem;
       font-weight: 600;
       font-family: var(--font-mono);
       color: var(--text3);
       background: none;
       border: none;
-      border-bottom: 2px solid transparent;
+      border-bottom: 3px solid transparent;
       cursor: pointer;
       transition: all var(--transition);
       white-space: nowrap;
       margin-bottom: -1px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .lang-tab:hover {
@@ -632,7 +637,9 @@
 
     .lang-tab.active {
       color: var(--accent);
-      border-bottom-color: var(--accent)
+      border-bottom-color: var(--accent);
+      font-weight: 700;
+      transform: translateY(-1px);
     }
 
     /* ── Code Editor ── */
