@@ -156,7 +156,7 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
         score_line = f"""
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;"><strong>Average Score</strong></td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{stats['avg_score']}/100 {emoji}{change}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{stats["avg_score"]}/100 {emoji}{change}</td>
         </tr>"""
 
     bug_line = ""
@@ -164,7 +164,7 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
         bug_line = f"""
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;"><strong>Most Common Bug</strong></td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{stats['top_bug']}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{stats["top_bug"]}</td>
         </tr>"""
 
     return f"""<!DOCTYPE html>
@@ -176,32 +176,32 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
   <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
     <tr><td style="background:#1a1a2e;padding:24px 32px;text-align:center;">
       <h1 style="margin:0;color:#f0a030;font-size:1.4rem;">QyverixAI Weekly Digest</h1>
-      <p style="margin:4px 0 0;color:#aaa;font-size:0.85rem;">{stats['week_start']} – {stats['week_end']}</p>
+      <p style="margin:4px 0 0;color:#aaa;font-size:0.85rem;">{stats["week_start"]} – {stats["week_end"]}</p>
     </td></tr>
     <tr><td style="padding:24px 32px;">
       <p style="margin:0 0 16px;color:#333;font-size:0.95rem;">Here&#39;s your weekly code analysis summary.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0dcd4;border-radius:6px;">
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;"><strong>Analyses Run</strong></td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{stats['total_analyses']}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{stats["total_analyses"]}</td>
         </tr>
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;"><strong>Languages</strong></td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{', '.join(stats['languages'])}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{", ".join(stats["languages"])}</td>
         </tr>
         {score_line}
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;"><strong>Issues Found</strong></td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{stats['total_issues']}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{stats["total_issues"]}</td>
         </tr>
         {bug_line}
       </table>
     </td></tr>
     <tr><td style="padding:0 32px 24px;text-align:center;">
-      <a href="{stats.get('base_url', 'https://qyverixai.onrender.com')}/app" style="display:inline-block;padding:10px 24px;background:#f0a030;color:#1a1a2e;text-decoration:none;border-radius:6px;font-weight:bold;font-size:0.9rem;">Open QyverixAI</a>
+      <a href="{stats.get("base_url", "https://qyverixai.onrender.com")}/app" style="display:inline-block;padding:10px 24px;background:#f0a030;color:#1a1a2e;text-decoration:none;border-radius:6px;font-weight:bold;font-size:0.9rem;">Open QyverixAI</a>
     </td></tr>
     <tr><td style="padding:16px 32px;background:#faf8f5;font-size:0.75rem;color:#888;text-align:center;">
-      <p style="margin:0;">This email was sent to {stats['email']} because you subscribed to the QyverixAI weekly digest.</p>
+      <p style="margin:0;">This email was sent to {stats["email"]} because you subscribed to the QyverixAI weekly digest.</p>
       <p style="margin:4px 0 0;"><a href="{unsubscribe_url}" style="color:#888;text-decoration:underline;">Unsubscribe</a></p>
     </td></tr>
   </table>

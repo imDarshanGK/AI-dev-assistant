@@ -25,7 +25,7 @@ def _configure_test_db(monkeypatch, tmp_path):
 
 
 def test_create_and_fetch_share(monkeypatch, tmp_path):
-    session_local = _configure_test_db(monkeypatch, tmp_path)
+    _configure_test_db(monkeypatch, tmp_path)
 
     from fastapi.testclient import TestClient
 

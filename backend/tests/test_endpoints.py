@@ -2,12 +2,11 @@
 QyverixAI — Test Suite
 Run: cd backend && pytest -v
 """
-import io
-import zipfile
 
 import pytest
 from fastapi.testclient import TestClient
-import sys, os
+import sys
+import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app import main as app_main
