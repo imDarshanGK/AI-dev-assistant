@@ -15,6 +15,7 @@ from ..services.code_assistant import (
     run_suggestions,
 )
 """Full analysis router — POST /analyze/"""
+
 from fastapi import APIRouter, Response
 from ..schemas import CodeRequest, AnalyzeResponse
 from ..services.cache import cache
@@ -79,6 +80,11 @@ async def analyze_stream(req: CodeRequest):
 
 
 @router.post("/", response_model=AnalyzeResponse, summary="Run full analysis (explain + debug + suggest)")
+@router.post(
+    "/",
+    response_model=AnalyzeResponse,
+    summary="Run full analysis (explain + debug + suggest)",
+)
 async def analyze(req: CodeRequest, response: Response):
     cache_input = f"{req.language or 'auto'}\n{req.code}"
     cached_payload = cache.get("analyze:v1", cache_input)

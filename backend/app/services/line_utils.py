@@ -1,4 +1,5 @@
 """Line number tracking utilities for code analysis."""
+
 import re
 
 
@@ -9,13 +10,16 @@ def get_line_content(code: str, line_number: int) -> str:
         return lines[line_number - 1]
     return ""
 
+
 def get_lines_range(code: str, start: int, end: int) -> list[str]:
     """Get lines from start to end (inclusive)."""
     lines = code.splitlines()
-    return lines[max(0, start-1) : min(len(lines), end)]
+    return lines[max(0, start - 1) : min(len(lines), end)]
 
-def format_code_snippet(code: str, line_numbers: list[int],
-                       context_lines: int = 2) -> str:
+
+def format_code_snippet(
+    code: str, line_numbers: list[int], context_lines: int = 2
+) -> str:
     """
     Format code snippet with line numbers.
     Highlights specified lines with >>> prefix.
@@ -36,9 +40,11 @@ def format_code_snippet(code: str, line_numbers: list[int],
 
     return snippet
 
+
 def find_lines_matching_pattern(code: str, pattern: str) -> list[int]:
     """Find all line numbers matching regex pattern."""
     import re
+
     lines = code.splitlines()
     matches = []
 
@@ -47,6 +53,7 @@ def find_lines_matching_pattern(code: str, pattern: str) -> list[int]:
             matches.append(idx)
 
     return matches
+
 
 def group_consecutive_lines(line_numbers: list[int]) -> list[tuple[int, int]]:
     """Group consecutive line numbers into ranges."""
@@ -77,7 +84,9 @@ def find_function_lines(code: str, language: str = "Python") -> list[dict]:
     elif language in ("JavaScript", "TypeScript"):
         pattern = r"function\s+(\w+)|(\w+)\s*:\s*function|\(\s*\)\s*=>"
     elif language == "Java":
-        pattern = r"(public|private|protected)?\s+(static\s+)?(\w+)\s+(\w+)\s*\([^)]*\)\s*\{"
+        pattern = (
+            r"(public|private|protected)?\s+(static\s+)?(\w+)\s+(\w+)\s*\([^)]*\)\s*\{"
+        )
     else:
         return []
 
@@ -85,21 +94,23 @@ def find_function_lines(code: str, language: str = "Python") -> list[dict]:
     functions = []
 
     for i, match in enumerate(matches):
-        start_line = code[:match.start()].count('\n') + 1
+        start_line = code[: match.start()].count("\n") + 1
 
         # Find end: either next function or EOF
         if i + 1 < len(matches):
-            end_line = code[:matches[i + 1].start()].count('\n')
+            end_line = code[: matches[i + 1].start()].count("\n")
         else:
             end_line = len(code.splitlines())
 
         func_name = next((g for g in match.groups() if g), "anonymous")
-        functions.append({
-            "name": func_name,
-            "start_line": start_line,
-            "end_line": end_line,
-            "length": end_line - start_line + 1
-        })
+        functions.append(
+            {
+                "name": func_name,
+                "start_line": start_line,
+                "end_line": end_line,
+                "length": end_line - start_line + 1,
+            }
+        )
 
     return functions
 
