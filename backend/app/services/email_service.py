@@ -244,7 +244,7 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
 
     base = settings.digest_base_url.rstrip("/")
     unsubscribe_url = (
-        f"{base}/unsubscribe/?email={stats['email']}&token={unsubscribe_token}"
+        f"{base}/subscribe/unsubscribe?email={stats['email']}&token={unsubscribe_token}"
     )
 
     msg = MIMEMultipart("alternative")
