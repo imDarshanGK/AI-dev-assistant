@@ -114,6 +114,9 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "php": "PHP",
             "rust": "Rust",
             "rs": "Rust",
+            "kotlin": "Kotlin",
+            "kt": "Kotlin",
+            "kts": "Kotlin",
         }
         if normalized in mapping:
             return mapping[normalized]
