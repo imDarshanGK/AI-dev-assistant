@@ -83,7 +83,11 @@ def _add_skipped(skipped_files: list[str], reason: str) -> None:
         skipped_files.append(reason)
 
 
-@router.post("/", response_model=AnalyzeResponse, summary="Run full analysis (explain + debug + suggest)")
+@router.post(
+    "/",
+    response_model=AnalyzeResponse,
+    summary="Run full analysis (explain + debug + suggest)",
+)
 async def analyze(req: CodeRequest, response: Response):
     cache_input = f"{req.language or 'auto'}\n{req.code}"
     cached_payload = cache.get("analyze:v1", cache_input)
@@ -98,7 +102,11 @@ async def analyze(req: CodeRequest, response: Response):
     return payload
 
 
-@router.post("/zip/", response_model=ZipAnalyzeResponse, summary="Run full analysis for source files in a ZIP")
+@router.post(
+    "/zip/",
+    response_model=ZipAnalyzeResponse,
+    summary="Run full analysis for source files in a ZIP",
+)
 async def analyze_zip(file: UploadFile = File(...)):
     """Analyze up to 20 source files from an uploaded ZIP archive."""
 
@@ -123,7 +131,10 @@ async def analyze_zip(file: UploadFile = File(...)):
     with archive:
         members = [info for info in archive.infolist() if not info.is_dir()]
         if not members:
-            raise HTTPException(status_code=400, detail="ZIP file does not contain any files")
+            raise HTTPException(
+                status_code=400,
+                detail="ZIP file does not contain any files",
+            )
 
         for info in members:
             safe_name = _safe_zip_name(info.filename)
@@ -141,7 +152,10 @@ async def analyze_zip(file: UploadFile = File(...)):
                 _add_skipped(skipped_files, f"{safe_name} (file limit reached)")
                 continue
             if total_size + info.file_size > MAX_ZIP_TOTAL_BYTES:
-                raise HTTPException(status_code=400, detail="ZIP source files exceed the 5MB total limit")
+                raise HTTPException(
+                    status_code=400,
+                    detail="ZIP source files exceed the 5MB total limit",
+                )
 
             raw = archive.read(info)
             total_size += len(raw)
@@ -167,7 +181,10 @@ async def analyze_zip(file: UploadFile = File(...)):
             )
 
     if not results:
-        raise HTTPException(status_code=400, detail="ZIP file does not contain readable source files")
+        raise HTTPException(
+            status_code=400,
+            detail="ZIP file does not contain readable source files",
+        )
 
     scores = [item["analysis"]["suggestions"]["overall_score"] for item in results]
     overall_score = round(sum(scores) / len(scores))

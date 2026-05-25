@@ -3,12 +3,18 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 from .config import settings
 
-
-connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+connect_args = (
+    {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+)
 
 engine = create_engine(settings.database_url, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+
+from . import models  # noqa: E402,F401  # Register ORM models before creating tables.
+
+Base.metadata.create_all(bind=engine)
 
 
 def get_db():
