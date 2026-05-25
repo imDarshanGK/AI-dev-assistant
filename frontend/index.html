@@ -40,6 +40,21 @@
     }
     
 
+      /* Ensure page background and text follow design tokens */
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-ui);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* Light theme override */
+      [data-theme="light"] body {
+        background: #ffffff;
+        color: #0b1220;
+      }
+
     ::-webkit-scrollbar-thumb:hover {
       background: var(--text3)
     }
@@ -1917,7 +1932,6 @@
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
 </style>
-<link rel="icon" href="data:,">
 </head>
 <body>
   <div class="bg-orb bg-orb-1"></div>
@@ -2263,27 +2277,16 @@
           · <span data-i18n="footer_license">MIT License</span>
         </p>
         <p style="margin-top:8px;font-size:0.75rem" data-i18n="footer_built_for">Built for the open source community</p>
-      <div class="app" style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;justify-content:space-between;">
-        <div>
-          <div class="footer-logo">QyverixAI</div>
-          <p>
-            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
-            · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
-            · MIT License
-          </p>
-          <p style="font-size:0.75rem">Built for the open source community</p>
-        </div>
-        <div style="max-width:320px;">
+        <div style="max-width:320px;margin-top:12px;">
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
-                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
-            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
+                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);">
+            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
-          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
+          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--text2);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
-      </div>
-    </footer>
+      </footer>
 
     <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
     <div id="toastContainer"></div>
@@ -2728,17 +2731,18 @@
 
       const savedTheme = localStorage.getItem('qyx_theme');
 
-      // Force dark theme for now to avoid light-theme regressions
-      const initialTheme = 'dark';
-      localStorage.setItem('qyx_theme', initialTheme);
-      document.documentElement.setAttribute('data-theme', initialTheme);
+      // Use saved preference if present, otherwise respect system preference
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+      try { document.documentElement.setAttribute('data-theme', initialTheme); } catch (e) {}
       setThemeIcon(initialTheme);
 
       document.getElementById('themeToggle').addEventListener('click', () => {
         const cur = document.documentElement.getAttribute('data-theme');
         const next = cur === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('qyx_theme', next);
+        try { localStorage.setItem('qyx_theme', next); } catch (e) {}
         setThemeIcon(next);
       });
 
