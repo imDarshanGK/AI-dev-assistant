@@ -11,7 +11,7 @@ backend:
 documentation:
   - "**/*.md"
 
-type: docs:
+type-docs:
   - changed-files:
       - any-glob-to-any-file:
           - '*.md'
@@ -20,7 +20,7 @@ type: docs:
 testing:
   - "tests/**"
 
-type: testing:
+type-testing:
   - changed-files:
       - any-glob-to-any-file:
           - 'tests/**'
