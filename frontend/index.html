@@ -929,10 +929,22 @@
       margin-bottom: 10px;
       animation: cardIn 0.25s ease both;
       transition: all var(--transition);
+      cursor: pointer;
     }
 
     .issue-card:hover {
       transform: translateX(3px)
+    }
+
+    .issue-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(91, 156, 246, 0.22);
+      transform: translateX(4px);
+    }
+
+    .issue-card:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(91, 156, 246, 0.25);
     }
 
     @keyframes cardIn {
@@ -944,6 +956,24 @@
       to {
         opacity: 1;
         transform: translateX(0)
+      }
+    }
+
+    .editor-highlight {
+      animation: editorFlash 0.9s ease;
+    }
+
+    @keyframes editorFlash {
+      0% {
+        box-shadow: 0 0 0 rgba(99, 102, 241, 0);
+      }
+
+      40% {
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.45);
+      }
+
+      100% {
+        box-shadow: 0 0 0 rgba(99, 102, 241, 0);
       }
     }
 
@@ -1343,8 +1373,13 @@
       border-radius: 50%;
     }
 
-    .diff-label-before .diff-label-dot { background: var(--red); }
-    .diff-label-after  .diff-label-dot { background: var(--green); }
+    .diff-label-before .diff-label-dot {
+      background: var(--red);
+    }
+
+    .diff-label-after .diff-label-dot {
+      background: var(--green);
+    }
 
     .diff-view {
       display: grid;
@@ -1356,6 +1391,7 @@
       .diff-view {
         grid-template-columns: 1fr;
       }
+
       .diff-col:first-child {
         border-right: none;
         border-bottom: 1px solid var(--border);
@@ -1788,192 +1824,383 @@
     /* ═══════════════════════════════════════════════════════════════
    STAT BAR (quick summary at top of result)
 ═══════════════════════════════════════════════════════════════ */
-.stat-bar{
-  display:flex;gap:8px;flex-wrap:wrap;
-  margin-bottom:16px;
-}
-.stat-chip{
-  flex:1;min-width:80px;
-  padding:10px 14px;border-radius:var(--r2);
-  background:var(--bg3);border:1px solid var(--border);
-  text-align:center;
-}
-.stat-chip-num{
-  font-family:var(--font-disp);font-size:1.4rem;font-weight:800;
-  line-height:1;
-}
-.stat-chip-label{font-size:0.7rem;color:var(--text3);margin-top:2px}
-.stat-chip.error-chip .stat-chip-num{color:var(--red)}
-.stat-chip.warn-chip .stat-chip-num{color:var(--yellow)}
-.stat-chip.info-chip .stat-chip-num{color:var(--accent)}
+    .stat-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
 
-/* responsive */
-@media(max-width:600px){
-  .hero h1{font-size:2.2rem}
-  nav{flex-wrap:wrap;gap:8px}
-  .nav-links .nav-link span{display:none}
-  .hero{padding:50px 0 40px}
-  .hero-sub{font-size:0.98rem}
-  .features-row{gap:8px;padding:16px 0 40px}
-  .feat-pill{padding:10px 14px;min-width:140px}
-  .workspace{gap:14px}
-  .panel-header{padding:12px 14px}
-  .mode-row{gap:6px;padding:10px 14px}
-  .mode-btn{padding:8px 4px;font-size:0.74rem}
-  .analyze-row{padding:10px 14px}
-  .btn-analyze{padding:14px}
-  .result-content{min-height:280px;max-height:420px;padding:14px}
-  .bottom-grid{gap:14px}
-  .history-list,.fav-list{max-height:200px}
-  .score-ring-wrap{flex-direction:column;text-align:center;gap:12px}
-  .stat-bar{gap:6px}
-  .stat-chip{padding:8px 10px}
-  .stat-chip-num{font-size:1.2rem}
-  #toastContainer{bottom:12px;right:12px;left:12px}
-  .toast{min-width:unset;width:100%}
-  .hero-cta{gap:8px}
-  .btn{padding:11px 18px;font-size:0.85rem}
-}
-@media(max-width:400px){
-  .app{padding:0 14px 60px}
-  .hero h1{font-size:1.9rem}
-  .feat-pill-info p{display:none}
-  .lang-tab{padding:7px 10px;font-size:0.72rem}
-  .result-tab{padding:9px 12px;font-size:0.75rem}
-}
-</style>
-<link rel="icon" href="data:,">
+    .stat-chip {
+      flex: 1;
+      min-width: 80px;
+      padding: 10px 14px;
+      border-radius: var(--r2);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .stat-chip-num {
+      font-family: var(--font-disp);
+      font-size: 1.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-chip-label {
+      font-size: 0.7rem;
+      color: var(--text3);
+      margin-top: 2px
+    }
+
+    .stat-chip.error-chip .stat-chip-num {
+      color: var(--red)
+    }
+
+    .stat-chip.warn-chip .stat-chip-num {
+      color: var(--yellow)
+    }
+
+    .stat-chip.info-chip .stat-chip-num {
+      color: var(--accent)
+    }
+
+    /* responsive */
+    @media(max-width:600px) {
+      .hero h1 {
+        font-size: 2.2rem
+      }
+
+      nav {
+        flex-wrap: wrap;
+        gap: 8px
+      }
+
+      .nav-links .nav-link span {
+        display: none
+      }
+
+      .hero {
+        padding: 50px 0 40px
+      }
+
+      .hero-sub {
+        font-size: 0.98rem
+      }
+
+      .features-row {
+        gap: 8px;
+        padding: 16px 0 40px
+      }
+
+      .feat-pill {
+        padding: 10px 14px;
+        min-width: 140px
+      }
+
+      .workspace {
+        gap: 14px
+      }
+
+      .panel-header {
+        padding: 12px 14px
+      }
+
+      .mode-row {
+        gap: 6px;
+        padding: 10px 14px
+      }
+
+      .mode-btn {
+        padding: 8px 4px;
+        font-size: 0.74rem
+      }
+
+      .analyze-row {
+        padding: 10px 14px
+      }
+
+      .btn-analyze {
+        padding: 14px
+      }
+
+      .result-content {
+        min-height: 280px;
+        max-height: 420px;
+        padding: 14px
+      }
+
+      .bottom-grid {
+        gap: 14px
+      }
+
+      .history-list,
+      .fav-list {
+        max-height: 200px
+      }
+
+      .score-ring-wrap {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px
+      }
+
+      .stat-bar {
+        gap: 6px
+      }
+
+      .stat-chip {
+        padding: 8px 10px
+      }
+
+      .stat-chip-num {
+        font-size: 1.2rem
+      }
+
+      #toastContainer {
+        bottom: 12px;
+        right: 12px;
+        left: 12px
+      }
+
+      .toast {
+        min-width: unset;
+        width: 100%
+      }
+
+      .hero-cta {
+        gap: 8px
+      }
+
+      .btn {
+        padding: 11px 18px;
+        font-size: 0.85rem
+      }
+    }
+
+    @media(max-width:400px) {
+      .app {
+        padding: 0 14px 60px
+      }
+
+      .hero h1 {
+        font-size: 1.9rem
+      }
+
+      .feat-pill-info p {
+        display: none
+      }
+
+      .lang-tab {
+        padding: 7px 10px;
+        font-size: 0.72rem
+      }
+
+      .result-tab {
+        padding: 9px 12px;
+        font-size: 0.75rem
+      }
+    }
+  </style>
+  <link rel="icon" href="data:,">
 </head>
+
 <body>
-<div class="bg-orb bg-orb-1"></div>
-<div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
 
-<div class="app">
+  <div class="app">
 
-<!-- ── NAV ──────────────────────────────────────────────────── -->
-<nav>
-  <a href="#" class="nav-logo">
-    <div class="logo-hex">Q</div>
-    QyverixAI
-    <span style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.25);letter-spacing:0.04em;margin-left:4px">v3.0</span>
-  </a>
-  <div class="nav-links">
-    <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
-      <span>GitHub</span>
-    </a>
-    <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-      <span>API Docs</span>
-    </a>
-    <button class="theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle dark mode" aria-pressed="false">
-      <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-    </button>
-  </div>
-</nav>
-
-<!-- ── HERO ──────────────────────────────────────────────────── -->
-<section class="hero">
-  <div class="hero-badge">
-    <div class="badge-dot"></div>
-    Open Source · AI-Powered · Free
-  </div>
-  <h1>Debug. Understand.<br/><em>Ship faster.</em></h1>
-  <p class="hero-sub">
-    Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.
-  </p>
-  <div class="hero-cta">
-    <button class="btn btn-primary" onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21"/></svg>
-      Start Analyzing
-    </button>
-    <button class="btn btn-secondary" onclick="loadSample()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-      Try Sample Code
-    </button>
-    <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
-      Star on GitHub
-    </a>
-  </div>
-</section>
-
-<!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
-<div class="features-row">
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>40+ Bug Patterns</h4>
-      <p>Python, JS, TS, Java, C++</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Code Explanation</h4>
-      <p>Plain English breakdowns</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Smart Suggestions</h4>
-      <p>Quality score + grade</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Dark / Light Mode</h4>
-      <p>Persisted preference</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>File Upload</h4>
-      <p>.py .js .ts .java .cpp</p>
-    </div>
-  </div>
-</div>
-
-<!-- ── WORKSPACE ─────────────────────────────────────────────── -->
-<section id="workspace" class="workspace">
-
-  <!-- Editor Panel -->
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <span></span>
-        Code Editor
-      </div>
-      <div class="panel-actions">
-        <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button" aria-label="Upload code file" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1"/>
-        </label>
-        <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-        </button>
-        <button class="icon-btn" id="copyBtn" title="Copy code" aria-label="Copy code to clipboard">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    <!-- ── NAV ──────────────────────────────────────────────────── -->
+    <nav>
+      <a href="#" class="nav-logo">
+        <div class="logo-hex">Q</div>
+        QyverixAI
+        <span
+          style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.25);letter-spacing:0.04em;margin-left:4px">v3.0</span>
+      </a>
+      <div class="nav-links">
+        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          <span>GitHub</span>
+        </a>
+        <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+          </svg>
+          <span>API Docs</span>
+        </a>
+        <button class="theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle dark mode"
+          aria-pressed="false">
+          <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
         </button>
       </div>
+    </nav>
+
+    <!-- ── HERO ──────────────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-badge">
+        <div class="badge-dot"></div>
+        Open Source · AI-Powered · Free
+      </div>
+      <h1>Debug. Understand.<br /><em>Ship faster.</em></h1>
+      <p class="hero-sub">
+        Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
+        suggestions — no account needed.
+      </p>
+      <div class="hero-cta">
+        <button class="btn btn-primary"
+          onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="5,3 19,12 5,21" />
+          </svg>
+          Start Analyzing
+        </button>
+        <button class="btn btn-secondary" onclick="loadSample()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16,18 22,12 16,6" />
+            <polyline points="8,6 2,12 8,18" />
+          </svg>
+          Try Sample Code
+        </button>
+        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          Star on GitHub
+        </a>
+      </div>
+    </section>
+
+    <!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
+    <div class="features-row">
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4>40+ Bug Patterns</h4>
+          <p>Python, JS, TS, Java, C++</p>
+        </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4>Code Explanation</h4>
+          <p>Plain English breakdowns</p>
+        </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4>Smart Suggestions</h4>
+          <p>Quality score + grade</p>
+        </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4>Dark / Light Mode</h4>
+          <p>Persisted preference</p>
+        </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4>File Upload</h4>
+          <p>.py .js .ts .java .cpp</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Language tabs -->
-    <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
-      <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
-      <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
-      <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
-      <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
-      <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
-    </div>
+    <!-- ── WORKSPACE ─────────────────────────────────────────────── -->
+    <section id="workspace" class="workspace">
+
+      <!-- Editor Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span></span>
+            Code Editor
+          </div>
+          <div class="panel-actions">
+            <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button"
+              aria-label="Upload code file"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17,8 12,3 7,8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none"
+                tabindex="-1" />
+            </label>
+            <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <polyline points="3,6 5,6 21,6" />
+                <path d="M19 6l-1 14H6L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
+            </button>
+            <button class="icon-btn" id="copyBtn" title="Copy code" aria-label="Copy code to clipboard">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Language tabs -->
+        <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
+          <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
+          <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
+          <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
+          <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
+        </div>
         <!-- Editor -->
         <div class="editor-wrap">
           <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
           <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…"
-            spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" aria-label="Code Editor"></textarea>
+            spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off"
+            aria-label="Code Editor"></textarea>
         </div>
 
         <div class="editor-footer">
@@ -2180,471 +2407,473 @@
     </div>
 
   </div><!-- /app -->
-  
 
-    <!-- ── FOOTER ─────────────────────────────────────────────────── -->
-    <footer>
-      <div class="app" style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;justify-content:space-between;">
-        <div>
-          <div class="footer-logo">QyverixAI</div>
-          <p>
-            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
-            · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
-            · MIT License
-          </p>
-          <p style="font-size:0.75rem">Built for the open source community</p>
-        </div>
-        <div style="max-width:320px;">
-          <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
-          <form id="digestForm" style="display:flex;gap:6px;">
-            <input type="email" id="digestEmail" placeholder="your@email.com" required
-                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
-            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
-          </form>
-          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
-        </div>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────── -->
+  <footer>
+    <div class="app" style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;justify-content:space-between;">
+      <div>
+        <div class="footer-logo">QyverixAI</div>
+        <p>
+          <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
+          · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
+          · MIT License
+        </p>
+        <p style="font-size:0.75rem">Built for the open source community</p>
       </div>
-    </footer>
+      <div style="max-width:320px;">
+        <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
+        <form id="digestForm" style="display:flex;gap:6px;">
+          <input type="email" id="digestEmail" placeholder="your@email.com" required
+            style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
+          <button type="submit" id="digestBtn"
+            style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
+        </form>
+        <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis
+          stats.</p>
+      </div>
+    </div>
+  </footer>
 
-    <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
-    <div id="toastContainer"></div>
+  <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
+  <div id="toastContainer"></div>
 
-    <script>
-      /* ═══════════════════════════════════════════════════════════════
-         STATE
-      ═══════════════════════════════════════════════════════════════ */
-      const MAX_HISTORY = 50;
-      let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
-      let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
-      let currentResult = null;
-      let selectedLang = 'python';
-      let selectedMode = 'analyze';
+  <script>
+    /* ═══════════════════════════════════════════════════════════════
+       STATE
+    ═══════════════════════════════════════════════════════════════ */
+    const MAX_HISTORY = 50;
+    let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+    let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
+    let currentResult = null;
+    let selectedLang = 'python';
+    let selectedMode = 'analyze';
 
-      /* ═══════════════════════════════════════════════════════════════
-         DOM REFS
-      ═══════════════════════════════════════════════════════════════ */
-      const editor = document.getElementById('codeEditor');
-      const lineNumbers = document.getElementById('lineNumbers');
-      const charCount = document.getElementById('charCount');
-      const analyzeBtn = document.getElementById('analyzeBtn');
-      const spinner = document.getElementById('spinner');
-      const apiUrlInput = document.getElementById('apiUrl');
-      const apiDot = document.getElementById('apiDot');
-      const apiStatusText = document.getElementById('apiStatusText');
-      const historyList = document.getElementById('historyList');
-      const favList = document.getElementById('favList');
-      const resultActions = document.getElementById('resultActions');
-      const engineInfo = document.getElementById('engineInfo');
-      const timeInfo = document.getElementById('timeInfo');
+    /* ═══════════════════════════════════════════════════════════════
+       DOM REFS
+    ═══════════════════════════════════════════════════════════════ */
+    const editor = document.getElementById('codeEditor');
+    const lineNumbers = document.getElementById('lineNumbers');
+    const charCount = document.getElementById('charCount');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const spinner = document.getElementById('spinner');
+    const apiUrlInput = document.getElementById('apiUrl');
+    const apiDot = document.getElementById('apiDot');
+    const apiStatusText = document.getElementById('apiStatusText');
+    const historyList = document.getElementById('historyList');
+    const favList = document.getElementById('favList');
+    const resultActions = document.getElementById('resultActions');
+    const engineInfo = document.getElementById('engineInfo');
+    const timeInfo = document.getElementById('timeInfo');
 
-      /* ═══════════════════════════════════════════════════════════════
-         THEME
-      ═══════════════════════════════════════════════════════════════ */
-      // dark mode → moon, light mode → sun
-      function setThemeIcon(theme) {
-        const icon = document.getElementById('themeIcon');
-        if (!icon) return;
-        if (theme === 'dark') {
-          icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-        } else {
-          icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    /* ═══════════════════════════════════════════════════════════════
+       THEME
+    ═══════════════════════════════════════════════════════════════ */
+    // dark mode → moon, light mode → sun
+    function setThemeIcon(theme) {
+      const icon = document.getElementById('themeIcon');
+      if (!icon) return;
+      if (theme === 'dark') {
+        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      } else {
+        icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+      }
+      const btn = document.getElementById('themeToggle');
+      btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+    }
+
+    const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    setThemeIcon(savedTheme);
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('qyx_theme', next);
+      setThemeIcon(next);
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       EDITOR
+    ═══════════════════════════════════════════════════════════════ */
+    function updateEditor() {
+      const val = editor.value;
+      const lines = val ? val.split('\n').length : 0;
+      const chars = val.length;
+      const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
+      charCount.textContent = val
+        ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
+        : 'Paste or type code to begin';
+      const lineCount = Math.max(lines, 1);
+      lineNumbers.innerHTML = val
+        ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
+        : '1';
+    }
+
+    function looksLikeRestoredPageSource(text) {
+      return /<\s*html|<\s*style|<\s*script|function\s+updateEditor\s*\(|\.stat-bar|\.hero\s*\{|\.workspace\s*\{/i.test(text);
+    }
+
+    function normalizeEditorOnLoad() {
+      if (looksLikeRestoredPageSource(editor.value || '')) {
+        editor.value = '';
+        updateEditor();
+      }
+    }
+
+    normalizeEditorOnLoad();
+    window.addEventListener('pageshow', normalizeEditorOnLoad);
+    setTimeout(normalizeEditorOnLoad, 0);
+
+    editor.addEventListener('input', updateEditor);
+    editor.addEventListener('scroll', () => {
+      lineNumbers.scrollTop = editor.scrollTop;
+    });
+
+    // Tab key support
+    editor.addEventListener('keydown', e => {
+
+      // TAB SUPPORT
+      if (e.key === 'Tab' && !e.shiftKey) {
+
+        e.preventDefault();
+
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+
+        editor.value =
+          editor.value.substring(0, start) +
+          '    ' +
+          editor.value.substring(end);
+
+        editor.selectionStart =
+          editor.selectionEnd =
+          start + 4;
+
+        updateEditor();
+      }
+
+      // AUTO INDENT ON ENTER
+      else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+
+        e.preventDefault();
+
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+
+        const value = editor.value;
+
+        // Find current line
+        const lineStart =
+          value.lastIndexOf('\n', start - 1) + 1;
+
+        const currentLine =
+          value.substring(lineStart, start);
+
+        // Preserve existing indentation
+        const indentMatch = currentLine.match(/^\s*/);
+
+        let indent = indentMatch
+          ? indentMatch[0]
+          : '';
+
+        const trimmed = currentLine.trim();
+
+        // Python indentation
+        if (
+          selectedLang === 'python' &&
+          trimmed.endsWith(':')
+        ) {
+          indent += '    ';
         }
-        const btn = document.getElementById('themeToggle');
-        btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-        btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
-      }
 
-      const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      setThemeIcon(savedTheme);
-
-      document.getElementById('themeToggle').addEventListener('click', () => {
-        const cur = document.documentElement.getAttribute('data-theme');
-        const next = cur === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('qyx_theme', next);
-        setThemeIcon(next);
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         EDITOR
-      ═══════════════════════════════════════════════════════════════ */
-      function updateEditor() {
-        const val = editor.value;
-        const lines = val ? val.split('\n').length : 0;
-        const chars = val.length;
-        const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-        charCount.textContent = val
-          ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
-          : 'Paste or type code to begin';
-        const lineCount = Math.max(lines, 1);
-        lineNumbers.innerHTML = val
-          ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
-          : '1';
-      }
-
-      function looksLikeRestoredPageSource(text) {
-        return /<\s*html|<\s*style|<\s*script|function\s+updateEditor\s*\(|\.stat-bar|\.hero\s*\{|\.workspace\s*\{/i.test(text);
-      }
-
-      function normalizeEditorOnLoad() {
-        if (looksLikeRestoredPageSource(editor.value || '')) {
-          editor.value = '';
-          updateEditor();
-        }
-      }
-
-      normalizeEditorOnLoad();
-      window.addEventListener('pageshow', normalizeEditorOnLoad);
-      setTimeout(normalizeEditorOnLoad, 0);
-
-      editor.addEventListener('input', updateEditor);
-      editor.addEventListener('scroll', () => {
-        lineNumbers.scrollTop = editor.scrollTop;
-      });
-
-      // Tab key support
-      editor.addEventListener('keydown', e => {
-
-        // TAB SUPPORT
-        if (e.key === 'Tab' && !e.shiftKey) {
-
-          e.preventDefault();
-
-          const start = editor.selectionStart;
-          const end = editor.selectionEnd;
-
-          editor.value =
-            editor.value.substring(0, start) +
-            '    ' +
-            editor.value.substring(end);
-
-          editor.selectionStart =
-            editor.selectionEnd =
-            start + 4;
-
-          updateEditor();
+        // JavaScript / TypeScript / Java / C++
+        else if (
+          ['javascript', 'typescript', 'java', 'cpp']
+            .includes(selectedLang) &&
+          trimmed.endsWith('{')
+        ) {
+          indent += '    ';
         }
 
-        // AUTO INDENT ON ENTER
-        else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+        editor.value =
+          value.substring(0, start) +
+          '\n' + indent +
+          value.substring(end);
 
-          e.preventDefault();
+        editor.selectionStart =
+          editor.selectionEnd =
+          start + 1 + indent.length;
 
-          const start = editor.selectionStart;
-          const end = editor.selectionEnd;
+        updateEditor();
+      }
+
+      // SMART BACKSPACE
+      else if (e.key === 'Backspace') {
+
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+
+        // Only if no text selected
+        if (start === end) {
 
           const value = editor.value;
 
-          // Find current line
+          // Text before cursor
+          const beforeCursor =
+            value.substring(0, start);
+
+          // Current line
           const lineStart =
-            value.lastIndexOf('\n', start - 1) + 1;
+            beforeCursor.lastIndexOf('\n') + 1;
 
           const currentLine =
-            value.substring(lineStart, start);
+            beforeCursor.substring(lineStart);
 
-          // Preserve existing indentation
-          const indentMatch = currentLine.match(/^\s*/);
+          // Remove full indentation level
+          if (currentLine.endsWith('    ')) {
 
-          let indent = indentMatch
-            ? indentMatch[0]
-            : '';
+            e.preventDefault();
 
-          const trimmed = currentLine.trim();
+            editor.value =
+              value.substring(0, start - 4) +
+              value.substring(end);
 
-          // Python indentation
-          if (
-            selectedLang === 'python' &&
-            trimmed.endsWith(':')
-          ) {
-            indent += '    ';
+            editor.selectionStart =
+              editor.selectionEnd =
+              start - 4;
+
+            updateEditor();
           }
-
-          // JavaScript / TypeScript / Java / C++
-          else if (
-            ['javascript', 'typescript', 'java', 'cpp']
-              .includes(selectedLang) &&
-            trimmed.endsWith('{')
-          ) {
-            indent += '    ';
-          }
-
-          editor.value =
-            value.substring(0, start) +
-            '\n' + indent +
-            value.substring(end);
-
-          editor.selectionStart =
-            editor.selectionEnd =
-            start + 1 + indent.length;
-
-          updateEditor();
-        }
-
-        // SMART BACKSPACE
-        else if (e.key === 'Backspace') {
-
-          const start = editor.selectionStart;
-          const end = editor.selectionEnd;
-
-          // Only if no text selected
-          if (start === end) {
-
-            const value = editor.value;
-
-            // Text before cursor
-            const beforeCursor =
-              value.substring(0, start);
-
-            // Current line
-            const lineStart =
-              beforeCursor.lastIndexOf('\n') + 1;
-
-            const currentLine =
-              beforeCursor.substring(lineStart);
-
-            // Remove full indentation level
-            if (currentLine.endsWith('    ')) {
-
-              e.preventDefault();
-
-              editor.value =
-                value.substring(0, start - 4) +
-                value.substring(end);
-
-              editor.selectionStart =
-                editor.selectionEnd =
-                start - 4;
-
-              updateEditor();
-            }
-          }
-        }
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         FILE UPLOAD
-      ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('fileInput').addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const ext = file.name.split('.').pop().toLowerCase();
-        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
-        if (langMap[ext]) setLanguage(langMap[ext]);
-        const reader = new FileReader();
-        reader.onload = ev => {
-          editor.value = ev.target.result;
-          updateEditor();
-          toast(`Loaded ${file.name}`, 'success');
-        };
-        reader.readAsText(file);
-        e.target.value = '';
-      });
-
-      /* Drag and drop */
-      document.body.addEventListener('dragover', e => e.preventDefault());
-      document.body.addEventListener('drop', e => {
-        e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-          editor.value = ev.target.result;
-          updateEditor();
-          toast(`Dropped ${file.name}`, 'success');
-        };
-        reader.readAsText(file);
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         LANGUAGE TABS
-      ═══════════════════════════════════════════════════════════════ */
-      function setLanguage(lang) {
-        selectedLang = lang;
-
-        // 1. Update the visual tabs
-        document.querySelectorAll('.lang-tab').forEach(t => {
-          const isActive = t.dataset.lang === lang;
-          t.classList.toggle('active', isActive);
-          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        });
-
-        // 2. Check if the editor currently contains one of the samples
-        const currentCode = editor.value.trim();
-        const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
-
-        // 3. If it is a sample, swap it to the new language's sample automatically
-        if (isSample) {
-          editor.value = SAMPLES[lang] || SAMPLES.python;
-          updateEditor();
         }
       }
+    });
 
-      document.querySelectorAll('.lang-tab').forEach(t => {
-        t.addEventListener('click', () => setLanguage(t.dataset.lang));
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         MODE BUTTONS
-      ═══════════════════════════════════════════════════════════════ */
-      document.querySelectorAll('.mode-btn').forEach(b => {
-        b.addEventListener('click', () => {
-          selectedMode = b.dataset.mode;
-          document.querySelectorAll('.mode-btn').forEach(x => {
-            x.classList.remove('active');
-            x.setAttribute('aria-pressed', 'false');
-          });
-          b.classList.add('active');
-          b.setAttribute('aria-pressed', 'true');
-        });
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         RESULT TABS
-      ═══════════════════════════════════════════════════════════════ */
-      document.querySelectorAll('.result-tab').forEach(t => {
-        t.addEventListener('click', () => {
-          const tab = t.dataset.rtab;
-          document.querySelectorAll('.result-tab').forEach(x => {
-            x.classList.remove('active');
-            x.setAttribute('aria-selected', 'false');
-          });
-          document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
-          t.classList.add('active');
-          t.setAttribute('aria-selected', 'true');
-          document.getElementById(`pane-${tab}`).classList.add('active');
-        });
-      });
-
-      /* ═══════════════════════════════════════════════════════════════
-         CLEAR / COPY
-      ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('clearBtn').addEventListener('click', () => {
-        editor.value = '';
+    /* ═══════════════════════════════════════════════════════════════
+       FILE UPLOAD
+    ═══════════════════════════════════════════════════════════════ */
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
+      if (langMap[ext]) setLanguage(langMap[ext]);
+      const reader = new FileReader();
+      reader.onload = ev => {
+        editor.value = ev.target.result;
         updateEditor();
-        resetResults();
-      });
-      document.getElementById('copyBtn').addEventListener('click', () => {
-        if (!editor.value.trim()) return;
-        navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
+        toast(`Loaded ${file.name}`, 'success');
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
+    /* Drag and drop */
+    document.body.addEventListener('dragover', e => e.preventDefault());
+    document.body.addEventListener('drop', e => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        editor.value = ev.target.result;
+        updateEditor();
+        toast(`Dropped ${file.name}`, 'success');
+      };
+      reader.readAsText(file);
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       LANGUAGE TABS
+    ═══════════════════════════════════════════════════════════════ */
+    function setLanguage(lang) {
+      selectedLang = lang;
+
+      // 1. Update the visual tabs
+      document.querySelectorAll('.lang-tab').forEach(t => {
+        const isActive = t.dataset.lang === lang;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
 
-      /* ═══════════════════════════════════════════════════════════════
-         API PING
-      ═══════════════════════════════════════════════════════════════ */
-      async function pingApi() {
-        const base = apiUrlInput.value.replace(/\/$/, '');
-        try {
-          const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
-          if (r.ok) {
-            apiDot.classList.add('connected');
-            apiStatusText.textContent = 'Connected';
-            toast('API is reachable', 'success');
-          } else {
-            apiDot.classList.remove('connected');
-            apiStatusText.textContent = 'Error ' + r.status;
-          }
-        } catch {
-          apiDot.classList.remove('connected');
-          apiStatusText.textContent = 'Unreachable';
-          toast('Cannot reach API. Check the URL.', 'error');
-        }
+      // 2. Check if the editor currently contains one of the samples
+      const currentCode = editor.value.trim();
+      const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
+
+      // 3. If it is a sample, swap it to the new language's sample automatically
+      if (isSample) {
+        editor.value = SAMPLES[lang] || SAMPLES.python;
+        updateEditor();
       }
-      document.getElementById('pingBtn').addEventListener('click', pingApi);
+    }
 
-      // Auto-ping on load
-      setTimeout(pingApi, 800);
+    document.querySelectorAll('.lang-tab').forEach(t => {
+      t.addEventListener('click', () => setLanguage(t.dataset.lang));
+    });
 
-      /* ═══════════════════════════════════════════════════════════════
-         ANALYZE
-      ═══════════════════════════════════════════════════════════════ */
-      analyzeBtn.addEventListener('click', doAnalyze);
+    /* ═══════════════════════════════════════════════════════════════
+       MODE BUTTONS
+    ═══════════════════════════════════════════════════════════════ */
+    document.querySelectorAll('.mode-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        selectedMode = b.dataset.mode;
+        document.querySelectorAll('.mode-btn').forEach(x => {
+          x.classList.remove('active');
+          x.setAttribute('aria-pressed', 'false');
+        });
+        b.classList.add('active');
+        b.setAttribute('aria-pressed', 'true');
+      });
+    });
 
-      async function doAnalyze() {
-        const code = editor.value.trim();
-        if (!code) { toast('Please paste some code first.', 'error'); return; }
+    /* ═══════════════════════════════════════════════════════════════
+       RESULT TABS
+    ═══════════════════════════════════════════════════════════════ */
+    document.querySelectorAll('.result-tab').forEach(t => {
+      t.addEventListener('click', () => {
+        const tab = t.dataset.rtab;
+        document.querySelectorAll('.result-tab').forEach(x => {
+          x.classList.remove('active');
+          x.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        t.setAttribute('aria-selected', 'true');
+        document.getElementById(`pane-${tab}`).classList.add('active');
+      });
+    });
 
-        const base = apiUrlInput.value.replace(/\/$/, '');
-        const endpointMap = {
-          analyze: '/analyze/',
-          explain: '/explanation/',
-          debug: '/debugging/',
-          suggest: '/suggestions/',
-        };
-        const endpoint = endpointMap[selectedMode] || '/analyze/';
+    /* ═══════════════════════════════════════════════════════════════
+       CLEAR / COPY
+    ═══════════════════════════════════════════════════════════════ */
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      editor.value = '';
+      updateEditor();
+      resetResults();
+    });
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      if (!editor.value.trim()) return;
+      navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
+    });
 
-        // Loading state
-        analyzeBtn.classList.add('loading');
-        analyzeBtn.disabled = true;
-        showShimmers();
-
-        try {
-          const res = await fetch(`${base}${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, language: selectedLang }),
-            signal: AbortSignal.timeout(30000),
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.detail || `HTTP ${res.status}`);
-          }
-          const data = await res.json();
-          const elapsed = res.headers.get('X-Process-Time-Ms');
-
-          // Normalize to full analysis shape
-          let result;
-          if (selectedMode === 'analyze') {
-            result = data;
-          } else if (selectedMode === 'explain') {
-            result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-          } else if (selectedMode === 'debug') {
-            result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-          } else {
-            result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
-          }
-
-          currentResult = result;
-          renderResults(result, code);
-          addToHistory(code, result);
+    /* ═══════════════════════════════════════════════════════════════
+       API PING
+    ═══════════════════════════════════════════════════════════════ */
+    async function pingApi() {
+      const base = apiUrlInput.value.replace(/\/$/, '');
+      try {
+        const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+        if (r.ok) {
           apiDot.classList.add('connected');
           apiStatusText.textContent = 'Connected';
-          document.getElementById('engineBar').style.display = 'flex';
-          engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
-          if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
-          else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
-          resultActions.style.display = 'flex';
-
-        } catch (err) {
-          toast(`Error: ${err.message}`, 'error');
-          resetResults();
-        } finally {
-          analyzeBtn.classList.remove('loading');
-          analyzeBtn.disabled = false;
+          toast('API is reachable', 'success');
+        } else {
+          apiDot.classList.remove('connected');
+          apiStatusText.textContent = 'Error ' + r.status;
         }
+      } catch {
+        apiDot.classList.remove('connected');
+        apiStatusText.textContent = 'Unreachable';
+        toast('Cannot reach API. Check the URL.', 'error');
       }
+    }
+    document.getElementById('pingBtn').addEventListener('click', pingApi);
 
-      /* ═══════════════════════════════════════════════════════════════
-         RENDER RESULTS
-      ═══════════════════════════════════════════════════════════════ */
-      function renderResults(result, code) {
-        if (result.explanation) renderExplain(result.explanation);
-        if (result.debugging) renderDebug(result.debugging);
-        if (result.suggestions) renderSuggest(result.suggestions);
+    // Auto-ping on load
+    setTimeout(pingApi, 800);
 
-        // Auto-switch to relevant tab
-        const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
-        const targetTab = tabOrder[selectedMode] || 'explain';
-        document.querySelector(`[data-rtab="${targetTab}"]`).click();
+    /* ═══════════════════════════════════════════════════════════════
+       ANALYZE
+    ═══════════════════════════════════════════════════════════════ */
+    analyzeBtn.addEventListener('click', doAnalyze);
+
+    async function doAnalyze() {
+      const code = editor.value.trim();
+      if (!code) { toast('Please paste some code first.', 'error'); return; }
+
+      const base = apiUrlInput.value.replace(/\/$/, '');
+      const endpointMap = {
+        analyze: '/analyze/',
+        explain: '/explanation/',
+        debug: '/debugging/',
+        suggest: '/suggestions/',
+      };
+      const endpoint = endpointMap[selectedMode] || '/analyze/';
+
+      // Loading state
+      analyzeBtn.classList.add('loading');
+      analyzeBtn.disabled = true;
+      showShimmers();
+
+      try {
+        const res = await fetch(`${base}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, language: selectedLang }),
+          signal: AbortSignal.timeout(30000),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        const elapsed = res.headers.get('X-Process-Time-Ms');
+
+        // Normalize to full analysis shape
+        let result;
+        if (selectedMode === 'analyze') {
+          result = data;
+        } else if (selectedMode === 'explain') {
+          result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+        } else if (selectedMode === 'debug') {
+          result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+        } else {
+          result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
+        }
+
+        currentResult = result;
+        renderResults(result, code);
+        addToHistory(code, result);
+        apiDot.classList.add('connected');
+        apiStatusText.textContent = 'Connected';
+        document.getElementById('engineBar').style.display = 'flex';
+        engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
+        if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
+        else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
+        resultActions.style.display = 'flex';
+
+      } catch (err) {
+        toast(`Error: ${err.message}`, 'error');
+        resetResults();
+      } finally {
+        analyzeBtn.classList.remove('loading');
+        analyzeBtn.disabled = false;
       }
+    }
 
-      function renderExplain(exp) {
-        document.getElementById('emptyExplain').style.display = 'none';
-        const el = document.getElementById('explainResult');
-        el.style.display = 'block';
-        document.getElementById('explainBadge').textContent = exp.complexity;
+    /* ═══════════════════════════════════════════════════════════════
+       RENDER RESULTS
+    ═══════════════════════════════════════════════════════════════ */
+    function renderResults(result, code) {
+      if (result.explanation) renderExplain(result.explanation);
+      if (result.debugging) renderDebug(result.debugging);
+      if (result.suggestions) renderSuggest(result.suggestions);
 
-        el.innerHTML = `
+      // Auto-switch to relevant tab
+      const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
+      const targetTab = tabOrder[selectedMode] || 'explain';
+      document.querySelector(`[data-rtab="${targetTab}"]`).click();
+    }
+
+    function renderExplain(exp) {
+      document.getElementById('emptyExplain').style.display = 'none';
+      const el = document.getElementById('explainResult');
+      el.style.display = 'block';
+      document.getElementById('explainBadge').textContent = exp.complexity;
+
+      el.innerHTML = `
     <div class="explain-summary" tabindex="0">${exp.summary}</div>
     <div class="explain-meta">
       <div class="meta-chip complexity-${exp.complexity}">
@@ -2663,27 +2892,27 @@
       ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
     </ul>
   `;
-      }
+    }
 
-      function renderDebug(dbg) {
-        document.getElementById('emptyDebug').style.display = 'none';
-        const el = document.getElementById('debugResult');
-        el.style.display = 'block';
+    function renderDebug(dbg) {
+      document.getElementById('emptyDebug').style.display = 'none';
+      const el = document.getElementById('debugResult');
+      el.style.display = 'block';
 
-        const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
-        document.getElementById('debugBadge').textContent = badge || '0';
+      const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
+      document.getElementById('debugBadge').textContent = badge || '0';
 
-        if (dbg.clean) {
-          el.innerHTML = `
+      if (dbg.clean) {
+        el.innerHTML = `
       <div class="clean-state">
         <div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
         <h3>No issues detected!</h3>
         <p>Your code passed all ${40}+ pattern checks. Keep it up!</p>
       </div>`;
-          return;
-        }
+        return;
+      }
 
-        const statBar = `
+      const statBar = `
     <div class="stat-bar">
       <div class="stat-chip error-chip">
         <div class="stat-chip-num">${dbg.error_count}</div>
@@ -2699,8 +2928,13 @@
       </div>
     </div>`;
 
-        const cards = dbg.issues.map((issue, i) => `
-    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
+      const cards = dbg.issues.map((issue, i) => `
+    <div class="issue-card ${issue.severity}" 
+    data-line="${issue.line || 1}"
+  tabindex="0"
+  role="button"
+  aria-label="Jump to line ${issue.line || 1}"
+  style="animation-delay:${i * 0.05}s">
       <div class="issue-header">
         <span class="issue-badge">${issue.severity}</span>
         <span class="issue-type">${issue.type}</span>
@@ -2711,120 +2945,121 @@
       <div class="issue-fix">${issue.suggestion}</div>
     </div>`).join('');
 
-        el.innerHTML = statBar + cards;
+      el.innerHTML = statBar + cards;
+      attachIssueNavigation();
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       PURE-JS LINE DIFF (LCS-based)
+    ═══════════════════════════════════════════════════════════════ */
+    function computeDiff(originalText, fixedText) {
+      const aLines = originalText.split('\n');
+      const bLines = fixedText.split('\n');
+      const m = aLines.length, n = bLines.length;
+
+      // Build LCS table
+      const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          dp[i][j] = aLines[i - 1] === bLines[j - 1]
+            ? dp[i - 1][j - 1] + 1
+            : Math.max(dp[i - 1][j], dp[i][j - 1]);
+        }
       }
 
-      /* ═══════════════════════════════════════════════════════════════
-         PURE-JS LINE DIFF (LCS-based)
-      ═══════════════════════════════════════════════════════════════ */
-      function computeDiff(originalText, fixedText) {
-        const aLines = originalText.split('\n');
-        const bLines = fixedText.split('\n');
-        const m = aLines.length, n = bLines.length;
+      // Backtrack to get edit script
+      const left = [];   // original column (removed + equal)
+      const right = [];  // fixed column    (added + equal)
+      let i = m, j = n;
+      const edits = [];
+      while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && aLines[i - 1] === bLines[j - 1]) {
+          edits.push({ type: 'equal', a: aLines[i - 1], b: bLines[j - 1] });
+          i--; j--;
+        } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+          edits.push({ type: 'added', b: bLines[j - 1] });
+          j--;
+        } else {
+          edits.push({ type: 'removed', a: aLines[i - 1] });
+          i--;
+        }
+      }
+      edits.reverse();
 
-        // Build LCS table
-        const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-        for (let i = 1; i <= m; i++) {
-          for (let j = 1; j <= n; j++) {
-            dp[i][j] = aLines[i - 1] === bLines[j - 1]
-              ? dp[i - 1][j - 1] + 1
-              : Math.max(dp[i - 1][j], dp[i][j - 1]);
+      // Separate into two column lists
+      let aIdx = 0, bIdx = 0;
+      edits.forEach(e => {
+        if (e.type === 'equal') {
+          left.push({ type: 'equal', text: e.a, num: ++aIdx });
+          right.push({ type: 'equal', text: e.b, num: ++bIdx });
+        } else if (e.type === 'removed') {
+          left.push({ type: 'removed', text: e.a, num: ++aIdx });
+          right.push({ type: 'placeholder', text: '' });
+        } else {
+          left.push({ type: 'placeholder', text: '' });
+          right.push({ type: 'added', text: e.b, num: ++bIdx });
+        }
+      });
+      return { left, right };
+    }
+
+    function renderDiffCol(lines) {
+      return lines.map(l => {
+        if (l.type === 'placeholder') {
+          return `<div class="diff-line diff-line-placeholder"><span class="diff-line-num"></span><span class="diff-line-content"> </span></div>`;
+        }
+        const cls = l.type === 'removed' ? 'diff-line-removed'
+          : l.type === 'added' ? 'diff-line-added'
+            : 'diff-line-equal';
+        const prefix = l.type === 'removed' ? '− ' : l.type === 'added' ? '+ ' : '  ';
+        return `<div class="diff-line ${cls}"><span class="diff-line-num">${l.num}</span><span class="diff-line-content">${prefix}${escHtml(l.text)}</span></div>`;
+      }).join('');
+    }
+
+    /* Find the region of the editor code that best matches the fixed snippet.
+       Returns the matching original lines (as a string) or null if nothing found. */
+    function findOriginalSnippet(editorCode, fixedCode) {
+      if (!editorCode || !fixedCode) return null;
+      const fixedLines = fixedCode.split('\n').map(l => l.trim()).filter(Boolean);
+      const editorLines = editorCode.split('\n');
+      if (!fixedLines.length || !editorLines.length) return null;
+
+      let bestScore = 0, bestStart = -1;
+
+      for (let i = 0; i < editorLines.length; i++) {
+        let score = 0;
+        for (let j = 0; j < fixedLines.length && i + j < editorLines.length; j++) {
+          const el = editorLines[i + j].trim();
+          const fl = fixedLines[j].trim();
+          if (!el || !fl) continue;
+          if (el === fl) {
+            score += 2;
+          } else if (fl.length > 6 && el.includes(fl.slice(0, Math.min(fl.length, 18)))) {
+            score += 1;
+          } else if (el.length > 6 && fl.includes(el.slice(0, Math.min(el.length, 18)))) {
+            score += 1;
           }
         }
-
-        // Backtrack to get edit script
-        const left = [];   // original column (removed + equal)
-        const right = [];  // fixed column    (added + equal)
-        let i = m, j = n;
-        const edits = [];
-        while (i > 0 || j > 0) {
-          if (i > 0 && j > 0 && aLines[i - 1] === bLines[j - 1]) {
-            edits.push({ type: 'equal', a: aLines[i - 1], b: bLines[j - 1] });
-            i--; j--;
-          } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
-            edits.push({ type: 'added', b: bLines[j - 1] });
-            j--;
-          } else {
-            edits.push({ type: 'removed', a: aLines[i - 1] });
-            i--;
-          }
-        }
-        edits.reverse();
-
-        // Separate into two column lists
-        let aIdx = 0, bIdx = 0;
-        edits.forEach(e => {
-          if (e.type === 'equal') {
-            left.push({ type: 'equal', text: e.a, num: ++aIdx });
-            right.push({ type: 'equal', text: e.b, num: ++bIdx });
-          } else if (e.type === 'removed') {
-            left.push({ type: 'removed', text: e.a, num: ++aIdx });
-            right.push({ type: 'placeholder', text: '' });
-          } else {
-            left.push({ type: 'placeholder', text: '' });
-            right.push({ type: 'added', text: e.b, num: ++bIdx });
-          }
-        });
-        return { left, right };
+        if (score > bestScore) { bestScore = score; bestStart = i; }
       }
 
-      function renderDiffCol(lines) {
-        return lines.map(l => {
-          if (l.type === 'placeholder') {
-            return `<div class="diff-line diff-line-placeholder"><span class="diff-line-num"></span><span class="diff-line-content"> </span></div>`;
-          }
-          const cls = l.type === 'removed' ? 'diff-line-removed'
-            : l.type === 'added' ? 'diff-line-added'
-              : 'diff-line-equal';
-          const prefix = l.type === 'removed' ? '− ' : l.type === 'added' ? '+ ' : '  ';
-          return `<div class="diff-line ${cls}"><span class="diff-line-num">${l.num}</span><span class="diff-line-content">${prefix}${escHtml(l.text)}</span></div>`;
-        }).join('');
-      }
+      if (bestStart === -1 || bestScore < 1) return null;
 
-      /* Find the region of the editor code that best matches the fixed snippet.
-         Returns the matching original lines (as a string) or null if nothing found. */
-      function findOriginalSnippet(editorCode, fixedCode) {
-        if (!editorCode || !fixedCode) return null;
-        const fixedLines  = fixedCode.split('\n').map(l => l.trim()).filter(Boolean);
-        const editorLines = editorCode.split('\n');
-        if (!fixedLines.length || !editorLines.length) return null;
+      // Extract the matched region (same number of lines as the fixed snippet)
+      const start = Math.max(0, bestStart);
+      const end = Math.min(editorLines.length, bestStart + fixedLines.length);
+      return editorLines.slice(start, end).join('\n');
+    }
 
-        let bestScore = 0, bestStart = -1;
-
-        for (let i = 0; i < editorLines.length; i++) {
-          let score = 0;
-          for (let j = 0; j < fixedLines.length && i + j < editorLines.length; j++) {
-            const el = editorLines[i + j].trim();
-            const fl = fixedLines[j].trim();
-            if (!el || !fl) continue;
-            if (el === fl) {
-              score += 2;
-            } else if (fl.length > 6 && el.includes(fl.slice(0, Math.min(fl.length, 18)))) {
-              score += 1;
-            } else if (el.length > 6 && fl.includes(el.slice(0, Math.min(el.length, 18)))) {
-              score += 1;
-            }
-          }
-          if (score > bestScore) { bestScore = score; bestStart = i; }
-        }
-
-        if (bestStart === -1 || bestScore < 1) return null;
-
-        // Extract the matched region (same number of lines as the fixed snippet)
-        const start = Math.max(0, bestStart);
-        const end   = Math.min(editorLines.length, bestStart + fixedLines.length);
-        return editorLines.slice(start, end).join('\n');
-      }
-
-      /* Build the side-by-side diff HTML for one suggestion's example */
-      function buildDiffHtml(originalSnippet, fixedCode, copyId) {
-        const diff = computeDiff(originalSnippet, fixedCode);
-        const hasChanges = diff.left.some(l  => l.type === 'removed') ||
-                           diff.right.some(r => r.type === 'added');
-        // If nothing changed (identical), just show as fixed-code block
-        if (!hasChanges) {
-          const lines = fixedCode.split('\n').map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
-          return `
+    /* Build the side-by-side diff HTML for one suggestion's example */
+    function buildDiffHtml(originalSnippet, fixedCode, copyId) {
+      const diff = computeDiff(originalSnippet, fixedCode);
+      const hasChanges = diff.left.some(l => l.type === 'removed') ||
+        diff.right.some(r => r.type === 'added');
+      // If nothing changed (identical), just show as fixed-code block
+      if (!hasChanges) {
+        const lines = fixedCode.split('\n').map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+        return `
           <div class="diff-wrapper">
             <div class="diff-header">
               <div class="diff-header-labels">
@@ -2837,8 +3072,8 @@
             </div>
             <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
           </div>`;
-        }
-        return `
+      }
+      return `
         <div class="diff-wrapper">
           <div class="diff-header">
             <div class="diff-header-labels">
@@ -2855,25 +3090,25 @@
             <div class="diff-col">${renderDiffCol(diff.right)}</div>
           </div>
         </div>`;
-      }
+    }
 
-      /* ═══════════════════════════════════════════════════════════════
-         RENDER SUGGESTIONS (with diff view)
-      ═══════════════════════════════════════════════════════════════ */
-      function renderSuggest(sugg) {
-        document.getElementById('emptySuggest').style.display = 'none';
-        const el = document.getElementById('suggestResult');
-        el.style.display = 'block';
-        document.getElementById('suggestBadge').textContent = sugg.suggestions.length || '0';
+    /* ═══════════════════════════════════════════════════════════════
+       RENDER SUGGESTIONS (with diff view)
+    ═══════════════════════════════════════════════════════════════ */
+    function renderSuggest(sugg) {
+      document.getElementById('emptySuggest').style.display = 'none';
+      const el = document.getElementById('suggestResult');
+      el.style.display = 'block';
+      document.getElementById('suggestBadge').textContent = sugg.suggestions.length || '0';
 
-        const scoreColor = sugg.overall_score >= 80 ? 'var(--green)'
-          : sugg.overall_score >= 60 ? 'var(--yellow)'
-            : 'var(--red)';
+      const scoreColor = sugg.overall_score >= 80 ? 'var(--green)'
+        : sugg.overall_score >= 60 ? 'var(--yellow)'
+          : 'var(--red)';
 
-        const circumference = 2 * Math.PI * 30;
-        const dashOffset = circumference - (sugg.overall_score / 100) * circumference;
+      const circumference = 2 * Math.PI * 30;
+      const dashOffset = circumference - (sugg.overall_score / 100) * circumference;
 
-        const ring = `
+      const ring = `
     <div class="score-ring-wrap">
       <div class="score-ring">
         <svg width="80" height="80" viewBox="0 0 80 80">
@@ -2895,40 +3130,40 @@
       </div>
     </div>`;
 
-        const cards = sugg.suggestions.length === 0
-          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
-          : sugg.suggestions.map((s, i) => {
+      const cards = sugg.suggestions.length === 0
+        ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
+        : sugg.suggestions.map((s, i) => {
 
-            let exampleHtml = '';
-            if (s.example) {
-              const copyId  = `copy-fix-${i}`;
-              const rawLines = s.example.split('\n');
+          let exampleHtml = '';
+          if (s.example) {
+            const copyId = `copy-fix-${i}`;
+            const rawLines = s.example.split('\n');
 
-              // Case 1: example has unified diff markers (- / +)
-              const hasMarkers = rawLines.some(l => /^[\-\+]/.test(l) && l.length > 1);
-              if (hasMarkers) {
-                const originalText = rawLines.filter(l => !l.startsWith('+')).map(l => l.replace(/^-\s?/, '')).join('\n');
-                const fixedText    = rawLines.filter(l => !l.startsWith('-')).map(l => l.replace(/^\+\s?/, '')).join('\n');
-                exampleHtml = buildDiffHtml(originalText, fixedText, copyId);
+            // Case 1: example has unified diff markers (- / +)
+            const hasMarkers = rawLines.some(l => /^[\-\+]/.test(l) && l.length > 1);
+            if (hasMarkers) {
+              const originalText = rawLines.filter(l => !l.startsWith('+')).map(l => l.replace(/^-\s?/, '')).join('\n');
+              const fixedText = rawLines.filter(l => !l.startsWith('-')).map(l => l.replace(/^\+\s?/, '')).join('\n');
+              exampleHtml = buildDiffHtml(originalText, fixedText, copyId);
 
               // Case 2: two blocks separated by a blank line (before \n\n after)
-              } else {
-                const blankIdx = rawLines.findIndex(l => l.trim() === '');
-                if (blankIdx > 0 && blankIdx < rawLines.length - 1) {
-                  const originalText = rawLines.slice(0, blankIdx).join('\n');
-                  const fixedText    = rawLines.slice(blankIdx + 1).join('\n');
-                  exampleHtml = buildDiffHtml(originalText, fixedText, copyId);
+            } else {
+              const blankIdx = rawLines.findIndex(l => l.trim() === '');
+              if (blankIdx > 0 && blankIdx < rawLines.length - 1) {
+                const originalText = rawLines.slice(0, blankIdx).join('\n');
+                const fixedText = rawLines.slice(blankIdx + 1).join('\n');
+                exampleHtml = buildDiffHtml(originalText, fixedText, copyId);
 
                 // Case 3 (most common from API): single fixed-code block
                 // → find matching region in editor as "Before", diff against example as "After"
+              } else {
+                const originalSnippet = findOriginalSnippet(editor.value, s.example);
+                if (originalSnippet) {
+                  exampleHtml = buildDiffHtml(originalSnippet, s.example, copyId);
                 } else {
-                  const originalSnippet = findOriginalSnippet(editor.value, s.example);
-                  if (originalSnippet) {
-                    exampleHtml = buildDiffHtml(originalSnippet, s.example, copyId);
-                  } else {
-                    // No match – show fixed code as green "Fixed Code" block
-                    const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
-                    exampleHtml = `
+                  // No match – show fixed code as green "Fixed Code" block
+                  const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+                  exampleHtml = `
                     <div class="diff-wrapper">
                       <div class="diff-header">
                         <div class="diff-header-labels">
@@ -2941,12 +3176,12 @@
                       </div>
                       <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
                     </div>`;
-                  }
                 }
               }
             }
+          }
 
-            return `
+          return `
       <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
           <span class="suggest-cat">${s.category}</span>
@@ -2955,245 +3190,302 @@
         <div class="suggest-desc">${s.description}</div>
         ${exampleHtml}
       </div>`;
-          }).join('');
+        }).join('');
 
-        el.innerHTML = ring + cards;
+      el.innerHTML = ring + cards;
 
-        // Wire up "Copy fixed" buttons after DOM insertion
-        sugg.suggestions.forEach((s, i) => {
-          if (!s.example) return;
-          const btn = document.getElementById(`copy-fix-${i}`);
-          if (!btn) return;
+      // Wire up "Copy fixed" buttons after DOM insertion
+      sugg.suggestions.forEach((s, i) => {
+        if (!s.example) return;
+        const btn = document.getElementById(`copy-fix-${i}`);
+        if (!btn) return;
 
-          // Always copy the after/fixed code
-          const rawLines   = s.example.split('\n');
-          const hasMarkers = rawLines.some(l => /^[\-\+]/.test(l) && l.length > 1);
-          let fixedCode;
-          if (hasMarkers) {
-            fixedCode = rawLines.filter(l => !l.startsWith('-')).map(l => l.replace(/^\+\s?/, '')).join('\n');
-          } else {
-            const blankIdx = rawLines.findIndex(l => l.trim() === '');
-            fixedCode = blankIdx > 0 && blankIdx < rawLines.length - 1
-              ? rawLines.slice(blankIdx + 1).join('\n')
-              : s.example;
-          }
-
-          btn.addEventListener('click', () => {
-            navigator.clipboard.writeText(fixedCode).then(() => {
-              btn.textContent = '\u2713 Copied!';
-              btn.style.background = 'rgba(34,212,123,0.25)';
-              setTimeout(() => {
-                btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy fixed`;
-                btn.style.background = '';
-              }, 2000);
-            }).catch(() => toast('Copy failed', 'error'));
-          });
-        });
-      }
-
-      /* ═══════════════════════════════════════════════════════════════
-         SHIMMER LOADING
-      ═══════════════════════════════════════════════════════════════ */
-      function showShimmers() {
-        const shims = '<div class="shimmer-card"></div>'.repeat(3);
-        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
-          const el = document.getElementById(id);
-          el.style.display = 'block';
-          el.innerHTML = shims;
-        });
-        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
-          document.getElementById(id).style.display = 'none';
-        });
-      }
-
-      function resetResults() {
-        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
-          const el = document.getElementById(id);
-          el.style.display = 'none';
-          el.innerHTML = '';
-        });
-        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
-          document.getElementById(id).style.display = 'flex';
-        });
-        ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => {
-          document.getElementById(id).textContent = '';
-        });
-        resultActions.style.display = 'none';
-        document.getElementById('engineBar').style.display = 'none';
-        engineInfo.textContent = '';
-        timeInfo.textContent = '';
-        currentResult = null;
-      }
-
-      /* ═══════════════════════════════════════════════════════════════
-         HISTORY
-      ═══════════════════════════════════════════════════════════════ */
-      function addToHistory(code, result) {
-        const lang = result.explanation?.language || result.debugging?.language||result.suggestions?.language||selectedLang;
-        const entry = {
-          id: Date.now(),
-          code,
-          result,
-          lang,
-          ts: new Date().toLocaleTimeString(),
-          preview: code.slice(0, 60).replace(/\n/g, ' '),
-        };
-        history.unshift(entry);
-        if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-        localStorage.setItem('qyx_history', JSON.stringify(history));
-        renderHistory();
-      }
-
-      function renderHistory() {
-        if (!history.length) {
-          historyList.innerHTML = '<div class="list-empty">No history yet. Run your first analysis.</div>';
-          return;
+        // Always copy the after/fixed code
+        const rawLines = s.example.split('\n');
+        const hasMarkers = rawLines.some(l => /^[\-\+]/.test(l) && l.length > 1);
+        let fixedCode;
+        if (hasMarkers) {
+          fixedCode = rawLines.filter(l => !l.startsWith('-')).map(l => l.replace(/^\+\s?/, '')).join('\n');
+        } else {
+          const blankIdx = rawLines.findIndex(l => l.trim() === '');
+          fixedCode = blankIdx > 0 && blankIdx < rawLines.length - 1
+            ? rawLines.slice(blankIdx + 1).join('\n')
+            : s.example;
         }
-        historyList.innerHTML = history.map(h => `
+
+        btn.addEventListener('click', () => {
+          navigator.clipboard.writeText(fixedCode).then(() => {
+            btn.textContent = '\u2713 Copied!';
+            btn.style.background = 'rgba(34,212,123,0.25)';
+            setTimeout(() => {
+              btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy fixed`;
+              btn.style.background = '';
+            }, 2000);
+          }).catch(() => toast('Copy failed', 'error'));
+        });
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SHIMMER LOADING
+    ═══════════════════════════════════════════════════════════════ */
+    function showShimmers() {
+      const shims = '<div class="shimmer-card"></div>'.repeat(3);
+      ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.display = 'block';
+        el.innerHTML = shims;
+      });
+      ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+    }
+
+    function resetResults() {
+      ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.display = 'none';
+        el.innerHTML = '';
+      });
+      ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+        document.getElementById(id).style.display = 'flex';
+      });
+      ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => {
+        document.getElementById(id).textContent = '';
+      });
+      resultActions.style.display = 'none';
+      document.getElementById('engineBar').style.display = 'none';
+      engineInfo.textContent = '';
+      timeInfo.textContent = '';
+      currentResult = null;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       HISTORY
+    ═══════════════════════════════════════════════════════════════ */
+    function addToHistory(code, result) {
+      const lang = result.explanation?.language || result.debugging?.language || result.suggestions?.language || selectedLang;
+      const entry = {
+        id: Date.now(),
+        code,
+        result,
+        lang,
+        ts: new Date().toLocaleTimeString(),
+        preview: code.slice(0, 60).replace(/\n/g, ' '),
+      };
+      history.unshift(entry);
+      if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+      localStorage.setItem('qyx_history', JSON.stringify(history));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      if (!history.length) {
+        historyList.innerHTML = '<div class="list-empty">No history yet. Run your first analysis.</div>';
+        return;
+      }
+      historyList.innerHTML = history.map(h => `
     <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="Load history entry for ${h.lang} at ${h.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
       <span class="history-lang">${h.lang || '?'}</span>
       <span class="history-thumb">${escHtml(h.preview)}…</span>
       <span class="history-meta">${h.ts}</span>
     </div>`).join('');
+    }
+
+    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      if (!window.confirm('Are you sure you want to clear your history? This cannot be undone.')) return;
+
+      history = [];
+      localStorage.removeItem('qyx_history');
+      renderHistory();
+      toast('History cleared', 'info');
+    });
+    function loadEntry(id) {
+      const entry = history.find(h => h.id === Number(id));
+      console.log(entry);
+      if (!entry) return;
+      editor.value = entry.code;
+
+      if (entry.lang) {
+        setLanguage(entry.lang.toLowerCase());
       }
 
-document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-  if (!window.confirm('Are you sure you want to clear your history? This cannot be undone.')) return;
+      updateEditor();
+      currentResult = entry.result;
+      renderResults(entry.result, entry.code);
+      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+    }
 
-  history = [];
-  localStorage.removeItem('qyx_history');
-  renderHistory();
-  toast('History cleared', 'info');
-});
-      function loadEntry(id) {
-        const entry = history.find(h => h.id === Number (id));
-        console.log(entry);
-        if (!entry) return;
-        editor.value = entry.code;
+    /* ═══════════════════════════════════════════════════════════════
+       FAVORITES
+    ═══════════════════════════════════════════════════════════════ */
+    document.getElementById('favBtn').addEventListener('click', () => {
+      if (!currentResult || !editor.value.trim()) return;
+      const entry = {
+        id: Date.now(),
+        code: editor.value,
+        result: currentResult,
+        lang: currentResult.explanation?.language || selectedLang,
+        ts: new Date().toLocaleDateString(),
+        preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
+      };
+      favorites.unshift(entry);
+      if (favorites.length > 30) favorites = favorites.slice(0, 30);
+      localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
+      renderFavorites();
+      toast('Saved to favorites', 'success');
+    });
 
-        if(entry.lang){
-          setLanguage(entry.lang.toLowerCase());
-        }
-        
-        updateEditor();
-        currentResult = entry.result;
-        renderResults(entry.result, entry.code);
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+    function renderFavorites() {
+      if (!favorites.length) {
+        favList.innerHTML = '<div class="list-empty">No favorites saved yet.</div>';
+        return;
       }
-
-      /* ═══════════════════════════════════════════════════════════════
-         FAVORITES
-      ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('favBtn').addEventListener('click', () => {
-        if (!currentResult || !editor.value.trim()) return;
-        const entry = {
-          id: Date.now(),
-          code: editor.value,
-          result: currentResult,
-          lang: currentResult.explanation?.language || selectedLang,
-          ts: new Date().toLocaleDateString(),
-          preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
-        };
-        favorites.unshift(entry);
-        if (favorites.length > 30) favorites = favorites.slice(0, 30);
-        localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
-        renderFavorites();
-        toast('Saved to favorites', 'success');
-      });
-
-      function renderFavorites() {
-        if (!favorites.length) {
-          favList.innerHTML = '<div class="list-empty">No favorites saved yet.</div>';
-          return;
-        }
-        favList.innerHTML = favorites.map(f => `
+      favList.innerHTML = favorites.map(f => `
     <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="Load favorite entry for ${f.lang} at ${f.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
       <span class="history-lang">${f.lang || '?'}</span>
       <span class="history-thumb">${escHtml(f.preview)}…</span>
       <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     </div>`).join('');
-      }
+    }
 
-document.getElementById('clearFavsBtn').addEventListener('click', () => {
-  if (!window.confirm('Are you sure you want to clear your favorites? This cannot be undone.')) return;
-  
-  favorites = [];
-  localStorage.removeItem('qyx_favorites');
-  renderFavorites();
-  toast('Favorites cleared', 'info');
-});
-      function loadFav(id) {
-        const entry = favorites.find(f => f.id === Number(id));
-        if (!entry) return;
-        editor.value = entry.code;
-        selectedLang = entry.lang.toLowerCase();
-        document.querySelectorAll('.lang-tab').forEach(tab =>{
-          const active = tab.dataset.lang === selectedLang;
-          tab.classList.toggle('active', active);
-          tab.setAttribute('aria-selected', active ? 'true' : 'false');
-        });
-        updateEditor();
-        currentResult = entry.result;
-        renderResults(entry.result, entry.code);
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      }
-      /* ═══════════════════════════════════════════════════════════════
-         DOWNLOAD
-      ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('downloadBtn').addEventListener('click', () => {
-        if (!currentResult) return;
-        const text = buildReport(currentResult, editor.value);
-        const blob = new Blob([text], { type: 'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `qyverixai-report-${Date.now()}.txt`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        toast('Report downloaded', 'success');
+    document.getElementById('clearFavsBtn').addEventListener('click', () => {
+      if (!window.confirm('Are you sure you want to clear your favorites? This cannot be undone.')) return;
+
+      favorites = [];
+      localStorage.removeItem('qyx_favorites');
+      renderFavorites();
+      toast('Favorites cleared', 'info');
+    });
+    function loadFav(id) {
+      const entry = favorites.find(f => f.id === Number(id));
+      if (!entry) return;
+      editor.value = entry.code;
+      selectedLang = entry.lang.toLowerCase();
+      document.querySelectorAll('.lang-tab').forEach(tab => {
+        const active = tab.dataset.lang === selectedLang;
+        tab.classList.toggle('active', active);
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
       });
+      updateEditor();
+      currentResult = entry.result;
+      renderResults(entry.result, entry.code);
+      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+    }
+    /* ═══════════════════════════════════════════════════════════════
+       DOWNLOAD
+    ═══════════════════════════════════════════════════════════════ */
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      if (!currentResult) return;
+      const text = buildReport(currentResult, editor.value);
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `qyverixai-report-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('Report downloaded', 'success');
+    });
 
-      function buildReport(r, code) {
-        const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
-        if (r.explanation) {
-          lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
-        }
-        if (r.debugging) {
-          lines.push('── DEBUGGING ──', r.debugging.summary, '');
-          r.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
-        }
-        if (r.suggestions) {
-          lines.push('── SUGGESTIONS ──', `Score: ${r.suggestions.overall_score}/100 (${r.suggestions.grade})`, r.suggestions.next_step, '');
-          r.suggestions.suggestions.forEach(s => lines.push(`[${s.priority.toUpperCase()}] ${s.category}: ${s.description}`, ''));
-        }
-        lines.push('── CODE ──', '', code);
-        return lines.join('\n');
+    function buildReport(r, code) {
+      const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
+      if (r.explanation) {
+        lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
       }
+      if (r.debugging) {
+        lines.push('── DEBUGGING ──', r.debugging.summary, '');
+        r.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
+      }
+      if (r.suggestions) {
+        lines.push('── SUGGESTIONS ──', `Score: ${r.suggestions.overall_score}/100 (${r.suggestions.grade})`, r.suggestions.next_step, '');
+        r.suggestions.suggestions.forEach(s => lines.push(`[${s.priority.toUpperCase()}] ${s.category}: ${s.description}`, ''));
+      }
+      lines.push('── CODE ──', '', code);
+      return lines.join('\n');
+    }
 
-      /* ═══════════════════════════════════════════════════════════════
-         TOAST
-      ═══════════════════════════════════════════════════════════════ */
-      function toast(msg, type = 'info') {
-        const container = document.getElementById('toastContainer');
-        const el = document.createElement('div');
-        el.className = 'toast ' + type;
-        const icons = { success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>', error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' };
-        el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + msg + '</span>';
-        container.appendChild(el);
-        setTimeout(() => {
-          el.classList.add('fadeout');
-          el.addEventListener('animationend', () => el.remove());
-        }, 3000);
-      }
+    /* ═══════════════════════════════════════════════════════════════
+       TOAST
+    ═══════════════════════════════════════════════════════════════ */
+    function toast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      el.className = 'toast ' + type;
+      const icons = { success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>', error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' };
+      el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + msg + '</span>';
+      container.appendChild(el);
+      setTimeout(() => {
+        el.classList.add('fadeout');
+        el.addEventListener('animationend', () => el.remove());
+      }, 3000);
+    }
 
-      /* ═══════════════════════════════════════════════════════════════
-         HELPERS
-      ═══════════════════════════════════════════════════════════════ */
-      function escHtml(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      }
-      function renderMarkdown(s) {
-        return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-          .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
+    /* ═══════════════════════════════════════════════════════════════
+       HELPERS
+    ═══════════════════════════════════════════════════════════════ */
+    function escHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function renderMarkdown(s) {
+      return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
+    }
+    function attachIssueNavigation() {
+      const debugResult = document.getElementById('debugResult');
+      if (!debugResult) return;
+      // Prevent duplicate delegation 
+      if (debugResult.dataset.navBound === 'true') return; debugResult.dataset.navBound = 'true';
+      const jumpToIssueLine = (card) => {
+        if (!card) return;
+        // Active state
+        document.querySelectorAll('.issue-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        const line = parseInt(card.dataset.line, 10);
+        if (!line || !editor) return;
+
+          const lines = editor.value.split('\n');
+
+            let cursorPos = 0;
+
+            for (let i = 0; i < line - 1; i++) {
+              cursorPos += lines[i].length + 1;
+            }
+
+            editor.focus();
+
+            editor.setSelectionRange(cursorPos, cursorPos);
+
+            const lineHeight = parseFloat(getComputedStyle(editor).lineHeight) || 24;
+
+            editor.scrollTo({
+              top: Math.max(0, (line - 3) * lineHeight),
+              behavior: 'smooth'
+            });
+
+            editor.classList.remove('editor-highlight');
+
+            void editor.offsetWidth;
+
+            editor.classList.add('editor-highlight');
+          setTimeout(() => { editor.classList.remove('editor-highlight'); }, 900); };
+
+          // Click delegation 
+          debugResult.addEventListener('click', (e) => { 
+            const card = e.target.closest('.issue-card'); 
+            if (!card) return; 
+            jumpToIssueLine(card); 
+          });
+
+          // Keyboard delegation
+          debugResult.addEventListener('keydown', (e) => 
+          { 
+            if (e.key !== 'Enter' && e.key !== ' ') 
+            return; 
+          const card = e.target.closest('.issue-card'); 
+          if (!card) return; 
+          e.preventDefault(); 
+          jumpToIssueLine(card); 
+        }); 
       }
 
       /* ═══════════════════════════════════════════════════════════════
@@ -3353,7 +3645,7 @@ int main() {
           btn.textContent = 'Subscribe';
         }
       });
-    </script>
+  </script>
 </body>
 
 </html>
