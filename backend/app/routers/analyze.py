@@ -1,4 +1,5 @@
 """Full analysis router — POST /analyze/ and POST /analyze/stream"""
+from __future__ import annotations
 import asyncio
 import json
 import time
@@ -16,7 +17,6 @@ from ..services.code_assistant import (
 )
 """Full analysis router — POST /analyze/"""
 """Full analysis router - POST /analyze/ and POST /analyze/zip/."""
-from __future__ import annotations
 
 import time
 import zipfile
