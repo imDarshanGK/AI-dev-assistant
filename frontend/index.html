@@ -1,17 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QyverixAI — AI Developer Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet" />
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-
   <style>
     /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -289,6 +287,32 @@
     .theme-btn:hover {
       color: var(--text);
       border-color: var(--border2)
+    }
+
+    .lang-select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      padding: 8px 12px;
+      border-radius: var(--r2);
+      font-size: 0.85rem;
+      font-weight: 500;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      outline: none;
+      transition: all var(--transition);
+      margin-right: 4px;
+    }
+
+    .lang-select:hover,
+    .lang-select:focus {
+      color: var(--text);
+      border-color: var(--border2);
+      background: var(--bg3);
+    }
+
+    [data-theme="light"] .lang-select {
+      background: var(--bg2);
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -1512,7 +1536,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
-   BOTTOM PANELS — History, Favorites & Progress Tabs
+   BOTTOM PANELS — History & Favorites
 ═══════════════════════════════════════════════════════════════ */
     .bottom-grid {
       display: grid;
@@ -1577,178 +1601,115 @@
       border-radius: 99px;
       background: var(--bg3);
       color: var(--accent);
-      border: 1px solid rgba(91, 156, 246, 0.15);
-      text-transform: uppercase;
-    }
-
-    .list-empty {
-      font-size: 0.8rem;
-      color: var(--text3);
-      text-align: center;
-      padding: 32px 0;
+      border: 1px solid rgba(91, 156, 246, 0.2);
+      flex-shrink: 0;
     }
 
     .btn-clear {
-      font-size: 0.72rem;
-      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: var(--r2);
       background: none;
       border: 1px solid var(--border);
       color: var(--text3);
-      padding: 4px 10px;
-      border-radius: 4px;
+      font-size: 0.75rem;
       cursor: pointer;
       transition: all var(--transition);
     }
 
     .btn-clear:hover {
-      color: var(--red);
-      border-color: rgba(242, 87, 87, 0.25);
-      background: rgba(242, 87, 87, 0.05);
+      border-color: var(--red);
+      color: var(--red)
     }
 
-    /* ═══════════════════════════════════════════════════════════════
-   SETTINGS POPUP
-═══════════════════════════════════════════════════════════════ */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(5, 6, 8, 0.8);
-      backdrop-filter: blur(8px);
-      z-index: 1000;
+    .list-empty {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity var(--transition);
+      height: 80px;
+      font-size: 0.82rem;
+      color: var(--text3);
     }
 
-    .modal-backdrop.active {
-      opacity: 1;
-      pointer-events: auto
+    /* ═══════════════════════════════════════════════════════════════
+   API CONFIG
+═══════════════════════════════════════════════════════════════ */
+    .api-config-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
     }
 
-    .modal {
-      background: var(--bg2);
-      border: 1px solid var(--border2);
-      width: 100%;
-      max-width: 460px;
-      border-radius: var(--r);
-      box-shadow: var(--shadow);
-      transform: scale(0.95);
-      transition: transform var(--transition);
-      overflow: hidden;
-    }
-
-    .modal-backdrop.active .modal {
-      transform: scale(1)
-    }
-
-    .modal-body {
-      padding: 24px
-    }
-
-    .modal-body h3 {
-      font-family: var(--font-disp);
-      font-size: 1.25rem;
-      font-weight: 800;
-      margin-bottom: 6px
-    }
-
-    .modal-body p {
-      font-size: 0.85rem;
-      color: var(--text2);
-      margin-bottom: 20px
-    }
-
-    .form-group {
-      margin-bottom: 16px
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text2);
-      margin-bottom: 6px;
-    }
-
-    .input-text {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: var(--r2);
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 13px;
-      outline: none;
-      transition: all var(--transition);
-    }
-
-    .input-text:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(91, 156, 246, 0.15);
-    }
-
-    .api-status-bar {
+    .api-config-inner {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.78rem;
-      color: var(--text2);
-      margin-top: 8px;
+      gap: 8px
     }
 
-    .status-dot {
-      width: 6px;
-      height: 6px;
+    .api-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text3)
+    }
+
+    .api-dot {
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--text3);
+      animation: blink 2s infinite;
     }
 
-    .status-dot.connected {
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
+    .api-dot.connected {
+      background: var(--green)
     }
 
-    .modal-footer {
-      background: var(--bg3);
-      padding: 14px 24px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      border-top: 1px solid var(--border);
+    #apiUrl {
+      flex: 1;
+      padding: 7px 12px;
+      border-radius: var(--r2);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      outline: none;
+      transition: border-color var(--transition);
     }
 
-    /* ── Toast Notifications ── */
+    #apiUrl:focus {
+      border-color: var(--accent)
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════════ */
     #toastContainer {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      z-index: 9999;
       display: flex;
       flex-direction: column;
       gap: 8px;
+      z-index: 9999;
     }
 
     .toast {
-      background: var(--bg2);
-      border: 1px solid var(--border2);
-      color: var(--text);
       padding: 12px 18px;
       border-radius: var(--r2);
+      background: var(--bg2);
+      border: 1px solid var(--border2);
       box-shadow: var(--shadow);
-      font-size: 0.85rem;
-      font-weight: 500;
+      font-size: 0.84rem;
       display: flex;
       align-items: center;
       gap: 10px;
-      min-width: 280px;
-      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      min-width: 220px;
+      animation: toastIn 0.3s ease;
+      color: var(--text);
     }
 
     @keyframes toastIn {
@@ -1837,103 +1798,23 @@
 ═══════════════════════════════════════════════════════════════ */
     .result-actions {
       display: flex;
+      align-items: center;
       gap: 8px;
-      padding: 12px 18px;
-      background: var(--bg3);
+      padding: 10px 16px;
       border-top: 1px solid var(--border);
-      justify-content: flex-end;
+    }
+
+    .result-actions .icon-btn {
+      font-size: 11px;
+      gap: 4px;
+      width: auto;
+      padding: 0 10px;
+      height: 28px
     }
 
     /* ═══════════════════════════════════════════════════════════════
-   RESPONSIVE OVERRIDES
+   STAT BAR (quick summary at top of result)
 ═══════════════════════════════════════════════════════════════ */
-    @media(max-width:600px) {
-      .hero {
-        padding: 40px 0 24px
-      }
-
-      .features-row {
-        padding-bottom: 24px
-      }
-
-      .result-content {
-        min-height: 280px;
-        max-height: 420px;
-        padding: 14px
-      }
-
-      .bottom-grid {
-        gap: 14px
-      }
-
-      .history-list,
-      .fav-list {
-        max-height: 200px
-      }
-
-      .score-ring-wrap {
-        flex-direction: column;
-        text-align: center;
-        gap: 12px
-      }
-
-      .stat-bar {
-        gap: 6px
-      }
-
-      .stat-chip {
-        padding: 8px 10px
-      }
-
-      .stat-chip-num {
-        font-size: 1.2rem
-      }
-
-      #toastContainer {
-        bottom: 12px;
-        right: 12px;
-        left: 12px
-      }
-
-      .toast {
-        min-width: unset;
-        width: 100%
-      }
-
-      .hero-cta {
-        gap: 8px
-      }
-
-      .btn {
-        padding: 11px 18px;
-        font-size: 0.85rem
-      }
-    }
-
-    @media(max-width:400px) {
-      .app {
-        padding: 0 14px 60px
-      }
-
-      .hero h1 {
-        font-size: 1.9rem
-      }
-
-      .feat-pill-info p {
-        display: none
-      }
-
-      .lang-tab {
-        padding: 7px 10px;
-        font-size: 0.72rem
-      }
-
-      .result-tab {
-        padding: 9px 12px;
-        font-size: 0.75rem
-      }
-    }
-  </style>
 .stat-bar{
   display:flex;gap:8px;flex-wrap:wrap;
   margin-bottom:16px;
@@ -1993,483 +1874,347 @@
 <body>
   <div class="bg-orb bg-orb-1"></div>
   <div class="bg-orb bg-orb-2"></div>
-  
+
   <div class="app">
+
+    <!-- ── NAV ──────────────────────────────────────────────────── -->
     <nav>
       <a href="#" class="nav-logo">
-        <div class="logo-hex">Q</div> QyverixAI
-        <span style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.2);margin-left:4px;letter-spacing:0.03em;text-transform:uppercase">v1.2</span>
+        <div class="logo-hex">Q</div>
+        QyverixAI
+        <span
+          style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.25);letter-spacing:0.04em;margin-left:4px">v3.0</span>
       </a>
       <div class="nav-links">
-        <button class="nav-link" id="openSettingsBtn" aria-label="Open network API endpoint configurations">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg> Configure API
-        </button>
-        <button class="theme-btn" id="themeToggleBtn" aria-label="Toggle structural visualization color theme view mode">
+        <select id="langSelect" class="lang-select" aria-label="Select Language" data-i18n-aria-label="lang_select_label">
+          <option value="en" data-i18n="lang_option_en">English</option>
+          <option value="ta" data-i18n="lang_option_ta">தமிழ் (Tamil)</option>
+          <option value="hi" data-i18n="lang_option_hi">हिन्दी (Hindi)</option>
+          <option value="fr" data-i18n="lang_option_fr">Français (French)</option>
+        </select>
+        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          <span data-i18n="nav_github">GitHub</span>
+        </a>
+        <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+          </svg>
+          <span data-i18n="nav_api_docs">API Docs</span>
+        </a>
+        <button class="theme-btn" id="themeToggle" title="Toggle theme" data-i18n-title="btn_toggle_theme" data-i18n-aria-label="btn_toggle_theme" aria-label="Toggle dark mode"
+          aria-pressed="false">
+          <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
           </svg>
         </button>
       </div>
     </nav>
 
-    <header class="hero">
+    <!-- ── HERO ──────────────────────────────────────────────────── -->
+    <section class="hero">
       <div class="hero-badge">
-        <span class="badge-dot"></span> Next-Gen Static Rule Engine
+        <div class="badge-dot"></div>
+        <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
       </div>
-      <h1>Analyze. Understand.<br /><em>Ship faster.</em></h1>
-      <p class="hero-sub">
-        Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.
+      <h1 data-i18n="hero_title">Debug. Understand.<br /><em>Ship faster.</em></h1>
+      <p class="hero-sub" data-i18n="hero_subtitle">
+        Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
+        suggestions — no account needed.
       </p>
       <div class="hero-cta">
-        <button class="btn btn-primary" onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
+        <button class="btn btn-primary"
+          onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polygon points="5,3 19,12 5,21" />
-          </svg> Start Analyzing
+          </svg>
+          <span data-i18n="btn_start_analyzing">Start Analyzing</span>
         </button>
         <button class="btn btn-secondary" onclick="loadSample()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="16,18 22,12 16,6" />
             <polyline points="8,6 2,12 8,18" />
-          </svg> Try Sample Code
+          </svg>
+          <span data-i18n="btn_try_sample">Try Sample Code</span>
         </button>
         <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.28 1.83 1.28 1.05 1.81 2.77 1.29 3.45.99.1-.76.41-1.29.75-1.59-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.23-3.22-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23.96-.27 1.98-.41 3-.41s2.04.14 3 .41c2.3-1.55 3.3-1.23 3.3-1.23.66 1.65.25 2.87.12 3.17.76.84 1.23 1.91 1.23 3.22 0 4.61-2.82 5.62-5.5 5.92.42.36.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
-          </svg> GitHub
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32(3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          <span data-i18n="btn_star_github">Star on GitHub</span>
         </a>
       </div>
-    </header>
+    </section>
 
+    <!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
     <div class="features-row">
       <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(34,212,123,0.1);color:var(--green)">✓</div>
+        <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg></div>
         <div class="feat-pill-info">
-          <h4>Zero Data Overhead</h4>
-          <p>Local state sandbox execution</p>
+          <h4 data-i18n="pill_patterns_title">40+ Bug Patterns</h4>
+          <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
         </div>
       </div>
       <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(91,156,246,0.1);color:var(--accent)">⚓</div>
+        <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg></div>
         <div class="feat-pill-info">
-          <h4>Lint Ecosystem</h4>
-          <p>Structural validation pipeline</p>
+          <h4 data-i18n="mode_explain">Code Explanation</h4>
+          <p data-i18n="pill_explain_desc">Plain English breakdowns</p>
         </div>
       </div>
       <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(124,58,237,0.1);color:var(--accent2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4 data-i18n="mode_improve">Smart Suggestions</h4>
+          <p data-i18n="pill_improve_desc">Quality score + grade</p>
+        </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4 data-i18n="pill_theme_title">Dark / Light Mode</h4>
+          <p data-i18n="pill_theme_desc">Persisted preference</p>
+        </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4>File Upload</h4>
-          <p>.py .js .ts .java .cpp</p>
+          <h4 data-i18n="pill_upload_title">File Upload</h4>
+          <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp</p>
         </div>
       </div>
     </div>
 
+    <!-- ── WORKSPACE ─────────────────────────────────────────────── -->
     <section id="workspace" class="workspace">
-      <div class="panel">
+
+      <!-- Editor Panel -->
+      <div class="panel" style="grid-column:1">
         <div class="panel-header">
           <div class="panel-title">
-            <span></span> Code Editor
+            <span></span>
+            <span data-i18n="editor_title">Code Editor</span>
           </div>
           <div class="panel-actions">
-            <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button" aria-label="Upload code file" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <label class="icon-btn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" tabindex="0" role="button"
+              aria-label="Upload code file"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17,8 12,3 7,8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1" />
+              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none"
+                tabindex="-1" />
             </label>
-            <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <polyline points="3,6 5,6 21,6" />
+                <path d="M19 6l-1 14H6L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
+            </button>
+            <button class="icon-btn" id="copyBtn" title="Copy code" data-i18n-title="btn_copy" data-i18n-aria-label="btn_copy" aria-label="Copy code to clipboard">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
             </button>
           </div>
         </div>
 
-        <div class="lang-tabs" role="tablist" aria-label="Programming Languages Support">
-          <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
-          <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
-          <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
-          <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
+        <!-- Language tabs -->
+        <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
+          <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true" data-i18n="lang_tab_python">Python</button>
+          <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false" data-i18n="lang_tab_javascript">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false" data-i18n="lang_tab_typescript">TypeScript</button>
+          <button class="lang-tab" data-lang="java" role="tab" aria-selected="false" data-i18n="lang_tab_java">Java</button>
+          <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false" data-i18n="lang_tab_cpp">C++</button>
         </div>
-
+        <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap">
-          <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
-          <textarea id="codeEditor" spellcheck="false" placeholder="Write or paste your implementation code matrix block structures here..." aria-label="Code Editor Content Input Container Field Matrix Element"></textarea>
-
-    <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Dark / Light Mode</h4>
-      <p>Persisted preference</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>File Upload</h4>
-      <p>.py .js .ts .java .cpp</p>
-    </div>
-  </div>
-</div>
-
-<!-- ── WORKSPACE ─────────────────────────────────────────────── -->
-<section id="workspace" class="workspace">
-
-  <!-- Editor Panel -->
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <span></span>
-        Code Editor
-      </div>
-      <div class="panel-actions">
-        <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button" aria-label="Upload code file" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1"/>
-        </label>
-        <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-        </button>
-        <button class="icon-btn" id="copyBtn" title="Copy code" aria-label="Copy code to clipboard">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Language tabs -->
-    <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
-      <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
-      <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
-      <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
-      <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
-      <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
-    </div>
-        <!-- Editor -->
-        <div class="editor-wrap">
-          <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…"
-            spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" aria-label="Code Editor"></textarea>
+          <div class="line-numbers" id="lineNumbers">1</div>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
         </div>
 
         <div class="editor-footer">
-          <span id="charCount">Paste or type code to begin</span>
-          <span id="langDisplay" style="text-transform:uppercase;font-weight:600;color:var(--accent)">python</span>
-        </div>
-
-        <div class="mode-row" role="tablist" aria-label="Analysis Mode Optimization View Selection Matrices Grid">
-          <button class="mode-btn active" data-mode="analyze" role="tab" aria-selected="true">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14,2 14,8 20,8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <polyline points="10 9 9 9 8 9" />
-              </svg></span>
-            <span class="mode-btn-label">Full Audit</span>
-          </button>
-          <button class="mode-btn" data-mode="explain" role="tab" aria-selected="false">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-              </svg></span>
-            <span class="mode-btn-label">Explain</span>
-          </button>
-          <button class="mode-btn" data-mode="debug" role="tab" aria-selected="false">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M8 2l1.5 1.5" />
-                <path d="M14.5 3.5L16 2" />
-                <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
-                <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
-                <line x1="12" y1="12" x2="12" y2="16" />
-                <path d="M4.5 15H2" />
-                <path d="M22 15h-2.5" />
-                <path d="M4.5 19l-2 2" />
-                <path d="M19.5 19l2 2" />
-              </svg></span>
-            <span class="mode-btn-label">Debug</span>
-          </button>
-          <button class="mode-btn" data-mode="suggest" role="tab" aria-selected="false">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
-              </svg></span>
-            <span class="mode-btn-label">Improve</span>
-          </button>
+          <div id="charCount">0 chars · 0 lines</div>
+          <div style="display:flex;gap:8px">
+            <div class="mode-row" role="tablist" aria-label="Mode selector">
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false">Improve</button>
+            </div>
+          </div>
         </div>
 
         <div class="analyze-row">
-          <button class="btn-analyze" id="analyzeBtn" aria-label="Trigger source code compilation sequence rule assessment framework">
-            <div class="spinner" aria-hidden="true"></div>
-            <span class="btn-text">Execute Analysis</span>
+          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
+            <div class="spinner" id="spinner"></div>
+            <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
         </div>
+
+        <!-- Result action buttons (hidden until results) -->
+        <div id="resultActions" class="result-actions" style="display:none">
+          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
+          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
+        </div>
+
       </div>
 
-      <div class="panel" id="resultBlock">
-        <div class="result-tabs" role="tablist" aria-label="Analysis Results Framework">
-          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <button class="btn-analyze" id="analyzeBtn" aria-label="Analyze Code">
-            <div class="spinner" id="spinner" aria-hidden="true"></div>
-            <span class="btn-text">Analyze Code</span>
-          </button>
-        </div>
-      </div>
       <!-- Results Panel -->
-      <div class="panel">
+      <div class="panel" style="grid-column:2">
         <div class="panel-header">
-          <div class="panel-title">Analysis Results</div>
-          <div class="panel-actions" id="resultActions" style="display:none">
-            <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save analysis to favorites"><svg
-                width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                aria-hidden="true">
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg></button>
-            <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7,10 12,15 17,10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-            </button>
-          </div>
+          <div class="panel-title" data-i18n="results_title">Analysis Results</div>
+          <div class="panel-actions"></div>
         </div>
 
-        <!-- Result tabs -->
-        <div class="result-tabs" role="tablist" aria-label="Analysis Results">
-          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true"
-            aria-controls="pane-explain">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              aria-hidden="true">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-            </svg> Explain <span class="tab-badge" id="explainBadge"></span>
+        <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
+          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
+            <span data-i18n="tab_explain">Explain</span>
+            <span class="tab-badge" id="explainBadge"></span>
           </button>
-          <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M8 2l1.5 1.5" />
-              <path d="M14.5 3.5L16 2" />
-              <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
-              <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
-              <line x1="12" y1="12" x2="12" y2="16" />
-              <path d="M4.5 15H2" />
-              <path d="M22 15h-2.5" />
-              <path d="M4.5 19l-2 2" />
-              <path d="M19.5 19l2 2" />
-            </svg> Debug <span class="tab-badge" id="debugBadge"></span>
+          <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/></svg>
+            <span data-i18n="tab_debug">Debug</span>
+            <span class="tab-badge" id="debugBadge"></span>
           </button>
-          <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
-            </svg> Improve <span class="tab-badge" id="suggestBadge"></span>
+          <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
+            <span data-i18n="tab_improve">Improve</span>
+            <span class="tab-badge" id="suggestBadge"></span>
           </button>
         </div>
-
         <div class="result-content">
+          <!-- Explain Pane -->
           <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
             <div class="empty-state" id="emptyExplain">
-              <div class="empty-icon">⌨</div>
-              <h3>No Overview Yet</h3>
-              <p>Execute audit pipeline to generate code structures parameters logic explanation.</p>
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg></div>
+              <h3 data-i18n="empty_explain_title">No analysis yet</h3>
+              <p data-i18n="empty_explain_desc">Paste your code and click Analyze to see results</p>
             </div>
             <div id="explainResult" style="display:none"></div>
           </div>
-
-          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Issue Tracker Panel">
+          <!-- Debug Pane -->
+          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel">
             <div class="empty-state" id="emptyDebug">
-              <div class="empty-icon">🪲</div>
-              <h3>No Tracked Anomalies</h3>
-              <p>Run code compilation execution checks matrix overview to detect underlying anti-patterns.</p>
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <path d="M8 2l1.5 1.5" />
+                  <path d="M14.5 3.5L16 2" />
+                  <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
+                  <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
+                  <line x1="12" y1="12" x2="12" y2="16" />
+                  <path d="M4.5 15H2" />
+                  <path d="M22 15h-2.5" />
+                  <path d="M4.5 19l-2 2" />
+                  <path d="M19.5 19l2 2" />
+                </svg></div>
+              <h3 data-i18n="empty_debug_title">No bugs scanned</h3>
+              <p data-i18n="empty_debug_desc">Run analysis to detect issues in your code</p>
             </div>
             <div id="debugResult" style="display:none"></div>
           </div>
-
-          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Enhancements Panel">
+          <!-- Suggest Pane -->
+          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel">
             <div class="empty-state" id="emptySuggest">
-              <div class="empty-icon">⚡</div>
-              <h3>Optimization Recommendations</h3>
-              <p>Submit software structures logic blocks context to get improvement ideas</p>
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+                </svg></div>
+              <h3 data-i18n="empty_suggest_title">No suggestions yet</h3>
+              <p data-i18n="empty_suggest_desc">Run analysis to get improvement ideas</p>
             </div>
             <div id="suggestResult" style="display:none"></div>
           </div>
         </div>
 
-        <div id="engineBar" style="padding:8px 18px;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);display:none;gap:16px">
+        <!-- Analysis time footer -->
+        <div id="engineBar"
+          style="padding:8px 18px;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);display:none;gap:16px">
           <span id="engineInfo"></span>
           <span id="timeInfo"></span>
-        </div>
-
-        <div class="result-actions" id="resultActions" style="display:none">
-          <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save analysis result tracking schema to favorite matrix row structure items">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </button>
         </div>
       </div>
     </section>
 
-feat/progress-tracking-dashboard
-
-    <!-- ── HISTORY, FAVORITES & PROGRESS ─────────────────────────── -->
-main
-    <div class="bottom-sections-wrap" style="margin-top: 24px;">
-      <div class="result-tabs" style="margin-bottom: 16px; border-bottom: 1px solid var(--border);" role="tablist">
-        <button class="result-tab active" id="tabBtnHistory" onclick="switchBottomTab('history')" role="tab" aria-selected="true">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> History &amp; Favs
-        </button>
-        <button class="result-tab" id="tabBtnProgress" onclick="switchBottomTab('progress')" role="tab" aria-selected="false">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Developer Progress
-        </button>
-      </div>
-
-      <div id="paneBottomHistory" class="bottom-grid">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Query History</div>
-            <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history">Clear</button>
-          </div>
-          <div class="history-list" id="historyList" aria-live="polite">
-            <div class="list-empty">No history yet. Run your first analysis.</div>
-          </div>
     <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
     <div class="bottom-grid">
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Query History</div>
-          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history">Clear</button>
+          <div class="panel-title" data-i18n="history_title">Query History</div>
+          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
-          <div class="list-empty">No history yet. Run your first analysis.</div>
+          <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
         </div>
       </div>
-
-      <div id="paneBottomProgress" style="display: none; animation: paneIn 0.22s ease;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
-          <div class="panel" style="padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em;">Average Score</span>
-            <span id="statAvgScore" style="font-family: var(--font-disp); font-size: 2rem; font-weight: 800; color: var(--accent); margin-top: 4px;">--</span>
-          </div>
-          <div class="panel" style="padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em;">Best Score</span>
-            <span id="statBestScore" style="font-family: var(--font-disp); font-size: 2rem; font-weight: 800; color: var(--green); margin-top: 4px;">--</span>
-          </div>
-          <div class="panel" style="padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em;">Most Improved</span>
-            <span id="statMostImproved" style="font-family: var(--font-disp); font-size: 1.4rem; font-weight: 800; color: var(--yellow); margin-top: 4px; text-align: center;">--</span>
-          </div>
-feat/progress-tracking-dashboard
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
-          <div class="panel" style="padding: 18px; min-height: 320px; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 14px;">Quality Score Trend &amp; Errors Detected</div>
-            <div style="position: relative; width: 100%; flex: 1; min-height: 240px;">
-              <canvas id="trendChart"></canvas>
-            </div>
-          </div>
-          <div class="panel" style="padding: 18px; min-height: 320px; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 14px;">Languages Distribution</div>
-            <div style="position: relative; width: 100%; flex: 1; min-height: 240px; display: flex; align-items: center; justify-content: center;">
-              <canvas id="langChart"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div><footer>
-    <div class="app">
-      <div class="footer-logo">QyverixAI</div>
-      <p>
-        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a> · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a> · MIT License
-      </p>
-      <p style="margin-top:8px;font-size:0.75rem">Built for the open source community</p>
-    </div>
-  </footer>
-
-  <div id="toastContainer"></div>
-
-  <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-    <div class="modal">
-      <div class="modal-body">
-        <h3 id="settingsTitle">API Configuration Settings</h3>
-        <p>Set custom connectivity environment routing addresses to deploy remote processing configurations.</p>
-        <div class="form-group">
-          <label for="apiUrlInput">Backend Router Base Target Endpoint Url</label>
-          <input type="text" id="apiUrlInput" class="input-text" value="http://localhost:8000" placeholder="http://127.0.0.1:8000" />
-          <div class="api-status-bar">
-            <span class="status-dot" id="apiStatusDot"></span>
-            <span id="apiStatusText">Unknown Sync Route Status State</span>
-            <button class="btn-clear" id="pingBtn" style="margin-left:auto;padding:2px 8px;font-size:0.68rem">Test Connection Ping</button>
-
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
-          <div class="panel" style="padding: 18px; min-height: 320px; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 14px;">Quality Score Trend &amp; Errors Detected</div>
-            <div style="position: relative; width: 100%; flex: 1; min-height: 240px;">
-              <canvas id="trendChart"></canvas>
-            </div>
-          </div>
-          <div class="panel" style="padding: 18px; min-height: 320px; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 14px;">Languages Distribution</div>
-            <div style="position: relative; width: 100%; flex: 1; min-height: 240px; display: flex; align-items: center; justify-content: center;">
-              <canvas id="langChart"></canvas>
-            </div>
-main
-          </div>
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Saved Favorites</div>
-          <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites">Clear</button>
+          <div class="panel-title" data-i18n="favorites_title">Saved Favorites</div>
+          <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
         </div>
         <div class="fav-list" id="favList" aria-live="polite">
-          <div class="list-empty">No favorites saved yet.</div>
+          <div class="list-empty" data-i18n="empty_favorites">No favorites saved yet.</div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="closeSettingsBtn" style="padding:8px 16px;font-size:0.8rem">Dismiss Config Grid View</button>
-      </div>
     </div>
-  </div>
 
-  <script>
-    /* ═══════════════════════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════════════════════ */
-    const MAX_HISTORY = 50;
-    let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
-    let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
-    let selectedLang = 'python';
-    let selectedMode = 'analyze';
-    let currentResult = null;
-
-    // Progress Visualization Dashboard Global Chart Core Object Instances
-    let trendChartInstance = null;
-    let langChartInstance = null;
-
-    const SAMPLES = {
-      python: `def process_user_data(users):\n    # Anti-pattern 1: Mutable default parameters pattern\n    # Anti-pattern 2: Using range(len()) instead of enumerate()\n    for i in range(len(users)):\n        user = users[i]\n        if user['status'] == 'active':\n            print(f"Processing data row item structure {user['name']}")\n\ndef aggregate_metrics(data=[]):\n    data.append(42)\n    return data`,
-      javascript: `// JavaScript Implementation Anti-pattern Sample Matrix Block code\nfunction evaluateSystemState(records) {\n    // Anti-pattern 1: Loose evaluation operator checking checks comparisons\n    if (records == null) return;\n    \n    // Anti-pattern 2: pollutions of variable blocks to global contexts scopes\n    for (i = 0; i < records.length; i++) {\n        var item = records[i];\n        console.log("Analyzing record token parameter identity index value context item identification ID: " + item.id);\n    }\n}`,
-      typescript: `// TypeScript Framework Type Override Structs Verification Code Example block\ninterface DataNode { id: string; val: number; }\n\nfunction verifyDataTree(nodes: any[]): void {\n    // Anti-pattern 1: Loop pollution using structural array map operations without returning mutations variables values inside array\n    nodes.map(n => {\n        if(n.id === undefined) {\n            // Anti-pattern 2: Heavy continuous casting configurations bypass parameters checks arrays verification types systems elements safety layers contexts definitions\n            (n as any).flag = "error";\n        }\n    });\n}`,
-      java: `// Java Class Anti-pattern Analysis Sample Case Matrix Configuration\npublic class CoreProcessor {\n    public void handleExecutionFlow() {\n        // Anti-pattern 1: Empty generic exception catch blocks tracking pipeline definitions patterns elements suppress parameters\n        try {\n            Thread.sleep(1000);\n        } catch (Exception e) {\n            // Left blank intentionally\n        }\n        \n        // Anti-pattern 2: NullPointerException verification parameter elements metrics risks elements allocations structures paths layers targets configurations blocks\n        String uninitializedString = null;\n        System.out.println(uninitializedString.length());\n    }\n}`,
-      cpp: `// C++ Native Memory Compilation Implementation Tracking Sample Parameters Grid Row Context Anti pattern code\n#include <iostream>\nusing namespace std; \n\nvoid processData() {\n    // Anti-pattern 1: Memory leaks leaks allocations references heap pointer declarations arrays sequences configurations instances tracking without delete context blocks definitions arrays mappings values objects structures boundaries validation pipelines systems boundaries context allocations\n    int* dataBuffer = new int[100]; \n    dataBuffer[0] = 42;\n    cout << "Processing structure internal heap array block execution identity verification data pointer value parameter: " << dataBuffer[0] << endl;\n    // Missing delete deletion definitions elements pipeline structural clean steps allocations mappings elements boundary targets nodes matrix layout array targets blocks tracking mappings arrays elements rows layer definitions matrix grid context configuration arrays structural memory structures targets elements rows profiles layers indicators definitions blocks instances element lines contexts definitions systems blocks metrics context layer bounds structures contexts specifications elements data components boundaries tracking matrix items line indicators blocks definitions logic configurations parameters mapping elements rows logic context parameters blocks maps schemas configurations profiles items array block element lines schemas structural metrics profiles indicators patterns components targets lines maps structures blocks elements components limits definitions contexts system definitions parameters models specification tracking definitions specifications bounds tracking structures matrix lines schemas component data configuration targets block layout data indicators matrix rows mapping schemas structures configurations metrics patterns targets lines schemas matrix parameters block rows context profiles mapping fields structural elements targets elements components boundaries patterns layout elements components bounds tracking layouts elements context components layers parameters parameters specs indicators items array indicators indicators fields schemas patterns targets layers indicators components variables patterns targets profile components constraints items array indices indicators items components indicators patterns mappings metrics items layers metrics components metrics configurations metrics arrays lines components bounds configuration parameters tracking components metrics indicators boundaries arrays layers patterns targets models constraints metrics parameters patterns lines layers tracking profiles specs lines specs metrics items arrays specifications items definitions contexts layers spec tracking maps components tracking structures parameters logic data analysis metrics monitoring records indicators constraints indices parameters components limits layouts specifications definitions parameters boundaries lines properties indicator metrics configurations indicators lines layers fields variables context metrics boundaries patterns structures maps fields columns indicators maps layers indices targets specifications rows indicators blocks indicators targets indicators fields structures configurations components properties constraints elements tracking properties parameters definitions specifications parameters tracking parameters profiles specifications tracking parameters tracking structures bounds lines context validation mappings arrays columns layers properties configurations components maps bounds criteria mappings tracking properties indicators patterns mappings indicators tracking profiles logic targets metrics parameters tracking configurations tracking structural components criteria criteria specifications constraints logic parameters variables boundaries constraints components components constraints limits configurations indices constraints items maps rows bounds columns configurations parameters specs variables context properties tracking properties layout patterns maps structural metrics configurations profiles maps structures properties specifications models bounds layouts limits configurations criteria columns properties definitions specifications bounds profiles specs logic lines layouts tracking mapping structural dimensions logic specifications parameters tracking patterns schemas bounds arrays maps metrics boundaries columns tracking specifications validation profiles parameters logic criteria specifications dimensions indicators arrays tracking data components components parameters specifications bounds lines parameters logic boundaries criteria layouts variables parameters dimensions columns profiles specifications tracking criteria logic specifications specifications models parameters specifications monitoring components criteria monitoring profiles specifications parameters tracking structural definitions criteria parameters properties constraints tracking specs indicators monitoring columns criteria bounds profiles specifications tracking bounds profiles specifications logic tracking criteria monitoring properties tracking layout structures tracking constraints parameters specifications tracking profiles parameters tracking metrics monitoring columns criteria monitoring parameters parameters constraints profiles metrics dimensions criteria profiles criteria dimensions tracking profiles parameters tracking definitions tracking layout profiles specifications indicators monitoring columns tracking profiles tracking bounds profiles monitoring monitoring boundaries tracking logic profiles tracking criteria dimensions parameters monitoring indicators criteria profiles tracking parameters monitoring models monitoring tracking columns tracking layout criteria monitoring models tracking metrics criteria boundaries tracking layout boundaries monitoring tracking limits definitions boundaries tracking profiles parameters criteria monitoring parameters specifications limits definitions parameters variables properties variables constraints monitoring monitoring parameters dimensions variables tracking specs boundaries properties limits specs parameters boundaries logic properties bounds layouts variables tracking specs boundaries tracking metrics layouts boundaries limits definitions monitoring monitoring monitoring metrics models constraints metrics tracking specifications dimensions parameters variables properties layout components parameters criteria dimensions logic models metrics limits variables definitions parameters structural tracking specs parameters criteria monitoring columns logic profiles specs boundaries properties layout parameters criteria dimensions boundaries variables specifications variables properties criteria specifications criteria boundaries specifications limits definitions metrics monitoring parameters structural context variables components profiles tracking parameters criteria tracking elements blocks contexts systems\n}`
-    };
   </div><!-- /app -->
-  
+
 
     <!-- ── FOOTER ─────────────────────────────────────────────────── -->
     <footer>
+      <div class="app">
+        <div class="footer-logo">QyverixAI</div>
+        <p>
+          <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" data-i18n="nav_github">GitHub</a>
+          · <a href="https://qyverixai.onrender.com/docs" target="_blank" data-i18n="nav_api_docs">API Docs</a>
+          · <span data-i18n="footer_license">MIT License</span>
+        </p>
+        <p style="margin-top:8px;font-size:0.75rem" data-i18n="footer_built_for">Built for the open source community</p>
       <div class="app" style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;justify-content:space-between;">
         <div>
           <div class="footer-logo">QyverixAI</div>
@@ -2497,14 +2242,406 @@ main
 
     <script>
       /* ═══════════════════════════════════════════════════════════════
-         STATE
+         STATE & TRANSLATIONS
       ═══════════════════════════════════════════════════════════════ */
+      const TRANSLATIONS = {
+        en: {
+          lang_select_label: "Select language",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "GitHub",
+          nav_api_docs: "API Docs",
+          hero_badge: "Open Source · AI-Powered · Free",
+          hero_title: "Debug. Understand.<br /><em>Ship faster.</em>",
+          hero_subtitle: "Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.",
+          btn_start_analyzing: "Start Analyzing",
+          btn_try_sample: "Try Sample Code",
+          btn_star_github: "Star on GitHub",
+          pill_patterns_title: "40+ Bug Patterns",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "Code Explanation",
+          pill_explain_desc: "Plain English breakdowns",
+          mode_improve: "Smart Suggestions",
+          pill_improve_desc: "Quality score + grade",
+          pill_theme_title: "Dark / Light Mode",
+          pill_theme_desc: "Persisted preference",
+          pill_upload_title: "File Upload",
+          pill_upload_desc: ".py .js .ts .java .cpp",
+          editor_title: "Code Editor",
+          editor_placeholder: "# Paste your code here or click 'Try Sample Code' above…",
+          char_count_initial: "Paste or type code to begin",
+          char_count_format: "{chars} chars · {lines} lines · {nonBlank} non-blank",
+          ctrl_enter_hint: "Ctrl+Enter to analyze",
+          mode_full: "Full",
+          mode_debug: "Debug",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "Disconnected",
+          api_status_connected: "Connected",
+          api_status_unreachable: "Unreachable",
+          api_status_error: "Error {status}",
+          btn_ping: "Ping",
+          btn_analyze_code: "Analyze Code",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "Analysis Results",
+          tab_explain: "Explain",
+          tab_debug: "Debug",
+          tab_improve: "Improve",
+          empty_explain_title: "No analysis yet",
+          empty_explain_desc: "Paste your code and click Analyze to see results",
+          empty_debug_title: "No bugs scanned",
+          empty_debug_desc: "Run analysis to detect issues in your code",
+          empty_suggest_title: "No suggestions yet",
+          empty_suggest_desc: "Run analysis to get improvement ideas",
+          history_title: "Query History",
+          favorites_title: "Saved Favorites",
+          empty_history: "No history yet. Run your first analysis.",
+          empty_favorites: "No favorites saved yet.",
+          btn_clear: "Clear",
+          footer_license: "MIT License",
+          footer_built_for: "Built for the open source community",
+          confirm_clear_history: "Clear all history? This cannot be undone.",
+          confirm_clear_favs: "Clear all favorites? This cannot be undone.",
+          toast_code_copied: "Code copied!",
+          toast_api_reachable: "API is reachable",
+          toast_api_unreachable: "Cannot reach API. Check the URL.",
+          toast_please_paste: "Please paste some code first.",
+          toast_saved_favorites: "Saved to favorites",
+          toast_report_downloaded: "Report downloaded",
+          toast_sample_loaded: "Sample code loaded — click Analyze!",
+          toast_history_cleared: "History cleared",
+          toast_favorites_cleared: "Favorites cleared",
+          toast_loaded: "Loaded {name}",
+          toast_dropped: "Dropped {name}",
+          debug_clean_title: "No issues detected!",
+          debug_clean_desc: "Your code passed all 40+ pattern checks. Keep it up!",
+          debug_errors: "Errors",
+          debug_warnings: "Warnings",
+          debug_info: "Info",
+          debug_line: "Line {line}",
+          suggest_quality_score: "Quality Score",
+          suggest_perfect_title: "Perfect score!",
+          suggest_perfect_desc: "No improvement suggestions found.",
+          suggest_priority: "{priority} priority",
+          btn_copy: "Copy code",
+          btn_upload: "Upload file",
+          btn_save_favorites: "Save to favorites",
+          btn_download_results: "Download results",
+          btn_toggle_theme: "Toggle theme",
+          analyze_btn_title: "Analyze Code (Ctrl+Enter)",
+          meta_lines: "{count} lines",
+          meta_functions: "{count} functions",
+          meta_classes: "{count} classes",
+          toast_analysis_failed: "Analysis failed: {message}",
+          history_entry_label: "Load history entry for {lang} at {time}",
+          favorite_entry_label: "Load favorite entry for {lang} at {time}"
+        },
+        ta: {
+          lang_select_label: "மொழியைத் தேர்ந்தெடுக்கவும்",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "கிட்ஹப் (GitHub)",
+          nav_api_docs: "ஏபிஐ ஆவணங்கள் (API Docs)",
+          hero_badge: "திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்",
+          hero_title: "பிழையறி. புரிந்துகொள்.<br /><em>வேகமாக அனுப்பு.</em>",
+          hero_subtitle: "உங்கள் குறியீட்டை ஒட்டி, உடனடி பிழை கண்டறிதல், எளிய ஆங்கில விளக்கங்கள் மற்றும் பயனுள்ள மேம்பாட்டு பரிந்துரைகளைப் பெறுங்கள் — கணக்கு தேவையில்லை.",
+          btn_start_analyzing: "பகுப்பாய்வைத் தொடங்கு",
+          btn_try_sample: "மாதிரிக் குறியீட்டை முயல்க",
+          btn_star_github: "கிட்ஹப்பில் ஸ்டார் செய்க",
+          pill_patterns_title: "40+ பிழை வடிவங்கள்",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "குறியீடு விளக்கம்",
+          pill_explain_desc: "எளிய ஆங்கில விளக்கங்கள்",
+          mode_improve: "ஸ்மார்ட் பரிந்துரைகள்",
+          pill_improve_desc: "தரமான மதிப்பெண் + தரம்",
+          pill_theme_title: "இருண்ட / ஒளி முறை",
+          pill_theme_desc: "சேமிக்கப்பட்ட விருப்பம்",
+          pill_upload_title: "கோப்பு பதிவேற்றம்",
+          pill_upload_desc: ".py .js .ts .java .cpp",
+          editor_title: "குறியீட்டு எடிட்டர்",
+          editor_placeholder: "# உங்கள் குறியீட்டை இங்கே ஒட்டவும் அல்லது மேலே உள்ள 'மாதிரிக் குறியீட்டை முயல்க' என்பதைக் கிளிக் செய்யவும்…",
+          char_count_initial: "தொடங்குவதற்கு குறியீட்டை ஒட்டவும் அல்லது தட்டச்சு செய்யவும்",
+          char_count_format: "{chars} எழுத்துக்கள் · {lines} வரிகள் · {nonBlank} வெற்று அல்லாத வரிகள்",
+          ctrl_enter_hint: "பகுப்பாய்வு செய்ய Ctrl+Enter அழுத்தவும்",
+          mode_full: "முழுமையான",
+          mode_debug: "பிழைத்திருத்தம்",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "இணைப்பு துண்டிக்கப்பட்டது",
+          api_status_connected: "இணைக்கப்பட்டது",
+          api_status_unreachable: "அடைய முடியாதது",
+          api_status_error: "பிழை {status}",
+          btn_ping: "பிங்",
+          btn_analyze_code: "குறியீட்டை பகுப்பாய்",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "பகுப்பாய்வு முடிவுகள்",
+          tab_explain: "விளக்கு",
+          tab_debug: "பிழைத்திருத்து",
+          tab_improve: "மேம்படுத்து",
+          empty_explain_title: "இன்னும் பகுப்பாய்வு இல்லை",
+          empty_explain_desc: "விளைவுகளைக் காண குறியீட்டை ஒட்டி, பகுப்பாய் என்பதைக் கிளிக் செய்யவும்",
+          empty_debug_title: "பிழைகள் எதுவும் கண்டறியப்படவில்லை",
+          empty_debug_desc: "உங்கள் குறியீட்டில் உள்ள சிக்கல்களைக் கண்டறிய பகுப்பாய்வை இயக்கவும்",
+          empty_suggest_title: "இன்னும் பரிந்துரைகள் இல்லை",
+          empty_suggest_desc: "மேம்பாட்டு யோசனைகளைப் பெற பகுப்பாய்வை இயக்கவும்",
+          history_title: "வினவல் வரலாறு",
+          favorites_title: "சேமிக்கப்பட்ட பிடித்தவை",
+          empty_history: "இன்னும் வரலாறு இல்லை. உங்கள் முதல் பகுப்பாய்வை இயக்கவும்.",
+          empty_favorites: "இன்னும் பிடித்தவை எதுவும் சேமிக்கப்படவில்லை.",
+          btn_clear: "அழி",
+          footer_license: "எம்ஐடி உரிமம் (MIT License)",
+          footer_built_for: "திறந்த மூல சமூகத்திற்காக உருவாக்கப்பட்டது",
+          confirm_clear_history: "எல்லா வரலாற்றையும் அழிக்கவா? இதை மாற்ற முடியாது.",
+          confirm_clear_favs: "பிடித்தவை அனைத்தையும் அழிக்கவா? இதை மாற்ற முடியாது.",
+          toast_code_copied: "குறியீடு நகலெடுக்கப்பட்டது!",
+          toast_api_reachable: "ஏபிஐ அணுகக்கூடியது",
+          toast_api_unreachable: "ஏபிஐ-ஐ அணுக முடியவில்லை. முகவரியைச் சரிபார்க்கவும்.",
+          toast_please_paste: "தயவுசெய்து முதலில் குறியீட்டை ஒட்டவும்.",
+          toast_saved_favorites: "பிடித்தவற்றில் சேமிக்கப்பட்டது",
+          toast_report_downloaded: "அறிக்கை பதிவிறக்கம் செய்யப்பட்டது",
+          toast_sample_loaded: "மாதிரிக் குறியீடு ஏற்றப்பட்டது — பகுப்பாய் என்பதைக் கிளிக் செய்க!",
+          toast_history_cleared: "வரலாறு அழிக்கப்பட்டது",
+          toast_favorites_cleared: "பிடித்தவை அழிக்கப்பட்டன",
+          toast_loaded: "{name} ஏற்றப்பட்டது",
+          toast_dropped: "{name} விடப்பட்டது",
+          debug_clean_title: "சிக்கல்கள் எதுவும் கண்டறியப்படவில்லை!",
+          debug_clean_desc: "உங்கள் குறியீடு அனைத்து 40+ வடிவ சோதனைகளையும் கடந்துவிட்டது. தொடருங்கள்!",
+          debug_errors: "பிழைகள்",
+          debug_warnings: "எச்சரிக்கைகள்",
+          debug_info: "தகவல்",
+          debug_line: "வரி {line}",
+          suggest_quality_score: "தர மதிப்பெண்",
+          suggest_perfect_title: "சரியான மதிப்பெண்!",
+          suggest_perfect_desc: "மேம்பாட்டு பரிந்துரைகள் எதுவும் இல்லை.",
+          suggest_priority: "{priority} முன்னுரிமை",
+          btn_copy: "குறியீட்டை நகலெடு",
+          btn_upload: "கோப்பைப் பதிவேற்று",
+          btn_save_favorites: "பிடித்தவற்றில் சேமி",
+          btn_download_results: "முடிவுகளைப் பதிவிறக்கு",
+          btn_toggle_theme: "தீம் மாற்று",
+          analyze_btn_title: "குறியீட்டை பகுப்பாய் (Ctrl+Enter)",
+          meta_lines: "{count} வரிகள்",
+          meta_functions: "{count} செயல்பாடுகள்",
+          meta_classes: "{count} வகுப்புகள்",
+          toast_analysis_failed: "பகுப்பாய்வு தோல்வியடைந்தது: {message}",
+          history_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள வரலாறு பதிவை ஏற்று",
+          favorite_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள பிடித்த பதிவை ஏற்று"
+        },
+        hi: {
+          lang_select_label: "भाषा चुनें",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "गिटहब (GitHub)",
+          nav_api_docs: "एपीआई दस्तावेज़ (API Docs)",
+          hero_badge: "ओपन सोर्स · एआई-संचालित · मुफ्त",
+          hero_title: "डीबग करें। समझें।<br /><em>तेज़ी से शिप करें।</em>",
+          hero_subtitle: "अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।",
+          btn_start_analyzing: "विश्लेषण शुरू करें",
+          btn_try_sample: "सैंपल कोड आज़माएं",
+          btn_star_github: "गिटहब पर स्टार करें",
+          pill_patterns_title: "40+ बग पैटर्न",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "कोड का स्पष्टीकरण",
+          pill_explain_desc: "सरल स्पष्टीकरण",
+          mode_improve: "स्मार्ट सुझाव",
+          pill_improve_desc: "क्वालिटी स्कोर + ग्रेड",
+          pill_theme_title: "डार्क / लाइट मोड",
+          pill_theme_desc: "सहेजी गई प्राथमिकता",
+          pill_upload_title: "फ़ाइल अपलोड",
+          pill_upload_desc: ".py .js .ts .java .cpp",
+          editor_title: "कोड एडिटर",
+          editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
+          char_count_initial: "शुरू करने के लिए कोड पेस्ट करें या टाइप करें",
+          char_count_format: "{chars} वर्ण · {lines} पंक्तियाँ · {nonBlank} गैर-रिक्त",
+          ctrl_enter_hint: "विश्लेषण करने के लिए Ctrl+Enter दबाएं",
+          mode_full: "पूर्ण",
+          mode_debug: "डीबग",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "डिस्कनेक्टेड",
+          api_status_connected: "कनेक्टेड",
+          api_status_unreachable: "पहुंच से बाहर",
+          api_status_error: "त्रुटि {status}",
+          btn_ping: "पिंग",
+          btn_analyze_code: "कोड का विश्लेषण करें",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "विश्लेषण के परिणाम",
+          tab_explain: "समझाएं",
+          tab_debug: "डीबग",
+          tab_improve: "सुधारें",
+          empty_explain_title: "अभी तक कोई विश्लेषण नहीं",
+          empty_explain_desc: "परिणाम देखने के लिए अपना कोड पेस्ट करें और विश्लेषण पर क्लिक करें",
+          empty_debug_title: "कोई बग नहीं मिला",
+          empty_debug_desc: "अपने कोड में समस्याओं का पता लगाने के लिए विश्लेषण चलाएं",
+          empty_suggest_title: "अभी तक कोई सुझाव नहीं",
+          empty_suggest_desc: "सुधार के विचार प्राप्त करने के लिए विश्लेषण चलाएं",
+          history_title: "क्वेरी इतिहास",
+          favorites_title: "सहेजे गए पसंदीदा",
+          empty_history: "अभी तक कोई इतिहास नहीं है। अपना पहला विश्लेषण चलाएं।",
+          empty_favorites: "अभी तक कोई पसंदीदा सहेजा नहीं गया है।",
+          btn_clear: "साफ करें",
+          footer_license: "एमआईटी लाइसेंस (MIT License)",
+          footer_built_for: "ओपन सोर्स समुदाय के लिए निर्मित",
+          confirm_clear_history: "इतिहास पूरी तरह साफ करें? इसे पूर्ववत नहीं किया जा सकता।",
+          confirm_clear_favs: "सभी पसंदीदा साफ करें? इसे पूर्ववत नहीं किया जा सकता।",
+          toast_code_copied: "कोड कॉपी किया गया!",
+          toast_api_reachable: "एपीआई पहुंच योग्य है",
+          toast_api_unreachable: "एपीआई तक नहीं पहुंचा जा सकता। यूआरएल की जांच करें।",
+          toast_please_paste: "कृपया पहले कुछ कोड पेस्ट करें।",
+          toast_saved_favorites: "पसंदीदा में सहेजा गया",
+          toast_report_downloaded: "रिपोर्ट डाउनलोड हो गई",
+          toast_sample_loaded: "सैंपल कोड लोड हो गया — विश्लेषण पर क्लिक करें!",
+          toast_history_cleared: "इतिहास साफ कर दिया गया",
+          toast_favorites_cleared: "पसंदीदा साफ कर दिए गए",
+          toast_loaded: "{name} लोड किया गया",
+          toast_dropped: "{name} ड्रॉप किया गया",
+          debug_clean_title: "कोई समस्या नहीं मिली!",
+          debug_clean_desc: "आपका कोड सभी 40+ पैटर्न जांचों में सफल रहा। इसे जारी रखें!",
+          debug_errors: "त्रुटियाँ",
+          debug_warnings: "चेतावनी",
+          debug_info: "जानकारी",
+          debug_line: "पंक्ति {line}",
+          suggest_quality_score: "क्वालिटी स्कोर",
+          suggest_perfect_title: "उत्कृष्ट स्कोर!",
+          suggest_perfect_desc: "कोई सुधार सुझाव नहीं मिला।",
+          suggest_priority: "{priority} प्राथमिकता",
+          btn_copy: "कोड कॉपी करें",
+          btn_upload: "फ़ाइल अपलोड करें",
+          btn_save_favorites: "पसंदीदा में सहेजें",
+          btn_download_results: "परिणाम डाउनलोड करें",
+          btn_toggle_theme: "थीम बदलें",
+          analyze_btn_title: "कोड का विश्लेषण करें (Ctrl+Enter)",
+          meta_lines: "{count} पंक्तियाँ",
+          meta_functions: "{count} फ़ंक्शन",
+          meta_classes: "{count} क्लासें",
+          toast_analysis_failed: "विश्लेषण विफल रहा: {message}",
+          history_entry_label: "{time} पर {lang} के लिए इतिहास प्रविष्टि लोड करें",
+          favorite_entry_label: "{time} पर {lang} के लिए पसंदीदा प्रविष्टि लोड करें"
+        },
+        fr: {
+          lang_select_label: "Choisir la langue",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "GitHub",
+          nav_api_docs: "Docs API",
+          hero_badge: "Open Source · Propulsé par l'IA · Gratuit",
+          hero_title: "Déboguez. Comprenez.<br /><em>Lisez plus vite.</em>",
+          hero_subtitle: "Collez votre code et obtenez une détection instantanée des bogues, des explications simples et des suggestions d'amélioration exploitables — aucun compte requis.",
+          btn_start_analyzing: "Démarrer l'analyse",
+          btn_try_sample: "Essayer l'exemple",
+          btn_star_github: "Star sur GitHub",
+          pill_patterns_title: "40+ Modèles de bogues",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "Explication de code",
+          pill_explain_desc: "Analyses en français simple",
+          mode_improve: "Suggestions intelligentes",
+          pill_improve_desc: "Score de qualité + note",
+          pill_theme_title: "Mode Sombre / Clair",
+          pill_theme_desc: "Préférence persistée",
+          pill_upload_title: "Télécharger un fichier",
+          pill_upload_desc: ".py .js .ts .java .cpp",
+          editor_title: "Éditeur de code",
+          editor_placeholder: "# Collez votre code ici ou cliquez sur 'Essayer l'exemple' ci-dessus…",
+          char_count_initial: "Collez ou tapez du code pour commencer",
+          char_count_format: "{chars} chars · {lines} lignes · {nonBlank} non vides",
+          ctrl_enter_hint: "Ctrl+Enter pour analyser",
+          mode_full: "Complet",
+          mode_debug: "Débogage",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "Déconnecté",
+          api_status_connected: "Connecté",
+          api_status_unreachable: "Inaccessible",
+          api_status_error: "Erreur {status}",
+          btn_ping: "Ping",
+          btn_analyze_code: "Analyser le code",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "Résultats de l'analyse",
+          tab_explain: "Expliquer",
+          tab_debug: "Déboguer",
+          tab_improve: "Améliorer",
+          empty_explain_title: "Aucune analyse pour le moment",
+          empty_explain_desc: "Collez votre code et cliquez sur Analyser pour voir les résultats",
+          empty_debug_title: "Aucun bogue détecté",
+          empty_debug_desc: "Exécutez l'analyse pour détecter les problèmes dans votre code",
+          empty_suggest_title: "Aucune suggestion pour le moment",
+          empty_suggest_desc: "Exécutez l'analyse pour obtenir des idées d'amélioration",
+          history_title: "Historique des requêtes",
+          favorites_title: "Favoris enregistrés",
+          empty_history: "Aucun historique pour le moment. Lancez votre première analyse.",
+          empty_favorites: "Aucun favori enregistré pour le moment.",
+          btn_clear: "Effacer",
+          footer_license: "Licence MIT",
+          footer_built_for: "Conçu pour la communauté open source",
+          confirm_clear_history: "Effacer tout l'historique ? Cette action est irréversible.",
+          confirm_clear_favs: "Effacer tous les favoris ? Cette action est irréversible.",
+          toast_code_copied: "Code copié !",
+          toast_api_reachable: "L'API est accessible",
+          toast_api_unreachable: "Impossible de joindre l'API. Vérifiez l'URL.",
+          toast_please_paste: "Veuillez d'abord coller du code.",
+          toast_saved_favorites: "Enregistré dans les favoris",
+          toast_report_downloaded: "Rapport téléchargé",
+          toast_sample_loaded: "Exemple de code chargé — cliquez sur Analyser !",
+          toast_history_cleared: "Historique effacé",
+          toast_favorites_cleared: "Favoris effacés",
+          toast_loaded: "{name} chargé",
+          toast_dropped: "{name} déposé",
+          debug_clean_title: "Aucun problème détecté !",
+          debug_clean_desc: "Votre code a passé les 40+ vérifications avec succès. Continuez ainsi !",
+          debug_errors: "Erreurs",
+          debug_warnings: "Avertissements",
+          debug_info: "Infos",
+          debug_line: "Ligne {line}",
+          suggest_quality_score: "Score de qualité",
+          suggest_perfect_title: "Score parfait !",
+          suggest_perfect_desc: "Aucune suggestion d'amélioration trouvée.",
+          suggest_priority: "Priorité {priority}",
+          btn_copy: "Copier le code",
+          btn_upload: "Télécharger le fichier",
+          btn_save_favorites: "Enregistrer dans les favoris",
+          btn_download_results: "Télécharger les résultats",
+          btn_toggle_theme: "Changer le thème",
+          analyze_btn_title: "Analyser le code (Ctrl+Enter)",
+          meta_lines: "{count} lignes",
+          meta_functions: "{count} fonctions",
+          meta_classes: "{count} classes",
+          toast_analysis_failed: "Échec de l'analyse : {message}",
+          history_entry_label: "Charger l'entrée d'historique pour {lang} à {time}",
+          favorite_entry_label: "Charger le favori pour {lang} à {time}"
+        }
+      };
+
       const MAX_HISTORY = 50;
       let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
       let selectedLang = 'python';
       let selectedMode = 'analyze';
+      let appLang = localStorage.getItem('qyx_lang') || 'en';
 
       /* ═══════════════════════════════════════════════════════════════
          DOM REFS
@@ -2540,9 +2677,16 @@ main
         btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
       }
 
-      const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      setThemeIcon(savedTheme);
+      const savedTheme = localStorage.getItem('qyx_theme');
+
+      const initialTheme = savedTheme
+       ? savedTheme
+       : window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+
+      document.documentElement.setAttribute('data-theme', initialTheme);
+      setThemeIcon(initialTheme);
 
       document.getElementById('themeToggle').addEventListener('click', () => {
         const cur = document.documentElement.getAttribute('data-theme');
@@ -2553,6 +2697,59 @@ main
       });
 
       /* ═══════════════════════════════════════════════════════════════
+         I18N IMPLEMENTATION
+      ═══════════════════════════════════════════════════════════════ */
+      function getTranslation(key) {
+        return TRANSLATIONS[appLang]?.[key] || TRANSLATIONS['en']?.[key] || key;
+      }
+
+      function setAppLanguage(lang) {
+        appLang = lang;
+        localStorage.setItem('qyx_lang', lang);
+        document.documentElement.setAttribute('lang', lang);
+        
+        // Sync select dropdown
+        const select = document.getElementById('langSelect');
+        if (select) select.value = lang;
+        
+        // Update elements with data-i18n
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          const trans = getTranslation(key);
+          if (trans) el.innerHTML = trans;
+        });
+
+        // Update placeholders
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+          const key = el.getAttribute('data-i18n-placeholder');
+          const trans = getTranslation(key);
+          if (trans) el.placeholder = trans;
+        });
+
+        // Update titles
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+          const key = el.getAttribute('data-i18n-title');
+          const trans = getTranslation(key);
+          if (trans) el.title = trans;
+        });
+
+        document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+          const key = el.getAttribute('data-i18n-aria-label');
+          const trans = getTranslation(key);
+          if (trans) el.setAttribute('aria-label', trans);
+        });
+
+        syncApiStatusText();
+
+        updateEditor();
+        renderHistory();
+        renderFavorites();
+        if (currentResult) {
+          renderResults(currentResult, editor.value);
+        }
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
          EDITOR
       ═══════════════════════════════════════════════════════════════ */
       function updateEditor() {
@@ -2561,16 +2758,39 @@ main
         const chars = val.length;
         const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
         charCount.textContent = val
-          ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
-          : 'Paste or type code to begin';
+          ? getTranslation('char_count_format')
+              .replace('{chars}', chars.toLocaleString())
+              .replace('{lines}', lines)
+              .replace('{nonBlank}', nonBlank)
+          : getTranslation('char_count_initial');
         const lineCount = Math.max(lines, 1);
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
           : '1';
       }
 
+      function syncApiStatusText() {
+        if (!apiStatusText) return;
+        const state = apiStatusText.dataset.status || 'disconnected';
+        const stateToKey = {
+          connected: 'api_status_connected',
+          unreachable: 'api_status_unreachable',
+          error: 'api_status_error',
+          disconnected: 'api_status_disconnected',
+        };
+        const key = stateToKey[state] || 'api_status_disconnected';
+        const text = getTranslation(key);
+        apiStatusText.textContent = key === 'api_status_error'
+          ? text.replace('{status}', apiStatusText.dataset.statusCode || '')
+          : text;
+      }
+
       function looksLikeRestoredPageSource(text) {
         return /<\s*html|<\s*style|<\s*script|function\s+updateEditor\s*\(|\.stat-bar|\.hero\s*\{|\.workspace\s*\{/i.test(text);
+      }
+
+      function getApiBase() {
+        return ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || 'http://localhost:8000').replace(/\/$/, '');
       }
 
       function normalizeEditorOnLoad() {
@@ -2708,194 +2928,140 @@ main
         }
       });
 
-    /* ═══════════════════════════════════════════════════════════════
-   THEME
-═══════════════════════════════════════════════════════════════ */
-    function setThemeIcon(theme) {
-      const btn = document.getElementById('themeToggleBtn');
-      if (theme === 'light') {
-        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
-      } else {
-        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-      }
-    }
-    const currentTheme = localStorage.getItem('qyx_theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    setThemeIcon(currentTheme);
-
-    document.getElementById('themeToggleBtn').addEventListener('click', () => {
-      const cur = document.documentElement.getAttribute('data-theme');
-      const next = cur === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('qyx_theme', next);
-      setThemeIcon(next);
-      // Redraw charts to update text colors in case the active view is visible
-      if (document.getElementById('paneBottomProgress').style.display !== 'none') {
-        refreshProgressDashboard();
-      }
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-   EDITOR
-═══════════════════════════════════════════════════════════════ */
-    const editor = document.getElementById('codeEditor');
-    const lineNumbers = document.getElementById('lineNumbers');
-    const charCount = document.getElementById('charCount');
-    const langDisplay = document.getElementById('langDisplay');
-
-    function updateEditor() {
-      const val = editor.value;
-      const lines = val ? val.split('\n').length : 0;
-      const chars = val.length;
-      const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-      charCount.textContent = val ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank' : 'Paste or type code to begin';
-      const lineCount = Math.max(lines, 1);
-      lineNumbers.innerHTML = val ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>') : '1';
-    }
-    editor.addEventListener('input', updateEditor);
-    editor.addEventListener('scroll', () => {
-      lineNumbers.scrollTop = editor.scrollTop;
-    });
-
-    editor.addEventListener('keydown', e => {
-      if (e.key === 'Tab' && !e.shiftKey) {
-        e.preventDefault();
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-        editor.value = editor.value.substring(0, start) + '    ' + editor.value.substring(end);
-        editor.selectionStart = editor.selectionEnd = start + 4;
-        updateEditor();
-      } else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-        const value = editor.value;
-        const lineStart = value.lastIndexOf('\n', start - 1) + 1;
-        const currentLine = value.substring(lineStart, start);
-        const indentMatch = currentLine.match(/^\s*/);
-        let indent = indentMatch ? indentMatch[0] : '';
-        const trimmed = currentLine.trim();
-
-        if (selectedLang === 'python' && trimmed.endsWith(':')) {
-          indent += '    ';
-        } else if (['javascript', 'typescript', 'java', 'cpp'].includes(selectedLang) && trimmed.endsWith('{')) {
-          indent += '    ';
-        }
-        editor.value = value.substring(0, start) + '\n' + indent + value.substring(end);
-        editor.selectionStart = editor.selectionEnd = start + 1 + indent.length;
-        updateEditor();
-      } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        doAnalyze();
-      }
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-   FILE UPLOAD & DRAG/DROP
-═══════════════════════════════════════════════════════════════ */
-    document.getElementById('fileInput').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const ext = file.name.split('.').pop().toLowerCase();
-      const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
-      if (langMap[ext]) setLanguage(langMap[ext]);
-      const reader = new FileReader();
-      reader.onload = ev => {
-        editor.value = ev.target.result;
-        updateEditor();
-        toast(`Loaded ${file.name}`, 'success');
-      };
-      reader.readAsText(file);
-      e.target.value = '';
-    });
-
-    document.body.addEventListener('dragover', e => e.preventDefault());
-    document.body.addEventListener('drop', e => {
-      e.preventDefault();
-      const file = e.dataTransfer.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        editor.value = ev.target.result;
-        updateEditor();
-        toast(`Dropped ${file.name}`, 'success');
-      };
-      reader.readAsText(file);
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-   LANGUAGE TABS
-═══════════════════════════════════════════════════════════════ */
-    function setLanguage(lang) {
-      selectedLang = lang;
-      langDisplay.textContent = lang;
-      document.querySelectorAll('.lang-tab').forEach(t => {
-        const isActive = t.dataset.lang === lang;
-        t.classList.toggle('active', isActive);
-        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      /* ═══════════════════════════════════════════════════════════════
+         FILE UPLOAD
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('fileInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const ext = file.name.split('.').pop().toLowerCase();
+        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
+        if (langMap[ext]) setLanguage(langMap[ext]);
+        const reader = new FileReader();
+        reader.onload = ev => {
+          editor.value = ev.target.result;
+          updateEditor();
+          toast(getTranslation('toast_loaded').replace('{name}', file.name), 'success');
+        };
+        reader.readAsText(file);
+        e.target.value = '';
       });
-      const currentCode = editor.value.trim();
-      const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
-      if (isSample || !currentCode) {
-        editor.value = SAMPLES[lang] || SAMPLES.python;
-        updateEditor();
-      }
-    }
-    document.querySelectorAll('.lang-tab').forEach(t => {
-      t.addEventListener('click', () => setLanguage(t.dataset.lang));
-    });
 
-    /* ═══════════════════════════════════════════════════════════════
-   MODE BUTTONS
-═══════════════════════════════════════════════════════════════ */
-    document.querySelectorAll('.mode-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        selectedMode = b.dataset.mode;
-        document.querySelectorAll('.mode-btn').forEach(x => {
-          const isActive = x.dataset.mode === selectedMode;
-          x.classList.toggle('active', isActive);
-          x.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      /* Drag and drop */
+      document.body.addEventListener('dragover', e => e.preventDefault());
+      document.body.addEventListener('drop', e => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          editor.value = ev.target.result;
+          updateEditor();
+          toast(getTranslation('toast_dropped').replace('{name}', file.name), 'success');
+        };
+        reader.readAsText(file);
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         LANGUAGE TABS
+      ═══════════════════════════════════════════════════════════════ */
+      function setLanguage(lang) {
+        selectedLang = lang;
+
+        // 1. Update the visual tabs
+        document.querySelectorAll('.lang-tab').forEach(t => {
+          const isActive = t.dataset.lang === lang;
+          t.classList.toggle('active', isActive);
+          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
-        toast(`Switched mode to ${selectedMode}`, 'info');
-      });
-    });
 
-    function loadSample() {
-      editor.value = SAMPLES[selectedLang] || SAMPLES.python;
-      updateEditor();
-      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      toast('Sample code loaded — click Execute Analysis!', 'success');
-    }
+        // 2. Check if the editor currently contains one of the samples
+        const currentCode = editor.value.trim();
+        const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
 
-    /* ═══════════════════════════════════════════════════════════════
-   SETTINGS & API LIFECYCLE
-═══════════════════════════════════════════════════════════════ */
-    const settingsModal = document.getElementById('settingsModal');
-    const apiUrlInput = document.getElementById('apiUrlInput');
-    const apiDot = document.getElementById('apiStatusDot');
-    const apiStatusText = document.getElementById('apiStatusText');
-
-    const savedUrl = localStorage.getItem('qyx_apiUrl');
-    if (savedUrl) apiUrlInput.value = savedUrl;
-
-    document.getElementById('openSettingsBtn').addEventListener('click', () => settingsModal.classList.add('active'));
-    document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsModal.classList.remove('active'));
-    settingsModal.addEventListener('click', e => { if (e.target === settingsModal) settingsModal.classList.remove('active'); });
-
-    async function pingApi() {
-      const base = apiUrlInput.value.replace(/\/$/, '');
-      apiStatusText.textContent = 'Pinging...';
-      try {
-        const res = await fetch(`${base}/history/score-history`).catch(() => fetch(`${base}/health`));
-        if (res.ok) {
-          apiDot.classList.add('connected');
-          apiStatusText.textContent = 'Connected & Verified';
-        } else {
-          throw new Error();
+        // 3. If it is a sample, swap it to the new language's sample automatically
+        if (isSample) {
+          editor.value = SAMPLES[lang] || SAMPLES.python;
+          updateEditor();
         }
-      } catch {
-        apiDot.classList.remove('connected');
-        apiStatusText.textContent = 'Unreachable';
+      }
+
+      document.querySelectorAll('.lang-tab').forEach(t => {
+        t.addEventListener('click', () => setLanguage(t.dataset.lang));
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         MODE BUTTONS
+      ═══════════════════════════════════════════════════════════════ */
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          selectedMode = b.dataset.mode;
+          document.querySelectorAll('.mode-btn').forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-pressed', 'false');
+          });
+          b.classList.add('active');
+          b.setAttribute('aria-pressed', 'true');
+        });
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         RESULT TABS
+      ═══════════════════════════════════════════════════════════════ */
+      document.querySelectorAll('.result-tab').forEach(t => {
+        t.addEventListener('click', () => {
+          const tab = t.dataset.rtab;
+          document.querySelectorAll('.result-tab').forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
+          t.classList.add('active');
+          t.setAttribute('aria-selected', 'true');
+          document.getElementById(`pane-${tab}`).classList.add('active');
+        });
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         CLEAR / COPY
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        editor.value = '';
+        updateEditor();
+        resetResults();
+      });
+      document.getElementById('copyBtn').addEventListener('click', () => {
+        if (!editor.value.trim()) return;
+        navigator.clipboard.writeText(editor.value).then(() => toast(getTranslation('toast_code_copied'), 'success'));
+      });
+
+      /* ═══════════════════════════════════════════════════════════════
+         API PING
+      ═══════════════════════════════════════════════════════════════ */
+      async function pingApi() {
+        if (!apiUrlInput || !apiDot || !apiStatusText) return;
+        const base = getApiBase();
+        try {
+          const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+          if (r.ok) {
+            apiDot.classList.add('connected');
+            apiStatusText.dataset.status = 'connected';
+            delete apiStatusText.dataset.statusCode;
+            syncApiStatusText();
+            toast(getTranslation('toast_api_reachable'), 'success');
+          } else {
+            apiDot.classList.remove('connected');
+            apiStatusText.dataset.status = 'error';
+            apiStatusText.dataset.statusCode = String(r.status);
+            syncApiStatusText();
+          }
+        } catch {
+          apiDot.classList.remove('connected');
+          apiStatusText.dataset.status = 'unreachable';
+          delete apiStatusText.dataset.statusCode;
+          syncApiStatusText();
+          toast(getTranslation('toast_api_unreachable'), 'error');
+        }
       }
       document.getElementById('pingBtn').addEventListener('click', pingApi);
 
@@ -2986,39 +3152,60 @@ main
       pingApi();
     });
     setTimeout(pingApi, 800);
+      const pingBtn = document.getElementById('pingBtn');
+      if (pingBtn) pingBtn.addEventListener('click', pingApi);
 
-    /* ═══════════════════════════════════════════════════════════════
-   BOTTOM NAVIGATION PROGRESS MANAGEMENT PIPELINE
-   ═══════════════════════════════════════════════════════════════ */
-    function switchBottomTab(target) {
-      const isHistory = target === 'history';
-      
-      document.getElementById('tabBtnHistory').classList.toggle('active', isHistory);
-      document.getElementById('tabBtnHistory').setAttribute('aria-selected', isHistory ? 'true' : 'false');
-      document.getElementById('paneBottomHistory').style.display = isHistory ? 'grid' : 'none';
+      // Auto-ping on load
+      setTimeout(pingApi, 800);
 
-      document.getElementById('tabBtnProgress').classList.toggle('active', !isHistory);
-      document.getElementById('tabBtnProgress').setAttribute('aria-selected', !isHistory ? 'true' : 'false');
-      document.getElementById('paneBottomProgress').style.display = !isHistory ? 'block' : 'none';
+      /* ═══════════════════════════════════════════════════════════════
+         ANALYZE
+      ═══════════════════════════════════════════════════════════════ */
+      analyzeBtn.addEventListener('click', doAnalyze);
 
-      if (!isHistory) {
-        refreshProgressDashboard();
-      }
-    }
+      async function doAnalyze() {
+        const code = editor.value.trim();
+        if (!code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
 
-    async function refreshProgressDashboard() {
-      const base = apiUrlInput.value.replace(/\/$/, '');
-      try {
-        const res = await fetch(`${base}/history/score-history`);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const data = await res.json();
-        
-        if (!data.history || data.history.length === 0) {
-          document.getElementById('statAvgScore').textContent = '0';
-          document.getElementById('statBestScore').textContent = '0';
-          document.getElementById('statMostImproved').textContent = 'N/A';
-          return;
-        }
+        const base = getApiBase();
+        const endpointMap = {
+          analyze: '/analyze/',
+          explain: '/explanation/',
+          debug: '/debugging/',
+          suggest: '/suggestions/',
+        };
+        const endpoint = endpointMap[selectedMode] || '/analyze/';
+
+        // Loading state
+        analyzeBtn.classList.add('loading');
+        analyzeBtn.disabled = true;
+        showShimmers();
+
+        try {
+          const res = await fetch(`${base}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language: selectedLang }),
+            signal: AbortSignal.timeout(30000),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          const elapsed = res.headers.get('X-Process-Time-Ms');
+
+          // Normalize to full analysis shape
+          let result;
+          if (selectedMode === 'analyze') {
+            result = data;
+          } else if (selectedMode === 'explain') {
+            result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+          } else if (selectedMode === 'debug') {
+            result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+          } else {
+            result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
+          }
 
       /**
        * Stream the full analysis via POST /analyze/stream (SSE).
@@ -3105,7 +3292,26 @@ main
         } else {
           document.getElementById('statMostImproved').textContent = 'Stable';
           document.getElementById('statMostImproved').style.color = 'var(--yellow)';
+          currentResult = result;
+          renderResults(result, code);
+          addToHistory(code, result);
+          apiDot.classList.add('connected');
+          apiStatusText.textContent = getTranslation('api_status_connected');
+          document.getElementById('engineBar').style.display = 'flex';
+          engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
+          if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
+          else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
+          resultActions.style.display = 'flex';
+
+        } catch (err) {
+          toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
+          resetResults();
+        } finally {
+          analyzeBtn.classList.remove('loading');
+          analyzeBtn.disabled = false;
         }
+      }
+
       /* ═══════════════════════════════════════════════════════════════
          RENDER RESULTS
       ═══════════════════════════════════════════════════════════════ */
@@ -3136,6 +3342,9 @@ main
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
         ${exp.language}
       </div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', exp.line_count)}</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', exp.function_count)}</div>
+      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', exp.class_count) + '</div>' : ''}
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
       ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
@@ -3159,8 +3368,8 @@ main
           el.innerHTML = `
       <div class="clean-state">
         <div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
-        <h3>No issues detected!</h3>
-        <p>Your code passed all ${40}+ pattern checks. Keep it up!</p>
+        <h3>${getTranslation('debug_clean_title')}</h3>
+        <p>${getTranslation('debug_clean_desc')}</p>
       </div>`;
           return;
         }
@@ -3169,15 +3378,15 @@ main
     <div class="stat-bar">
       <div class="stat-chip error-chip">
         <div class="stat-chip-num">${dbg.error_count}</div>
-        <div class="stat-chip-label">Errors</div>
+        <div class="stat-chip-label">${getTranslation('debug_errors')}</div>
       </div>
       <div class="stat-chip warn-chip">
         <div class="stat-chip-num">${dbg.warning_count}</div>
-        <div class="stat-chip-label">Warnings</div>
+        <div class="stat-chip-label">${getTranslation('debug_warnings')}</div>
       </div>
       <div class="stat-chip info-chip">
         <div class="stat-chip-num">${dbg.info_count}</div>
-        <div class="stat-chip-label">Info</div>
+        <div class="stat-chip-label">${getTranslation('debug_info')}</div>
       </div>
     </div>`;
 
@@ -3186,7 +3395,7 @@ main
       <div class="issue-header">
         <span class="issue-badge">${issue.severity}</span>
         <span class="issue-type">${issue.type}</span>
-        ${issue.line ? `<span class="issue-line">Line ${issue.line}</span>` : ''}
+        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', issue.line)}</span>` : ''}
       </div>
       <div class="issue-desc">${issue.description}</div>
       ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
@@ -3372,13 +3581,13 @@ main
         </div>
       </div>
       <div class="score-info">
-        <h3>Quality Score</h3>
+        <h3>${getTranslation('suggest_quality_score')}</h3>
         <p>${sugg.next_step}</p>
       </div>
     </div>`;
 
         const cards = sugg.suggestions.length === 0
-          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
+          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>${getTranslation('suggest_perfect_title')}</h3><p>${getTranslation('suggest_perfect_desc')}</p></div>`
           : sugg.suggestions.map((s, i) => {
 
             let exampleHtml = '';
@@ -3432,7 +3641,7 @@ main
       <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
           <span class="suggest-cat">${s.category}</span>
-          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${s.priority} priority</span>
+          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', s.priority)}</span>
         </div>
         <div class="suggest-desc">${s.description}</div>
         ${exampleHtml}
@@ -3473,94 +3682,40 @@ main
         });
       }
 
-        // Order history chronologically (oldest to newest) for chart timeline mapping
-        const timelineRecords = [...data.history].reverse();
-        const labels = timelineRecords.map(item => {
-          const d = new Date(item.timestamp);
-          return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      /* ═══════════════════════════════════════════════════════════════
+         SHIMMER LOADING
+      ═══════════════════════════════════════════════════════════════ */
+      function showShimmers() {
+        const shims = '<div class="shimmer-card"></div>'.repeat(3);
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          const el = document.getElementById(id);
+          el.style.display = 'block';
+          el.innerHTML = shims;
         });
-        const scores = timelineRecords.map(item => item.quality_score);
-        const errors = timelineRecords.map(item => item.error_count);
-
-        const currentStyle = getComputedStyle(document.documentElement);
-        const text2Color = currentStyle.getPropertyValue('--text2').trim() || '#8892a4';
-        const accentColor = currentStyle.getPropertyValue('--accent').trim() || '#5b9cf6';
-        const redColor = currentStyle.getPropertyValue('--red').trim() || '#f25757';
-        const borderCl = currentStyle.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.07)';
-
-        // 1. Dual Axis Trend Configuration Line Chart Layout Matrix
-        if (trendChartInstance) trendChartInstance.destroy();
-        const trendCtx = document.getElementById('trendChart').getContext('2d');
-        trendChartInstance = new Chart(trendCtx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: 'Quality Score',
-                data: scores,
-                borderColor: accentColor,
-                backgroundColor: 'rgba(91, 156, 246, 0.08)',
-                borderWidth: 2,
-                tension: 0.25,
-                fill: true,
-                yAxisID: 'y'
-              },
-              {
-                label: 'Errors Detected',
-                data: errors,
-                borderColor: redColor,
-                backgroundColor: 'transparent',
-                borderWidth: 1.5,
-                borderDash: [5, 5],
-                tension: 0.1,
-                yAxisID: 'y1'
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { labels: { color: text2Color, font: { family: 'Inter', weight: 500 } } }
-            },
-            scales: {
-              x: { grid: { color: borderCl }, ticks: { color: text2Color, maxRotation: 45, minRotation: 45 } },
-              y: { min: 0, max: 100, position: 'left', grid: { color: borderCl }, ticks: { color: text2Color } },
-              y1: { min: 0, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: text2Color, stepSize: 1 } }
-            }
-          }
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'none';
         });
+      }
 
-        // 2. Languages Distribution Pie Layout Architecture
-        if (langChartInstance) langChartInstance.destroy();
-        const langCtx = document.getElementById('langChart').getContext('2d');
-        const distribution = data.summary.languages_distribution || {};
-        const langLabels = Object.keys(distribution);
-        const langValues = Object.values(distribution);
-
-        langChartInstance = new Chart(langCtx, {
-          type: 'pie',
-          data: {
-            labels: langLabels,
-            datasets: [{
-              data: langValues,
-              backgroundColor: [accentColor, '#7c3aed', '#22d47b', '#f5c842', '#f5923e', '#f25757'],
-              borderWidth: 1,
-              borderColor: borderCl
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'bottom', labels: { color: text2Color, font: { family: 'Inter', size: 11 } } }
-            }
-          }
+      function resetResults() {
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          const el = document.getElementById(id);
+          el.style.display = 'none';
+          el.innerHTML = '';
         });
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'flex';
+        });
+        ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => {
+          document.getElementById(id).textContent = '';
+        });
+        resultActions.style.display = 'none';
+        document.getElementById('engineBar').style.display = 'none';
+        engineInfo.textContent = '';
+        timeInfo.textContent = '';
+        currentResult = null;
+      }
 
-      } catch (error) {
-        console.error("Pipeline analytics data extraction failure:", error);
       /* ═══════════════════════════════════════════════════════════════
          HISTORY
       ═══════════════════════════════════════════════════════════════ */
@@ -3582,57 +3737,26 @@ main
 
       function renderHistory() {
         if (!history.length) {
-          historyList.innerHTML = '<div class="list-empty">No history yet. Run your first analysis.</div>';
+          historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
         historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="Load history entry for ${h.lang} at ${h.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
       <span class="history-lang">${h.lang || '?'}</span>
       <span class="history-thumb">${escHtml(h.preview)}…</span>
       <span class="history-meta">${h.ts}</span>
     </div>`).join('');
       }
-    }
 
-    /* ═══════════════════════════════════════════════════════════════
-   ANALYZE CORE LOGIC PIPELINE
-═══════════════════════════════════════════════════════════════ */
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const resultActions = document.getElementById('resultActions');
-    const engineInfo = document.getElementById('engineInfo');
-    const timeInfo = document.getElementById('timeInfo');
+      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+        if (!confirm(getTranslation('confirm_clear_history'))) return;
 
-    analyzeBtn.addEventListener('click', doAnalyze);
-
-    async function doAnalyze() {
-      const code = editor.value.trim();
-      if (!code) {
-        toast('Please paste some code first.', 'error');
-        return;
-      }
-      const base = apiUrlInput.value.replace(/\/$/, '');
-      const endpointMap = { analyze: '/analyze/', explain: '/explanation/', debug: '/debugging/', suggest: '/suggestions/' };
-      const endpoint = endpointMap[selectedMode] || '/analyze/';
-
-      analyzeBtn.classList.add('loading');
-      analyzeBtn.disabled = true;
-      showShimmers();
-
-      try {
-        const res = await fetch(`${base}${endpoint}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, language: selectedLang }),
-          signal: AbortSignal.timeout(30000),
-        });
-document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-  if (!window.confirm('Are you sure you want to clear your history? This cannot be undone.')) return;
-
-  history = [];
-  localStorage.removeItem('qyx_history');
-  renderHistory();
-  toast('History cleared', 'info');
-});
+        history = [];
+        localStorage.removeItem('qyx_history');
+        renderHistory();
+        toast(getTranslation('toast_history_cleared'), 'info');
+      });
+      
       function loadEntry(id) {
         const entry = history.find(h => h.id === Number (id));
         console.log(entry);
@@ -3649,52 +3773,46 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
 
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || `HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        const elapsed = res.headers.get('X-Process-Time-Ms') || "140";
+      /* ═══════════════════════════════════════════════════════════════
+         FAVORITES
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('favBtn').addEventListener('click', () => {
+        if (!currentResult || !editor.value.trim()) return;
+        const entry = {
+          id: Date.now(),
+          code: editor.value,
+          result: currentResult,
+          lang: currentResult.explanation?.language || selectedLang,
+          ts: new Date().toLocaleDateString(),
+          preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
+        };
+        favorites.unshift(entry);
+        if (favorites.length > 30) favorites = favorites.slice(0, 30);
+        localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
+        renderFavorites();
+        toast(getTranslation('toast_saved_favorites'), 'success');
+      });
 
-        let result;
-        if (selectedMode === 'analyze') {
-          result = data;
-        } else if (selectedMode === 'explain') {
-          result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-        } else if (selectedMode === 'debug') {
-          result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-        } else {
-          result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
+      function renderFavorites() {
+        if (!favorites.length) {
+          favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
+          return;
         }
+        favList.innerHTML = favorites.map(f => `
+    <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${getTranslation('favorite_entry_label').replace('{lang}', f.lang || '?').replace('{time}', f.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
+      <span class="history-lang">${f.lang || '?'}</span>
+      <span class="history-thumb">${escHtml(f.preview)}…</span>
+      <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+    </div>`).join('');
+      }
 
-        currentResult = result;
-        renderResults(result, code);
-        addToHistory(code, result);
-        
-        apiDot.classList.add('connected');
-        apiStatusText.textContent = 'Connected';
-        document.getElementById('engineBar').style.display = 'flex';
-        engineInfo.innerHTML = `<strong>Engine:</strong> ${result.provider || 'Core Static Core'}`;
-        timeInfo.innerHTML = `<strong>Latency:</strong> ${elapsed}ms`;
-        
-        // Live auto reload dashboard execution
-        if (document.getElementById('paneBottomProgress').style.display !== 'none') {
-          refreshProgressDashboard();
-        }
-
-      } catch (err) {
-        toast(err.message || 'Analysis processing crash runtime exception.', 'error');
-        resetResults();
-      } finally {
-        analyzeBtn.classList.remove('loading');
-        analyzeBtn.disabled = false;
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
-  if (!window.confirm('Are you sure you want to clear your favorites? This cannot be undone.')) return;
+  if (!confirm(getTranslation('confirm_clear_favs'))) return;
   
   favorites = [];
   localStorage.removeItem('qyx_favorites');
   renderFavorites();
-  toast('Favorites cleared', 'info');
+  toast(getTranslation('toast_favorites_cleared'), 'info');
 });
       function loadFav(id) {
         const entry = favorites.find(f => f.id === Number(id));
@@ -3711,276 +3829,209 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-   RENDERING UTILITIES
-═══════════════════════════════════════════════════════════════ */
-    function renderResults(res, code) {
-      // Direct dynamic orchestration to sub render modules
-      if (res.explanation) renderExplain(res.explanation);
-      if (res.debugging) renderDebug(res.debugging);
-      if (res.suggestions) renderSuggest(res.suggestions);
-      
-      // Auto toggle operational target display tabs rows
-      let primaryTab = 'explain';
-      if (!res.explanation && res.debugging) primaryTab = 'debug';
-      if (!res.explanation && !res.debugging && res.suggestions) primaryTab = 'suggest';
-      switchResultTab(primaryTab);
-      resultActions.style.display = 'flex';
-    }
-
-    function switchResultTab(tabKey) {
-      document.querySelectorAll('.result-tab').forEach(btn => {
-        const active = btn.dataset.rtab === tabKey;
-        btn.classList.toggle('active', active);
-        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      /* ═══════════════════════════════════════════════════════════════
+         DOWNLOAD
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('downloadBtn').addEventListener('click', () => {
+        if (!currentResult) return;
+        const text = buildReport(currentResult, editor.value);
+        const blob = new Blob([text], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `qyverixai-report-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast(getTranslation('toast_report_downloaded'), 'success');
       });
-      document.querySelectorAll('.result-pane').forEach(p => {
-        p.style.display = p.id === `pane-${tabKey}` ? 'block' : 'none';
-      });
-    }
 
-    document.querySelectorAll('.result-tab[data-rtab]').forEach(btn => {
-      btn.addEventListener('click', () => switchResultTab(btn.dataset.rtab));
-    });
-
-    function renderExplain(exp) {
-      document.getElementById('emptyExplain').style.display = 'none';
-      const el = document.getElementById('explainResult');
-      el.style.display = 'block';
-      el.innerHTML = `
-        <div class="explain-summary">${renderMarkdown(exp.summary)}</div>
-        <div class="explain-meta">
-          <div class="meta-chip complexity-${exp.complexity_score}"><span class="dot"></span> ${exp.complexity_score}</div>
-          <div class="meta-chip">Lines: ${exp.line_count}</div>
-          <div class="meta-chip">Functions: ${exp.function_count}</div>
-        </div>
-        <ul class="key-points">
-          ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
-        </ul>`;
-    }
-
-    function renderDebug(dbg) {
-      document.getElementById('emptyDebug').style.display = 'none';
-      const el = document.getElementById('debugResult');
-      el.style.display = 'block';
-      document.getElementById('debugBadge').textContent = dbg.issues ? dbg.issues.length : '0';
-
-      if (dbg.clean || !dbg.issues || dbg.issues.length === 0) {
-        el.innerHTML = `
-          <div class="clean-state">
-            <div class="clean-icon">🍃</div>
-            <h3>Codebase Is Clean</h3>
-            <p>No optimization constraints detected.</p>
-          </div>`;
-        return;
+      function buildReport(r, code) {
+        const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
+        if (r.explanation) {
+          lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
+        }
+        if (r.debugging) {
+          lines.push('── DEBUGGING ──', r.debugging.summary, '');
+          r.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
+        }
+        if (r.suggestions) {
+          lines.push('── SUGGESTIONS ──', `Score: ${r.suggestions.overall_score}/100 (${r.suggestions.grade})`, r.suggestions.next_step, '');
+          r.suggestions.suggestions.forEach(s => lines.push(`[${s.priority.toUpperCase()}] ${s.category}: ${s.description}`, ''));
+        }
+        lines.push('── CODE ──', '', code);
+        return lines.join('\n');
       }
-      el.innerHTML = dbg.issues.map((iss, i) => `
-        <div class="issue-card ${iss.severity}" style="animation-delay:${i * 0.05}s">
-          <div class="issue-header">
-            <span class="issue-badge">${iss.severity}</span>
-            <span class="issue-type">${iss.type}</span>
-            <span class="issue-line">Line ${iss.line_number}</span>
-          </div>
-          <div class="issue-desc">${iss.description}</div>
-          ${iss.snippet ? `<pre class="issue-snippet">${escHtml(iss.snippet)}</pre>` : ''}
-          ${iss.fix_suggestion ? `<div class="issue-fix">${renderMarkdown(iss.fix_suggestion)}</div>` : ''}
-        </div>`).join('');
-    }
 
-    function renderSuggest(sugg) {
-      document.getElementById('emptySuggest').style.display = 'none';
-      const el = document.getElementById('suggestResult');
-      el.style.display = 'block';
-      document.getElementById('suggestBadge').textContent = sugg.suggestions ? sugg.suggestions.length : '0';
-
-      const ring = `
-        <div class="score-ring-wrap">
-          <div class="score-ring">
-            <svg width="80" height="80"><circle cx="40" cy="40" r="34" stroke="var(--border2)" stroke-width="6" fill="transparent"/>
-            <circle cx="40" cy="40" r="34" stroke="var(--accent)" stroke-width="6" fill="transparent" stroke-dasharray="${2 * Math.PI * 34}" stroke-dashoffset="${2 * Math.PI * 34 * (1 - (sugg.quality_score || 0) / 100)}"/></svg>
-            <div class="score-ring-text"><span class="score-num">${sugg.quality_score || 0}</span><span class="score-grade">SCORE</span></div>
-          </div>
-          <div class="score-info"><h3>Quality Index Overview</h3><p>${sugg.next_step || 'Code review completed validation loop parameters.'}</p></div>
-        </div>`;
-
-      if (!sugg.suggestions || sugg.suggestions.length === 0) {
-        el.innerHTML = ring + `<div class="clean-state"><h3>Flawless Architecture</h3><p>Code conforms perfectly to target guidelines standard parameters design rules matrix templates.</p></div>`;
-        return;
+      /* ═══════════════════════════════════════════════════════════════
+         TOAST
+      ═══════════════════════════════════════════════════════════════ */
+      function toast(msg, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        el.className = 'toast ' + type;
+        const icons = { success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>', error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' };
+        el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + msg + '</span>';
+        container.appendChild(el);
+        setTimeout(() => {
+          el.classList.add('fadeout');
+          el.addEventListener('animationend', () => el.remove());
+        }, 3000);
       }
-      const cards = sugg.suggestions.map((s, i) => `
-        <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s">
-          <div class="suggest-header"><span class="suggest-cat">${s.category}</span><span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${s.priority} priority</span></div>
-          <div class="suggest-desc">${s.description}</div>
-          ${s.example ? `<pre class="suggest-example">${escHtml(s.example)}</pre>` : ''}
-        </div>`).join('');
-      el.innerHTML = ring + cards;
-    }
 
-    /* ═══════════════════════════════════════════════════════════════
-   SHIMMER LOADING UTILITIES
-═══════════════════════════════════════════════════════════════ */
-    function showShimmers() {
-      const shims = '<div class="shimmer-card"></div>'.repeat(3);
-      ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
-        const el = document.getElementById(id);
-        el.style.display = 'block';
-        el.innerHTML = shims;
-      });
-      ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => document.getElementById(id).style.display = 'none');
-    }
+      /* ═══════════════════════════════════════════════════════════════
+         HELPERS
+      ═══════════════════════════════════════════════════════════════ */
+      function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+      function renderMarkdown(s) {
+        return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
+      }
 
-    function resetResults() {
-      ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
-        const el = document.getElementById(id);
-        el.style.display = 'none';
-        el.innerHTML = '';
-      });
-      ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => document.getElementById(id).style.display = 'flex');
-      ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => document.getElementById(id).textContent = '');
-      resultActions.style.display = 'none';
-      document.getElementById('engineBar').style.display = 'none';
-      currentResult = null;
-    }
+      /* ═══════════════════════════════════════════════════════════════
+         SAMPLE CODE LOADER
+      ═══════════════════════════════════════════════════════════════ */
+      const SAMPLES = {
+        python: `// Python Sample
+  import os
 
-    /* ═══════════════════════════════════════════════════════════════
-   HISTORY & FAVORITES DATA ORCHESTRATION SANDBOX
-═══════════════════════════════════════════════════════════════ */
-    function addToHistory(code, result) {
-      const preview = code.substring(0, 60).replace(/\n/g, ' ');
-      const id = 'hist_' + Date.now();
-      const item = { id, code, result, preview, lang: selectedLang, ts: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-      history.unshift(item);
-      if (history.length > MAX_HISTORY) history.pop();
-      localStorage.setItem('qyx_history', JSON.stringify(history));
+# [!] Hardcoded secret - security risk
+password = "supersecret123"
+
+def calculate(a, b):
+    # [!] No type hints, potential ZeroDivisionError
+    result = a / b
+    return result
+
+def fetch_data(url):
+    import requests
+    # [!] No error handling for network call
+    response = requests.get(url)
+    return response.json()
+
+def process_items(items=[]):  # [!] Mutable default argument
+    results = ""
+    for item in items:
+        results += str(item)  # [!] String concat in loop
+    return results
+
+from os import *  # [!] Wildcard import
+
+x = eval("1 + 2")  # [!] Unsafe eval
+
+calculate(10, 0)`,
+        javascript: `// JavaScript Sample
+  var counter = 0;
+
+function loadUser(id) {
+  // [!] Promise not awaited
+  fetch('/api/users/' + id).then(r => r.json());
+
+  if (counter == "0") {  // [!] Loose equality
+    console.log("No users loaded");
+    document.getElementById("output").innerHTML = id;  // [!] XSS risk
+  }
+
+  var result = null;
+  return result;
+}
+
+loadUser(42);`,
+        typescript: `// TypeScript Sample
+interface User {
+  id: number;
+  name: string;
+  email?: string; 
+}
+
+function sendWelcomeEmail(user: User) {
+  // Anti-pattern: Non-null assertion operator (!) used dangerously
+  // If user.email is undefined, this will cause a runtime error in the compiled JS
+  console.log("Sending email to: " + user.email!.toLowerCase());
+}
+
+const newUser: User = { id: 1, name: "Alice" };
+sendWelcomeEmail(newUser);`,
+        java: `// Java Sample
+public class Main {
+    public static void main(String[] args) {
+        String name1 = new String("Vaibhav");
+        String name2 = new String("Vaibhav");
+
+        // Anti-pattern 1: Using == for string comparison instead of .equals()
+        if (name1 == name2) {
+            System.out.println("Names are the same");
+        } else {
+            System.out.println("Names are different (Reference comparison failed)");
+        }
+
+        // Anti-pattern 2: NullPointerException risk
+        String uninitializedString = null;
+        System.out.println(uninitializedString.length());
+    }
+}`,
+        cpp: `// C++ Sample
+#include <iostream>
+
+// Anti-pattern 1: using namespace std in global scope
+using namespace std; 
+
+void processData() {
+    // Anti-pattern 2: Memory Leak
+    // Allocating memory on the heap but never freeing it with 'delete'
+    int* dataBuffer = new int[100]; 
+    
+    dataBuffer[0] = 42;
+    cout << "Processing value: " << dataBuffer[0] << endl;
+    
+    // Memory leak occurs here when the function exits 
+    // because 'delete[] dataBuffer;' is missing.
+}
+
+int main() {
+    processData();
+    return 0;
+}`
+      };
+
+      function loadSample() {
+        const sample = SAMPLES[selectedLang] || SAMPLES.python;
+        editor.value = sample;
+        updateEditor();
+        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+        toast(getTranslation('toast_sample_loaded'), 'success');
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+         INIT
+      ═══════════════════════════════════════════════════════════════ */
+      // Wire up language selector
+      const langSelect = document.getElementById('langSelect');
+      if (langSelect) {
+        langSelect.addEventListener('change', e => {
+          setAppLanguage(e.target.value);
+        });
+        // Also listen for input for immediate responsiveness in some browsers
+        langSelect.addEventListener('input', e => {
+          setAppLanguage(e.target.value);
+        });
+      }
+
+      // Initialize language
+      setAppLanguage(appLang);
+      syncApiStatusText();
+
       renderHistory();
-    }
-
-    function renderHistory() {
-      const container = document.getElementById('historyList');
-      if (!history.length) {
-        container.innerHTML = '<div class="list-empty">No history logs yet. Run code parameters audit to generate index traces mappings tracking records data pipelines assets rows.</div>';
-        return;
-      }
-      container.innerHTML = history.map(h => `
-        <div class="history-item" onclick="loadHistoryItem('${h.id}')" role="button" tabindex="0" aria-label="Reload query history block context implementation trace log">
-          <span class="history-lang">${h.lang}</span>
-          <span class="history-thumb">${escHtml(h.preview)}…</span>
-          <span class="history-meta">${h.ts}</span>
-        </div>`).join('');
-    }
-
-    window.loadHistoryItem = function(id) {
-      const entry = history.find(h => h.id === id);
-      if (!entry) return;
-      editor.value = entry.code;
-      updateEditor();
-      selectedLang = entry.lang;
-      setLanguage(entry.lang);
-      currentResult = entry.result;
-      renderResults(entry.result, entry.code);
-      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      toast('History audit entry tracking metrics re-hydrated.', 'success');
-    };
-
-    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-      if (!confirm('Flush local logs sequence trace storage configurations maps? This operation cannot be rolled back.')) return;
-      history = [];
-      localStorage.removeItem('qyx_history');
-      renderHistory();
-      if (document.getElementById('paneBottomProgress').style.display !== 'none') refreshProgressDashboard();
-      toast('History logs wiped out.', 'info');
-    });
-
-    // Favorites Implementation Core Setup 
-    document.getElementById('favBtn').addEventListener('click', () => {
-      if (!currentResult) return;
-      const code = editor.value;
-      if (favorites.some(f => f.code === code)) {
-        toast('Code signature layout block template registry trace item matches an existing favored asset row index.', 'info');
-        return;
-      }
-      const preview = code.substring(0, 60).replace(/\n/g, ' ');
-      const item = { id: 'fav_' + Date.now(), code, result: currentResult, preview, lang: selectedLang, ts: new Date().toLocaleDateString() };
-      favorites.unshift(item);
-      localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
       renderFavorites();
-      toast('Saved directly to favorites inventory.', 'success');
-    });
 
-    function renderFavorites() {
-      const favList = document.getElementById('favList');
-      if (!favorites.length) {
-        favList.innerHTML = '<div class="list-empty">No favorite references bookmarked yet.</div>';
-        return;
-      }
-      favList.innerHTML = favorites.map(f => `
-        <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="Load favored bookmark snapshot state">
-          <span class="history-lang">${f.lang}</span>
-          <span class="history-thumb">${escHtml(f.preview)}…</span>
-          <span class="history-meta" style="opacity:0.5">⭐</span>
-        </div>`).join('');
-    }
-
-    window.loadFav = function(id) {
-      const entry = favorites.find(f => f.id === id);
-      if (!entry) return;
-      editor.value = entry.code;
-      updateEditor();
-      setLanguage(entry.lang);
-      currentResult = entry.result;
-      renderResults(entry.result, entry.code);
-      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      toast('Favored snippet execution framework trace loaded.', 'success');
-    };
-
-    document.getElementById('clearFavsBtn').addEventListener('click', () => {
-      if (!confirm('Delete all favorites? This cannot be undone.')) return;
-      favorites = [];
-      localStorage.removeItem('qyx_favorites');
-      renderFavorites();
-      toast('Favorites cleared', 'info');
-    });
-
-    /* ═══════════════════════════════════════════════════════════════
-   HELPERS & SYSTEM INITIALIZATION
-═══════════════════════════════════════════════════════════════ */
-    function escHtml(s) {
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    function renderMarkdown(s) {
-      if (!s) return '';
-      return String(s)
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
-    }
-
-    function toast(msg, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      const icons = { success: '✓', error: '⚠️', info: 'ℹ' };
-      el.innerHTML = `<span class="toast-icon">${icons[type] || '✓'}</span><span>${msg}</span>`;
-      container.appendChild(el);
-      setTimeout(() => {
-        el.classList.add('fadeout');
-        el.addEventListener('animationend', () => el.remove());
-      }, 3400);
-    }
-
-    // Run core routines inside boot cycle
-    renderHistory();
-    renderFavorites();
-    updateEditor();
-  </script>
       // Save API URL
-      apiUrlInput.addEventListener('change', () => {
-        localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
-      });
-      const savedUrl = localStorage.getItem('qyx_apiUrl');
-      if (savedUrl) apiUrlInput.value = savedUrl;
+      if (apiUrlInput) {
+        apiUrlInput.addEventListener('change', () => {
+          localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
+        });
+        const savedUrl = localStorage.getItem('qyx_apiUrl');
+        if (savedUrl) apiUrlInput.value = savedUrl;
+      }
 
       /* ═══════════════════════════════════════════════════════════════
          DIGEST SUBSCRIBE
@@ -3991,7 +4042,7 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         const btn = document.getElementById('digestBtn');
         btn.disabled = true;
         btn.textContent = 'Subscribing…';
-        const base = apiUrlInput.value.replace(/\/$/, '');
+        const base = getApiBase();
         try {
           const r = await fetch(`${base}/subscribe/`, {
             method: 'POST',

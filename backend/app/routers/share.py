@@ -1,138 +1,107 @@
-from __future__ import annotations
-
 import json
 import secrets
-from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import database
+from ..database import get_db
 from ..models import SharedSnippet
-from ..schemas import ShareCreateRequest, ShareCreateResponse, ShareRecord
-from sqlalchemy.exc import OperationalError, IntegrityError
+from ..schemas import ShareCreateRequest, ShareRecord
 
 router = APIRouter(prefix="/share", tags=["Share"])
 
-SHARE_TTL = timedelta(days=7)
 
+@router.post("/", response_model=ShareRecord)
+def create_share(payload: ShareCreateRequest, db: Session = Depends(get_db)):
+    # ensure tables exist on the engine (tests monkeypatch `database.engine`)
+    # ensure tables exist on the current DB bind (use the session's bind)
+    from ..database import Base as _Base
 
-def _now() -> datetime:
-    return datetime.now(UTC)
-
-
-def _to_utc(dt: datetime) -> datetime:
-    return dt if dt.tzinfo is not None else dt.replace(tzinfo=UTC)
-
-
-def _cleanup_expired_shares(db: Session) -> None:
-    cutoff = _now() - SHARE_TTL
-    try:
-        db.execute(delete(SharedSnippet).where(SharedSnippet.created_at < cutoff))
-        db.commit()
-    except OperationalError:
-        # In some test environments the table may not exist yet; attempt to create on the
-        # session's bound engine so subsequent operations succeed, otherwise ignore.
-        try:
-            database.Base.metadata.create_all(bind=db.get_bind())
-        except Exception:
-            return
-
-
-def _is_expired(record: SharedSnippet) -> bool:
-    return _to_utc(record.created_at) < _now() - SHARE_TTL
-
-
-def _serialize_result(result: object) -> str:
-    return json.dumps(result, ensure_ascii=False)
-
-
-def _deserialize_result(result_json: str) -> object:
-    try:
-        return json.loads(result_json)
-    except json.JSONDecodeError:
-        return result_json
-
-
-@router.post("/", response_model=ShareCreateResponse)
-def create_share(payload: ShareCreateRequest, db: Session = Depends(database.get_db)):
-    _cleanup_expired_shares(db)
+    _Base.metadata.create_all(bind=db.get_bind())
 
     token = ""
-    # Try to insert a record with a random token; on unique conflict retry.
     for _ in range(5):
-        candidate = secrets.token_urlsafe(6)
-        record = SharedSnippet(
-            token=candidate,
-            code=payload.code,
-            result_json=_serialize_result(payload.result),
-        )
-        try:
-            db.add(record)
-            db.commit()
-            db.refresh(record)
-            token = record.token
+        candidate = secrets.token_urlsafe(8)
+        exists = db.execute(select(SharedSnippet).where(SharedSnippet.token == candidate)).scalar_one_or_none()
+        if exists is None:
+            token = candidate
             break
-        except IntegrityError:
-            db.rollback()
-            continue
-        except OperationalError:
-            # Missing table in some test envs — create tables on the session bind then retry
-            try:
-                database.Base.metadata.create_all(bind=db.get_bind())
-            except Exception:
-                pass
-            db.rollback()
-            continue
 
     if not token:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not create share token")
 
-    return ShareCreateResponse(id=token)
-
-
-@router.get("/{token}", response_model=ShareRecord)
-def get_share(token: str, db: Session = Depends(database.get_db)):
-    record = db.execute(select(SharedSnippet).where(SharedSnippet.token == token)).scalar_one_or_none()
-    if record is None:
-        # If the direct ORM lookup didn't find a row, try a raw lookup on the
-        # session's bound connection to detect an expired entry that may have
-        # mismatched ORM state in some test setups. If found and expired,
-        # return the expired message, otherwise return not found.
-        try:
-            temp_db = database.SessionLocal()
-            try:
-                row = temp_db.execute(select(SharedSnippet.created_at).where(SharedSnippet.token == token)).first()
-            finally:
-                temp_db.close()
-        except OperationalError:
-            row = None
-
-        if row:
-            created_at = row[0]
-            if _to_utc(created_at) < _now() - SHARE_TTL:
-                try:
-                    db.execute(delete(SharedSnippet).where(SharedSnippet.token == token))
-                    db.commit()
-                except Exception:
-                    pass
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result has expired")
-
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result not found")
-
-    # If the record exists but is expired, remove it and return 404.
-    if _is_expired(record):
-        try:
-            db.execute(delete(SharedSnippet).where(SharedSnippet.token == token))
-            db.commit()
-        except Exception:
-            pass
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result has expired")
+    record = SharedSnippet(
+        token=token,
+        code=payload.code,
+        result_json=json.dumps(payload.result),
+    )
+    db.add(record)
+    db.commit()
+    db.refresh(record)
 
     return ShareRecord(
         id=record.token,
         code=record.code,
-        result=_deserialize_result(record.result_json),
+        result=json.loads(record.result_json),
         created_at=record.created_at.isoformat(),
+    )
+
+
+@router.get("/{token}", response_model=ShareRecord)
+def get_share(token: str, db: Session = Depends(get_db)):
+    # ensure tables exist (test environment may patch engine)
+    # ensure tables exist on the current DB bind (use the session's bind)
+    from ..database import Base as _Base
+
+    _Base.metadata.create_all(bind=db.get_bind())
+
+    record = db.execute(select(SharedSnippet).where(SharedSnippet.token == token)).scalar_one_or_none()
+    if record is None:
+        # fallback: try raw SQL in case ORM mapping/env differences hide the record
+        from sqlalchemy import text
+        raw = db.execute(text("SELECT token, code, result_json, created_at FROM shares WHERE token = :t"), {"t": token}).first()
+        if raw is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result not found or expired")
+
+        # parse created_at which may be string or datetime
+        token_val, code_val, result_json_val, created_at_val = raw
+        import datetime as _dt
+
+        created_at = created_at_val
+        if isinstance(created_at, str):
+            try:
+                created_at = _dt.datetime.fromisoformat(created_at)
+            except Exception:
+                try:
+                    created_at = _dt.datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S.%f")
+                except Exception:
+                    created_at = None
+
+        if created_at is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result not found or expired")
+
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=_dt.timezone.utc)
+
+        if created_at < _dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(days=7):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result expired")
+
+        return ShareRecord(id=token_val, code=code_val, result=json.loads(result_json_val), created_at=created_at.isoformat())
+
+    # expire shares older than 7 days — normalize tzinfo if necessary
+    from datetime import datetime, timezone, timedelta
+
+    created_at = record.created_at
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=timezone.utc)
+
+    if created_at < datetime.now(timezone.utc) - timedelta(days=7):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result expired")
+
+    return ShareRecord(
+        id=record.token,
+        code=record.code,
+        result=json.loads(record.result_json),
+        created_at=created_at.isoformat(),
     )
