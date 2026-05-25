@@ -242,8 +242,9 @@ jobs:
               {"body": comment_body},
           )
           if status >= 300:
-              print(f"Failed to post PR comment: HTTP {status}", file=sys.stderr)
-              sys.exit(1)
+              print(f"Failed to post PR comment: HTTP {status}; writing analysis to logs only.", file=sys.stderr)
+              print(comment_body)
+              sys.exit(0)
 
           needs_improvement = any(
               isinstance(result.get("score"), int) and result["score"] < 60
@@ -268,10 +269,12 @@ jobs:
                   )
                   if create_status >= 300:
                       print(f"Failed to create label: HTTP {create_status}", file=sys.stderr)
-                      sys.exit(1)
+                      print(comment_body)
+                      sys.exit(0)
               elif label_status >= 300:
                   print(f"Failed to check label: HTTP {label_status}", file=sys.stderr)
-                  sys.exit(1)
+                  print(comment_body)
+                  sys.exit(0)
 
               add_status, _ = github_request(
                   "POST",
@@ -280,7 +283,8 @@ jobs:
               )
               if add_status >= 300:
                   print(f"Failed to add label: HTTP {add_status}", file=sys.stderr)
-                  sys.exit(1)
+                  print(comment_body)
+                  sys.exit(0)
 
           print(comment_body)
           PY
