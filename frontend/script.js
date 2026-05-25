@@ -23,17 +23,35 @@ const API_URL_STORAGE_KEY = 'qyverix_api_url';
 // ── Theme ──
 const savedTheme = localStorage.getItem('qyverix_theme') || 'dark';
 if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+
 themeToggle.addEventListener('click', () => {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
   localStorage.setItem('qyverix_theme', isLight ? 'dark' : 'light');
+
+  const themeToggleBtn = document.getElementById('themeToggle');
+  if (themeToggleBtn) {
+    themeToggleBtn.setAttribute('aria-label', isLight ? 'Toggle dark mode' : 'Toggle light mode');
+    themeToggleBtn.setAttribute('aria-pressed', isLight ? 'false' : 'true');
+  }
 });
+
+const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+const themeToggleBtnInit = document.getElementById('themeToggle');
+if (themeToggleBtnInit) {
+  themeToggleBtnInit.setAttribute('aria-label', initialTheme === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
+  themeToggleBtnInit.setAttribute('aria-pressed', initialTheme === 'dark' ? 'false' : 'true');
+}
 
 // ── Tabs ──
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
     tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
     currentMode = tab.dataset.mode;
   });
 });
@@ -46,6 +64,10 @@ codeInput.addEventListener('input', () => {
 
 // ── Keyboard shortcut ──
 codeInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    codeInput.blur();
+    return;
+  }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault();
     runAnalysis();
