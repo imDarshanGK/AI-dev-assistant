@@ -1,5 +1,4 @@
 import ast
-import re
 
 def _get_snippet(code: str, line: int) -> str:
     lines = code.splitlines()
@@ -25,7 +24,7 @@ def detect_unreachable_code(tree, code):
     for node in ast.walk(tree):
         for field, value in ast.iter_fields(node):
             if not isinstance(value, list):
-                continue 
+                continue
             if not all(isinstance(v, ast.stmt) for v in value):
                 continue
             terminal_line = None
@@ -58,7 +57,7 @@ def detect_unused_imports(tree, code):
                     continue
                 bound = alias.asname or alias.name
                 imports.append((bound, node.lineno))
-    
+
     used = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Name):
@@ -66,7 +65,7 @@ def detect_unused_imports(tree, code):
         elif isinstance(node, ast.Attribute):
             root = node
             while isinstance(root, ast.Attribute):
-                root = root.value 
+                root = root.value
             if isinstance(root, ast.Name):
                 used.add(root.id)
 
@@ -142,7 +141,7 @@ def detect_too_many_returns(tree, code):
             issues.append(_make_issue(
                 "Too Many Returns",
                 node.lineno,
-                f"'{node.name}' has {count} return statements — hard to follow.",
+                f"'{node.name}' has {count} return statements — hard to follow. Ideally should have less than 4 return statements.",
                 "Refactor into smaller functions or use early returns consistently.",
                 "info",
                 _get_snippet(code, node.lineno),
@@ -181,4 +180,3 @@ def analyze(source: str) -> list[dict]:
     issues += detect_deep_nesting(tree, source)
     issues.sort(key=lambda i: i["line"])
     return issues
-    

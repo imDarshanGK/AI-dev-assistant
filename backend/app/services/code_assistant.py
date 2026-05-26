@@ -803,7 +803,7 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                     }
                 )
                 break  # one hit per pattern is enough
-            
+
     if language == "Python":
         try:
             for issue in ast_analyze(code):
