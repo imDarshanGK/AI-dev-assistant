@@ -264,12 +264,12 @@ AI-dev-assistant/
 │   ├── app/
 │   │   ├── main.py                   # FastAPI app, middleware, rate limiting
 │   │   ├── schemas.py                # Pydantic v2 request/response models
-│   │   │   ├── routers/
-│   │   │   │   ├── analyze.py            # POST /analyze/
-│   │   │   │   ├── debugging.py          # POST /debugging/
-│   │   │   │   ├── explanation.py        # POST /explanation/
-│   │   │   │   ├── suggestions.py        # POST /suggestions/
-│   │   │   │   └── auth.py               # /auth/signup, /auth/login, /auth/me
+│   │   ├── routers/
+│   │   │   ├── analyze.py            # POST /analyze/
+│   │   │   ├── debugging.py          # POST /debugging/
+│   │   │   ├── explanation.py        # POST /explanation/
+│   │   │   ├── suggestions.py        # POST /suggestions/
+│   │   │   └── auth.py               # /auth/signup, /auth/login, /auth/me
 │   │   └── services/
 │   │       ├── code_assistant.py     # Rule-based engine — 40+ patterns, 5 languages
 │   │       └── ai_provider.py        # Optional LLM abstraction layer
