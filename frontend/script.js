@@ -20,9 +20,9 @@ const favContainer = document.getElementById('favContainer');
 const themeToggle = document.getElementById('themeToggle');
 const API_URL_STORAGE_KEY = 'qyverix_api_url';
 
-// ── Theme ──
-const savedTheme = localStorage.getItem('qyverix_theme') || 'dark';
-if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const savedTheme = localStorage.getItem('qyverix_theme') || (systemDark ? 'dark' : 'light');
+document.documentElement.setAttribute('data-theme', savedTheme);
 
 themeToggle.addEventListener('click', () => {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
