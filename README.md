@@ -336,6 +336,12 @@ Compatible with **OpenAI**, **Groq** (free tier), **Together AI**, **Ollama** (l
 
 > Never commit API keys. Use environment variables or your host's secrets manager.
 
+### Provider Reliability
+The backend includes built-in resilience for LLM requests:
+- **Exponential Backoff**: Automatic retries on timeouts and connection failures.
+- **Rate Limit Handling**: Pauses and retries on HTTP 429 Rate Limit responses.
+- **Graceful Fallback**: Preserves offline/rule-based features seamlessly if the LLM provider becomes fully unavailable.
+
 ---
 
 ## Configuration Reference
