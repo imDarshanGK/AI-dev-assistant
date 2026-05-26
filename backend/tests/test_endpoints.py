@@ -8,6 +8,11 @@ import sys
 
 import pytest
 from fastapi.testclient import TestClient
+<<<<<<< HEAD
+=======
+import sys
+import os
+>>>>>>> fix/labeler-yaml
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
