@@ -755,6 +755,82 @@ BUG_PATTERNS: list[BugPattern] = [
 ]
 
 
+def _is_zero_literal(node: ast.AST) -> bool:
+    if isinstance(node, ast.Constant):
+        return isinstance(node.value, (int, float)) and node.value == 0
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+        return _is_zero_literal(node.operand)
+    return False
+
+
+def _assigned_name(node: ast.AST) -> str | None:
+    return node.id if isinstance(node, ast.Name) else None
+
+
+class _ZeroDivisionVisitor(ast.NodeVisitor):
+    def __init__(self) -> None:
+        self.zero_names: set[str] = set()
+        self.issues: list[tuple[int | None, str]] = []
+
+    def visit_Assign(self, node: ast.Assign) -> None:
+        self.visit(node.value)
+        assigned_names = [
+            name for target in node.targets if (name := _assigned_name(target))
+        ]
+        for name in assigned_names:
+            if _is_zero_literal(node.value):
+                self.zero_names.add(name)
+            else:
+                self.zero_names.discard(name)
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
+        if node.value:
+            self.visit(node.value)
+        name = _assigned_name(node.target)
+        if name:
+            if node.value and _is_zero_literal(node.value):
+                self.zero_names.add(name)
+            else:
+                self.zero_names.discard(name)
+
+    def visit_AugAssign(self, node: ast.AugAssign) -> None:
+        self.visit(node.value)
+        name = _assigned_name(node.target)
+        if name:
+            self.zero_names.discard(name)
+
+    def visit_BinOp(self, node: ast.BinOp) -> None:
+        self.visit(node.left)
+        self.visit(node.right)
+        if not isinstance(node.op, (ast.Div, ast.FloorDiv, ast.Mod)):
+            return
+
+        if _is_zero_literal(node.right):
+            self.issues.append(
+                (getattr(node, "lineno", None), "Division by literal zero detected.")
+            )
+            return
+
+        if isinstance(node.right, ast.Name) and node.right.id in self.zero_names:
+            self.issues.append(
+                (
+                    getattr(node, "lineno", None),
+                    f"Division by known-zero variable '{node.right.id}' detected.",
+                )
+            )
+
+
+def _detect_python_zero_divisions(code: str) -> list[tuple[int | None, str]]:
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return []
+
+    visitor = _ZeroDivisionVisitor()
+    visitor.visit(tree)
+    return visitor.issues
+
+
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
 
@@ -771,8 +847,29 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     found: list[dict] = []
     seen: set[str] = set()
 
+    if language == "Python":
+        for line_number, description in _detect_python_zero_divisions(code):
+            line = lines[line_number - 1].strip()[:120] if line_number else ""
+            found.append(
+                {
+                    "type": "ZeroDivisionError",
+                    "line": line_number,
+                    "description": description,
+                    "suggestion": "Guard the divisor: `if divisor == 0: return None` or raise ValueError.",
+                    "severity": "error",
+                    "code_snippet": line,
+                    "code_context": (
+                        format_code_snippet(code, [line_number], context_lines=2)
+                        if line_number
+                        else None
+                    ),
+                }
+            )
+
     for bp in BUG_PATTERNS:
         if language not in bp.languages and "All" not in bp.languages:
+            continue
+        if language == "Python" and bp.name == "ZeroDivisionError":
             continue
 
         for i, line in enumerate(lines, start=1):

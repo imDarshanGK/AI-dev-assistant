@@ -379,7 +379,31 @@ def route(req, user, db, cache, logger):
 # ── Debugging ─────────────────────────────────────────────────────────────────
 def test_debug_detects_zero_division():
     r = client.post(
-        "/debugging/", json={"code": "result = a / b", "language": "python"}
+        "/debugging/", json={"code": "result = 10 / 0", "language": "python"}
+    )
+    assert r.status_code == 200
+    d = r.json()
+    types = [i["type"] for i in d["issues"]]
+    assert "ZeroDivisionError" in types
+
+
+def test_debug_allows_valid_division():
+    r = client.post(
+        "/debugging/", json={"code": "result = 100 / 5", "language": "python"}
+    )
+    assert r.status_code == 200
+    d = r.json()
+    types = [i["type"] for i in d["issues"]]
+    assert "ZeroDivisionError" not in types
+
+
+def test_debug_detects_known_zero_divisor():
+    r = client.post(
+        "/debugging/",
+        json={
+            "code": "denominator = 0\nresult = 100 % denominator",
+            "language": "python",
+        },
     )
     assert r.status_code == 200
     d = r.json()
