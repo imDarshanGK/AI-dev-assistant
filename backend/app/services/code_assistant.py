@@ -11,6 +11,17 @@ from dataclasses import dataclass, field
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
+    "Swift": [
+    r"\bimport\s+Foundation\b",
+    r"\bfunc\s+\w+\s*\(",
+    r"\b(let|var)\s+\w+\s*:\s*\w+",
+    r"\bclass\s+\w+",
+    r"\bstruct\s+\w+",
+    r"\bprotocol\s+\w+",
+    r"\bextension\s+\w+",
+    r"\bguard\s+let\b",
+    r"\bprint\s*\(",
+    ],
     "Python": [
         r"\bdef\s+\w+\s*\(",
         r"\bimport\s+\w+",
@@ -214,6 +225,7 @@ class BugPattern:
             "C++",
             "PHP",
             "Rust",
+            "Swift",
         ]
     )
 
