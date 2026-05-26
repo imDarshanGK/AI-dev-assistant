@@ -68,7 +68,9 @@ class AppCache:
         key = self._make_key(namespace, code)
         if self._redis_client is not None:
             try:
-                self._redis_client.setex(key, settings.cache_ttl_seconds, json.dumps(payload))
+                self._redis_client.setex(
+                    key, settings.cache_ttl_seconds, json.dumps(payload)
+                )
                 return
             except Exception as exc:
                 logger.warning("redis_set_failed key=%s detail=%s", key, str(exc))

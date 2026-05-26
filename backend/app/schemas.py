@@ -1,9 +1,7 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-
-from typing import Any, List
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class CodeRequest(BaseModel):
@@ -16,78 +14,88 @@ class CodeRequest(BaseModel):
         v = v.strip()
         if not v:
             raise ValueError("code must not be empty")
-        # Reject extremely large payloads to avoid DoS / performance issues
-        if len(v) > 50000:
-            raise ValueError("code field too long")
+        if len(v) > 50_000:
+            raise ValueError("code exceeds 50,000 character limit")
         return v
 
 
-# ── Share ────────────────────────────────────────────────────────────────────
-class ShareCreateRequest(BaseModel):
-    code: str
-    result: Any
-
-
-class ShareCreateResponse(BaseModel):
-    id: str
-
-
-class ShareRecord(BaseModel):
-    id: str
-    code: str
-    result: Any
-    created_at: str
-
-
-# ── History & Favorites ───────────────────────────────────────────────────────
-class HistoryRecord(BaseModel):
-    id: int
-    action: str
-    code: str
-    result_json: dict | None = None
-    created_at: str
-
-
-class HistoryCreateRequest(BaseModel):
-    action: str
-    code: str
-    result_json: dict | None = None
-
-
-class FavoriteRecord(BaseModel):
-    id: int
-    title: str
-    action: str
-    code: str
-    result_json: dict | None = None
-    created_at: str
-
-
-class FavoriteCreateRequest(BaseModel):
-    title: str
-    action: str
-    code: str
-    result_json: dict | None = None
-
-
-# ── Progress Tracking ─────────────────────────────────────────────────────────
-class AnalysisProgressPoint(BaseModel):
-    id: int
-    score: float
-    errors_count: int
+class ExplanationResponse(BaseModel):
     language: str
-    created_at: str
+    summary: str
+    key_points: list[str] | None = None
+    complexity: str | None = None
+    line_count: int | None = None
+    function_count: int | None = None
+    class_count: int | None = None
+    cyclomatic_complexity: int | None = None
+    complexity_risk: str | None = None
 
 
-class ProgressDashboardResponse(BaseModel):
-    history: List[AnalysisProgressPoint]
-    average_score: float
-    best_score: float
-    most_improved: float
+class Issue(BaseModel):
+    type: str
+    line: int | None
+    description: str
+    suggestion: str
+    severity: str
+    code_snippet: str | None = None
+    code_context: str | None = None
+
+
+class DebuggingResponse(BaseModel):
+    issues: list[dict]
+    summary: str
+    clean: bool
+    error_count: int
+    warning_count: int
+    info_count: int
+
+
+class Suggestion(BaseModel):
+    category: str
+    description: str
+    line_number: int | None = None
+    line_range: list[int] | None = None
+    code_context: str | None = None
+    example: str | None = None
+    priority: str
+
+
+class SuggestionsResponse(BaseModel):
+    suggestions: list[dict]
+    overall_score: int
+    grade: str
+    next_step: str | None = None
+
+
+class AnalyzeResponse(BaseModel):
+    provider: str
+    model: str | None = None
+    explanation: dict | ExplanationResponse | None = None
+    debugging: dict | DebuggingResponse | None = None
+    suggestions: dict | SuggestionsResponse | None = None
     analysis_time_ms: float | None = None
 
 
-# ── Weekly Digest / Subscription ───────────────────────────────────────────────
+class ZipAnalyzeFileResult(BaseModel):
+    filename: str
+    language: str
+    size_bytes: int
+    analysis: AnalyzeResponse
+
+
+class ZipAnalyzeResponse(BaseModel):
+    provider: str
+    model: str
+    file_count: int
+    total_size_bytes: int
+    overall_project_score: int
+    grade: str
+    summary: str
+    files: list[ZipAnalyzeFileResult]
+    skipped_files: list[str] = Field(default_factory=list)
+    analysis_time_ms: float | None = None
+
+
 class SubscribeRequest(BaseModel):
     email: str
 
@@ -112,7 +120,6 @@ class UnsubscribeRequest(BaseModel):
     token: str
 
 
-# ── Health ────────────────────────────────────────────────────────────────────
 class HealthResponse(BaseModel):
     status: str
     version: str
@@ -120,38 +127,13 @@ class HealthResponse(BaseModel):
     endpoints: list[str] | None = None
 
 
-# ── Explanation / Debugging / Suggestions response models ───────────────────
-class ExplanationResponse(BaseModel):
-    language: str
-    summary: str
-    key_points: list[str] | None = None
-    complexity: str | None = None
-    line_count: int | None = None
-    cyclomatic_complexity: int | None = None
-    complexity_risk: str | None = None
-    function_count: int | None = None
+class ShareCreateRequest(BaseModel):
+    code: str
+    result: dict
 
 
-class DebuggingResponse(BaseModel):
-    issues: list[dict]
-    summary: str
-    clean: bool
-    error_count: int
-    warning_count: int
-    info_count: int
-
-
-class SuggestionsResponse(BaseModel):
-    suggestions: list[dict]
-    overall_score: int
-    grade: str
-    next_step: str | None = None
-
-
-class AnalyzeResponse(BaseModel):
-    provider: str
-    analysis_time_ms: float | None = None
-    explanation: dict | ExplanationResponse | None = None
-    debugging: dict | DebuggingResponse | None = None
-    suggestions: dict | SuggestionsResponse | None = None
-
+class ShareRecord(BaseModel):
+    id: str
+    code: str
+    result: dict
+    created_at: str

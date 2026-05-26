@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo-dark.svg" alt="QyverixAI" width="300"/>
+<img src="./assets/logo-dark.svg" alt="QyverixAI" width="300"/>
 
 <br/>
 <br/>
@@ -317,6 +317,25 @@ Tests run automatically on every push and pull request via GitHub Actions across
 docker build -t qyverixai .
 docker run -p 8000:8000 qyverixai
 ```
+### Docker Compose
+
+Run the complete local development environment:
+
+```bash
+docker compose up --build
+```
+
+Available services:
+
+- Frontend → http://localhost:3000
+- Backend API → http://localhost:8000
+- PostgreSQL → localhost:5432
+
+Stop containers:
+
+```bash
+docker compose down
+```
 
 ---
 
@@ -335,6 +354,12 @@ LLM_TIMEOUT_SECONDS=30
 Compatible with **OpenAI**, **Groq** (free tier), **Together AI**, **Ollama** (local, free), and any OpenAI-compatible endpoint.
 
 > Never commit API keys. Use environment variables or your host's secrets manager.
+
+### Provider Reliability
+The backend includes built-in resilience for LLM requests:
+- **Exponential Backoff**: Automatic retries on timeouts and connection failures.
+- **Rate Limit Handling**: Pauses and retries on HTTP 429 Rate Limit responses.
+- **Graceful Fallback**: Preserves offline/rule-based features seamlessly if the LLM provider becomes fully unavailable.
 
 ---
 
