@@ -6,13 +6,23 @@ backend:
   - changed-files:
       - any-glob-to-any-file: 'backend/**'
 
-type: docs:
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.md'
+
+type-docs:
   - changed-files:
       - any-glob-to-any-file:
           - '*.md'
           - 'docs/**'
 
-type: testing:
+testing:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'tests/**'
+          - 'backend/tests/**'
+
+type-testing:
   - changed-files:
       - any-glob-to-any-file:
           - 'tests/**'
