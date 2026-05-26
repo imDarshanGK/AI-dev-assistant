@@ -2,6 +2,8 @@
 QyverixAI — Test Suite
 Run: cd backend && pytest -v
 """
+import io
+import zipfile
 
 import pytest
 from fastapi.testclient import TestClient
