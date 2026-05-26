@@ -160,6 +160,62 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
   renderHistory();
 });
 
+// ── Download History JSON ──
+document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+
+  if (history.length === 0) {
+    showToast('No history to download');
+    return;
+  }
+
+  const blob = new Blob(
+    [JSON.stringify(history, null, 2)],
+    { type: 'application/json' }
+  );
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'analysis-history.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+});
+// ── Download History CSV ──
+document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+
+  if (history.length === 0) {
+    showToast('No history to download');
+    return;
+  }
+
+  const headers = ['id', 'preview', 'mode', 'time'];
+
+  const rows = history.map(h =>
+    [
+      h.id,
+      `"${(h.preview || '').replace(/"/g, '""')}"`,
+      h.mode,
+      h.time
+    ].join(',')
+  );
+
+  const csvContent = [
+    headers.join(','),
+    ...rows
+  ].join('\n');
+
+  const blob = new Blob(
+    [csvContent],
+    { type: 'text/csv' }
+  );
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'analysis-history.csv';
+  a.click();
+URL.revokeObjectURL(a.href);
+});
+
 // ── Run Button ──
 runBtn.addEventListener('click', runAnalysis);
 
