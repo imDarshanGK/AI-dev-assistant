@@ -42,13 +42,13 @@ class CodeRequest(BaseModel):
 class ExplanationResponse(BaseModel):
     language: str
     summary: str
-    key_points: list[str]
-    complexity: str
-    line_count: int
-    function_count: int
-    class_count: int
-    cyclomatic_complexity: int
-    complexity_risk: str
+    key_points: list[str] | None = None
+    complexity: str | None = None
+    line_count: int | None = None
+    function_count: int | None = None
+    class_count: int | None = None
+    cyclomatic_complexity: int | None = None
+    complexity_risk: str | None = None
 
 
 class Issue(BaseModel):
@@ -62,7 +62,7 @@ class Issue(BaseModel):
 
 
 class DebuggingResponse(BaseModel):
-    issues: list[Issue]
+    issues: list[dict]
     summary: str
     clean: bool
     error_count: int
@@ -82,18 +82,18 @@ class Suggestion(BaseModel):
 
 
 class SuggestionsResponse(BaseModel):
-    suggestions: list[Suggestion]
+    suggestions: list[dict]
     overall_score: int
     grade: str
-    next_step: str
+    next_step: str | None = None
 
 
 class AnalyzeResponse(BaseModel):
     provider: str
-    model: str
-    explanation: ExplanationResponse
-    debugging: DebuggingResponse
-    suggestions: SuggestionsResponse
+    model: str | None = None
+    explanation: dict | ExplanationResponse | None = None
+    debugging: dict | DebuggingResponse | None = None
+    suggestions: dict | SuggestionsResponse | None = None
     analysis_time_ms: float | None = None
 
 

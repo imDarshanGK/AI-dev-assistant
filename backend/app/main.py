@@ -11,12 +11,15 @@ from fastapi.staticfiles import StaticFiles
 import time
 import os
 from collections import defaultdict
+import logging
 from contextlib import asynccontextmanager
 
 from .routers import explanation, debugging, suggestions, analyze, subscribe
 from .routers import auth, chat, share, user_data
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
+from .database import Base, engine
+
 from .schemas import HealthResponse
 
 
@@ -51,6 +54,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 async def lifespan(app: FastAPI):
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
+    Base.metadata.create_all(bind=engine)
     start_scheduler()
     yield
     stop_scheduler()
@@ -186,6 +190,7 @@ if os.path.isdir(_frontend):
 # ── Global error handler ──────────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logging.exception("Unhandled error")
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error. Please try again."},

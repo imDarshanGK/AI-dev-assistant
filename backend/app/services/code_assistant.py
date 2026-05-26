@@ -7,6 +7,7 @@ from __future__ import annotations
 import ast
 import re
 import time
+from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
 
 # ── Language Detection ─────────────────────────────────────────────────────────
@@ -850,6 +851,16 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                 )
                 break  # one hit per pattern is enough
 
+    if language == "Python":
+        try:
+            for issue in ast_analyze(code):
+                key = f"{issue['type']}:{issue['line']}"
+                if key not in seen:
+                    seen.add(key)
+                    found.append(issue)
+        except SyntaxError:
+            pass
+
     return found
 
 
@@ -1025,22 +1036,21 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 7: Logging
     # ─────────────────────────────────────────────────────────────
-    print_lines = find_lines_matching_pattern(code, r"\bprint\s*\(")
-    has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
+    if language == "Python":
+        print_lines = find_lines_matching_pattern(code, r"\bprint\s*\(")
+        has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
 
-    if print_lines and not has_logging:
-        sample_print = print_lines[:3]
-        suggestions.append(
-            {
+        if print_lines and not has_logging:
+            sample_print = print_lines[:3]
+            suggestions.append({
                 "category": "Observability",
                 "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
                 "line_number": print_lines[0],
                 "line_range": sample_print,
                 "code_context": format_code_snippet(code, sample_print),
-                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",  # noqa: E501
+                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
                 "priority": "medium",
-            }
-        )
+            })
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 8: Environment Variables (JS/TS)
