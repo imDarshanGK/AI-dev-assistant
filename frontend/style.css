@@ -34,6 +34,17 @@
   --text-2: #52525b;
   --text-3: #a1a1aa;
 }
+[data-theme="dark"] {
+  --bg: #09090b;
+  --bg-2: #111113;
+  --bg-3: #18181b;
+  --bg-4: #27272a;
+  --border: #27272a;
+  --border-2: #3f3f46;
+  --text: #fafafa;
+  --text-2: #a1a1aa;
+  --text-3: #71717a;
+}
 
 html { scroll-behavior: smooth; }
 

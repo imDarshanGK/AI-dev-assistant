@@ -20,27 +20,52 @@ const favContainer = document.getElementById('favContainer');
 const themeToggle = document.getElementById('themeToggle');
 const API_URL_STORAGE_KEY = 'qyverix_api_url';
 
+<<<<<<< HEAD
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const savedTheme = localStorage.getItem('qyverix_theme') || (systemDark ? 'dark' : 'light');
 document.documentElement.setAttribute('data-theme', savedTheme);
+=======
+// ── Theme ──
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const savedTheme = localStorage.getItem('qyverix_theme');
+
+const initialTheme = savedTheme || (systemDark ? 'dark' : 'light');
+
+document.documentElement.setAttribute('data-theme', initialTheme);
+>>>>>>> 99d38fe (fix: system theme detection + improvements)
 
 themeToggle.addEventListener('click', () => {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
-  localStorage.setItem('qyverix_theme', isLight ? 'dark' : 'light');
+  const nextTheme = isLight ? 'dark' : 'light';
+
+  document.documentElement.setAttribute('data-theme', nextTheme);
+  localStorage.setItem('qyverix_theme', nextTheme);
 
   const themeToggleBtn = document.getElementById('themeToggle');
   if (themeToggleBtn) {
-    themeToggleBtn.setAttribute('aria-label', isLight ? 'Toggle dark mode' : 'Toggle light mode');
-    themeToggleBtn.setAttribute('aria-pressed', isLight ? 'false' : 'true');
+    themeToggleBtn.setAttribute(
+      'aria-label',
+      nextTheme === 'dark' ? 'Toggle light mode' : 'Toggle dark mode'
+    );
+    themeToggleBtn.setAttribute(
+      'aria-pressed',
+      nextTheme === 'light' ? 'true' : 'false'
+    );
   }
 });
 
-const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+// initial aria fix
 const themeToggleBtnInit = document.getElementById('themeToggle');
 if (themeToggleBtnInit) {
-  themeToggleBtnInit.setAttribute('aria-label', initialTheme === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
-  themeToggleBtnInit.setAttribute('aria-pressed', initialTheme === 'dark' ? 'false' : 'true');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  themeToggleBtnInit.setAttribute(
+    'aria-label',
+    isDark ? 'Toggle light mode' : 'Toggle dark mode'
+  );
+  themeToggleBtnInit.setAttribute(
+    'aria-pressed',
+    isDark ? 'false' : 'true'
+  );
 }
 
 // ── Tabs ──
