@@ -1270,6 +1270,121 @@
       transform: translateX(3px)
     }
 
+    .zip-overview {
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .zip-file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .zip-file-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      overflow: hidden
+    }
+
+    .zip-file-card summary {
+      cursor: pointer;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 12px 14px;
+      list-style: none
+    }
+
+    .zip-file-card summary::-webkit-details-marker {
+      display: none
+    }
+
+    .zip-file-card summary::before {
+      content: ">";
+      color: var(--text3);
+      font-size: 0.75rem;
+      transition: transform 0.18s ease
+    }
+
+    .zip-file-card[open] summary::before {
+      transform: rotate(90deg)
+    }
+
+    .zip-file-name {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text)
+    }
+
+    .zip-file-meta {
+      color: var(--text3);
+      font-size: 0.74rem;
+      margin-left: auto
+    }
+
+    .zip-file-body {
+      border-top: 1px solid var(--border);
+      padding: 12px 14px;
+      color: var(--text2);
+      font-size: 0.84rem
+    }
+
+    .zip-mini-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0
+    }
+
+    .zip-mini-grid span,
+    .zip-skipped {
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      background: var(--bg);
+      color: var(--text3);
+      font-size: 0.74rem;
+      padding: 5px 8px
+    }
+
+    .zip-issue {
+      border-left: 3px solid var(--border2);
+      background: var(--bg);
+      border-radius: var(--r2);
+      margin-top: 8px;
+      padding: 9px 10px
+    }
+
+    .zip-issue.error {
+      border-left-color: var(--red)
+    }
+
+    .zip-issue.warning {
+      border-left-color: var(--yellow)
+    }
+
+    .zip-issue.info {
+      border-left-color: var(--accent)
+    }
+
+    .zip-issue strong {
+      color: var(--text);
+      font-size: 0.78rem
+    }
+
+    .zip-issue span {
+      float: right;
+      color: var(--text3);
+      font-size: 0.72rem
+    }
+
+    .zip-issue p {
+      margin-top: 5px
+    }
+
     .suggest-header {
       display: flex;
       align-items: center;
@@ -2011,7 +2126,7 @@
           </svg></div>
         <div class="feat-pill-info">
           <h4 data-i18n="pill_upload_title">File Upload</h4>
-          <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp</p>
+          <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
         </div>
       </div>
     </div>
@@ -2020,7 +2135,7 @@
     <section id="workspace" class="workspace">
 
       <!-- Editor Panel -->
-      <div class="panel">
+      <div class="panel" style="grid-column:1">
         <div class="panel-header">
           <div class="panel-title">
             <span></span>
@@ -2036,7 +2151,7 @@
                 <polyline points="17,8 12,3 7,8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none"
+              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
                 tabindex="-1" />
             </label>
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
@@ -2066,267 +2181,63 @@
           <button class="lang-tab" data-lang="java" role="tab" aria-selected="false" data-i18n="lang_tab_java">Java</button>
           <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false" data-i18n="lang_tab_cpp">C++</button>
         </div>
-
-<div class="bg-orb bg-orb-1"></div>
-<div class="bg-orb bg-orb-2"></div>
-
-<div class="app">
-
-<!-- ── NAV ──────────────────────────────────────────────────── -->
-<nav>
-  <a href="#" class="nav-logo">
-    <div class="logo-hex">Q</div>
-    QyverixAI
-    <span style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.25);letter-spacing:0.04em;margin-left:4px">v3.0</span>
-  </a>
-  <div class="nav-links">
-    <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
-      <span>GitHub</span>
-    </a>
-    <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-      <span>API Docs</span>
-    </a>
-    <button class="theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle dark mode" aria-pressed="false">
-      <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-    </button>
-  </div>
-</nav>
-
-<!-- ── HERO ──────────────────────────────────────────────────── -->
-<section class="hero">
-  <div class="hero-badge">
-    <div class="badge-dot"></div>
-    Open Source · AI-Powered · Free
-  </div>
-  <h1>Debug. Understand.<br/><em>Ship faster.</em></h1>
-  <p class="hero-sub">
-    Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.
-  </p>
-  <div class="hero-cta">
-    <button class="btn btn-primary" onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21"/></svg>
-      Start Analyzing
-    </button>
-    <button class="btn btn-secondary" onclick="loadSample()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-      Try Sample Code
-    </button>
-    <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
-      Star on GitHub
-    </a>
-  </div>
-</section>
-
-<!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
-<div class="features-row">
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>40+ Bug Patterns</h4>
-      <p>Python, JS, TS, Java, C++</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Code Explanation</h4>
-      <p>Plain English breakdowns</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Smart Suggestions</h4>
-      <p>Quality score + grade</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Dark / Light Mode</h4>
-      <p>Persisted preference</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>File Upload</h4>
-      <p>.py .js .ts .java .cpp</p>
-    </div>
-  </div>
-</div>
-
-<!-- ── WORKSPACE ─────────────────────────────────────────────── -->
-<section id="workspace" class="workspace">
-
-  <!-- Editor Panel -->
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <span></span>
-        Code Editor
-      </div>
-      <div class="panel-actions">
-        <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button" aria-label="Upload code file" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1"/>
-        </label>
-        <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-        </button>
-        <button class="icon-btn" id="copyBtn" title="Copy code" aria-label="Copy code to clipboard">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Language tabs -->
-    <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
-      <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
-      <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
-      <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
-      <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
-      <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
-    </div>
-        <!-- Editor -->
+        <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap">
-          <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…"
-            data-i18n-placeholder="editor_placeholder"
-            spellcheck="false" autocorrect="off" autocapitalize="off" aria-label="Code Editor"></textarea>
-            spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" aria-label="Code Editor"></textarea>
+          <div class="line-numbers" id="lineNumbers">1</div>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
         </div>
 
         <div class="editor-footer">
-          <span id="charCount" data-i18n="char_count_initial">Paste or type code to begin</span>
-          <span data-i18n="ctrl_enter_hint">Ctrl+Enter to analyze</span>
-        </div>
-
-        <!-- Mode buttons -->
-        <div class="mode-row" role="tablist" aria-label="Analysis Modes">
-          <button class="mode-btn active" data-mode="analyze" role="tab" aria-selected="true">
-            <span class="mode-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <rect x="3" y="3" width="7" height="7" />
-                <rect x="14" y="3" width="7" height="7" />
-                <rect x="3" y="14" width="7" height="7" />
-                <rect x="14" y="14" width="7" height="7" />
-              </svg></span>
-            <span class="mode-btn-label" data-i18n="mode_full">Full</span>
-          </button>
-          <button class="mode-btn" data-mode="explain" role="tab" aria-selected="false">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-              </svg></span>
-            <span class="mode-btn-label" data-i18n="tab_explain">Explain</span>
-          </button>
-          <button class="mode-btn" data-mode="debug" role="tab" aria-selected="false">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M8 2l1.5 1.5" />
-                <path d="M14.5 3.5L16 2" />
-                <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
-                <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
-                <line x1="12" y1="12" x2="12" y2="16" />
-                <path d="M4.5 15H2" />
-                <path d="M22 15h-2.5" />
-                <path d="M4.5 19l-2 2" />
-                <path d="M19.5 19l2 2" />
-              </svg></span>
-            <span class="mode-btn-label" data-i18n="mode_debug">Debug</span>
-          </button>
-          <button class="mode-btn" data-mode="suggest" role="tab" aria-selected="false">
-            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
-              </svg></span>
-            <span class="mode-btn-label" data-i18n="tab_improve">Improve</span>
-          </button>
-        </div>
-
-        <!-- API URL -->
-        <div class="api-config-row">
-          <div class="api-status" aria-live="polite">
-            <div class="api-dot" id="apiDot" aria-hidden="true"></div>
-            <span id="apiStatusText" data-status="disconnected" data-i18n="api_status_disconnected">Disconnected</span>
-          </div>
-          <div class="api-config-inner">
-            <input type="text" id="apiUrl" placeholder="http://localhost:8000" data-i18n-placeholder="api_url_placeholder" value="https://qyverixai.onrender.com"
-              aria-label="Backend API URL" />
-            <button class="btn-clear" id="pingBtn" aria-label="Ping API" data-i18n="btn_ping" data-i18n-aria-label="btn_ping">Ping</button>
+          <div id="charCount">0 chars · 0 lines</div>
+          <div style="display:flex;gap:8px">
+            <div class="mode-row" role="tablist" aria-label="Mode selector">
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false">Improve</button>
+            </div>
           </div>
         </div>
 
-        <!-- Analyze -->
         <div class="analyze-row">
-          <button class="btn-analyze" id="analyzeBtn" data-i18n-title="analyze_btn_title" data-i18n-aria-label="analyze_btn_title" aria-label="Analyze Code">
-            <div class="spinner" id="spinner" aria-hidden="true"></div>
-            <span class="btn-text" data-i18n="btn_analyze_code">Analyze Code</span>
-          </button>
-          <button id="analyze-btn" title="Analyze Code (Ctrl+Enter)" data-i18n-title="analyze_btn_title" data-i18n-aria-label="analyze_btn_title" align="center">
-            <span data-i18n="btn_analyze_code">Analyze Code</span> <span class="desktop-hint" data-i18n="desktop_hint">(Ctrl+Enter)</span>
+          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
+            <div class="spinner" id="spinner"></div>
+            <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
         </div>
+
+        <!-- Result action buttons (hidden until results) -->
+        <div id="resultActions" class="result-actions" style="display:none">
+          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
+          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
+        </div>
+
       </div>
+
       <!-- Results Panel -->
-      <div class="panel">
+      <div class="panel" style="grid-column:2">
         <div class="panel-header">
           <div class="panel-title" data-i18n="results_title">Analysis Results</div>
-          <div class="panel-actions" id="resultActions" style="display:none">
-            <button class="icon-btn" id="favBtn" title="Save to favorites" data-i18n-title="btn_save_favorites" data-i18n-aria-label="btn_save_favorites" aria-label="Save analysis to favorites"><svg
-                width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                aria-hidden="true">
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg></button>
-            <button class="icon-btn" id="downloadBtn" title="Download results" data-i18n-title="btn_download_results" data-i18n-aria-label="btn_download_results" aria-label="Download analysis results">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7,10 12,15 17,10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-            </button>
-          </div>
+          <div class="panel-actions"></div>
         </div>
 
-        <!-- Result tabs -->
-        <div class="result-tabs" role="tablist" aria-label="Analysis Results">
-          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true"
-            aria-controls="pane-explain">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              aria-hidden="true">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-            </svg> <span data-i18n="tab_explain">Explain</span> <span class="tab-badge" id="explainBadge"></span>
+        <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
+          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
+            <span data-i18n="tab_explain">Explain</span>
+            <span class="tab-badge" id="explainBadge"></span>
           </button>
-          <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              aria-hidden="true">
-              <path d="M8 2l1.5 1.5" />
-              <path d="M14.5 3.5L16 2" />
-              <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
-              <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
-              <line x1="12" y1="12" x2="12" y2="16" />
-              <path d="M4.5 15H2" />
-              <path d="M22 15h-2.5" />
-              <path d="M4.5 19l-2 2" />
-              <path d="M19.5 19l2 2" />
-            </svg> <span data-i18n="tab_debug">Debug</span> <span class="tab-badge" id="debugBadge"></span>
+          <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/></svg>
+            <span data-i18n="tab_debug">Debug</span>
+            <span class="tab-badge" id="debugBadge"></span>
           </button>
-          <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              aria-hidden="true">
-              <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
-            </svg> <span data-i18n="tab_improve">Improve</span> <span class="tab-badge" id="suggestBadge"></span>
+          <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
+            <span data-i18n="tab_improve">Improve</span>
+            <span class="tab-badge" id="suggestBadge"></span>
           </button>
         </div>
-
         <div class="result-content">
           <!-- Explain Pane -->
           <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
@@ -2411,25 +2322,18 @@
 
     <!-- ── FOOTER ─────────────────────────────────────────────────── -->
     <footer>
-      <div class="app">
-        <div class="footer-logo">QyverixAI</div>
-        <p>
-          <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" data-i18n="nav_github">GitHub</a>
-          · <a href="https://qyverixai.onrender.com/docs" target="_blank" data-i18n="nav_api_docs">API Docs</a>
-          · <span data-i18n="footer_license">MIT License</span>
-        </p>
-        <p style="margin-top:8px;font-size:0.75rem" data-i18n="footer_built_for">Built for the open source community</p>
-      <div class="app" style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;justify-content:space-between;">
-        <div>
+      <div class="app" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:space-between;">
+        <div style="min-width:220px;">
           <div class="footer-logo">QyverixAI</div>
           <p>
-            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
-            · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
-            · MIT License
+            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" data-i18n="nav_github">GitHub</a>
+            · <a href="https://qyverixai.onrender.com/docs" target="_blank" data-i18n="nav_api_docs">API Docs</a>
+            · <span data-i18n="footer_license">MIT License</span>
           </p>
-          <p style="font-size:0.75rem">Built for the open source community</p>
+          <p style="margin-top:8px;font-size:0.75rem" data-i18n="footer_built_for">Built for the open source community</p>
         </div>
-        <div style="max-width:320px;">
+
+        <div style="max-width:360px;">
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
@@ -2477,7 +2381,7 @@
           pill_theme_title: "Dark / Light Mode",
           pill_theme_desc: "Persisted preference",
           pill_upload_title: "File Upload",
-          pill_upload_desc: ".py .js .ts .java .cpp",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
           editor_title: "Code Editor",
           editor_placeholder: "# Paste your code here or click 'Try Sample Code' above…",
           char_count_initial: "Paste or type code to begin",
@@ -2574,7 +2478,7 @@
           pill_theme_title: "இருண்ட / ஒளி முறை",
           pill_theme_desc: "சேமிக்கப்பட்ட விருப்பம்",
           pill_upload_title: "கோப்பு பதிவேற்றம்",
-          pill_upload_desc: ".py .js .ts .java .cpp",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
           editor_title: "குறியீட்டு எடிட்டர்",
           editor_placeholder: "# உங்கள் குறியீட்டை இங்கே ஒட்டவும் அல்லது மேலே உள்ள 'மாதிரிக் குறியீட்டை முயல்க' என்பதைக் கிளிக் செய்யவும்…",
           char_count_initial: "தொடங்குவதற்கு குறியீட்டை ஒட்டவும் அல்லது தட்டச்சு செய்யவும்",
@@ -2671,7 +2575,7 @@
           pill_theme_title: "डार्क / लाइट मोड",
           pill_theme_desc: "सहेजी गई प्राथमिकता",
           pill_upload_title: "फ़ाइल अपलोड",
-          pill_upload_desc: ".py .js .ts .java .cpp",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
           editor_title: "कोड एडिटर",
           editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
           char_count_initial: "शुरू करने के लिए कोड पेस्ट करें या टाइप करें",
@@ -2768,7 +2672,7 @@
           pill_theme_title: "Mode Sombre / Clair",
           pill_theme_desc: "Préférence persistée",
           pill_upload_title: "Télécharger un fichier",
-          pill_upload_desc: ".py .js .ts .java .cpp",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
           editor_title: "Éditeur de code",
           editor_placeholder: "# Collez votre code ici ou cliquez sur 'Essayer l'exemple' ci-dessus…",
           char_count_initial: "Collez ou tapez du code pour commencer",
@@ -2845,6 +2749,7 @@
       let currentResult = null;
       let selectedLang = 'python';
       let selectedMode = 'analyze';
+      let selectedZipFile = null;
       let appLang = localStorage.getItem('qyx_lang') || 'en';
 
       /* ═══════════════════════════════════════════════════════════════
@@ -2911,11 +2816,11 @@
         appLang = lang;
         localStorage.setItem('qyx_lang', lang);
         document.documentElement.setAttribute('lang', lang);
-        
+
         // Sync select dropdown
         const select = document.getElementById('langSelect');
         if (select) select.value = lang;
-        
+
         // Update elements with data-i18n
         document.querySelectorAll('[data-i18n]').forEach(el => {
           const key = el.getAttribute('data-i18n');
@@ -2993,6 +2898,10 @@
         return /<\s*html|<\s*style|<\s*script|function\s+updateEditor\s*\(|\.stat-bar|\.hero\s*\{|\.workspace\s*\{/i.test(text);
       }
 
+      function getApiBase() {
+        return ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || 'http://localhost:8000').replace(/\/$/, '');
+      }
+
       function normalizeEditorOnLoad() {
         if (looksLikeRestoredPageSource(editor.value || '')) {
           editor.value = '';
@@ -3004,7 +2913,10 @@
       window.addEventListener('pageshow', normalizeEditorOnLoad);
       setTimeout(normalizeEditorOnLoad, 0);
 
-      editor.addEventListener('input', updateEditor);
+      editor.addEventListener('input', () => {
+        selectedZipFile = null;
+        updateEditor();
+      });
       editor.addEventListener('scroll', () => {
         lineNumbers.scrollTop = editor.scrollTop;
       });
@@ -3134,16 +3046,7 @@
       document.getElementById('fileInput').addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
-        const ext = file.name.split('.').pop().toLowerCase();
-        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
-        if (langMap[ext]) setLanguage(langMap[ext]);
-        const reader = new FileReader();
-        reader.onload = ev => {
-          editor.value = ev.target.result;
-          updateEditor();
-          toast(getTranslation('toast_loaded').replace('{name}', file.name), 'success');
-        };
-        reader.readAsText(file);
+        handleUploadedFile(file);
         e.target.value = '';
       });
 
@@ -3153,14 +3056,50 @@
         e.preventDefault();
         const file = e.dataTransfer.files[0];
         if (!file) return;
+        handleUploadedFile(file);
+      });
+
+      function handleUploadedFile(file) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext === 'zip') {
+          selectedZipFile = file;
+          selectedMode = 'analyze';
+          document.querySelectorAll('.mode-btn').forEach(x => {
+            x.classList.toggle('active', x.dataset.mode === 'analyze');
+            x.setAttribute('aria-pressed', x.dataset.mode === 'analyze' ? 'true' : 'false');
+          });
+          editor.value = `ZIP ready for project analysis: ${file.name}\n\nClick Analyze Code to scan up to 20 source files.`;
+          updateEditor();
+          resetResults();
+          toast(`Loaded ZIP ${file.name}`, 'success');
+          return;
+        }
+
+        selectedZipFile = null;
+        const langMap = {
+          py: 'python',
+          js: 'javascript',
+          ts: 'typescript',
+          java: 'java',
+          cpp: 'cpp',
+          cc: 'cpp',
+          cxx: 'cpp',
+          c: 'cpp',
+          h: 'cpp',
+          hpp: 'cpp',
+          kt: 'kotlin',
+          kts: 'kotlin',
+        };
+        if (langMap[ext]) setLanguage(langMap[ext]);
         const reader = new FileReader();
         reader.onload = ev => {
           editor.value = ev.target.result;
           updateEditor();
-          toast(getTranslation('toast_dropped').replace('{name}', file.name), 'success');
+          resetResults();
+          toast(getTranslation('toast_loaded').replace('{name}', file.name), 'success');
         };
         reader.readAsText(file);
-      });
+      }
 
       /* ═══════════════════════════════════════════════════════════════
          LANGUAGE TABS
@@ -3226,6 +3165,7 @@
          CLEAR / COPY
       ═══════════════════════════════════════════════════════════════ */
       document.getElementById('clearBtn').addEventListener('click', () => {
+        selectedZipFile = null;
         editor.value = '';
         updateEditor();
         resetResults();
@@ -3239,7 +3179,8 @@
          API PING
       ═══════════════════════════════════════════════════════════════ */
       async function pingApi() {
-        const base = apiUrlInput.value.replace(/\/$/, '');
+        if (!apiUrlInput || !apiDot || !apiStatusText) return;
+        const base = getApiBase();
         try {
           const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
           if (r.ok) {
@@ -3262,7 +3203,8 @@
           toast(getTranslation('toast_api_unreachable'), 'error');
         }
       }
-      document.getElementById('pingBtn').addEventListener('click', pingApi);
+      const pingBtn = document.getElementById('pingBtn');
+      if (pingBtn) pingBtn.addEventListener('click', pingApi);
 
       // Auto-ping on load
       setTimeout(pingApi, 800);
@@ -3274,9 +3216,9 @@
 
       async function doAnalyze() {
         const code = editor.value.trim();
-        if (!code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
+        if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
 
-        const base = apiUrlInput.value.replace(/\/$/, '');
+        const base = getApiBase();
         const endpointMap = {
           analyze: '/analyze/',
           explain: '/explanation/',
@@ -3291,6 +3233,32 @@
         showShimmers();
 
         try {
+          if (selectedZipFile) {
+            const formData = new FormData();
+            formData.append('file', selectedZipFile);
+            const res = await fetch(`${base}/analyze/zip/`, {
+              method: 'POST',
+              body: formData,
+              signal: AbortSignal.timeout(60000),
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.detail || `HTTP ${res.status}`);
+            }
+
+            const data = await res.json();
+            currentResult = data;
+            renderZipResults(data);
+            addToHistory(`ZIP: ${selectedZipFile.name}`, data);
+            apiDot.classList.add('connected');
+            apiStatusText.textContent = 'Connected';
+            document.getElementById('engineBar').style.display = 'flex';
+            engineInfo.textContent = `${data.provider || 'rule-based'} · ${data.model || ''}`;
+            timeInfo.textContent = data.analysis_time_ms ? data.analysis_time_ms + 'ms' : '';
+            resultActions.style.display = 'flex';
+            return;
+          }
+
           const res = await fetch(`${base}${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -3340,6 +3308,10 @@
          RENDER RESULTS
       ═══════════════════════════════════════════════════════════════ */
       function renderResults(result, code) {
+        if (result.files) {
+          renderZipResults(result);
+          return;
+        }
         if (result.explanation) renderExplain(result.explanation);
         if (result.debugging) renderDebug(result.debugging);
         if (result.suggestions) renderSuggest(result.suggestions);
@@ -3348,6 +3320,120 @@
         const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
         const targetTab = tabOrder[selectedMode] || 'explain';
         document.querySelector(`[data-rtab="${targetTab}"]`).click();
+      }
+
+      function renderZipResults(project) {
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'none';
+        });
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          document.getElementById(id).style.display = 'block';
+        });
+
+        document.getElementById('explainBadge').textContent = `${project.file_count} files`;
+        const totalIssues = project.files.reduce((sum, file) => sum + file.analysis.debugging.issues.length, 0);
+        const totalSuggestions = project.files.reduce((sum, file) => sum + file.analysis.suggestions.suggestions.length, 0);
+        const errorCount = project.files.reduce((sum, file) => sum + file.analysis.debugging.error_count, 0);
+        const warningCount = project.files.reduce((sum, file) => sum + file.analysis.debugging.warning_count, 0);
+        const infoCount = project.files.reduce((sum, file) => sum + file.analysis.debugging.info_count, 0);
+        document.getElementById('debugBadge').textContent = totalIssues || '0';
+        document.getElementById('suggestBadge').textContent = project.overall_project_score;
+
+        const scoreColor = project.overall_project_score >= 80 ? 'var(--green)'
+          : project.overall_project_score >= 60 ? 'var(--yellow)'
+            : 'var(--red)';
+        const circumference = 2 * Math.PI * 30;
+        const dashOffset = circumference - (project.overall_project_score / 100) * circumference;
+        const fileList = project.files.map((file, i) => {
+          const analysis = file.analysis;
+          const issueSummary = analysis.debugging.clean
+            ? 'No issues detected'
+            : `${analysis.debugging.error_count} errors · ${analysis.debugging.warning_count} warnings · ${analysis.debugging.info_count} info`;
+          return `
+      <details class="zip-file-card" ${i === 0 ? 'open' : ''}>
+        <summary>
+          <span class="zip-file-name">${escHtml(file.filename)}</span>
+          <span class="zip-file-meta">${file.language} · ${analysis.suggestions.overall_score}/100 · ${issueSummary}</span>
+        </summary>
+        <div class="zip-file-body">
+          <p>${escHtml(analysis.explanation.summary)}</p>
+          <div class="zip-mini-grid">
+            <span>${analysis.explanation.line_count} lines</span>
+            <span>${analysis.explanation.function_count} functions</span>
+            <span>${analysis.suggestions.suggestions.length} suggestions</span>
+          </div>
+          ${analysis.debugging.issues.slice(0, 4).map(issue => `
+            <div class="zip-issue ${issue.severity}">
+              <strong>${escHtml(issue.type)}</strong>
+              ${issue.line ? `<span>Line ${issue.line}</span>` : ''}
+              <p>${escHtml(issue.description)}</p>
+            </div>`).join('')}
+        </div>
+      </details>`;
+        }).join('');
+
+        const skipped = project.skipped_files.length
+          ? `<div class="zip-skipped">Skipped: ${project.skipped_files.map(escHtml).join(', ')}</div>`
+          : '';
+
+        document.getElementById('explainResult').innerHTML = `
+    <div class="zip-overview">
+      <div class="score-ring-wrap">
+        <div class="score-ring">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="30" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="${scoreColor}" stroke-width="6"
+              stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="round"/>
+          </svg>
+          <div class="score-ring-text">
+            <div class="score-num" style="color:${scoreColor}">${project.overall_project_score}</div>
+            <div class="score-grade">${project.grade}</div>
+          </div>
+        </div>
+        <div class="score-info">
+          <h3>Project Health</h3>
+          <p>${escHtml(project.summary)}</p>
+        </div>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-chip"><div class="stat-chip-num">${project.file_count}</div><div class="stat-chip-label">Files</div></div>
+        <div class="stat-chip error-chip"><div class="stat-chip-num">${errorCount}</div><div class="stat-chip-label">Errors</div></div>
+        <div class="stat-chip warn-chip"><div class="stat-chip-num">${warningCount}</div><div class="stat-chip-label">Warnings</div></div>
+        <div class="stat-chip info-chip"><div class="stat-chip-num">${infoCount}</div><div class="stat-chip-label">Info</div></div>
+      </div>
+      ${skipped}
+      <div class="zip-file-list">${fileList}</div>
+    </div>`;
+
+        document.getElementById('debugResult').innerHTML = `
+    <div class="stat-bar">
+      <div class="stat-chip error-chip"><div class="stat-chip-num">${errorCount}</div><div class="stat-chip-label">Errors</div></div>
+      <div class="stat-chip warn-chip"><div class="stat-chip-num">${warningCount}</div><div class="stat-chip-label">Warnings</div></div>
+      <div class="stat-chip info-chip"><div class="stat-chip-num">${infoCount}</div><div class="stat-chip-label">Info</div></div>
+    </div>
+    <div class="zip-file-list">${fileList}</div>`;
+
+        document.getElementById('suggestResult').innerHTML = `
+    <div class="score-ring-wrap">
+      <div class="score-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="30" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+          <circle cx="40" cy="40" r="30" fill="none" stroke="${scoreColor}" stroke-width="6"
+            stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="round"/>
+        </svg>
+        <div class="score-ring-text">
+          <div class="score-num" style="color:${scoreColor}">${project.overall_project_score}</div>
+          <div class="score-grade">${project.grade}</div>
+        </div>
+      </div>
+      <div class="score-info">
+        <h3>Project Health Score</h3>
+        <p>${totalSuggestions} improvement suggestion${totalSuggestions !== 1 ? 's' : ''} across ${project.file_count} file${project.file_count !== 1 ? 's' : ''}.</p>
+      </div>
+    </div>
+    <div class="zip-file-list">${fileList}</div>`;
+
+        document.querySelector('[data-rtab="explain"]').click();
       }
 
       function renderExplain(exp) {
@@ -3612,8 +3698,6 @@
 
         const cards = sugg.suggestions.length === 0
           ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>${getTranslation('suggest_perfect_title')}</h3><p>${getTranslation('suggest_perfect_desc')}</p></div>`
-          : sugg.suggestions.map((s, i) => `
-          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
           : sugg.suggestions.map((s, i) => {
 
             let exampleHtml = '';
@@ -3782,7 +3866,7 @@
         renderHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
-      
+
       function loadEntry(id) {
         const entry = history.find(h => h.id === Number (id));
         console.log(entry);
@@ -3792,7 +3876,7 @@
         if(entry.lang){
           setLanguage(entry.lang.toLowerCase());
         }
-        
+
         updateEditor();
         currentResult = entry.result;
         renderResults(entry.result, entry.code);
@@ -3834,7 +3918,7 @@
 
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
   if (!confirm(getTranslation('confirm_clear_favs'))) return;
-  
+
   favorites = [];
   localStorage.removeItem('qyx_favorites');
   renderFavorites();
@@ -3871,6 +3955,15 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
       });
 
       function buildReport(r, code) {
+        if (r.files) {
+          const lines = ['QyverixAI Project ZIP Analysis', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, `Files: ${r.file_count}`, `Overall Score: ${r.overall_project_score}/100 (${r.grade})`, r.summary, ''];
+          r.files.forEach(file => {
+            lines.push(`FILE: ${file.filename}`, `Language: ${file.language}`, `Score: ${file.analysis.suggestions.overall_score}/100 (${file.analysis.suggestions.grade})`, file.analysis.debugging.summary, `Summary: ${file.analysis.explanation.summary}`, '');
+            file.analysis.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
+          });
+          if (r.skipped_files?.length) lines.push('SKIPPED FILES', ...r.skipped_files, '');
+          return lines.join('\n');
+        }
         const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
         if (r.explanation) {
           lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
@@ -3967,7 +4060,7 @@ loadUser(42);`,
 interface User {
   id: number;
   name: string;
-  email?: string; 
+  email?: string;
 }
 
 function sendWelcomeEmail(user: User) {
@@ -4000,17 +4093,17 @@ public class Main {
 #include <iostream>
 
 // Anti-pattern 1: using namespace std in global scope
-using namespace std; 
+using namespace std;
 
 void processData() {
     // Anti-pattern 2: Memory Leak
     // Allocating memory on the heap but never freeing it with 'delete'
-    int* dataBuffer = new int[100]; 
-    
+    int* dataBuffer = new int[100];
+
     dataBuffer[0] = 42;
     cout << "Processing value: " << dataBuffer[0] << endl;
-    
-    // Memory leak occurs here when the function exits 
+
+    // Memory leak occurs here when the function exits
     // because 'delete[] dataBuffer;' is missing.
 }
 
@@ -4037,6 +4130,10 @@ int main() {
         langSelect.addEventListener('change', e => {
           setAppLanguage(e.target.value);
         });
+        // Also listen for input for immediate responsiveness in some browsers
+        langSelect.addEventListener('input', e => {
+          setAppLanguage(e.target.value);
+        });
       }
 
       // Initialize language
@@ -4047,11 +4144,13 @@ int main() {
       renderFavorites();
 
       // Save API URL
-      apiUrlInput.addEventListener('change', () => {
-        localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
-      });
-      const savedUrl = localStorage.getItem('qyx_apiUrl');
-      if (savedUrl) apiUrlInput.value = savedUrl;
+      if (apiUrlInput) {
+        apiUrlInput.addEventListener('change', () => {
+          localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
+        });
+        const savedUrl = localStorage.getItem('qyx_apiUrl');
+        if (savedUrl) apiUrlInput.value = savedUrl;
+      }
 
       /* ═══════════════════════════════════════════════════════════════
          DIGEST SUBSCRIBE
@@ -4062,7 +4161,7 @@ int main() {
         const btn = document.getElementById('digestBtn');
         btn.disabled = true;
         btn.textContent = 'Subscribing…';
-        const base = apiUrlInput.value.replace(/\/$/, '');
+        const base = getApiBase();
         try {
           const r = await fetch(`${base}/subscribe/`, {
             method: 'POST',
