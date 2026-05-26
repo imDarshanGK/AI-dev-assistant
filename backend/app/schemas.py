@@ -137,3 +137,54 @@ class ShareRecord(BaseModel):
     code: str
     result: dict
     created_at: str
+
+
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    user_id: int
+    email: str
+
+
+class UserProfileResponse(BaseModel):
+    user_id: int
+    email: str
+
+
+class HistoryCreateRequest(BaseModel):
+    action: str
+    code: str
+    result_json: str
+
+
+class HistoryRecord(BaseModel):
+    id: int
+    action: str
+    code: str
+    result_json: str
+    created_at: str
+
+
+class FavoriteCreateRequest(BaseModel):
+    title: str
+    action: str
+    code: str
+    result_json: str
+
+
+class FavoriteRecord(BaseModel):
+    id: int
+    title: str
+    action: str
+    code: str
+    result_json: str
+    created_at: str
