@@ -7,6 +7,7 @@ from __future__ import annotations
 import ast
 import re
 import time
+from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
 
 # ── Language Detection ─────────────────────────────────────────────────────────
@@ -114,6 +115,9 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "php": "PHP",
             "rust": "Rust",
             "rs": "Rust",
+            "kotlin": "Kotlin",
+            "kt": "Kotlin",
+            "kts": "Kotlin",
         }
         if normalized in mapping:
             return mapping[normalized]
@@ -799,6 +803,16 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                     }
                 )
                 break  # one hit per pattern is enough
+
+    if language == "Python":
+        try:
+            for issue in ast_analyze(code):
+                key = f"{issue['type']}:{issue['line']}"
+                if key not in seen:
+                    seen.add(key)
+                    found.append(issue)
+        except SyntaxError:
+            pass
 
     return found
 
