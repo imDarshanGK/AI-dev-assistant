@@ -1,5 +1,4 @@
 from fastapi import UploadFile, APIRouter, HTTPException, status
-import mimetypes
 
 from app.utils.upload_config import ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, BLOCKED_EXTENSIONS
 from app.utils.file_validator import validate_file
