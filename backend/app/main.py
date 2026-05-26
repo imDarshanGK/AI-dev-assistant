@@ -14,8 +14,9 @@ from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
 
-from .routers import explanation, debugging, suggestions, analyze, subscribe
+from .routers import explanation, debugging, suggestions, analyze, subscribe, history
 from .routers import auth, chat, share, user_data
+from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
 from .database import Base, engine
 
@@ -51,6 +52,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await database.init_db()
     print("🚀 QyverixAI backend starting…")
     Base.metadata.create_all(bind=engine)
     start_scheduler()
@@ -127,6 +129,7 @@ app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"]
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
+app.include_router(history.router,     prefix="/history",     tags=["History"])
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
