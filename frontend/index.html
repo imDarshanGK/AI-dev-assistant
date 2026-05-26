@@ -2241,6 +2241,8 @@
         <div class="panel-header">
           <div class="panel-title" data-i18n="history_title">Query History</div>
           <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
+          <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
+          <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
           <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
@@ -3827,6 +3829,50 @@
         const normalizedId = Number(id);
         return Number.isNaN(normalizedId) ? null : normalizedId;
       }
+
+      document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+        if (!history || history.length === 0) {
+          toast('No history to download', 'info');
+          return;
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+        const dlNode = document.createElement('a');
+        dlNode.setAttribute("href", dataStr);
+        dlNode.setAttribute("download", "history.json");
+        document.body.appendChild(dlNode);
+        dlNode.click();
+        dlNode.remove();
+        toast('Downloaded history.json', 'success');
+      });
+
+      document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+        if (!history || history.length === 0) {
+          toast('No history to download', 'info');
+          return;
+        }
+
+        const headers = Object.keys(history[0]);
+        const csvRows = [];
+        csvRows.push(headers.join(','));
+
+        for (const row of history) {
+          const values = headers.map(header => {
+            let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
+            val = val.replace(/"/g, '""');
+            return `"${val}"`;
+          });
+          csvRows.push(values.join(','));
+        }
+
+        const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
+        const dlNode = document.createElement('a');
+        dlNode.setAttribute("href", csvContent);
+        dlNode.setAttribute("download", "history.csv");
+        document.body.appendChild(dlNode);
+        dlNode.click();
+        dlNode.remove();
+        toast('Downloaded history.csv', 'success');
+      });
 
       function restoreSavedEntry(entry) {
         if (!entry) return;
