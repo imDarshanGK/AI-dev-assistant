@@ -1,0 +1,290 @@
+name: PR Analysis
+
+# Secrets needed:
+# - QYVERIXAI_API_KEY: optional API key for QyverixAI; public mode is used when omitted
+# - GITHUB_TOKEN: automatically provided by GitHub Actions, no setup needed
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze changed files and post PR comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          QYVERIXAI_API_KEY: ${{ secrets.QYVERIXAI_API_KEY || 'public' }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          QYVERIXAI_API_URL: https://qyverixai.onrender.com/analyze/
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import json
+          import os
+          import subprocess
+          import sys
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          event_path = Path(os.environ["GITHUB_EVENT_PATH"])
+          event = json.loads(event_path.read_text(encoding="utf-8"))
+          pr_number = event["number"] if "number" in event else event["pull_request"]["number"]
+          base_sha = event["pull_request"]["base"]["sha"]
+          head_sha = event["pull_request"]["head"]["sha"]
+          repository = os.environ["GITHUB_REPOSITORY"]
+          api_key = os.environ.get("QYVERIXAI_API_KEY", "").strip()
+          use_public_mode = not api_key or api_key.lower() == "public"
+          qyverixai_url = os.environ.get("QYVERIXAI_API_URL", "https://qyverixai.onrender.com/analyze/").strip()
+          github_token = os.environ["GITHUB_TOKEN"]
+          github_api = os.environ.get("GITHUB_API_URL", "https://api.github.com").rstrip("/")
+
+          def run_git(*args: str) -> str:
+              return subprocess.check_output(["git", *args], text=True).strip()
+
+          changed_output = run_git("diff", "--name-only", base_sha, head_sha)
+          changed_files = [
+              path for path in changed_output.splitlines()
+              if Path(path).suffix.lower() in {".py", ".js", ".ts"}
+          ]
+
+          changed_files_path = Path("changed-files.txt")
+          changed_files_path.write_text("\n".join(changed_files) + ("\n" if changed_files else ""), encoding="utf-8")
+
+          def github_request(method: str, path: str, payload: dict | None = None) -> tuple[int, dict]:
+              body = None if payload is None else json.dumps(payload).encode("utf-8")
+              request = urllib.request.Request(
+                  f"{github_api}{path}",
+                  data=body,
+                  method=method,
+                  headers={
+                      "Authorization": f"Bearer {github_token}",
+                      "Accept": "application/vnd.github+json",
+                      "Content-Type": "application/json",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                  },
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      raw = response.read().decode("utf-8")
+                      return response.status, json.loads(raw) if raw else {}
+              except urllib.error.HTTPError as exc:
+                  raw = exc.read().decode("utf-8")
+                  data = json.loads(raw) if raw else {}
+                  return exc.code, data
+
+          def qyverixai_request(filename: str, content: str) -> dict:
+              language = {
+                  ".py": "Python",
+                  ".js": "JavaScript",
+                  ".ts": "TypeScript",
+              }.get(Path(filename).suffix.lower())
+
+              payload = {
+                  "code": content,
+              }
+              if language:
+                  payload["language"] = language
+
+              request = urllib.request.Request(
+                  qyverixai_url,
+                  data=json.dumps(payload).encode("utf-8"),
+                  method="POST",
+                  headers={
+                      **({"Authorization": f"Bearer {api_key}"} if not use_public_mode else {}),
+                      "Content-Type": "application/json",
+                      "Accept": "application/json",
+                  },
+              )
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  return json.loads(response.read().decode("utf-8") or "{}")
+
+          def extract_score(payload: dict) -> int | None:
+              for key in ("score", "overall_score"):
+                  value = payload.get(key)
+                  if isinstance(value, (int, float)):
+                      return int(value)
+              suggestions = payload.get("suggestions")
+              if isinstance(suggestions, dict):
+                  value = suggestions.get("overall_score")
+                  if isinstance(value, (int, float)):
+                      return int(value)
+              return None
+
+          def extract_grade(payload: dict, score: int | None) -> str:
+              value = payload.get("grade")
+              if isinstance(value, str) and value.strip():
+                  return value.strip()
+
+              suggestions = payload.get("suggestions")
+              if isinstance(suggestions, dict):
+                  value = suggestions.get("grade")
+                  if isinstance(value, str) and value.strip():
+                      return value.strip()
+
+              if score is None:
+                  return "N/A"
+              if score >= 90:
+                  return "A"
+              if score >= 75:
+                  return "B"
+              if score >= 60:
+                  return "C"
+              if score >= 40:
+                  return "D"
+              return "F"
+
+          def extract_issues(payload: dict) -> list[dict]:
+              issues = payload.get("issues")
+              if isinstance(issues, list):
+                  return issues
+
+              debugging = payload.get("debugging")
+              if isinstance(debugging, dict):
+                  issues = debugging.get("issues")
+                  if isinstance(issues, list):
+                      return issues
+
+              return []
+
+          def issue_text(issue: dict) -> str:
+              severity = str(issue.get("severity", "info")).upper()
+              line = issue.get("line_number", issue.get("line"))
+              if isinstance(line, str) and line.isdigit():
+                  line = int(line)
+              line_text = f"Line {line}" if isinstance(line, int) and line > 0 else "Line N/A"
+              message = (
+                  issue.get("message")
+                  or issue.get("description")
+                  or issue.get("type")
+                  or "Issue detected"
+              )
+              return f"- [{severity}] {line_text}: {message}"
+
+          results: list[dict] = []
+
+          for filename in changed_files:
+              file_path = Path(filename)
+              try:
+                  content = file_path.read_text(encoding="utf-8", errors="replace")
+              except OSError as exc:
+                  results.append({
+                      "filename": filename,
+                      "analysis_failed": True,
+                      "error": str(exc),
+                  })
+                  continue
+
+              try:
+                  response = qyverixai_request(filename, content)
+                  score = extract_score(response)
+                  grade = extract_grade(response, score)
+                  issues = extract_issues(response)
+                  results.append({
+                      "filename": filename,
+                      "score": score,
+                      "grade": grade,
+                      "issues": issues,
+                      "analysis_failed": False,
+                  })
+              except Exception as exc:
+                  results.append({
+                      "filename": filename,
+                      "analysis_failed": True,
+                      "error": str(exc),
+                  })
+
+          comment_lines = ["## QyverixAI Analysis"]
+
+          if not changed_files:
+              comment_lines.append("")
+              comment_lines.append("No eligible files changed")
+          else:
+              for result in results:
+                  comment_lines.append("")
+                  if result.get("analysis_failed"):
+                      comment_lines.append(f"### {result['filename']} — Analysis failed")
+                      comment_lines.append("- [ERROR] Line N/A: Analysis failed")
+                      continue
+
+                  score = result.get("score")
+                  grade = result.get("grade", "N/A")
+                  score_text = f"{score}/100" if isinstance(score, int) else "N/A/100"
+                  comment_lines.append(f"### {result['filename']} — Score: {score_text} ({grade})")
+
+                  issues = result.get("issues") or []
+                  if not issues:
+                      comment_lines.append("- No issues found.")
+                  else:
+                      for issue in issues:
+                          if isinstance(issue, dict):
+                              comment_lines.append(issue_text(issue))
+
+          comment_body = "\n".join(comment_lines).strip() + "\n"
+
+          status, _ = github_request(
+              "POST",
+              f"/repos/{repository}/issues/{pr_number}/comments",
+              {"body": comment_body},
+          )
+          if status >= 300:
+              print(f"Failed to post PR comment: HTTP {status}; writing analysis to logs only.", file=sys.stderr)
+              print(comment_body)
+              sys.exit(0)
+
+          needs_improvement = any(
+              isinstance(result.get("score"), int) and result["score"] < 60
+              for result in results
+              if not result.get("analysis_failed")
+          )
+
+          if needs_improvement:
+              label_status, _ = github_request(
+                  "GET",
+                  f"/repos/{repository}/labels/needs-improvement",
+              )
+              if label_status == 404:
+                  create_status, _ = github_request(
+                      "POST",
+                      f"/repos/{repository}/labels",
+                      {
+                          "name": "needs-improvement",
+                          "color": "e11d48",
+                          "description": "Files with QyverixAI scores below 60",
+                      },
+                  )
+                  if create_status >= 300:
+                      print(f"Failed to create label: HTTP {create_status}", file=sys.stderr)
+                      print(comment_body)
+                      sys.exit(0)
+              elif label_status >= 300:
+                  print(f"Failed to check label: HTTP {label_status}", file=sys.stderr)
+                  print(comment_body)
+                  sys.exit(0)
+
+              add_status, _ = github_request(
+                  "POST",
+                  f"/repos/{repository}/issues/{pr_number}/labels",
+                  {"labels": ["needs-improvement"]},
+              )
+              if add_status >= 300:
+                  print(f"Failed to add label: HTTP {add_status}", file=sys.stderr)
+                  print(comment_body)
+                  sys.exit(0)
+
+          print(comment_body)
+          PY
