@@ -10,6 +10,13 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet" />
+  <script>
+    (function() {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
   <style>
     /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -2300,6 +2307,17 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title" data-i18n="history_title">Query History</div>
+          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear"
+        data-i18n="btn_clear">>Clear</button>
+
+<button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">
+  Download JSON
+</button>
+
+<button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">
+  Download CSV
+</button>
+          <div class="panel-title" data-i18n="history_title">Query History</div>
           <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
@@ -2322,25 +2340,18 @@
 
     <!-- ── FOOTER ─────────────────────────────────────────────────── -->
     <footer>
-      <div class="app">
-        <div class="footer-logo">QyverixAI</div>
-        <p>
-          <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" data-i18n="nav_github">GitHub</a>
-          · <a href="https://qyverixai.onrender.com/docs" target="_blank" data-i18n="nav_api_docs">API Docs</a>
-          · <span data-i18n="footer_license">MIT License</span>
-        </p>
-        <p style="margin-top:8px;font-size:0.75rem" data-i18n="footer_built_for">Built for the open source community</p>
-      <div class="app" style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;justify-content:space-between;">
-        <div>
+      <div class="app" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:space-between;">
+        <div style="min-width:220px;">
           <div class="footer-logo">QyverixAI</div>
           <p>
-            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
-            · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
-            · MIT License
+            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" data-i18n="nav_github">GitHub</a>
+            · <a href="https://qyverixai.onrender.com/docs" target="_blank" data-i18n="nav_api_docs">API Docs</a>
+            · <span data-i18n="footer_license">MIT License</span>
           </p>
-          <p style="font-size:0.75rem">Built for the open source community</p>
+          <p style="margin-top:8px;font-size:0.75rem" data-i18n="footer_built_for">Built for the open source community</p>
         </div>
-        <div style="max-width:320px;">
+
+        <div style="max-width:360px;">
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
@@ -2793,13 +2804,8 @@
         btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
       }
 
-      const savedTheme = localStorage.getItem('qyx_theme');
-
-      const initialTheme = savedTheme
-       ? savedTheme
-       : window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
 
       document.documentElement.setAttribute('data-theme', initialTheme);
       setThemeIcon(initialTheme);
@@ -3874,6 +3880,55 @@
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
+  history = [];
+  localStorage.removeItem('qyx_history');
+  renderHistory();
+  toast('History cleared', 'info');
+});
+
+document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+  if (!history || history.length === 0) {
+    toast('No history to download', 'info');
+    return;
+  }
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+  const dlNode = document.createElement('a');
+  dlNode.setAttribute("href", dataStr);
+  dlNode.setAttribute("download", "history.json");
+  document.body.appendChild(dlNode);
+  dlNode.click();
+  dlNode.remove();
+  toast('Downloaded history.json', 'success');
+});
+
+document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+  if (!history || history.length === 0) {
+    toast('No history to download', 'info');
+    return;
+  }
+  
+  const headers = Object.keys(history[0]);
+  const csvRows = [];
+  csvRows.push(headers.join(','));
+  
+  for (const row of history) {
+    const values = headers.map(header => {
+      let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
+      val = val.replace(/"/g, '""');
+      return `"${val}"`;
+    });
+    csvRows.push(values.join(','));
+  }
+  
+  const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
+  const dlNode = document.createElement('a');
+  dlNode.setAttribute("href", csvContent);
+  dlNode.setAttribute("download", "history.csv");
+  document.body.appendChild(dlNode);
+  dlNode.click();
+  dlNode.remove();
+  toast('Downloaded history.csv', 'success');
+});
       function loadEntry(id) {
         const entry = history.find(h => h.id === Number (id));
         console.log(entry);
