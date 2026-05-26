@@ -685,6 +685,16 @@
       color: var(--text3)
     }
 
+    .editor-footer.limit-warning #charCount {
+      color: #f59e0b;
+      font-weight: 600;
+    }
+
+    .editor-footer.limit-exceeded #charCount {
+      color: #ef4444;
+      font-weight: 700;
+    }
+
     /* ── Mode Selector ── */
     .mode-row {
       display: flex;
@@ -2420,6 +2430,7 @@
           toast_api_reachable: "API is reachable",
           toast_api_unreachable: "Cannot reach API. Check the URL.",
           toast_please_paste: "Please paste some code first.",
+          toast_code_too_large: "Code exceeds the 50,000 character limit. Please reduce your code snippet.",
           toast_saved_favorites: "Saved to favorites",
           toast_report_downloaded: "Report downloaded",
           toast_sample_loaded: "Sample code loaded — click Analyze!",
@@ -2517,6 +2528,7 @@
           toast_api_reachable: "ஏபிஐ அணுகக்கூடியது",
           toast_api_unreachable: "ஏபிஐ-ஐ அணுக முடியவில்லை. முகவரியைச் சரிபார்க்கவும்.",
           toast_please_paste: "தயவுசெய்து முதலில் குறியீட்டை ஒட்டவும்.",
+          toast_code_too_large: "குறியீடு 50,000 எழுத்து வரம்பை மீறுகிறது. தயவுசெய்து உங்கள் குறியீட்டை குறைக்கவும்.",
           toast_saved_favorites: "பிடித்தவற்றில் சேமிக்கப்பட்டது",
           toast_report_downloaded: "அறிக்கை பதிவிறக்கம் செய்யப்பட்டது",
           toast_sample_loaded: "மாதிரிக் குறியீடு ஏற்றப்பட்டது — பகுப்பாய் என்பதைக் கிளிக் செய்க!",
@@ -2614,6 +2626,7 @@
           toast_api_reachable: "एपीआई पहुंच योग्य है",
           toast_api_unreachable: "एपीआई तक नहीं पहुंचा जा सकता। यूआरएल की जांच करें।",
           toast_please_paste: "कृपया पहले कुछ कोड पेस्ट करें।",
+          toast_code_too_large: "कोड 50,000 अक्षरों की सीमा से अधिक है। कृपया अपने कोड स्निपेट को छोटा करें।",
           toast_saved_favorites: "पसंदीदा में सहेजा गया",
           toast_report_downloaded: "रिपोर्ट डाउनलोड हो गई",
           toast_sample_loaded: "सैंपल कोड लोड हो गया — विश्लेषण पर क्लिक करें!",
@@ -2711,6 +2724,7 @@
           toast_api_reachable: "L'API est accessible",
           toast_api_unreachable: "Impossible de joindre l'API. Vérifiez l'URL.",
           toast_please_paste: "Veuillez d'abord coller du code.",
+          toast_code_too_large: "Le code dépasse la limite de 50 000 caractères. Merci de réduire votre extrait de code.",
           toast_saved_favorites: "Enregistré dans les favoris",
           toast_report_downloaded: "Rapport téléchargé",
           toast_sample_loaded: "Exemple de code chargé — cliquez sur Analyser !",
@@ -2744,6 +2758,8 @@
       };
 
       const MAX_HISTORY = 50;
+      const CODE_CHAR_LIMIT = 50000;
+      const CODE_CHAR_WARNING = 45000;
       let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
@@ -2758,6 +2774,7 @@
       const editor = document.getElementById('codeEditor');
       const lineNumbers = document.getElementById('lineNumbers');
       const charCount = document.getElementById('charCount');
+      const editorFooter = charCount ? charCount.closest('.editor-footer') : null;
       const analyzeBtn = document.getElementById('analyzeBtn');
       const spinner = document.getElementById('spinner');
       const apiUrlInput = document.getElementById('apiUrl');
@@ -2876,6 +2893,32 @@
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
           : '1';
+        syncAnalyzeButtonState(chars, val.trim().length === 0, Boolean(selectedZipFile));
+      }
+
+      function syncAnalyzeButtonState(
+        charLength = editor.value.length,
+        isEmpty = editor.value.trim().length === 0,
+        hasZip = Boolean(selectedZipFile),
+      ) {
+        const overLimit = !hasZip && charLength > CODE_CHAR_LIMIT;
+        const nearLimit = !hasZip && !overLimit && charLength >= CODE_CHAR_WARNING;
+        const isBusy = analyzeBtn.classList.contains('loading');
+        const shouldDisable = isBusy || (!hasZip && (isEmpty || overLimit));
+
+        if (editorFooter) {
+          editorFooter.classList.toggle('limit-warning', nearLimit);
+          editorFooter.classList.toggle('limit-exceeded', overLimit);
+        }
+
+        analyzeBtn.disabled = shouldDisable;
+        if (overLimit) {
+          analyzeBtn.title = getTranslation('toast_code_too_large');
+        } else if (!hasZip && isEmpty) {
+          analyzeBtn.title = getTranslation('toast_please_paste');
+        } else {
+          analyzeBtn.title = getTranslation('analyze_btn_title');
+        }
       }
 
       function syncApiStatusText() {
@@ -3217,6 +3260,11 @@
       async function doAnalyze() {
         const code = editor.value.trim();
         if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
+        if (!selectedZipFile && code.length > CODE_CHAR_LIMIT) {
+          toast(getTranslation('toast_code_too_large'), 'error');
+          syncAnalyzeButtonState(editor.value.length, false, false);
+          return;
+        }
 
         const base = getApiBase();
         const endpointMap = {
@@ -3229,7 +3277,7 @@
 
         // Loading state
         analyzeBtn.classList.add('loading');
-        analyzeBtn.disabled = true;
+        syncAnalyzeButtonState(editor.value.length, false, Boolean(selectedZipFile));
         showShimmers();
 
         try {
@@ -3300,7 +3348,7 @@
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');
-          analyzeBtn.disabled = false;
+          syncAnalyzeButtonState();
         }
       }
 

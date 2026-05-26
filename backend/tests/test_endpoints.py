@@ -678,6 +678,12 @@ def test_single_line_code():
     assert r.status_code == 200
 
 
+def test_analyze_rejects_oversized_code():
+    r = client.post("/analyze/", json={"code": "a" * 50001})
+    assert r.status_code == 422
+    assert "50,000" in str(r.json())
+
+
 # ── Swift Detection (issue #62) ──
 SAMPLE_SWIFT = 'import Foundation\nfunc greet() {\n    let msg = "Hello"\n    print(msg)\n}\nvar score: Int = 0\n'
 
