@@ -1,4 +1,5 @@
 import json
+import os
 import pytest
 from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
@@ -13,6 +14,8 @@ from app.models import User
 
 # Use an isolated, in-memory SQLite database for testing
 DATABASE_URL = "sqlite:///:memory:"
+CURRENT_DIR = os.path.dirname(__file__)
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 
 engine = create_engine(
     DATABASE_URL,
