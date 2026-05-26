@@ -40,6 +40,11 @@ jobs:
           cd backend
           pip install -r requirements.txt
 
+      - name: Verify python-magic import
+        run: |
+          cd backend
+          python -c "import magic; print(magic.__file__)"
+
       - name: Run backend tests
         env:
           RATE_LIMIT_PER_MINUTE: 300
