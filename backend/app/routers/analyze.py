@@ -6,7 +6,7 @@ import zipfile
 from io import BytesIO
 from pathlib import PurePosixPath
 
-from fastapi import APIRouter, File, HTTPException, Response, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, Response, UploadFile
 
 from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
 from ..services.cache import cache
@@ -16,6 +16,8 @@ router = APIRouter()
 
 MAX_ZIP_FILES = 20
 MAX_ZIP_TOTAL_BYTES = 5 * 1024 * 1024
+MAX_ZIP_UPLOAD_BYTES = 10 * 1024 * 1024
+ZIP_UPLOAD_READ_CHUNK_BYTES = 64 * 1024
 MAX_SKIPPED_FILES = 20
 IGNORED_DIRS = {
     ".git",
@@ -83,6 +85,32 @@ def _add_skipped(skipped_files: list[str], reason: str) -> None:
         skipped_files.append(reason)
 
 
+def _content_length(request: Request) -> int | None:
+    value = request.headers.get("content-length")
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
+async def _read_limited_upload(file: UploadFile, max_bytes: int) -> bytes:
+    data = bytearray()
+
+    while True:
+        chunk = await file.read(ZIP_UPLOAD_READ_CHUNK_BYTES)
+        if not chunk:
+            return bytes(data)
+
+        data.extend(chunk)
+        if len(data) > max_bytes:
+            raise HTTPException(
+                status_code=413,
+                detail="Uploaded ZIP file exceeds the 10MB upload limit",
+            )
+
+
 @router.post(
     "/",
     response_model=AnalyzeResponse,
@@ -107,14 +135,21 @@ async def analyze(req: CodeRequest, response: Response):
     response_model=ZipAnalyzeResponse,
     summary="Run full analysis for source files in a ZIP",
 )
-async def analyze_zip(file: UploadFile = File(...)):
+async def analyze_zip(request: Request, file: UploadFile = File(...)):
     """Analyze up to 20 source files from an uploaded ZIP archive."""
 
     filename = file.filename or ""
     if not filename.lower().endswith(".zip"):
         raise HTTPException(status_code=400, detail="Only .zip uploads are supported")
 
-    uploaded = await file.read()
+    content_length = _content_length(request)
+    if content_length is not None and content_length > MAX_ZIP_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="Uploaded ZIP file exceeds the 10MB upload limit",
+        )
+
+    uploaded = await _read_limited_upload(file, MAX_ZIP_UPLOAD_BYTES)
     if not uploaded:
         raise HTTPException(status_code=400, detail="Uploaded ZIP file is empty")
 
