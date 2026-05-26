@@ -147,6 +147,28 @@ def test_get_unsubscribe_link():
     assert "unsubscribed" in r.json()["message"].lower()
 
 
+def test_get_unsubscribe_wrong_token_returns_403():
+    client.post("/subscribe/", json={"email": "test@example.com"})
+
+    r = client.get(
+        "/subscribe/unsubscribe",
+        params={"email": "test@example.com", "token": "wrong-token"},
+    )
+
+    assert r.status_code == 403
+    assert "invalid unsubscribe token" in r.json()["detail"].lower()
+
+
+def test_get_unsubscribe_nonexistent_returns_404():
+    r = client.get(
+        "/subscribe/unsubscribe",
+        params={"email": "nobody@example.com", "token": "some-token"},
+    )
+
+    assert r.status_code == 404
+    assert "not found" in r.json()["detail"].lower()
+
+
 def test_invalid_email():
     r = client.post("/subscribe/", json={"email": "not-an-email"})
     assert r.status_code == 422

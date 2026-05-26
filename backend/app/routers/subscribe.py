@@ -103,10 +103,12 @@ def unsubscribe_via_get(
     )
 
     if not sub:
-        return {"message": "Subscription not found or already inactive."}
+        raise HTTPException(
+            status_code=404, detail="Subscription not found or already inactive."
+        )
 
     if sub.unsubscribe_token != token:
-        return {"message": "Invalid unsubscribe link."}
+        raise HTTPException(status_code=403, detail="Invalid unsubscribe token.")
 
     sub.is_active = False
     db.commit()
