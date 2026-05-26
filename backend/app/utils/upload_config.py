@@ -56,6 +56,7 @@ ALLOWED_MIME_TYPES = {
     ".txt": [
         "text/plain",
     ]
+
 }
 
 BLOCKED_EXTENSIONS = [
