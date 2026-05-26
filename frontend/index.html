@@ -10,6 +10,13 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet" />
+  <script>
+    (function() {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
   <style>
     /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -2786,13 +2793,8 @@
         btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
       }
 
-      const savedTheme = localStorage.getItem('qyx_theme');
-
-      const initialTheme = savedTheme
-       ? savedTheme
-       : window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
 
       document.documentElement.setAttribute('data-theme', initialTheme);
       setThemeIcon(initialTheme);
