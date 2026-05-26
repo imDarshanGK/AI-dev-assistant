@@ -110,16 +110,38 @@ async def analyze(req: CodeRequest, response: Response):
 async def analyze_zip(file: UploadFile = File(...)):
     """Analyze up to 20 source files from an uploaded ZIP archive."""
 
+    # 1. Fast check via Content-Length header to reject large uploads early
+    # Limit upload size to 10MB (compressed) to prevent OOM/DoS
+    MAX_UPLOAD_SIZE = 10 * 1024 * 1024
+    content_length = file.headers.get("content-length")
+    if content_length and int(content_length) > MAX_UPLOAD_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"ZIP file too large (max {MAX_UPLOAD_SIZE // (1024 * 1024)}MB)",
+        )
+
     filename = file.filename or ""
     if not filename.lower().endswith(".zip"):
         raise HTTPException(status_code=400, detail="Only .zip uploads are supported")
 
-    uploaded = await file.read()
+    # 2. Secure chunked read to prevent memory exhaustion from missing headers
+    buffer = BytesIO()
+    total_read = 0
+    while chunk := await file.read(64 * 1024):  # 64KB chunks
+        total_read += len(chunk)
+        if total_read > MAX_UPLOAD_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail=f"ZIP file exceeds size limit during upload (max {MAX_UPLOAD_SIZE // (1024 * 1024)}MB)",
+            )
+        buffer.write(chunk)
+
+    uploaded = buffer.getvalue()
     if not uploaded:
         raise HTTPException(status_code=400, detail="Uploaded ZIP file is empty")
 
     try:
-        archive = zipfile.ZipFile(BytesIO(uploaded))
+        archive = zipfile.ZipFile(buffer)
     except zipfile.BadZipFile as exc:
         raise HTTPException(status_code=400, detail="Invalid ZIP file") from exc
 
