@@ -44,10 +44,14 @@ This extension contributes the following settings:
 
 ```bash
 cd vscode-extension
+npm install
+npm run compile
 npm install -g @vscode/vsce
 vsce package
 code --install-extension qyverixai-vscode-*.vsix
 ```
+
+The compile output is written to `extension.js`, which matches the extension's `"main"` entry in `package.json`.
 
 ## License
 

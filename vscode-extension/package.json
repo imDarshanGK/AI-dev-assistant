@@ -12,6 +12,15 @@
   "engines": {
     "vscode": "^1.82.0"
   },
+  "scripts": {
+    "compile": "node ./node_modules/typescript/bin/tsc -p ./tsconfig.json",
+    "watch": "node ./node_modules/typescript/bin/tsc -w -p ./tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/vscode": "^1.82.0",
+    "typescript": "^5.8.3"
+  },
   "categories": [
     "Programming Languages",
     "Linters",
