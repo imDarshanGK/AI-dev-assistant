@@ -3073,7 +3073,7 @@
           editor.value = `ZIP ready for project analysis: ${file.name}\n\nClick Analyze Code to scan up to 20 source files.`;
           updateEditor();
           resetResults();
-          toast(`Loaded ZIP ${file.name}`, 'success');
+         toast(getTranslation('toast_loaded').replace('{name}', file.name), 'success');
           return;
         }
 
