@@ -79,3 +79,16 @@ def test_deep_nesting_exact_boundary():
     )
     issues = analyze(code)
     assert not any(i["type"] == "Deep Nesting" for i in issues)
+
+def test_zero_division():
+    code = """
+x = 10 / 0
+def div(a, b):
+    return a / b
+div(5, 0)
+"""
+    issues = analyze(code)
+    types = [i["type"] for i in issues]
+    assert types.count("ZeroDivisionError") == 2
+    assert issues[0]["line"] == 2
+    assert issues[1]["line"] == 5

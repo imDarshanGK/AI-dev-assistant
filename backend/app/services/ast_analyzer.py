@@ -1,4 +1,5 @@
 import ast
+from .line_utils import format_code_snippet
 
 def _get_snippet(code: str, line: int) -> str:
     lines = code.splitlines()
@@ -6,7 +7,7 @@ def _get_snippet(code: str, line: int) -> str:
         return lines[line-1].strip()[:120]
     return ""
 
-def _make_issue(type, line, description, suggestion, severity, snippet):
+def _make_issue(type, line, description, suggestion, severity, snippet, code):
     return {
         "type": type,
         "line": line,
@@ -14,7 +15,7 @@ def _make_issue(type, line, description, suggestion, severity, snippet):
         "suggestion": suggestion,
         "severity": severity,
         "snippet": snippet,
-        "code_context": ""
+        "code_context": format_code_snippet(code, [line], context_lines=2)
     }
 
 def detect_unreachable_code(tree, code):
@@ -37,6 +38,7 @@ def detect_unreachable_code(tree, code):
                         "Remove the unreachable code or fix the control flow.",
                         "warning",
                         _get_snippet(code, stmt.lineno),
+                        code,
                     ))
                 if isinstance(stmt, terminal):
                     terminal_line = getattr(stmt, "lineno", None)
@@ -78,6 +80,7 @@ def detect_unused_imports(tree, code):
                 "Remove the unused import.",
                 "warning",
                 _get_snippet(code, line),
+                code,
             ))
     return issues
 
@@ -107,6 +110,7 @@ def detect_unused_arguments(tree, code):
                     f"Remove '{param}' or prefix with '_' if intentionally unused.",
                     "info",
                     _get_snippet(code, node.lineno),
+                    code,
                 ))
 
     return issues
@@ -145,6 +149,7 @@ def detect_too_many_returns(tree, code):
                 "Refactor into smaller functions or use early returns consistently.",
                 "info",
                 _get_snippet(code, node.lineno),
+                code,
             ))
 
     return issues
@@ -164,10 +169,58 @@ def detect_deep_nesting(tree, code):
                     "Extract nested logic into separate functions.",
                     "warning",
                     _get_snippet(code, child.lineno),
+                    code,
                 ))
             walk(child, d)
 
     walk(tree, 0)
+    return issues
+
+def detect_zero_division(tree, code):
+    issues = []
+    
+    # 1. Direct literal division by zero
+    for node in ast.walk(tree):
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            if isinstance(node.right, ast.Constant) and node.right.value == 0:
+                issues.append(_make_issue(
+                    "ZeroDivisionError",
+                    node.lineno,
+                    "Division by literal zero detected.",
+                    "Ensure the divisor is non-zero before dividing.",
+                    "error",
+                    _get_snippet(code, node.lineno),
+                    code
+                ))
+
+    # 2. Function calls with literal 0 where the parameter is used as a divisor
+    func_div_params = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            params = [arg.arg for arg in node.args.args]
+            for sub in ast.walk(node):
+                if isinstance(sub, ast.BinOp) and isinstance(sub.op, ast.Div):
+                    if isinstance(sub.right, ast.Name) and sub.right.id in params:
+                        func_div_params[node.name] = params.index(sub.right.id)
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            fname = node.func.id
+            if fname in func_div_params:
+                idx = func_div_params[fname]
+                if idx < len(node.args):
+                    arg = node.args[idx]
+                    if isinstance(arg, ast.Constant) and arg.value == 0:
+                        issues.append(_make_issue(
+                            "ZeroDivisionError",
+                            node.lineno,
+                            f"Literal 0 passed as divisor to function '{fname}'.",
+                            f"Avoid passing 0 to the divisor parameter of '{fname}'.",
+                            "error",
+                            _get_snippet(code, node.lineno),
+                            code
+                        ))
+
     return issues
 
 def analyze(source: str) -> list[dict]:
@@ -178,5 +231,6 @@ def analyze(source: str) -> list[dict]:
     issues += detect_unused_arguments(tree, source)
     issues += detect_too_many_returns(tree, source)
     issues += detect_deep_nesting(tree, source)
+    issues += detect_zero_division(tree, source)
     issues.sort(key=lambda i: i["line"])
     return issues

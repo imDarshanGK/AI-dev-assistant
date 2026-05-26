@@ -222,14 +222,6 @@ class BugPattern:
 BUG_PATTERNS: list[BugPattern] = [
     # ── Python ──
     BugPattern(
-        "ZeroDivisionError",
-        r"\w+\s*/\s*\w+",
-        "Potential division by zero — divisor may be 0 at runtime.",
-        "Guard the divisor: `if divisor == 0: return None` or raise ValueError.",
-        "error",
-        ["Python"],
-    ),
-    BugPattern(
         "Bare Except",
         r"except\s*:",
         "`except:` catches ALL exceptions including SystemExit and KeyboardInterrupt.",
