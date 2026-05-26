@@ -1073,6 +1073,23 @@ def run_suggestions(code: str, language: str) -> dict:
     }
 
 
+def chat_fallback_reply(
+    message: str, code: str | None, history: list[str], level: str = "beginner"
+) -> str:
+    """Provides a simple fallback response for the chat when LLM is disabled."""
+    message = message.lower()
+    if "hello" in message or "hi" in message:
+        return f"Hello! I am QyverixAI. I can help you understand and improve your code at a {level} level. What would you like to know?"
+    if "bug" in message or "debug" in message:
+        return "I can help you find bugs! Try using the 'Debugging' mode in the main menu for a full scan."
+    if "improve" in message or "better" in message:
+        return "To improve your code, look for 'Suggestions' in the analysis results. I focus on readability and performance."
+    if "complexity" in message:
+        return "I calculate cyclomatic complexity to help you keep your functions simple and maintainable."
+    
+    return "I'm currently in rule-based mode. For deep code discussion, please enable an LLM provider in the settings. How else can I assist you with your code today?"
+
+
 # ── Explanation Engine ─────────────────────────────────────────────────────────
 def run_explanation(code: str, language: str) -> dict:
     """Generate a plain-English explanation of the provided source code.
