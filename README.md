@@ -317,6 +317,25 @@ Tests run automatically on every push and pull request via GitHub Actions across
 docker build -t qyverixai .
 docker run -p 8000:8000 qyverixai
 ```
+### Docker Compose
+
+Run the complete local development environment:
+
+```bash
+docker compose up --build
+```
+
+Available services:
+
+- Frontend → http://localhost:3000
+- Backend API → http://localhost:8000
+- PostgreSQL → localhost:5432
+
+Stop containers:
+
+```bash
+docker compose down
+```
 
 ---
 
