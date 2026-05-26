@@ -1,14 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QyverixAI — AI Developer Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet" />
+  <script>
+    (function() {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
   <style>
     /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -286,6 +294,32 @@
     .theme-btn:hover {
       color: var(--text);
       border-color: var(--border2)
+    }
+
+    .lang-select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      padding: 8px 12px;
+      border-radius: var(--r2);
+      font-size: 0.85rem;
+      font-weight: 500;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      outline: none;
+      transition: all var(--transition);
+      margin-right: 4px;
+    }
+
+    .lang-select:hover,
+    .lang-select:focus {
+      color: var(--text);
+      border-color: var(--border2);
+      background: var(--bg3);
+    }
+
+    [data-theme="light"] .lang-select {
+      background: var(--bg2);
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -1259,6 +1293,121 @@
       transform: translateX(3px)
     }
 
+    .zip-overview {
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .zip-file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .zip-file-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      overflow: hidden
+    }
+
+    .zip-file-card summary {
+      cursor: pointer;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 12px 14px;
+      list-style: none
+    }
+
+    .zip-file-card summary::-webkit-details-marker {
+      display: none
+    }
+
+    .zip-file-card summary::before {
+      content: ">";
+      color: var(--text3);
+      font-size: 0.75rem;
+      transition: transform 0.18s ease
+    }
+
+    .zip-file-card[open] summary::before {
+      transform: rotate(90deg)
+    }
+
+    .zip-file-name {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text)
+    }
+
+    .zip-file-meta {
+      color: var(--text3);
+      font-size: 0.74rem;
+      margin-left: auto
+    }
+
+    .zip-file-body {
+      border-top: 1px solid var(--border);
+      padding: 12px 14px;
+      color: var(--text2);
+      font-size: 0.84rem
+    }
+
+    .zip-mini-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0
+    }
+
+    .zip-mini-grid span,
+    .zip-skipped {
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      background: var(--bg);
+      color: var(--text3);
+      font-size: 0.74rem;
+      padding: 5px 8px
+    }
+
+    .zip-issue {
+      border-left: 3px solid var(--border2);
+      background: var(--bg);
+      border-radius: var(--r2);
+      margin-top: 8px;
+      padding: 9px 10px
+    }
+
+    .zip-issue.error {
+      border-left-color: var(--red)
+    }
+
+    .zip-issue.warning {
+      border-left-color: var(--yellow)
+    }
+
+    .zip-issue.info {
+      border-left-color: var(--accent)
+    }
+
+    .zip-issue strong {
+      color: var(--text);
+      font-size: 0.78rem
+    }
+
+    .zip-issue span {
+      float: right;
+      color: var(--text3);
+      font-size: 0.72rem
+    }
+
+    .zip-issue p {
+      margin-top: 5px
+    }
+
     .suggest-header {
       display: flex;
       align-items: center;
@@ -1861,136 +2010,93 @@
 <link rel="icon" href="data:,">
 </head>
 <body>
-<div class="bg-orb bg-orb-1"></div>
-<div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
 
-<div class="app">
+  <div class="app">
 
-<!-- ── NAV ──────────────────────────────────────────────────── -->
-<nav>
-  <a href="#" class="nav-logo">
-    <div class="logo-hex">Q</div>
-    QyverixAI
-    <span style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.25);letter-spacing:0.04em;margin-left:4px">v3.0</span>
-  </a>
-  <div class="nav-links">
-    <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
-      <span>GitHub</span>
-    </a>
-    <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-      <span>API Docs</span>
-    </a>
-    <button class="theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle dark mode" aria-pressed="false">
-      <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-    </button>
-  </div>
-</nav>
-
-<!-- ── HERO ──────────────────────────────────────────────────── -->
-<section class="hero">
-  <div class="hero-badge">
-    <div class="badge-dot"></div>
-    Open Source · AI-Powered · Free
-  </div>
-  <h1>Debug. Understand.<br/><em>Ship faster.</em></h1>
-  <p class="hero-sub">
-    Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.
-  </p>
-  <div class="hero-cta">
-    <button class="btn btn-primary" onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21"/></svg>
-      Start Analyzing
-    </button>
-    <button class="btn btn-secondary" onclick="loadSample()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-      Try Sample Code
-    </button>
-    <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
-      Star on GitHub
-    </a>
-  </div>
-</section>
-
-<!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
-<div class="features-row">
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>40+ Bug Patterns</h4>
-      <p>Python, JS, TS, Java, C++</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Code Explanation</h4>
-      <p>Plain English breakdowns</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Smart Suggestions</h4>
-      <p>Quality score + grade</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Dark / Light Mode</h4>
-      <p>Persisted preference</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>File Upload</h4>
-      <p>.py .js .ts .java .cpp</p>
-    </div>
-  </div>
-</div>
-
-<!-- ── WORKSPACE ─────────────────────────────────────────────── -->
-<section id="workspace" class="workspace">
-
-  <!-- Editor Panel -->
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <span></span>
-        Code Editor
-      </div>
-      <div class="panel-actions">
-        <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button" aria-label="Upload code file" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1"/>
-        </label>
-        <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-        </button>
-        <button class="icon-btn" id="copyBtn" title="Copy code" aria-label="Copy code to clipboard">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    <!-- ── NAV ──────────────────────────────────────────────────── -->
+    <nav>
+      <a href="#" class="nav-logo">
+        <div class="logo-hex">Q</div>
+        QyverixAI
+        <span
+          style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.25);letter-spacing:0.04em;margin-left:4px">v3.0</span>
+      </a>
+      <div class="nav-links">
+        <select id="langSelect" class="lang-select" aria-label="Select Language" data-i18n-aria-label="lang_select_label">
+          <option value="en" data-i18n="lang_option_en">English</option>
+          <option value="ta" data-i18n="lang_option_ta">தமிழ் (Tamil)</option>
+          <option value="hi" data-i18n="lang_option_hi">हिन्दी (Hindi)</option>
+          <option value="fr" data-i18n="lang_option_fr">Français (French)</option>
+        </select>
+        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          <span data-i18n="nav_github">GitHub</span>
+        </a>
+        <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+          </svg>
+          <span data-i18n="nav_api_docs">API Docs</span>
+        </a>
+        <button class="theme-btn" id="themeToggle" title="Toggle theme" data-i18n-title="btn_toggle_theme" data-i18n-aria-label="btn_toggle_theme" aria-label="Toggle dark mode"
+          aria-pressed="false">
+          <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
         </button>
       </div>
-    </div>
+    </nav>
 
-    <!-- Language tabs -->
-    <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
-      <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
-      <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
-      <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
-      <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
-      <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
-    </div>
-        <!-- Editor -->
-        <div class="editor-wrap">
-          <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…"
-            spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" aria-label="Code Editor"></textarea>
-        </div>
+    <!-- ── HERO ──────────────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-badge">
+        <div class="badge-dot"></div>
+        <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
+      </div>
+      <h1 data-i18n="hero_title">Debug. Understand.<br /><em>Ship faster.</em></h1>
+      <p class="hero-sub" data-i18n="hero_subtitle">
+        Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
+        suggestions — no account needed.
+      </p>
+      <div class="hero-cta">
+        <button class="btn btn-primary"
+          onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="5,3 19,12 5,21" />
+          </svg>
+          <span data-i18n="btn_start_analyzing">Start Analyzing</span>
+        </button>
+        <button class="btn btn-secondary" onclick="loadSample()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16,18 22,12 16,6" />
+            <polyline points="8,6 2,12 8,18" />
+          </svg>
+          <span data-i18n="btn_try_sample">Try Sample Code</span>
+        </button>
+        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32(3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          <span data-i18n="btn_star_github">Star on GitHub</span>
+        </a>
+      </div>
+    </section>
 
         <div class="editor-footer">
           <span id="charCount">0 chars · 0 lines</span>
@@ -2060,62 +2166,169 @@
             <div class="spinner" id="spinner" aria-hidden="true"></div>
             <span class="btn-text">Analyze Code</span>
           </button>
+    <!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
+    <div class="features-row">
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4 data-i18n="pill_patterns_title">40+ Bug Patterns</h4>
+          <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
         </div>
       </div>
-      <!-- Results Panel -->
-      <div class="panel">
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4 data-i18n="mode_explain">Code Explanation</h4>
+          <p data-i18n="pill_explain_desc">Plain English breakdowns</p>
+        </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4 data-i18n="mode_improve">Smart Suggestions</h4>
+          <p data-i18n="pill_improve_desc">Quality score + grade</p>
+        </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4 data-i18n="pill_theme_title">Dark / Light Mode</h4>
+          <p data-i18n="pill_theme_desc">Persisted preference</p>
+        </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <h4 data-i18n="pill_upload_title">File Upload</h4>
+          <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WORKSPACE ─────────────────────────────────────────────── -->
+    <section id="workspace" class="workspace">
+
+      <!-- Editor Panel -->
+      <div class="panel" style="grid-column:1">
         <div class="panel-header">
-          <div class="panel-title">Analysis Results</div>
-          <div class="panel-actions" id="resultActions" style="display:none">
-            <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save analysis to favorites"><svg
-                width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                aria-hidden="true">
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg></button>
-            <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">
+          <div class="panel-title">
+            <span></span>
+            <span data-i18n="editor_title">Code Editor</span>
+          </div>
+          <div class="panel-actions">
+            <label class="icon-btn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" tabindex="0" role="button"
+              aria-label="Upload code file"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7,10 12,15 17,10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
+                <polyline points="17,8 12,3 7,8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
+                tabindex="-1" />
+            </label>
+            <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <polyline points="3,6 5,6 21,6" />
+                <path d="M19 6l-1 14H6L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
+            </button>
+            <button class="icon-btn" id="copyBtn" title="Copy code" data-i18n-title="btn_copy" data-i18n-aria-label="btn_copy" aria-label="Copy code to clipboard">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
             </button>
           </div>
         </div>
 
-        <!-- Result tabs -->
-        <div class="result-tabs" role="tablist" aria-label="Analysis Results">
-          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true"
-            aria-controls="pane-explain">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              aria-hidden="true">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-            </svg> Explain <span class="tab-badge" id="explainBadge"></span>
-          </button>
-          <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              aria-hidden="true">
-              <path d="M8 2l1.5 1.5" />
-              <path d="M14.5 3.5L16 2" />
-              <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
-              <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
-              <line x1="12" y1="12" x2="12" y2="16" />
-              <path d="M4.5 15H2" />
-              <path d="M22 15h-2.5" />
-              <path d="M4.5 19l-2 2" />
-              <path d="M19.5 19l2 2" />
-            </svg> Debug <span class="tab-badge" id="debugBadge"></span>
-          </button>
-          <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              aria-hidden="true">
-              <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
-            </svg> Improve <span class="tab-badge" id="suggestBadge"></span>
+        <!-- Language tabs -->
+        <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
+          <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true" data-i18n="lang_tab_python">Python</button>
+          <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false" data-i18n="lang_tab_javascript">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false" data-i18n="lang_tab_typescript">TypeScript</button>
+          <button class="lang-tab" data-lang="java" role="tab" aria-selected="false" data-i18n="lang_tab_java">Java</button>
+          <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false" data-i18n="lang_tab_cpp">C++</button>
+        </div>
+        <!-- Editor area (line numbers + code editor) -->
+        <div class="editor-wrap">
+          <div class="line-numbers" id="lineNumbers">1</div>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
+        </div>
+
+        <div class="editor-footer">
+          <div id="charCount">0 chars · 0 lines</div>
+          <div style="display:flex;gap:8px">
+            <div class="mode-row" role="tablist" aria-label="Mode selector">
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false">Improve</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="analyze-row">
+          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
+            <div class="spinner" id="spinner"></div>
+            <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
         </div>
 
+        <!-- Result action buttons (hidden until results) -->
+        <div id="resultActions" class="result-actions" style="display:none">
+          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
+          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
+        </div>
+
+      </div>
+
+      <!-- Results Panel -->
+      <div class="panel" style="grid-column:2">
+        <div class="panel-header">
+          <div class="panel-title" data-i18n="results_title">Analysis Results</div>
+          <div class="panel-actions"></div>
+        </div>
+
+        <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
+          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
+            <span data-i18n="tab_explain">Explain</span>
+            <span class="tab-badge" id="explainBadge"></span>
+          </button>
+          <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/></svg>
+            <span data-i18n="tab_debug">Debug</span>
+            <span class="tab-badge" id="debugBadge"></span>
+          </button>
+          <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
+            <span data-i18n="tab_improve">Improve</span>
+            <span class="tab-badge" id="suggestBadge"></span>
+          </button>
+        </div>
         <div class="result-content">
           <!-- Explain Pane -->
           <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
@@ -2125,8 +2338,8 @@
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg></div>
-              <h3>No analysis yet</h3>
-              <p>Paste your code and click Analyze to see results</p>
+              <h3 data-i18n="empty_explain_title">No analysis yet</h3>
+              <p data-i18n="empty_explain_desc">Paste your code and click Analyze to see results</p>
             </div>
             <div id="explainResult" style="display:none"></div>
           </div>
@@ -2145,8 +2358,8 @@
                   <path d="M4.5 19l-2 2" />
                   <path d="M19.5 19l2 2" />
                 </svg></div>
-              <h3>No bugs scanned</h3>
-              <p>Run analysis to detect issues in your code</p>
+              <h3 data-i18n="empty_debug_title">No bugs scanned</h3>
+              <p data-i18n="empty_debug_desc">Run analysis to detect issues in your code</p>
             </div>
             <div id="debugResult" style="display:none"></div>
           </div>
@@ -2157,8 +2370,8 @@
                   stroke="currentColor" stroke-width="1.5">
                   <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
                 </svg></div>
-              <h3>No suggestions yet</h3>
-              <p>Run analysis to get improvement ideas</p>
+              <h3 data-i18n="empty_suggest_title">No suggestions yet</h3>
+              <p data-i18n="empty_suggest_desc">Run analysis to get improvement ideas</p>
             </div>
             <div id="suggestResult" style="display:none"></div>
           </div>
@@ -2177,40 +2390,52 @@
     <div class="bottom-grid">
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Query History</div>
-          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history">Clear</button>
+          <div class="panel-title" data-i18n="history_title">Query History</div>
+          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear"
+        data-i18n="btn_clear">>Clear</button>
+
+<button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">
+  Download JSON
+</button>
+
+<button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">
+  Download CSV
+</button>
+          <div class="panel-title" data-i18n="history_title">Query History</div>
+          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
-          <div class="list-empty">No history yet. Run your first analysis.</div>
+          <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
         </div>
       </div>
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Saved Favorites</div>
-          <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites">Clear</button>
+          <div class="panel-title" data-i18n="favorites_title">Saved Favorites</div>
+          <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
         </div>
         <div class="fav-list" id="favList" aria-live="polite">
-          <div class="list-empty">No favorites saved yet.</div>
+          <div class="list-empty" data-i18n="empty_favorites">No favorites saved yet.</div>
         </div>
       </div>
     </div>
 
   </div><!-- /app -->
-  
+
 
     <!-- ── FOOTER ─────────────────────────────────────────────────── -->
     <footer>
-      <div class="app" style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;justify-content:space-between;">
-        <div>
+      <div class="app" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:space-between;">
+        <div style="min-width:220px;">
           <div class="footer-logo">QyverixAI</div>
           <p>
-            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank">GitHub</a>
-            · <a href="https://qyverixai.onrender.com/docs" target="_blank">API Docs</a>
-            · MIT License
+            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" data-i18n="nav_github">GitHub</a>
+            · <a href="https://qyverixai.onrender.com/docs" target="_blank" data-i18n="nav_api_docs">API Docs</a>
+            · <span data-i18n="footer_license">MIT License</span>
           </p>
-          <p style="font-size:0.75rem">Built for the open source community</p>
+          <p style="margin-top:8px;font-size:0.75rem" data-i18n="footer_built_for">Built for the open source community</p>
         </div>
-        <div style="max-width:320px;">
+
+        <div style="max-width:360px;">
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
@@ -2227,14 +2452,407 @@
 
     <script>
       /* ═══════════════════════════════════════════════════════════════
-         STATE
+         STATE & TRANSLATIONS
       ═══════════════════════════════════════════════════════════════ */
+      const TRANSLATIONS = {
+        en: {
+          lang_select_label: "Select language",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "GitHub",
+          nav_api_docs: "API Docs",
+          hero_badge: "Open Source · AI-Powered · Free",
+          hero_title: "Debug. Understand.<br /><em>Ship faster.</em>",
+          hero_subtitle: "Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.",
+          btn_start_analyzing: "Start Analyzing",
+          btn_try_sample: "Try Sample Code",
+          btn_star_github: "Star on GitHub",
+          pill_patterns_title: "40+ Bug Patterns",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "Code Explanation",
+          pill_explain_desc: "Plain English breakdowns",
+          mode_improve: "Smart Suggestions",
+          pill_improve_desc: "Quality score + grade",
+          pill_theme_title: "Dark / Light Mode",
+          pill_theme_desc: "Persisted preference",
+          pill_upload_title: "File Upload",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          editor_title: "Code Editor",
+          editor_placeholder: "# Paste your code here or click 'Try Sample Code' above…",
+          char_count_initial: "Paste or type code to begin",
+          char_count_format: "{chars} chars · {lines} lines · {nonBlank} non-blank",
+          ctrl_enter_hint: "Ctrl+Enter to analyze",
+          mode_full: "Full",
+          mode_debug: "Debug",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "Disconnected",
+          api_status_connected: "Connected",
+          api_status_unreachable: "Unreachable",
+          api_status_error: "Error {status}",
+          btn_ping: "Ping",
+          btn_analyze_code: "Analyze Code",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "Analysis Results",
+          tab_explain: "Explain",
+          tab_debug: "Debug",
+          tab_improve: "Improve",
+          empty_explain_title: "No analysis yet",
+          empty_explain_desc: "Paste your code and click Analyze to see results",
+          empty_debug_title: "No bugs scanned",
+          empty_debug_desc: "Run analysis to detect issues in your code",
+          empty_suggest_title: "No suggestions yet",
+          empty_suggest_desc: "Run analysis to get improvement ideas",
+          history_title: "Query History",
+          favorites_title: "Saved Favorites",
+          empty_history: "No history yet. Run your first analysis.",
+          empty_favorites: "No favorites saved yet.",
+          btn_clear: "Clear",
+          footer_license: "MIT License",
+          footer_built_for: "Built for the open source community",
+          confirm_clear_history: "Clear all history? This cannot be undone.",
+          confirm_clear_favs: "Clear all favorites? This cannot be undone.",
+          toast_code_copied: "Code copied!",
+          toast_api_reachable: "API is reachable",
+          toast_api_unreachable: "Cannot reach API. Check the URL.",
+          toast_please_paste: "Please paste some code first.",
+          toast_saved_favorites: "Saved to favorites",
+          toast_report_downloaded: "Report downloaded",
+          toast_sample_loaded: "Sample code loaded — click Analyze!",
+          toast_history_cleared: "History cleared",
+          toast_favorites_cleared: "Favorites cleared",
+          toast_loaded: "Loaded {name}",
+          toast_dropped: "Dropped {name}",
+          debug_clean_title: "No issues detected!",
+          debug_clean_desc: "Your code passed all 40+ pattern checks. Keep it up!",
+          debug_errors: "Errors",
+          debug_warnings: "Warnings",
+          debug_info: "Info",
+          debug_line: "Line {line}",
+          suggest_quality_score: "Quality Score",
+          suggest_perfect_title: "Perfect score!",
+          suggest_perfect_desc: "No improvement suggestions found.",
+          suggest_priority: "{priority} priority",
+          btn_copy: "Copy code",
+          btn_upload: "Upload file",
+          btn_save_favorites: "Save to favorites",
+          btn_download_results: "Download results",
+          btn_toggle_theme: "Toggle theme",
+          analyze_btn_title: "Analyze Code (Ctrl+Enter)",
+          meta_lines: "{count} lines",
+          meta_functions: "{count} functions",
+          meta_classes: "{count} classes",
+          toast_analysis_failed: "Analysis failed: {message}",
+          history_entry_label: "Load history entry for {lang} at {time}",
+          favorite_entry_label: "Load favorite entry for {lang} at {time}"
+        },
+        ta: {
+          lang_select_label: "மொழியைத் தேர்ந்தெடுக்கவும்",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "கிட்ஹப் (GitHub)",
+          nav_api_docs: "ஏபிஐ ஆவணங்கள் (API Docs)",
+          hero_badge: "திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்",
+          hero_title: "பிழையறி. புரிந்துகொள்.<br /><em>வேகமாக அனுப்பு.</em>",
+          hero_subtitle: "உங்கள் குறியீட்டை ஒட்டி, உடனடி பிழை கண்டறிதல், எளிய ஆங்கில விளக்கங்கள் மற்றும் பயனுள்ள மேம்பாட்டு பரிந்துரைகளைப் பெறுங்கள் — கணக்கு தேவையில்லை.",
+          btn_start_analyzing: "பகுப்பாய்வைத் தொடங்கு",
+          btn_try_sample: "மாதிரிக் குறியீட்டை முயல்க",
+          btn_star_github: "கிட்ஹப்பில் ஸ்டார் செய்க",
+          pill_patterns_title: "40+ பிழை வடிவங்கள்",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "குறியீடு விளக்கம்",
+          pill_explain_desc: "எளிய ஆங்கில விளக்கங்கள்",
+          mode_improve: "ஸ்மார்ட் பரிந்துரைகள்",
+          pill_improve_desc: "தரமான மதிப்பெண் + தரம்",
+          pill_theme_title: "இருண்ட / ஒளி முறை",
+          pill_theme_desc: "சேமிக்கப்பட்ட விருப்பம்",
+          pill_upload_title: "கோப்பு பதிவேற்றம்",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          editor_title: "குறியீட்டு எடிட்டர்",
+          editor_placeholder: "# உங்கள் குறியீட்டை இங்கே ஒட்டவும் அல்லது மேலே உள்ள 'மாதிரிக் குறியீட்டை முயல்க' என்பதைக் கிளிக் செய்யவும்…",
+          char_count_initial: "தொடங்குவதற்கு குறியீட்டை ஒட்டவும் அல்லது தட்டச்சு செய்யவும்",
+          char_count_format: "{chars} எழுத்துக்கள் · {lines} வரிகள் · {nonBlank} வெற்று அல்லாத வரிகள்",
+          ctrl_enter_hint: "பகுப்பாய்வு செய்ய Ctrl+Enter அழுத்தவும்",
+          mode_full: "முழுமையான",
+          mode_debug: "பிழைத்திருத்தம்",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "இணைப்பு துண்டிக்கப்பட்டது",
+          api_status_connected: "இணைக்கப்பட்டது",
+          api_status_unreachable: "அடைய முடியாதது",
+          api_status_error: "பிழை {status}",
+          btn_ping: "பிங்",
+          btn_analyze_code: "குறியீட்டை பகுப்பாய்",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "பகுப்பாய்வு முடிவுகள்",
+          tab_explain: "விளக்கு",
+          tab_debug: "பிழைத்திருத்து",
+          tab_improve: "மேம்படுத்து",
+          empty_explain_title: "இன்னும் பகுப்பாய்வு இல்லை",
+          empty_explain_desc: "விளைவுகளைக் காண குறியீட்டை ஒட்டி, பகுப்பாய் என்பதைக் கிளிக் செய்யவும்",
+          empty_debug_title: "பிழைகள் எதுவும் கண்டறியப்படவில்லை",
+          empty_debug_desc: "உங்கள் குறியீட்டில் உள்ள சிக்கல்களைக் கண்டறிய பகுப்பாய்வை இயக்கவும்",
+          empty_suggest_title: "இன்னும் பரிந்துரைகள் இல்லை",
+          empty_suggest_desc: "மேம்பாட்டு யோசனைகளைப் பெற பகுப்பாய்வை இயக்கவும்",
+          history_title: "வினவல் வரலாறு",
+          favorites_title: "சேமிக்கப்பட்ட பிடித்தவை",
+          empty_history: "இன்னும் வரலாறு இல்லை. உங்கள் முதல் பகுப்பாய்வை இயக்கவும்.",
+          empty_favorites: "இன்னும் பிடித்தவை எதுவும் சேமிக்கப்படவில்லை.",
+          btn_clear: "அழி",
+          footer_license: "எம்ஐடி உரிமம் (MIT License)",
+          footer_built_for: "திறந்த மூல சமூகத்திற்காக உருவாக்கப்பட்டது",
+          confirm_clear_history: "எல்லா வரலாற்றையும் அழிக்கவா? இதை மாற்ற முடியாது.",
+          confirm_clear_favs: "பிடித்தவை அனைத்தையும் அழிக்கவா? இதை மாற்ற முடியாது.",
+          toast_code_copied: "குறியீடு நகலெடுக்கப்பட்டது!",
+          toast_api_reachable: "ஏபிஐ அணுகக்கூடியது",
+          toast_api_unreachable: "ஏபிஐ-ஐ அணுக முடியவில்லை. முகவரியைச் சரிபார்க்கவும்.",
+          toast_please_paste: "தயவுசெய்து முதலில் குறியீட்டை ஒட்டவும்.",
+          toast_saved_favorites: "பிடித்தவற்றில் சேமிக்கப்பட்டது",
+          toast_report_downloaded: "அறிக்கை பதிவிறக்கம் செய்யப்பட்டது",
+          toast_sample_loaded: "மாதிரிக் குறியீடு ஏற்றப்பட்டது — பகுப்பாய் என்பதைக் கிளிக் செய்க!",
+          toast_history_cleared: "வரலாறு அழிக்கப்பட்டது",
+          toast_favorites_cleared: "பிடித்தவை அழிக்கப்பட்டன",
+          toast_loaded: "{name} ஏற்றப்பட்டது",
+          toast_dropped: "{name} விடப்பட்டது",
+          debug_clean_title: "சிக்கல்கள் எதுவும் கண்டறியப்படவில்லை!",
+          debug_clean_desc: "உங்கள் குறியீடு அனைத்து 40+ வடிவ சோதனைகளையும் கடந்துவிட்டது. தொடருங்கள்!",
+          debug_errors: "பிழைகள்",
+          debug_warnings: "எச்சரிக்கைகள்",
+          debug_info: "தகவல்",
+          debug_line: "வரி {line}",
+          suggest_quality_score: "தர மதிப்பெண்",
+          suggest_perfect_title: "சரியான மதிப்பெண்!",
+          suggest_perfect_desc: "மேம்பாட்டு பரிந்துரைகள் எதுவும் இல்லை.",
+          suggest_priority: "{priority} முன்னுரிமை",
+          btn_copy: "குறியீட்டை நகலெடு",
+          btn_upload: "கோப்பைப் பதிவேற்று",
+          btn_save_favorites: "பிடித்தவற்றில் சேமி",
+          btn_download_results: "முடிவுகளைப் பதிவிறக்கு",
+          btn_toggle_theme: "தீம் மாற்று",
+          analyze_btn_title: "குறியீட்டை பகுப்பாய் (Ctrl+Enter)",
+          meta_lines: "{count} வரிகள்",
+          meta_functions: "{count} செயல்பாடுகள்",
+          meta_classes: "{count} வகுப்புகள்",
+          toast_analysis_failed: "பகுப்பாய்வு தோல்வியடைந்தது: {message}",
+          history_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள வரலாறு பதிவை ஏற்று",
+          favorite_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள பிடித்த பதிவை ஏற்று"
+        },
+        hi: {
+          lang_select_label: "भाषा चुनें",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "गिटहब (GitHub)",
+          nav_api_docs: "एपीआई दस्तावेज़ (API Docs)",
+          hero_badge: "ओपन सोर्स · एआई-संचालित · मुफ्त",
+          hero_title: "डीबग करें। समझें।<br /><em>तेज़ी से शिप करें।</em>",
+          hero_subtitle: "अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।",
+          btn_start_analyzing: "विश्लेषण शुरू करें",
+          btn_try_sample: "सैंपल कोड आज़माएं",
+          btn_star_github: "गिटहब पर स्टार करें",
+          pill_patterns_title: "40+ बग पैटर्न",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "कोड का स्पष्टीकरण",
+          pill_explain_desc: "सरल स्पष्टीकरण",
+          mode_improve: "स्मार्ट सुझाव",
+          pill_improve_desc: "क्वालिटी स्कोर + ग्रेड",
+          pill_theme_title: "डार्क / लाइट मोड",
+          pill_theme_desc: "सहेजी गई प्राथमिकता",
+          pill_upload_title: "फ़ाइल अपलोड",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          editor_title: "कोड एडिटर",
+          editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
+          char_count_initial: "शुरू करने के लिए कोड पेस्ट करें या टाइप करें",
+          char_count_format: "{chars} वर्ण · {lines} पंक्तियाँ · {nonBlank} गैर-रिक्त",
+          ctrl_enter_hint: "विश्लेषण करने के लिए Ctrl+Enter दबाएं",
+          mode_full: "पूर्ण",
+          mode_debug: "डीबग",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "डिस्कनेक्टेड",
+          api_status_connected: "कनेक्टेड",
+          api_status_unreachable: "पहुंच से बाहर",
+          api_status_error: "त्रुटि {status}",
+          btn_ping: "पिंग",
+          btn_analyze_code: "कोड का विश्लेषण करें",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "विश्लेषण के परिणाम",
+          tab_explain: "समझाएं",
+          tab_debug: "डीबग",
+          tab_improve: "सुधारें",
+          empty_explain_title: "अभी तक कोई विश्लेषण नहीं",
+          empty_explain_desc: "परिणाम देखने के लिए अपना कोड पेस्ट करें और विश्लेषण पर क्लिक करें",
+          empty_debug_title: "कोई बग नहीं मिला",
+          empty_debug_desc: "अपने कोड में समस्याओं का पता लगाने के लिए विश्लेषण चलाएं",
+          empty_suggest_title: "अभी तक कोई सुझाव नहीं",
+          empty_suggest_desc: "सुधार के विचार प्राप्त करने के लिए विश्लेषण चलाएं",
+          history_title: "क्वेरी इतिहास",
+          favorites_title: "सहेजे गए पसंदीदा",
+          empty_history: "अभी तक कोई इतिहास नहीं है। अपना पहला विश्लेषण चलाएं।",
+          empty_favorites: "अभी तक कोई पसंदीदा सहेजा नहीं गया है।",
+          btn_clear: "साफ करें",
+          footer_license: "एमआईटी लाइसेंस (MIT License)",
+          footer_built_for: "ओपन सोर्स समुदाय के लिए निर्मित",
+          confirm_clear_history: "इतिहास पूरी तरह साफ करें? इसे पूर्ववत नहीं किया जा सकता।",
+          confirm_clear_favs: "सभी पसंदीदा साफ करें? इसे पूर्ववत नहीं किया जा सकता।",
+          toast_code_copied: "कोड कॉपी किया गया!",
+          toast_api_reachable: "एपीआई पहुंच योग्य है",
+          toast_api_unreachable: "एपीआई तक नहीं पहुंचा जा सकता। यूआरएल की जांच करें।",
+          toast_please_paste: "कृपया पहले कुछ कोड पेस्ट करें।",
+          toast_saved_favorites: "पसंदीदा में सहेजा गया",
+          toast_report_downloaded: "रिपोर्ट डाउनलोड हो गई",
+          toast_sample_loaded: "सैंपल कोड लोड हो गया — विश्लेषण पर क्लिक करें!",
+          toast_history_cleared: "इतिहास साफ कर दिया गया",
+          toast_favorites_cleared: "पसंदीदा साफ कर दिए गए",
+          toast_loaded: "{name} लोड किया गया",
+          toast_dropped: "{name} ड्रॉप किया गया",
+          debug_clean_title: "कोई समस्या नहीं मिली!",
+          debug_clean_desc: "आपका कोड सभी 40+ पैटर्न जांचों में सफल रहा। इसे जारी रखें!",
+          debug_errors: "त्रुटियाँ",
+          debug_warnings: "चेतावनी",
+          debug_info: "जानकारी",
+          debug_line: "पंक्ति {line}",
+          suggest_quality_score: "क्वालिटी स्कोर",
+          suggest_perfect_title: "उत्कृष्ट स्कोर!",
+          suggest_perfect_desc: "कोई सुधार सुझाव नहीं मिला।",
+          suggest_priority: "{priority} प्राथमिकता",
+          btn_copy: "कोड कॉपी करें",
+          btn_upload: "फ़ाइल अपलोड करें",
+          btn_save_favorites: "पसंदीदा में सहेजें",
+          btn_download_results: "परिणाम डाउनलोड करें",
+          btn_toggle_theme: "थीम बदलें",
+          analyze_btn_title: "कोड का विश्लेषण करें (Ctrl+Enter)",
+          meta_lines: "{count} पंक्तियाँ",
+          meta_functions: "{count} फ़ंक्शन",
+          meta_classes: "{count} क्लासें",
+          toast_analysis_failed: "विश्लेषण विफल रहा: {message}",
+          history_entry_label: "{time} पर {lang} के लिए इतिहास प्रविष्टि लोड करें",
+          favorite_entry_label: "{time} पर {lang} के लिए पसंदीदा प्रविष्टि लोड करें"
+        },
+        fr: {
+          lang_select_label: "Choisir la langue",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "GitHub",
+          nav_api_docs: "Docs API",
+          hero_badge: "Open Source · Propulsé par l'IA · Gratuit",
+          hero_title: "Déboguez. Comprenez.<br /><em>Lisez plus vite.</em>",
+          hero_subtitle: "Collez votre code et obtenez une détection instantanée des bogues, des explications simples et des suggestions d'amélioration exploitables — aucun compte requis.",
+          btn_start_analyzing: "Démarrer l'analyse",
+          btn_try_sample: "Essayer l'exemple",
+          btn_star_github: "Star sur GitHub",
+          pill_patterns_title: "40+ Modèles de bogues",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "Explication de code",
+          pill_explain_desc: "Analyses en français simple",
+          mode_improve: "Suggestions intelligentes",
+          pill_improve_desc: "Score de qualité + note",
+          pill_theme_title: "Mode Sombre / Clair",
+          pill_theme_desc: "Préférence persistée",
+          pill_upload_title: "Télécharger un fichier",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          editor_title: "Éditeur de code",
+          editor_placeholder: "# Collez votre code ici ou cliquez sur 'Essayer l'exemple' ci-dessus…",
+          char_count_initial: "Collez ou tapez du code pour commencer",
+          char_count_format: "{chars} chars · {lines} lignes · {nonBlank} non vides",
+          ctrl_enter_hint: "Ctrl+Enter pour analyser",
+          mode_full: "Complet",
+          mode_debug: "Débogage",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "Déconnecté",
+          api_status_connected: "Connecté",
+          api_status_unreachable: "Inaccessible",
+          api_status_error: "Erreur {status}",
+          btn_ping: "Ping",
+          btn_analyze_code: "Analyser le code",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "Résultats de l'analyse",
+          tab_explain: "Expliquer",
+          tab_debug: "Déboguer",
+          tab_improve: "Améliorer",
+          empty_explain_title: "Aucune analyse pour le moment",
+          empty_explain_desc: "Collez votre code et cliquez sur Analyser pour voir les résultats",
+          empty_debug_title: "Aucun bogue détecté",
+          empty_debug_desc: "Exécutez l'analyse pour détecter les problèmes dans votre code",
+          empty_suggest_title: "Aucune suggestion pour le moment",
+          empty_suggest_desc: "Exécutez l'analyse pour obtenir des idées d'amélioration",
+          history_title: "Historique des requêtes",
+          favorites_title: "Favoris enregistrés",
+          empty_history: "Aucun historique pour le moment. Lancez votre première analyse.",
+          empty_favorites: "Aucun favori enregistré pour le moment.",
+          btn_clear: "Effacer",
+          footer_license: "Licence MIT",
+          footer_built_for: "Conçu pour la communauté open source",
+          confirm_clear_history: "Effacer tout l'historique ? Cette action est irréversible.",
+          confirm_clear_favs: "Effacer tous les favoris ? Cette action est irréversible.",
+          toast_code_copied: "Code copié !",
+          toast_api_reachable: "L'API est accessible",
+          toast_api_unreachable: "Impossible de joindre l'API. Vérifiez l'URL.",
+          toast_please_paste: "Veuillez d'abord coller du code.",
+          toast_saved_favorites: "Enregistré dans les favoris",
+          toast_report_downloaded: "Rapport téléchargé",
+          toast_sample_loaded: "Exemple de code chargé — cliquez sur Analyser !",
+          toast_history_cleared: "Historique effacé",
+          toast_favorites_cleared: "Favoris effacés",
+          toast_loaded: "{name} chargé",
+          toast_dropped: "{name} déposé",
+          debug_clean_title: "Aucun problème détecté !",
+          debug_clean_desc: "Votre code a passé les 40+ vérifications avec succès. Continuez ainsi !",
+          debug_errors: "Erreurs",
+          debug_warnings: "Avertissements",
+          debug_info: "Infos",
+          debug_line: "Ligne {line}",
+          suggest_quality_score: "Score de qualité",
+          suggest_perfect_title: "Score parfait !",
+          suggest_perfect_desc: "Aucune suggestion d'amélioration trouvée.",
+          suggest_priority: "Priorité {priority}",
+          btn_copy: "Copier le code",
+          btn_upload: "Télécharger le fichier",
+          btn_save_favorites: "Enregistrer dans les favoris",
+          btn_download_results: "Télécharger les résultats",
+          btn_toggle_theme: "Changer le thème",
+          analyze_btn_title: "Analyser le code (Ctrl+Enter)",
+          meta_lines: "{count} lignes",
+          meta_functions: "{count} fonctions",
+          meta_classes: "{count} classes",
+          toast_analysis_failed: "Échec de l'analyse : {message}",
+          history_entry_label: "Charger l'entrée d'historique pour {lang} à {time}",
+          favorite_entry_label: "Charger le favori pour {lang} à {time}"
+        }
+      };
+
       const MAX_HISTORY = 50;
       let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
       let selectedLang = 'python';
       let selectedMode = 'analyze';
+      let selectedZipFile = null;
+      let appLang = localStorage.getItem('qyx_lang') || 'en';
 
       /* ═══════════════════════════════════════════════════════════════
          DOM REFS
@@ -2270,9 +2888,11 @@
         btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
       }
 
-      const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      setThemeIcon(savedTheme);
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
+
+      document.documentElement.setAttribute('data-theme', initialTheme);
+      setThemeIcon(initialTheme);
 
       document.getElementById('themeToggle').addEventListener('click', () => {
         const cur = document.documentElement.getAttribute('data-theme');
@@ -2283,6 +2903,59 @@
       });
 
       /* ═══════════════════════════════════════════════════════════════
+         I18N IMPLEMENTATION
+      ═══════════════════════════════════════════════════════════════ */
+      function getTranslation(key) {
+        return TRANSLATIONS[appLang]?.[key] || TRANSLATIONS['en']?.[key] || key;
+      }
+
+      function setAppLanguage(lang) {
+        appLang = lang;
+        localStorage.setItem('qyx_lang', lang);
+        document.documentElement.setAttribute('lang', lang);
+
+        // Sync select dropdown
+        const select = document.getElementById('langSelect');
+        if (select) select.value = lang;
+
+        // Update elements with data-i18n
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          const trans = getTranslation(key);
+          if (trans) el.innerHTML = trans;
+        });
+
+        // Update placeholders
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+          const key = el.getAttribute('data-i18n-placeholder');
+          const trans = getTranslation(key);
+          if (trans) el.placeholder = trans;
+        });
+
+        // Update titles
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+          const key = el.getAttribute('data-i18n-title');
+          const trans = getTranslation(key);
+          if (trans) el.title = trans;
+        });
+
+        document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+          const key = el.getAttribute('data-i18n-aria-label');
+          const trans = getTranslation(key);
+          if (trans) el.setAttribute('aria-label', trans);
+        });
+
+        syncApiStatusText();
+
+        updateEditor();
+        renderHistory();
+        renderFavorites();
+        if (currentResult) {
+          renderResults(currentResult, editor.value);
+        }
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
          EDITOR
       ═══════════════════════════════════════════════════════════════ */
       function updateEditor() {
@@ -2291,16 +2964,39 @@
         const chars = val.length;
         const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
         charCount.textContent = val
-          ? chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank'
-          : 'Paste or type code to begin';
+          ? getTranslation('char_count_format')
+              .replace('{chars}', chars.toLocaleString())
+              .replace('{lines}', lines)
+              .replace('{nonBlank}', nonBlank)
+          : getTranslation('char_count_initial');
         const lineCount = Math.max(lines, 1);
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
           : '1';
       }
 
+      function syncApiStatusText() {
+        if (!apiStatusText) return;
+        const state = apiStatusText.dataset.status || 'disconnected';
+        const stateToKey = {
+          connected: 'api_status_connected',
+          unreachable: 'api_status_unreachable',
+          error: 'api_status_error',
+          disconnected: 'api_status_disconnected',
+        };
+        const key = stateToKey[state] || 'api_status_disconnected';
+        const text = getTranslation(key);
+        apiStatusText.textContent = key === 'api_status_error'
+          ? text.replace('{status}', apiStatusText.dataset.statusCode || '')
+          : text;
+      }
+
       function looksLikeRestoredPageSource(text) {
         return /<\s*html|<\s*style|<\s*script|function\s+updateEditor\s*\(|\.stat-bar|\.hero\s*\{|\.workspace\s*\{/i.test(text);
+      }
+
+      function getApiBase() {
+        return ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || 'http://localhost:8000').replace(/\/$/, '');
       }
 
       function normalizeEditorOnLoad() {
@@ -2314,7 +3010,10 @@
       window.addEventListener('pageshow', normalizeEditorOnLoad);
       setTimeout(normalizeEditorOnLoad, 0);
 
-      editor.addEventListener('input', updateEditor);
+      editor.addEventListener('input', () => {
+        selectedZipFile = null;
+        updateEditor();
+      });
       editor.addEventListener('scroll', () => {
         lineNumbers.scrollTop = editor.scrollTop;
       });
@@ -2444,16 +3143,7 @@
       document.getElementById('fileInput').addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
-        const ext = file.name.split('.').pop().toLowerCase();
-        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
-        if (langMap[ext]) setLanguage(langMap[ext]);
-        const reader = new FileReader();
-        reader.onload = ev => {
-          editor.value = ev.target.result;
-          updateEditor();
-          toast(`Loaded ${file.name}`, 'success');
-        };
-        reader.readAsText(file);
+        handleUploadedFile(file);
         e.target.value = '';
       });
 
@@ -2463,14 +3153,50 @@
         e.preventDefault();
         const file = e.dataTransfer.files[0];
         if (!file) return;
+        handleUploadedFile(file);
+      });
+
+      function handleUploadedFile(file) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext === 'zip') {
+          selectedZipFile = file;
+          selectedMode = 'analyze';
+          document.querySelectorAll('.mode-btn').forEach(x => {
+            x.classList.toggle('active', x.dataset.mode === 'analyze');
+            x.setAttribute('aria-pressed', x.dataset.mode === 'analyze' ? 'true' : 'false');
+          });
+          editor.value = `ZIP ready for project analysis: ${file.name}\n\nClick Analyze Code to scan up to 20 source files.`;
+          updateEditor();
+          resetResults();
+          toast(`Loaded ZIP ${file.name}`, 'success');
+          return;
+        }
+
+        selectedZipFile = null;
+        const langMap = {
+          py: 'python',
+          js: 'javascript',
+          ts: 'typescript',
+          java: 'java',
+          cpp: 'cpp',
+          cc: 'cpp',
+          cxx: 'cpp',
+          c: 'cpp',
+          h: 'cpp',
+          hpp: 'cpp',
+          kt: 'kotlin',
+          kts: 'kotlin',
+        };
+        if (langMap[ext]) setLanguage(langMap[ext]);
         const reader = new FileReader();
         reader.onload = ev => {
           editor.value = ev.target.result;
           updateEditor();
-          toast(`Dropped ${file.name}`, 'success');
+          resetResults();
+          toast(getTranslation('toast_loaded').replace('{name}', file.name), 'success');
         };
         reader.readAsText(file);
-      });
+      }
 
       /* ═══════════════════════════════════════════════════════════════
          LANGUAGE TABS
@@ -2536,37 +3262,46 @@
          CLEAR / COPY
       ═══════════════════════════════════════════════════════════════ */
       document.getElementById('clearBtn').addEventListener('click', () => {
+        selectedZipFile = null;
         editor.value = '';
         updateEditor();
         resetResults();
       });
       document.getElementById('copyBtn').addEventListener('click', () => {
         if (!editor.value.trim()) return;
-        navigator.clipboard.writeText(editor.value).then(() => toast('Code copied!', 'success'));
+        navigator.clipboard.writeText(editor.value).then(() => toast(getTranslation('toast_code_copied'), 'success'));
       });
 
       /* ═══════════════════════════════════════════════════════════════
          API PING
       ═══════════════════════════════════════════════════════════════ */
       async function pingApi() {
-        const base = apiUrlInput.value.replace(/\/$/, '');
+        if (!apiUrlInput || !apiDot || !apiStatusText) return;
+        const base = getApiBase();
         try {
           const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
           if (r.ok) {
             apiDot.classList.add('connected');
-            apiStatusText.textContent = 'Connected';
-            toast('API is reachable', 'success');
+            apiStatusText.dataset.status = 'connected';
+            delete apiStatusText.dataset.statusCode;
+            syncApiStatusText();
+            toast(getTranslation('toast_api_reachable'), 'success');
           } else {
             apiDot.classList.remove('connected');
-            apiStatusText.textContent = 'Error ' + r.status;
+            apiStatusText.dataset.status = 'error';
+            apiStatusText.dataset.statusCode = String(r.status);
+            syncApiStatusText();
           }
         } catch {
           apiDot.classList.remove('connected');
-          apiStatusText.textContent = 'Unreachable';
-          toast('Cannot reach API. Check the URL.', 'error');
+          apiStatusText.dataset.status = 'unreachable';
+          delete apiStatusText.dataset.statusCode;
+          syncApiStatusText();
+          toast(getTranslation('toast_api_unreachable'), 'error');
         }
       }
-      document.getElementById('pingBtn').addEventListener('click', pingApi);
+      const pingBtn = document.getElementById('pingBtn');
+      if (pingBtn) pingBtn.addEventListener('click', pingApi);
 
       // Auto-ping on load
       setTimeout(pingApi, 800);
@@ -2578,9 +3313,9 @@
 
       async function doAnalyze() {
         const code = editor.value.trim();
-        if (!code) { toast('Please paste some code first.', 'error'); return; }
+        if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
 
-        const base = apiUrlInput.value.replace(/\/$/, '');
+        const base = getApiBase();
         const endpointMap = {
           analyze: '/analyze/',
           explain: '/explanation/',
@@ -2595,6 +3330,32 @@
         showShimmers();
 
         try {
+          if (selectedZipFile) {
+            const formData = new FormData();
+            formData.append('file', selectedZipFile);
+            const res = await fetch(`${base}/analyze/zip/`, {
+              method: 'POST',
+              body: formData,
+              signal: AbortSignal.timeout(60000),
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.detail || `HTTP ${res.status}`);
+            }
+
+            const data = await res.json();
+            currentResult = data;
+            renderZipResults(data);
+            addToHistory(`ZIP: ${selectedZipFile.name}`, data);
+            apiDot.classList.add('connected');
+            apiStatusText.textContent = 'Connected';
+            document.getElementById('engineBar').style.display = 'flex';
+            engineInfo.textContent = `${data.provider || 'rule-based'} · ${data.model || ''}`;
+            timeInfo.textContent = data.analysis_time_ms ? data.analysis_time_ms + 'ms' : '';
+            resultActions.style.display = 'flex';
+            return;
+          }
+
           const res = await fetch(`${base}${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2624,7 +3385,7 @@
           renderResults(result, code);
           addToHistory(code, result);
           apiDot.classList.add('connected');
-          apiStatusText.textContent = 'Connected';
+          apiStatusText.textContent = getTranslation('api_status_connected');
           document.getElementById('engineBar').style.display = 'flex';
           engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
           if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
@@ -2632,7 +3393,7 @@
           resultActions.style.display = 'flex';
 
         } catch (err) {
-          toast(`Error: ${err.message}`, 'error');
+          toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');
@@ -2644,6 +3405,10 @@
          RENDER RESULTS
       ═══════════════════════════════════════════════════════════════ */
       function renderResults(result, code) {
+        if (result.files) {
+          renderZipResults(result);
+          return;
+        }
         if (result.explanation) renderExplain(result.explanation);
         if (result.debugging) renderDebug(result.debugging);
         if (result.suggestions) renderSuggest(result.suggestions);
@@ -2652,6 +3417,120 @@
         const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
         const targetTab = tabOrder[selectedMode] || 'explain';
         document.querySelector(`[data-rtab="${targetTab}"]`).click();
+      }
+
+      function renderZipResults(project) {
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'none';
+        });
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          document.getElementById(id).style.display = 'block';
+        });
+
+        document.getElementById('explainBadge').textContent = `${project.file_count} files`;
+        const totalIssues = project.files.reduce((sum, file) => sum + file.analysis.debugging.issues.length, 0);
+        const totalSuggestions = project.files.reduce((sum, file) => sum + file.analysis.suggestions.suggestions.length, 0);
+        const errorCount = project.files.reduce((sum, file) => sum + file.analysis.debugging.error_count, 0);
+        const warningCount = project.files.reduce((sum, file) => sum + file.analysis.debugging.warning_count, 0);
+        const infoCount = project.files.reduce((sum, file) => sum + file.analysis.debugging.info_count, 0);
+        document.getElementById('debugBadge').textContent = totalIssues || '0';
+        document.getElementById('suggestBadge').textContent = project.overall_project_score;
+
+        const scoreColor = project.overall_project_score >= 80 ? 'var(--green)'
+          : project.overall_project_score >= 60 ? 'var(--yellow)'
+            : 'var(--red)';
+        const circumference = 2 * Math.PI * 30;
+        const dashOffset = circumference - (project.overall_project_score / 100) * circumference;
+        const fileList = project.files.map((file, i) => {
+          const analysis = file.analysis;
+          const issueSummary = analysis.debugging.clean
+            ? 'No issues detected'
+            : `${analysis.debugging.error_count} errors · ${analysis.debugging.warning_count} warnings · ${analysis.debugging.info_count} info`;
+          return `
+      <details class="zip-file-card" ${i === 0 ? 'open' : ''}>
+        <summary>
+          <span class="zip-file-name">${escHtml(file.filename)}</span>
+          <span class="zip-file-meta">${file.language} · ${analysis.suggestions.overall_score}/100 · ${issueSummary}</span>
+        </summary>
+        <div class="zip-file-body">
+          <p>${escHtml(analysis.explanation.summary)}</p>
+          <div class="zip-mini-grid">
+            <span>${analysis.explanation.line_count} lines</span>
+            <span>${analysis.explanation.function_count} functions</span>
+            <span>${analysis.suggestions.suggestions.length} suggestions</span>
+          </div>
+          ${analysis.debugging.issues.slice(0, 4).map(issue => `
+            <div class="zip-issue ${issue.severity}">
+              <strong>${escHtml(issue.type)}</strong>
+              ${issue.line ? `<span>Line ${issue.line}</span>` : ''}
+              <p>${escHtml(issue.description)}</p>
+            </div>`).join('')}
+        </div>
+      </details>`;
+        }).join('');
+
+        const skipped = project.skipped_files.length
+          ? `<div class="zip-skipped">Skipped: ${project.skipped_files.map(escHtml).join(', ')}</div>`
+          : '';
+
+        document.getElementById('explainResult').innerHTML = `
+    <div class="zip-overview">
+      <div class="score-ring-wrap">
+        <div class="score-ring">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="30" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="${scoreColor}" stroke-width="6"
+              stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="round"/>
+          </svg>
+          <div class="score-ring-text">
+            <div class="score-num" style="color:${scoreColor}">${project.overall_project_score}</div>
+            <div class="score-grade">${project.grade}</div>
+          </div>
+        </div>
+        <div class="score-info">
+          <h3>Project Health</h3>
+          <p>${escHtml(project.summary)}</p>
+        </div>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-chip"><div class="stat-chip-num">${project.file_count}</div><div class="stat-chip-label">Files</div></div>
+        <div class="stat-chip error-chip"><div class="stat-chip-num">${errorCount}</div><div class="stat-chip-label">Errors</div></div>
+        <div class="stat-chip warn-chip"><div class="stat-chip-num">${warningCount}</div><div class="stat-chip-label">Warnings</div></div>
+        <div class="stat-chip info-chip"><div class="stat-chip-num">${infoCount}</div><div class="stat-chip-label">Info</div></div>
+      </div>
+      ${skipped}
+      <div class="zip-file-list">${fileList}</div>
+    </div>`;
+
+        document.getElementById('debugResult').innerHTML = `
+    <div class="stat-bar">
+      <div class="stat-chip error-chip"><div class="stat-chip-num">${errorCount}</div><div class="stat-chip-label">Errors</div></div>
+      <div class="stat-chip warn-chip"><div class="stat-chip-num">${warningCount}</div><div class="stat-chip-label">Warnings</div></div>
+      <div class="stat-chip info-chip"><div class="stat-chip-num">${infoCount}</div><div class="stat-chip-label">Info</div></div>
+    </div>
+    <div class="zip-file-list">${fileList}</div>`;
+
+        document.getElementById('suggestResult').innerHTML = `
+    <div class="score-ring-wrap">
+      <div class="score-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="30" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+          <circle cx="40" cy="40" r="30" fill="none" stroke="${scoreColor}" stroke-width="6"
+            stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="round"/>
+        </svg>
+        <div class="score-ring-text">
+          <div class="score-num" style="color:${scoreColor}">${project.overall_project_score}</div>
+          <div class="score-grade">${project.grade}</div>
+        </div>
+      </div>
+      <div class="score-info">
+        <h3>Project Health Score</h3>
+        <p>${totalSuggestions} improvement suggestion${totalSuggestions !== 1 ? 's' : ''} across ${project.file_count} file${project.file_count !== 1 ? 's' : ''}.</p>
+      </div>
+    </div>
+    <div class="zip-file-list">${fileList}</div>`;
+
+        document.querySelector('[data-rtab="explain"]').click();
       }
 
       function renderExplain(exp) {
@@ -2670,6 +3549,9 @@
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
         ${exp.language}
       </div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', exp.line_count)}</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', exp.function_count)}</div>
+      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', exp.class_count) + '</div>' : ''}
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
       ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
@@ -2693,8 +3575,8 @@
           el.innerHTML = `
       <div class="clean-state">
         <div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
-        <h3>No issues detected!</h3>
-        <p>Your code passed all ${40}+ pattern checks. Keep it up!</p>
+        <h3>${getTranslation('debug_clean_title')}</h3>
+        <p>${getTranslation('debug_clean_desc')}</p>
       </div>`;
           return;
         }
@@ -2703,15 +3585,15 @@
     <div class="stat-bar">
       <div class="stat-chip error-chip">
         <div class="stat-chip-num">${dbg.error_count}</div>
-        <div class="stat-chip-label">Errors</div>
+        <div class="stat-chip-label">${getTranslation('debug_errors')}</div>
       </div>
       <div class="stat-chip warn-chip">
         <div class="stat-chip-num">${dbg.warning_count}</div>
-        <div class="stat-chip-label">Warnings</div>
+        <div class="stat-chip-label">${getTranslation('debug_warnings')}</div>
       </div>
       <div class="stat-chip info-chip">
         <div class="stat-chip-num">${dbg.info_count}</div>
-        <div class="stat-chip-label">Info</div>
+        <div class="stat-chip-label">${getTranslation('debug_info')}</div>
       </div>
     </div>`;
 
@@ -2720,7 +3602,7 @@
       <div class="issue-header">
         <span class="issue-badge">${issue.severity}</span>
         <span class="issue-type">${issue.type}</span>
-        ${issue.line ? `<span class="issue-line">Line ${issue.line}</span>` : ''}
+        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', issue.line)}</span>` : ''}
       </div>
       <div class="issue-desc">${issue.description}</div>
       ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
@@ -2906,13 +3788,13 @@
         </div>
       </div>
       <div class="score-info">
-        <h3>Quality Score</h3>
+        <h3>${getTranslation('suggest_quality_score')}</h3>
         <p>${sugg.next_step}</p>
       </div>
     </div>`;
 
         const cards = sugg.suggestions.length === 0
-          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>Perfect score!</h3><p>No improvement suggestions found.</p></div>`
+          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>${getTranslation('suggest_perfect_title')}</h3><p>${getTranslation('suggest_perfect_desc')}</p></div>`
           : sugg.suggestions.map((s, i) => {
 
             let exampleHtml = '';
@@ -2966,7 +3848,7 @@
       <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
           <span class="suggest-cat">${s.category}</span>
-          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${s.priority} priority</span>
+          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', s.priority)}</span>
         </div>
         <div class="suggest-desc">${s.description}</div>
         ${exampleHtml}
@@ -3062,25 +3944,69 @@
 
       function renderHistory() {
         if (!history.length) {
-          historyList.innerHTML = '<div class="list-empty">No history yet. Run your first analysis.</div>';
+          historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
         historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="Load history entry for ${h.lang} at ${h.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
       <span class="history-lang">${h.lang || '?'}</span>
       <span class="history-thumb">${escHtml(h.preview)}…</span>
       <span class="history-meta">${h.ts}</span>
     </div>`).join('');
       }
 
-document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-  if (!window.confirm('Are you sure you want to clear your history? This cannot be undone.')) return;
+      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+        if (!confirm(getTranslation('confirm_clear_history'))) return;
 
-  history = [];
-  localStorage.removeItem('qyx_history');
-  renderHistory();
-  toast('History cleared', 'info');
-});
+        history = [];
+        localStorage.removeItem('qyx_history');
+        renderHistory();
+        toast(getTranslation('toast_history_cleared'), 'info');
+      });
+
+      document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+        if (!history || history.length === 0) {
+          toast('No history to download', 'info');
+          return;
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+        const dlNode = document.createElement('a');
+        dlNode.setAttribute("href", dataStr);
+        dlNode.setAttribute("download", "history.json");
+        document.body.appendChild(dlNode);
+        dlNode.click();
+        dlNode.remove();
+        toast('Downloaded history.json', 'success');
+      });
+
+      document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+        if (!history || history.length === 0) {
+          toast('No history to download', 'info');
+          return;
+        }
+
+        const headers = Object.keys(history[0]);
+        const csvRows = [];
+        csvRows.push(headers.join(','));
+
+        for (const row of history) {
+          const values = headers.map(header => {
+            let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
+            val = val.replace(/"/g, '""');
+            return `"${val}"`;
+          });
+          csvRows.push(values.join(','));
+        }
+
+        const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
+        const dlNode = document.createElement('a');
+        dlNode.setAttribute("href", csvContent);
+        dlNode.setAttribute("download", "history.csv");
+        document.body.appendChild(dlNode);
+        dlNode.click();
+        dlNode.remove();
+        toast('Downloaded history.csv', 'success');
+      });
       function loadEntry(id) {
         const entry = history.find(h => h.id === Number (id));
         console.log(entry);
@@ -3090,7 +4016,7 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
         if(entry.lang){
           setLanguage(entry.lang.toLowerCase());
         }
-        
+
         updateEditor();
         currentResult = entry.result;
         renderResults(entry.result, entry.code);
@@ -3114,16 +4040,16 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
         if (favorites.length > 30) favorites = favorites.slice(0, 30);
         localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
         renderFavorites();
-        toast('Saved to favorites', 'success');
+        toast(getTranslation('toast_saved_favorites'), 'success');
       });
 
       function renderFavorites() {
         if (!favorites.length) {
-          favList.innerHTML = '<div class="list-empty">No favorites saved yet.</div>';
+          favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
           return;
         }
         favList.innerHTML = favorites.map(f => `
-    <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="Load favorite entry for ${f.lang} at ${f.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
+    <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${getTranslation('favorite_entry_label').replace('{lang}', f.lang || '?').replace('{time}', f.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
       <span class="history-lang">${f.lang || '?'}</span>
       <span class="history-thumb">${escHtml(f.preview)}…</span>
       <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
@@ -3131,12 +4057,12 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
       }
 
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
-  if (!window.confirm('Are you sure you want to clear your favorites? This cannot be undone.')) return;
-  
+  if (!confirm(getTranslation('confirm_clear_favs'))) return;
+
   favorites = [];
   localStorage.removeItem('qyx_favorites');
   renderFavorites();
-  toast('Favorites cleared', 'info');
+  toast(getTranslation('toast_favorites_cleared'), 'info');
 });
       function loadFav(id) {
         const entry = favorites.find(f => f.id === Number(id));
@@ -3165,10 +4091,19 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         a.download = `qyverixai-report-${Date.now()}.txt`;
         a.click();
         URL.revokeObjectURL(a.href);
-        toast('Report downloaded', 'success');
+        toast(getTranslation('toast_report_downloaded'), 'success');
       });
 
       function buildReport(r, code) {
+        if (r.files) {
+          const lines = ['QyverixAI Project ZIP Analysis', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, `Files: ${r.file_count}`, `Overall Score: ${r.overall_project_score}/100 (${r.grade})`, r.summary, ''];
+          r.files.forEach(file => {
+            lines.push(`FILE: ${file.filename}`, `Language: ${file.language}`, `Score: ${file.analysis.suggestions.overall_score}/100 (${file.analysis.suggestions.grade})`, file.analysis.debugging.summary, `Summary: ${file.analysis.explanation.summary}`, '');
+            file.analysis.debugging.issues.forEach(i => lines.push(`[${i.severity.toUpperCase()}] ${i.type} (line ${i.line})`, `  ${i.description}`, `  Fix: ${i.suggestion}`, ''));
+          });
+          if (r.skipped_files?.length) lines.push('SKIPPED FILES', ...r.skipped_files, '');
+          return lines.join('\n');
+        }
         const lines = ['═══ QyverixAI Analysis Report ═══', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, ''];
         if (r.explanation) {
           lines.push('── EXPLANATION ──', `Language: ${r.explanation.language}`, `Complexity: ${r.explanation.complexity}`, `Summary: ${r.explanation.summary}`, '', ...r.explanation.key_points.map(p => `• ${p}`), '');
@@ -3265,7 +4200,7 @@ loadUser(42);`,
 interface User {
   id: number;
   name: string;
-  email?: string; 
+  email?: string;
 }
 
 function sendWelcomeEmail(user: User) {
@@ -3298,17 +4233,17 @@ public class Main {
 #include <iostream>
 
 // Anti-pattern 1: using namespace std in global scope
-using namespace std; 
+using namespace std;
 
 void processData() {
     // Anti-pattern 2: Memory Leak
     // Allocating memory on the heap but never freeing it with 'delete'
-    int* dataBuffer = new int[100]; 
-    
+    int* dataBuffer = new int[100];
+
     dataBuffer[0] = 42;
     cout << "Processing value: " << dataBuffer[0] << endl;
-    
-    // Memory leak occurs here when the function exits 
+
+    // Memory leak occurs here when the function exits
     // because 'delete[] dataBuffer;' is missing.
 }
 
@@ -3323,21 +4258,39 @@ int main() {
         editor.value = sample;
         updateEditor();
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-        toast('Sample code loaded — click Analyze!', 'success');
+        toast(getTranslation('toast_sample_loaded'), 'success');
       }
 
       /* ═══════════════════════════════════════════════════════════════
          INIT
       ═══════════════════════════════════════════════════════════════ */
+      // Wire up language selector
+      const langSelect = document.getElementById('langSelect');
+      if (langSelect) {
+        langSelect.addEventListener('change', e => {
+          setAppLanguage(e.target.value);
+        });
+        // Also listen for input for immediate responsiveness in some browsers
+        langSelect.addEventListener('input', e => {
+          setAppLanguage(e.target.value);
+        });
+      }
+
+      // Initialize language
+      setAppLanguage(appLang);
+      syncApiStatusText();
+
       renderHistory();
       renderFavorites();
 
       // Save API URL
-      apiUrlInput.addEventListener('change', () => {
-        localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
-      });
-      const savedUrl = localStorage.getItem('qyx_apiUrl');
-      if (savedUrl) apiUrlInput.value = savedUrl;
+      if (apiUrlInput) {
+        apiUrlInput.addEventListener('change', () => {
+          localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
+        });
+        const savedUrl = localStorage.getItem('qyx_apiUrl');
+        if (savedUrl) apiUrlInput.value = savedUrl;
+      }
 
       /* ═══════════════════════════════════════════════════════════════
          DIGEST SUBSCRIBE
@@ -3348,7 +4301,7 @@ int main() {
         const btn = document.getElementById('digestBtn');
         btn.disabled = true;
         btn.textContent = 'Subscribing…';
-        const base = apiUrlInput.value.replace(/\/$/, '');
+        const base = getApiBase();
         try {
           const r = await fetch(`${base}/subscribe/`, {
             method: 'POST',
