@@ -20,9 +20,9 @@ const favContainer = document.getElementById('favContainer');
 const themeToggle = document.getElementById('themeToggle');
 const API_URL_STORAGE_KEY = 'qyverix_api_url';
 
-// ── Theme ──
-const savedTheme = localStorage.getItem('qyverix_theme') || 'dark';
-if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const savedTheme = localStorage.getItem('qyverix_theme') || (systemDark ? 'dark' : 'light');
+document.documentElement.setAttribute('data-theme', savedTheme);
 
 themeToggle.addEventListener('click', () => {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
@@ -133,6 +133,62 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
   history = [];
   localStorage.setItem('qyverix_history', JSON.stringify(history));
   renderHistory();
+});
+
+// ── Download History JSON ──
+document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+
+  if (history.length === 0) {
+    showToast('No history to download');
+    return;
+  }
+
+  const blob = new Blob(
+    [JSON.stringify(history, null, 2)],
+    { type: 'application/json' }
+  );
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'analysis-history.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+});
+// ── Download History CSV ──
+document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+
+  if (history.length === 0) {
+    showToast('No history to download');
+    return;
+  }
+
+  const headers = ['id', 'preview', 'mode', 'time'];
+
+  const rows = history.map(h =>
+    [
+      h.id,
+      `"${(h.preview || '').replace(/"/g, '""')}"`,
+      h.mode,
+      h.time
+    ].join(',')
+  );
+
+  const csvContent = [
+    headers.join(','),
+    ...rows
+  ].join('\n');
+
+  const blob = new Blob(
+    [csvContent],
+    { type: 'text/csv' }
+  );
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'analysis-history.csv';
+  a.click();
+URL.revokeObjectURL(a.href);
 });
 
 // ── Run Button ──
@@ -349,9 +405,9 @@ function renderResult(data, mode) {
       html += `<div class="result-section">
         <h4>Explanation</h4>
         <div class="result-text">
-          <p><strong>Language:</strong> ${ex.language || 'Unknown'}</p>
-          <p style="margin-top:8px">${ex.summary || ''}</p>
-          ${(ex.key_points || []).map(p => `<p>• ${p}</p>`).join('')}
+          <p><strong>Language:</strong> ${escHtml(ex.language || 'Unknown')}</p>
+          <p style="margin-top:8px">${escHtml(ex.summary || '')}</p>
+          ${(ex.key_points || []).map(p => `<p>• ${escHtml(p)}</p>`).join('')}
         </div>
       </div>`;
       text += `Language: ${ex.language}\n${ex.summary}\n${(ex.key_points || []).join('\n')}\n\n`;
@@ -366,9 +422,9 @@ function renderResult(data, mode) {
           ${issues.length === 0
             ? '<span class="result-tag tag-ok">✓ No issues found</span>'
             : issues.map(i => `<div style="margin-bottom:10px">
-                <span class="result-tag tag-error">${i.type || 'Issue'}</span>
-                <p style="margin-top:4px">${i.description || ''}</p>
-                ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${i.suggestion}</p>` : ''}
+                <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
+                <p style="margin-top:4px">${escHtml(i.description || '')}</p>
+                ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${escHtml(i.suggestion)}</p>` : ''}
               </div>`).join('')}
         </div>
       </div>`;
@@ -382,8 +438,8 @@ function renderResult(data, mode) {
         <h4>Improvements</h4>
         <div class="result-text">
           ${cards.map(c => `<div style="margin-bottom:10px">
-            <span class="result-tag tag-info">${c.category || 'Tip'}</span>
-            <p style="margin-top:4px">${c.description || ''}</p>
+            <span class="result-tag tag-info">${escHtml(c.category || 'Tip')}</span>
+            <p style="margin-top:4px">${escHtml(c.description || '')}</p>
           </div>`).join('')}
         </div>
       </div>`;
@@ -392,15 +448,15 @@ function renderResult(data, mode) {
   } else if (mode === 'explanation') {
     html += `<div class="result-section">
       <h4>Language</h4>
-      <div class="result-text">${data.language || 'Auto-detected'}</div>
+      <div class="result-text">${escHtml(data.language || 'Auto-detected')}</div>
     </div>
     <div class="result-section">
       <h4>Summary</h4>
-      <div class="result-text">${data.summary || ''}</div>
+      <div class="result-text">${escHtml(data.summary || '')}</div>
     </div>
     <div class="result-section">
       <h4>Key Points</h4>
-      <div class="result-text">${(data.key_points || []).map(p => `<p>• ${p}</p>`).join('')}</div>
+      <div class="result-text">${(data.key_points || []).map(p => `<p>• ${escHtml(p)}</p>`).join('')}</div>
     </div>`;
     text = `Language: ${data.language}\n${data.summary}\n${(data.key_points || []).join('\n')}`;
   } else if (mode === 'debugging') {
@@ -411,10 +467,10 @@ function renderResult(data, mode) {
         ${issues.length === 0
           ? '<span class="result-tag tag-ok">✓ No issues detected. Code looks clean!</span>'
           : issues.map(i => `<div style="margin-bottom:14px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
-              <span class="result-tag tag-error">${i.type || 'Issue'}</span>
+              <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
               ${i.line ? `<span class="result-tag tag-info">Line ${i.line}</span>` : ''}
-              <p style="margin-top:8px">${i.description || ''}</p>
-              ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${i.suggestion}</p>` : ''}
+              <p style="margin-top:8px">${escHtml(i.description || '')}</p>
+              ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${escHtml(i.suggestion)}</p>` : ''}
             </div>`).join('')}
       </div>
     </div>`;
@@ -425,9 +481,9 @@ function renderResult(data, mode) {
       <h4>Suggestions (${cards.length})</h4>
       <div class="result-text">
         ${cards.map(c => `<div style="margin-bottom:12px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
-          <span class="result-tag tag-info">${c.category || 'Tip'}</span>
-          <p style="margin-top:8px">${c.description || ''}</p>
-          ${c.example ? `<pre style="margin-top:8px;font-size:12px;color:var(--text-3)">${c.example}</pre>` : ''}
+          <span class="result-tag tag-info">${escHtml(c.category || 'Tip')}</span>
+          <p style="margin-top:8px">${escHtml(c.description || '')}</p>
+          ${c.example ? `<pre style="margin-top:8px;font-size:12px;color:var(--text-3)">${escHtml(c.example)}</pre>` : ''}
         </div>`).join('')}
       </div>
     </div>`;
