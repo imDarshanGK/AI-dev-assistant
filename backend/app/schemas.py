@@ -120,6 +120,27 @@ class UnsubscribeRequest(BaseModel):
     token: str
 
 
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    user_id: int
+    email: str
+
+
+class UserProfileResponse(BaseModel):
+    user_id: int
+    email: str
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
