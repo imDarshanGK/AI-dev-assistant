@@ -412,7 +412,7 @@ function renderResult(data, mode) {
           ? '<span class="result-tag tag-ok">✓ No issues detected. Code looks clean!</span>'
           : issues.map(i => `<div style="margin-bottom:14px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
               <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
-              ${i.line ? `<span class="result-tag tag-info">Line ${i.line}</span>` : ''}
+              ${i.line ? `<span class="result-tag tag-info">Line ${escHtml(i.line)}</span>` : ''}
               <p style="margin-top:8px">${escHtml(i.description || '')}</p>
               ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${escHtml(i.suggestion)}</p>` : ''}
             </div>`).join('')}
@@ -508,7 +508,7 @@ function renderFavorites() {
 }
 
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 }
 
 // ── Toast ──

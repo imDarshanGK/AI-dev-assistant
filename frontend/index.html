@@ -3442,25 +3442,34 @@
         document.getElementById('emptyExplain').style.display = 'none';
         const el = document.getElementById('explainResult');
         el.style.display = 'block';
-        document.getElementById('explainBadge').textContent = exp.complexity;
+        document.getElementById('explainBadge').textContent = escHtml(exp.complexity);
+
+        const cleanComplexity = sanitizeClassToken(exp.complexity);
+        const cleanRisk = sanitizeClassToken((exp.complexity_risk || 'Simple').replace(/\s+/g, '-'));
+        const escapedLang = escHtml(exp.language);
+        const lineCountInt = parseInt(exp.line_count, 10) || 0;
+        const funcCountInt = parseInt(exp.function_count, 10) || 0;
+        const classCountInt = parseInt(exp.class_count, 10) || 0;
+        const cyclomaticComplexityInt = exp.cyclomatic_complexity != null ? parseInt(exp.cyclomatic_complexity, 10) : null;
+        const escapedRisk = escHtml(exp.complexity_risk || 'Simple');
 
         el.innerHTML = `
-    <div class="explain-summary" tabindex="0">${exp.summary}</div>
+    <div class="explain-summary" tabindex="0">${renderMarkdown(exp.summary)}</div>
     <div class="explain-meta">
-      <div class="meta-chip complexity-${exp.complexity}">
-        <div class="dot"></div>${exp.complexity}
+      <div class="meta-chip complexity-${cleanComplexity}">
+        <div class="dot"></div>${escHtml(exp.complexity)}
       </div>
       <div class="meta-chip">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-        ${exp.language}
+        ${escapedLang}
       </div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', exp.line_count)}</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', exp.function_count)}</div>
-      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', exp.class_count) + '</div>' : ''}
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
-      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
-      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', lineCountInt)}</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', funcCountInt)}</div>
+      ${classCountInt > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', classCountInt) + '</div>' : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${lineCountInt} lines</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${funcCountInt} fn${funcCountInt !== 1 ? 's' : ''}</div>
+      ${classCountInt > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + classCountInt + ' class' + (classCountInt !== 1 ? 'es' : '') + '</div>' : ''}
+      ${cyclomaticComplexityInt != null ? `<div class="meta-chip risk-${cleanRisk}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${cyclomaticComplexityInt} &middot; ${escapedRisk}</div>` : ''}
     </div>
     <ul class="key-points">
       ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
@@ -3489,30 +3498,37 @@
         const statBar = `
     <div class="stat-bar">
       <div class="stat-chip error-chip">
-        <div class="stat-chip-num">${dbg.error_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.error_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_errors')}</div>
       </div>
       <div class="stat-chip warn-chip">
-        <div class="stat-chip-num">${dbg.warning_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.warning_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_warnings')}</div>
       </div>
       <div class="stat-chip info-chip">
-        <div class="stat-chip-num">${dbg.info_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.info_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_info')}</div>
       </div>
     </div>`;
 
-        const cards = dbg.issues.map((issue, i) => `
-    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
+        const cards = dbg.issues.map((issue, i) => {
+          const cleanSeverity = sanitizeClassToken(issue.severity);
+          const escapedType = escHtml(issue.type);
+          const escapedDesc = escHtml(issue.description);
+          const escapedSuggestion = escHtml(issue.suggestion);
+          const escapedLine = issue.line ? escHtml(issue.line) : '';
+          return `
+    <div class="issue-card ${cleanSeverity}" style="animation-delay:${i * 0.05}s" tabindex="0">
       <div class="issue-header">
-        <span class="issue-badge">${issue.severity}</span>
-        <span class="issue-type">${issue.type}</span>
-        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', issue.line)}</span>` : ''}
+        <span class="issue-badge">${escHtml(issue.severity)}</span>
+        <span class="issue-type">${escapedType}</span>
+        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', escapedLine)}</span>` : ''}
       </div>
-      <div class="issue-desc">${issue.description}</div>
+      <div class="issue-desc">${escapedDesc}</div>
       ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
-      <div class="issue-fix">${issue.suggestion}</div>
-    </div>`).join('');
+      <div class="issue-fix">${escapedSuggestion}</div>
+    </div>`;
+        }).join('');
 
         el.innerHTML = statBar + cards;
       }
@@ -3688,13 +3704,13 @@
             style="transition:stroke-dashoffset 1s ease"/>
         </svg>
         <div class="score-ring-text">
-          <div class="score-num" style="color:${scoreColor}">${sugg.overall_score}</div>
-          <div class="score-grade">${sugg.grade}</div>
+          <div class="score-num" style="color:${scoreColor}">${parseInt(sugg.overall_score, 10) || 0}</div>
+          <div class="score-grade">${escHtml(sugg.grade)}</div>
         </div>
       </div>
       <div class="score-info">
         <h3>${getTranslation('suggest_quality_score')}</h3>
-        <p>${sugg.next_step}</p>
+        <p>${escHtml(sugg.next_step)}</p>
       </div>
     </div>`;
 
@@ -3729,33 +3745,38 @@
                   if (originalSnippet) {
                     exampleHtml = buildDiffHtml(originalSnippet, s.example, copyId);
                   } else {
-                    // No match – show fixed code as green "Fixed Code" block
-                    const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
-                    exampleHtml = `
-                    <div class="diff-wrapper">
-                      <div class="diff-header">
-                        <div class="diff-header-labels">
-                          <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
-                        </div>
-                        <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                          Copy fixed
-                        </button>
-                      </div>
-                      <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
-                    </div>`;
+                     // No match – show fixed code as green "Fixed Code" block
+                     const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+                     exampleHtml = `
+                     <div class="diff-wrapper">
+                       <div class="diff-header">
+                         <div class="diff-header-labels">
+                           <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
+                         </div>
+                         <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
+                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                           Copy fixed
+                         </button>
+                       </div>
+                       <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
+                     </div>`;
                   }
                 }
               }
             }
 
+            const cleanPriority = sanitizeClassToken(s.priority);
+            const escapedCat = escHtml(s.category);
+            const escapedPriority = escHtml(s.priority);
+            const escapedDesc = escHtml(s.description);
+
             return `
-      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
+      <div class="suggest-card priority-${cleanPriority}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
-          <span class="suggest-cat">${s.category}</span>
-          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', s.priority)}</span>
+          <span class="suggest-cat">${escapedCat}</span>
+          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', escapedPriority)}</span>
         </div>
-        <div class="suggest-desc">${s.description}</div>
+        <div class="suggest-desc">${escapedDesc}</div>
         ${exampleHtml}
       </div>`;
           }).join('');
@@ -4002,10 +4023,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
          HELPERS
       ═══════════════════════════════════════════════════════════════ */
       function escHtml(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+      }
+      function sanitizeClassToken(token) {
+        return String(token || '').replace(/[^a-zA-Z0-9\-]/g, '');
       }
       function renderMarkdown(s) {
-        return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        const escaped = escHtml(s);
+        return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
           .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
       }
 
