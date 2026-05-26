@@ -1,7 +1,7 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class CodeRequest(BaseModel):
@@ -19,7 +19,6 @@ class CodeRequest(BaseModel):
         return v
 
 
-# ── Explanation ────────────────────────────────────────────────────────────────
 class ExplanationResponse(BaseModel):
     language: str
     summary: str
@@ -28,16 +27,18 @@ class ExplanationResponse(BaseModel):
     line_count: int
     function_count: int
     class_count: int
+    cyclomatic_complexity: int
+    complexity_risk: str
 
 
-# ── Debugging ─────────────────────────────────────────────────────────────────
 class Issue(BaseModel):
     type: str
     line: int | None
     description: str
     suggestion: str
-    severity: str          # "error" | "warning" | "info"
+    severity: str
     code_snippet: str | None = None
+    code_context: str | None = None
 
 
 class DebuggingResponse(BaseModel):
@@ -49,12 +50,14 @@ class DebuggingResponse(BaseModel):
     info_count: int
 
 
-# ── Suggestions ───────────────────────────────────────────────────────────────
 class Suggestion(BaseModel):
     category: str
     description: str
+    line_number: int | None = None
+    line_range: list[int] | None = None
+    code_context: str | None = None
     example: str | None = None
-    priority: str          # "high" | "medium" | "low"
+    priority: str
 
 
 class SuggestionsResponse(BaseModel):
@@ -64,7 +67,6 @@ class SuggestionsResponse(BaseModel):
     next_step: str
 
 
-# ── Full Analysis ─────────────────────────────────────────────────────────────
 class AnalyzeResponse(BaseModel):
     provider: str
     model: str
@@ -74,9 +76,64 @@ class AnalyzeResponse(BaseModel):
     analysis_time_ms: float | None = None
 
 
-# ── Health ────────────────────────────────────────────────────────────────────
+class ZipAnalyzeFileResult(BaseModel):
+    filename: str
+    language: str
+    size_bytes: int
+    analysis: AnalyzeResponse
+
+
+class ZipAnalyzeResponse(BaseModel):
+    provider: str
+    model: str
+    file_count: int
+    total_size_bytes: int
+    overall_project_score: int
+    grade: str
+    summary: str
+    files: list[ZipAnalyzeFileResult]
+    skipped_files: list[str] = Field(default_factory=list)
+    analysis_time_ms: float | None = None
+
+
+class SubscribeRequest(BaseModel):
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        if len(v) > 320:
+            raise ValueError("Email too long")
+        return v
+
+
+class SubscribeResponse(BaseModel):
+    message: str
+    email: str
+
+
+class UnsubscribeRequest(BaseModel):
+    email: str
+    token: str
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
     message: str
     endpoints: list[str] | None = None
+
+
+class ShareCreateRequest(BaseModel):
+    code: str
+    result: dict
+
+
+class ShareRecord(BaseModel):
+    id: str
+    code: str
+    result: dict
+    created_at: str
