@@ -1,8 +1,10 @@
 """Full analysis router - POST /analyze/ and POST /analyze/zip/."""
 from __future__ import annotations
+import ast
 
 import time
 import zipfile
+# ... rest of your existing imports stay exactly the same
 from io import BytesIO
 from pathlib import PurePosixPath
 
@@ -50,6 +52,42 @@ SOURCE_EXTENSIONS = {
     ".txt": None,
 }
 
+class UnreachableCodeDetector(ast.NodeVisitor):
+    def __init__(self):
+        self.dead_code_issues = []
+
+    def check_block(self, body):
+        terminator_found = False
+        for node in body:
+            if terminator_found:
+                self.dead_code_issues.append({
+                    "type": "UnreachableCode",
+                    "line": node.lineno,
+                    "description": "Code after a return, break, or continue statement is unreachable.",
+                    "suggestion": "Remove the dead code or restructure your statement flow.",
+                    "severity": "warning",
+                    "code_snippet": ""
+                })
+                break 
+            if isinstance(node, (ast.Return, ast.Break, ast.Continue)):
+                terminator_found = True
+
+        for node in body:
+            self.generic_visit(node)
+
+    def visit_FunctionDef(self, node):
+        self.check_block(node.body)
+
+    def visit_If(self, node):
+        self.check_block(node.body)
+        if node.orelse:
+            self.check_block(node.orelse)
+
+    def visit_For(self, node):
+        self.check_block(node.body)
+
+    def visit_While(self, node):
+        self.check_block(node.body)
 
 def _project_grade(score: int) -> str:
     if score >= 90:
@@ -97,6 +135,34 @@ async def analyze(req: CodeRequest, response: Response):
         return cached_payload
 
     payload = full_analysis(req.code, req.language)
+    
+    # --- INJECT YOUR NEW CODE HERE FOR SINGLE FILES ---
+    if req.language.lower() == "python":
+        try:
+            tree = ast.parse(req.code)
+            detector = UnreachableCodeDetector()
+            detector.visit(tree)
+            
+            for issue in detector.dead_code_issues:
+                lines = req.code.splitlines()
+                if 0 < issue["line"] <= len(lines):
+                    issue["code_snippet"] = lines[issue["line"] - 1].strip()
+                
+                # TARGET THE CORRECT LIVE KEY: payload["debugging"]["issues"]
+                if "debugging" in payload and "issues" in payload["debugging"]:
+                    payload["debugging"]["issues"].append(issue)
+                elif "issues" in payload:
+                    payload["issues"].append(issue)
+                else:
+                    if "debugging" not in payload:
+                        payload["debugging"] = {}
+                    if "issues" not in payload["debugging"]:
+                        payload["debugging"]["issues"] = []
+                    payload["debugging"]["issues"].append(issue)
+        except SyntaxError:
+            pass
+    # --------------------------------------------------
+
     cache.set("analyze:v1", cache_input, payload)
     response.headers["X-Cache"] = "MISS"
     return payload
@@ -170,40 +236,39 @@ async def analyze_zip(file: UploadFile = File(...)):
                 continue
 
             analysis = full_analysis(code, SOURCE_EXTENSIONS[ext])
-            language = analysis["explanation"]["language"]
-            results.append(
-                {
-                    "filename": safe_name,
-                    "language": language,
-                    "size_bytes": len(raw),
-                    "analysis": analysis,
-                }
-            )
+        language = analysis["explanation"]["language"]
 
-    if not results:
-        raise HTTPException(
-            status_code=400,
-            detail="ZIP file does not contain readable source files",
+        # >>> PASTE FROM HERE >>>
+        if language.lower() == "python":
+            try:
+                tree = ast.parse(code)
+                detector = UnreachableCodeDetector()
+                detector.visit(tree)
+                
+                for issue in detector.dead_code_issues:
+                    lines = code.splitlines()
+                    if 0 < issue["line"] <= len(lines):
+                        issue["code_snippet"] = lines[issue["line"] - 1].strip()
+                    
+                    if "suggestions" in analysis and "issues" in analysis["suggestions"]:
+                        analysis["suggestions"]["issues"].append(issue)
+                    elif "issues" in analysis:
+                        analysis["issues"].append(issue)
+                    else:
+                        if "suggestions" not in analysis:
+                            analysis["suggestions"] = {}
+                        if "issues" not in analysis["suggestions"]:
+                            analysis["suggestions"]["issues"] = []
+                        analysis["suggestions"]["issues"].append(issue)
+            except SyntaxError:
+                pass
+        # <<< TO HERE <<<
+
+        results.append(
+            {
+                "filename": safe_name,
+                "language": language,
+                "size_bytes": len(raw),
+                "analysis": analysis,
+            }
         )
-
-    scores = [item["analysis"]["suggestions"]["overall_score"] for item in results]
-    overall_score = round(sum(scores) / len(scores))
-    elapsed_ms = (time.perf_counter() - t0) * 1000
-    summary = (
-        f"Analyzed {len(results)} file(s). "
-        f"Skipped {len(skipped_files)} file(s). "
-        f"Overall project score: {overall_score}/100."
-    )
-
-    return {
-        "provider": "rule-based",
-        "model": "qyverix-engine-v3",
-        "file_count": len(results),
-        "total_size_bytes": total_size,
-        "overall_project_score": overall_score,
-        "grade": _project_grade(overall_score),
-        "summary": summary,
-        "files": results,
-        "skipped_files": skipped_files,
-        "analysis_time_ms": round(elapsed_ms, 2),
-    }
