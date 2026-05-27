@@ -802,7 +802,6 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                         "code_context": code_context,
                     }
                 )
-                break  # one hit per pattern is enough
 
     if language == "Python":
         try:
