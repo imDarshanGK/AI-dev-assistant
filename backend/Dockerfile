@@ -15,5 +15,9 @@ COPY frontend/ ./frontend/
 # Expose port
 EXPOSE 8000
 
-# Run
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+#Run
+
+RUN adduser --disabled-password --gecos "" appuser
+USER appuser
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
