@@ -131,7 +131,7 @@ def analyze_python_ast(code: str) -> list[dict]:
     analyzer = PythonASTAnalyzer()
     analyzer.visit(tree)
     return analyzer.issues
-import ast
+
 
 def _get_snippet(code: str, line: int) -> str:
     lines = code.splitlines()
