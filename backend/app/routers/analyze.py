@@ -70,7 +70,21 @@ SOURCE_EXTENSIONS = {
 async def _stream_analysis(code: str, language_hint: str | None):
     """Async generator that yields SSE chunks for each analysis section."""
     t0 = time.perf_counter()
-    language = detect_language(code, language_hint)
+    detected_language = detect_language(code, language_hint)
+    language = language_hint or detected_language
+
+    # Language mismatch warning
+    raw_issues = []
+    if language_hint and detected_language.lower() != language_hint.lower():
+        raw_issues.append({
+            "type": "Language Mismatch",
+            "line": None,
+            "description": f"Selected language is '{language_hint}' but detected language is '{detected_language}'.",
+            "suggestion": "Consider switching to the detected language tab for more accurate analysis.",
+            "severity": "warning",
+            "code_snippet": "",
+            "code_context": None,
+        })
 
     # Explanation
     explanation = run_explanation(code, language)
@@ -78,7 +92,7 @@ async def _stream_analysis(code: str, language_hint: str | None):
     await asyncio.sleep(0)
 
     # Debugging
-    raw_issues = run_bug_detection(code, language)
+    raw_issues.extend(run_bug_detection(code, language))
 
     errors = [i for i in raw_issues if i["severity"] == "error"]
     warnings = [i for i in raw_issues if i["severity"] == "warning"]
