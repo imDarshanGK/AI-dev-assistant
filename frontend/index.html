@@ -2222,6 +2222,18 @@
           </button>
         </div>
 
+        <!-- API Config (input + status) -->
+        <div class="api-config-row" style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <div style="display:flex;align-items:center;gap:8px;flex:1">
+            <div id="apiDot" class="api-dot" aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:var(--text3)"></div>
+            <input id="apiUrl" placeholder="https://qyverixai.onrender.com" style="flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)" />
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="apiStatusText" data-status="disconnected" style="font-size:0.85rem;color:var(--text3)">Disconnected</div>
+            <button id="pingBtn" class="icon-btn" title="Ping API" style="padding:6px 10px">Ping</button>
+          </div>
+        </div>
+
         <!-- Result action buttons (hidden until results) -->
         <div id="resultActions" class="result-actions" style="display:none">
           <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
@@ -3256,7 +3268,7 @@
         if (!code) { toast('Please paste some code first.', 'error'); return; }
         if (editor.value.length >= CHAR_MAX) return;
 
-        const base = apiUrlInput.value.replace(/\/$/, '');
+        const base = getApiBase();
         const endpointMap = {
           explain: '/explanation/',
           debug: '/debugging/',
@@ -3338,7 +3350,7 @@
        * replacing the shimmer placeholder progressively.
        */
       async function doAnalyzeStream(code) {
-        const base = apiUrlInput.value.replace(/\/$/, '');
+        const base = getApiBase();
         const res = await fetch(`${base}/analyze/stream`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
