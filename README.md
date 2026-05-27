@@ -54,21 +54,69 @@ No account required. No API key needed. Works fully offline. Fully open source.
 ## Features
 
 | Feature | Detail |
-|---|---|
-| **40+ Bug Patterns** | ZeroDivisionError, bare except, hardcoded secrets, eval(), memory leaks, XSS, NullPointerException, and more |
-| **5 Languages** | Python, JavaScript, TypeScript, Java, C++ |
-| **Full Analysis Endpoint** | One call - explain + debug + improve combined, with timing metrics |
-| **Quality Score** | 0–100 score with letter grade A–F and prioritised suggestions |
-| **File Upload** | Drag-drop or upload `.py` `.js` `.ts` `.java` `.cpp` |
-| **Dark / Light Mode** | Persisted across sessions |
-| **Query History** | Last 50 analyses saved locally |
-| **Saved Favorites** | Bookmark and reload any analysis |
-| **Share Links** | Generate a short-lived URL for any analysis and send it to teammates |
-| **Download Results** | Export full report as `.txt` |
-| **LLM-Ready** | Plug in OpenAI, Groq, Ollama, or any OpenAI-compatible provider via env vars |
-| **Rate Limiting** | 30 requests/minute per IP - configurable |
-| **Swagger Docs** | Interactive API docs at `/docs` |
-| **Gzip Compression** | Automatic response compression |
+## ✨ Features
+
+### 🐞 40+ Bug Patterns
+Detects:
+- ZeroDivisionError
+- hardcoded secrets
+- XSS
+- memory leaks
+- eval() misuse
+- NullPointerException
+and many more.
+
+---
+
+### 🌍 Multi-Language Support
+Supports:
+- Python
+- JavaScript
+- TypeScript
+- Java
+- C++
+and more.
+
+---
+
+### ⚡ Full Analysis Endpoint
+One-call workflow for:
+- explain
+- debug
+- improve
+with timing metrics.
+
+---
+
+### 📊 Quality Score
+Provides:
+- 0–100 scoring
+- grade A–F
+- prioritized suggestions
+
+---
+
+### 🌙 Dark / Light Mode
+Persistent theme support across sessions.
+
+---
+
+### 🔗 Share Links
+Generate short-lived shareable URLs for analyses.
+
+---
+
+### 📥 Download Results
+Export reports as `.txt` files.
+
+---
+
+### 🤖 LLM Ready
+Supports:
+- OpenAI
+- Groq
+- Ollama
+- OpenAI-compatible providers
 
 ### Languages and patterns
 
