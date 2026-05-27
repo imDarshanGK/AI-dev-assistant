@@ -3,23 +3,28 @@ QyverixAI — Backend API
 FastAPI application with advanced middleware, rate limiting, and full analysis engine.
 """
 
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
+# stdlib — safe to import before env loading
 import time
 import os
 from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
 
+# Load .env before importing app modules that read env vars at import time
+from dotenv import find_dotenv, load_dotenv
+load_dotenv(find_dotenv(filename=".env", usecwd=True), override=False)
 
-from .routers import explanation, debugging, suggestions, analyze, subscribe, share
-from .services.scheduler import start_scheduler, stop_scheduler
-from .database import Base, engine
+from fastapi import FastAPI, Request  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.middleware.gzip import GZipMiddleware  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
 
-from .schemas import HealthResponse
+from .routers import explanation, debugging, suggestions, analyze, subscribe, share  # noqa: E402
+from .services.scheduler import start_scheduler, stop_scheduler  # noqa: E402
+from .schemas import HealthResponse  # noqa: E402
+from .services import ai_provider  # noqa: E402
+from .database import Base, engine  # noqa: E402
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
@@ -51,6 +56,10 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("🚀 QyverixAI backend starting…")
+    try:
+        print(f"LLM enabled: {ai_provider.is_enabled()}, model: {getattr(ai_provider, 'LLM_MODEL', None)}")
+    except Exception:
+        print("LLM status: unavailable")
     Base.metadata.create_all(bind=engine)
     start_scheduler()
     yield
@@ -159,14 +168,9 @@ async def health_check():
         "status": "ok",
         "version": "3.0.0",
         "message": "QyverixAI is healthy",
-        "endpoints": [
-            "/explanation/",
-            "/debugging/",
-            "/suggestions/",
-            "/analyze/",
-            "/analyze/zip/",
-            "/share/",
-        ],
+        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+        "llm_enabled": ai_provider.is_enabled(),
+        "llm_model": getattr(ai_provider, "LLM_MODEL", None),
     }
 
 
