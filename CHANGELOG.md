@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Changed
 - SHA-256 cache key hashing replacing deprecated MD5 algorithm
 
 ## [1.0.0] - 2026-01-01
