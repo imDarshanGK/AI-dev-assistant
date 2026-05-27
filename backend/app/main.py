@@ -11,10 +11,21 @@ from fastapi.staticfiles import StaticFiles
 import time
 import os
 from collections import defaultdict
+import logging
 from contextlib import asynccontextmanager
 
-from .routers import explanation, debugging, suggestions, analyze, subscribe, share, history
+from .routers import (
+    analyze,
+    debugging,
+    explanation,
+    history,
+    share,
+    suggestions,
+    subscribe,
+    upload_file,
+)
 from .services.scheduler import start_scheduler, stop_scheduler
+from .database import Base, engine
 from .schemas import HealthResponse
 from .services import database
 
@@ -49,6 +60,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 async def lifespan(app: FastAPI):
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
+    Base.metadata.create_all(bind=engine)
     start_scheduler()
     yield
     stop_scheduler()
@@ -129,6 +141,7 @@ app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
+app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
 app.include_router(share.router)
 app.include_router(history.router,     prefix="/history",     tags=["History"])
 
@@ -186,6 +199,7 @@ if os.path.isdir(_frontend):
 # ── Global error handler ──────────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logging.exception("Unhandled error")
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error. Please try again."},
