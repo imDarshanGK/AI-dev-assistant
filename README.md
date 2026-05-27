@@ -271,7 +271,7 @@ AI-dev-assistant/
 │   │       └── ai_provider.py        # Optional LLM abstraction layer
 │   ├── requirements.txt
 │   └── tests/
-│       └── test_endpoints.py         # 39 tests across all endpoints and languages
+│       └── test_endpoints.py         # 52 tests across all endpoints and languages
 ├── frontend/
 │   └── index.html                    # Complete UI — no build step, self-contained
 ├── .github/
@@ -293,7 +293,7 @@ cd backend
 pytest -v
 ```
 
-39 tests covering all endpoints, all 5 languages, 10+ individual bug patterns, suggestions scoring, full analysis, and edge cases including empty code, unicode, and single-line input.
+52 tests covering all endpoints, all 5 languages, 10+ individual bug patterns, suggestions scoring, full analysis, and edge cases including empty code, unicode, and single-line input.
 
 Tests run automatically on every push and pull request via GitHub Actions across Python 3.11 and 3.12.
 
@@ -316,6 +316,25 @@ Tests run automatically on every push and pull request via GitHub Actions across
 ```bash
 docker build -t qyverixai .
 docker run -p 8000:8000 qyverixai
+```
+### Docker Compose
+
+Run the complete local development environment:
+
+```bash
+docker compose up --build
+```
+
+Available services:
+
+- Frontend → http://localhost:3000
+- Backend API → http://localhost:8000
+- PostgreSQL → localhost:5432
+
+Stop containers:
+
+```bash
+docker compose down
 ```
 
 ---
