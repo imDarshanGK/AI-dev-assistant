@@ -1,5 +1,4 @@
 <div align="center">
-
 <img src="./assets/logo-dark.svg" alt="QyverixAI" width="300"/>
 
 <br/>
@@ -158,7 +157,7 @@ Returns a plain-English breakdown of the code.
 
 ```json
 {
-  "language": "Python",
+  "language":  "Python",
   "summary": "A short Python snippet (5 lines) that performs a focused task.",
   "key_points": [
     "Written in Python — 5 non-blank lines of code.",
