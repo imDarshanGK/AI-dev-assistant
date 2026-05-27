@@ -11,11 +11,14 @@ from fastapi.staticfiles import StaticFiles
 import time
 import os
 from collections import defaultdict
+import logging
 from contextlib import asynccontextmanager
 
+from .routers import  upload_file
 
 from .routers import explanation, debugging, suggestions, analyze, subscribe, share
 from .services.scheduler import start_scheduler, stop_scheduler
+from .database import Base, engine
 
 from .schemas import HealthResponse
 
@@ -49,6 +52,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("🚀 QyverixAI backend starting…")
+    Base.metadata.create_all(bind=engine)
     start_scheduler()
     yield
     stop_scheduler()
@@ -127,8 +131,11 @@ async def add_cache_header(request: Request, call_next):
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
 app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
-app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
+app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
+app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
+app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+# app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+# app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
 app.include_router(share.router)
 
 
@@ -181,6 +188,7 @@ if os.path.isdir(_frontend):
 # ── Global error handler ──────────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logging.exception("Unhandled error")
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error. Please try again."},
