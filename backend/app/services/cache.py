@@ -31,7 +31,7 @@ class AppCache:
         return self._backend
 
     def _make_key(self, namespace: str, code: str) -> str:
-        digest = hashlib.md5(code.encode("utf-8")).hexdigest()
+        digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
         return f"ai-assistant:{namespace}:{digest}"
 
     def get(self, namespace: str, code: str) -> dict | None:
