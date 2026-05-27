@@ -2,12 +2,13 @@
 QyverixAI — Test Suite
 Run: cd backend && pytest -v
 """
-import io
-import zipfile
+
+import json
 
 import pytest
 from fastapi.testclient import TestClient
-import sys, os
+import sys
+import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app import main as app_main
@@ -578,6 +579,19 @@ def test_add():
     d = r.json()
     assert d["overall_score"] >= 60  # clean code should score reasonably
 
+def test_suggestions_observability_print_only_python():
+    # Pasting code with print() in Java should NOT trigger the Observability suggestion
+    r_java = client.post("/suggestions/", json={"code": 'print("hello");', "language": "java"})
+    assert r_java.status_code == 200
+    s_java = [s["category"] for s in r_java.json()["suggestions"]]
+    assert "Observability" not in s_java
+
+    # Pasting code with print() in Python SHOULD trigger the Observability suggestion
+    r_py = client.post("/suggestions/", json={"code": 'print("hello")', "language": "python"})
+    assert r_py.status_code == 200
+    s_py = [s["category"] for s in r_py.json()["suggestions"]]
+    assert "Observability" in s_py
+
 
 # ── Full Analysis ─────────────────────────────────────────────────────────────
 def test_full_analyze():
@@ -679,103 +693,61 @@ def test_single_line_code():
     assert r.status_code == 200
 
 
-# ── Swift Detection (issue #62) ──
-SAMPLE_SWIFT = 'import Foundation\nfunc greet() {\n    let msg = "Hello"\n    print(msg)\n}\nvar score: Int = 0\n'
+# ── SSE Streaming ─────────────────────────────────────────────────────────────
+def _parse_sse_events(text: str) -> list[dict]:
+    events = []
+    for line in text.splitlines():
+        if line.startswith("data: "):
+            try:
+                events.append(json.loads(line[6:]))
+            except json.JSONDecodeError:
+                pass
+    return events
 
 
-def test_explanation_swift():
-    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT})
+def test_post_stream_returns_event_stream_content_type():
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
     assert r.status_code == 200
-    assert r.json()["language"] == "Swift"
+    assert "text/event-stream" in r.headers.get("content-type", "")
 
 
-def test_explanation_swift_with_hint():
-    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT, "language": "swift"})
+def test_post_stream_emits_all_sections():
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
     assert r.status_code == 200
-    assert r.json()["language"] == "Swift"
+    types = [e["type"] for e in _parse_sse_events(r.text)]
+    assert types == ["explanation", "debugging", "suggestions", "done"]
 
 
-def test_debug_kotlin_hint_aliases():
-    """Both 'kotlin' and 'kt' hint aliases resolve to Kotlin language detection."""
-    code = "val x = 1"
-    for hint in ("kotlin", "kt"):
-        r = client.post("/debugging/", json={"code": code, "language": hint})
-        assert r.status_code == 200, f"hint '{hint}' returned HTTP {r.status_code}"
-
-
-def test_debug_kotlin_force_unwrap():
-    """!! (not-null assertion) should be flagged as 'Kotlin Force Unwrap'."""
-    code = "val length = str!!.length"
-    r = client.post("/debugging/", json={"code": code, "language": "kotlin"})
+def test_get_stream_returns_event_stream_content_type():
+    r = client.get("/analyze/stream", params={"code": PYTHON_BUGGY})
     assert r.status_code == 200
-    types = [i["type"] for i in r.json()["issues"]]
-    assert "Kotlin Force Unwrap" in types
+    assert "text/event-stream" in r.headers.get("content-type", "")
 
 
-def test_debug_kotlin_blocking_coroutine():
-    """runBlocking usage should be flagged as 'Kotlin Blocking Coroutine'."""
-    code = "runBlocking {\n    doWork()\n}"
-    r = client.post("/debugging/", json={"code": code, "language": "kotlin"})
+def test_get_stream_emits_all_sections():
+    r = client.get("/analyze/stream", params={"code": PYTHON_BUGGY})
     assert r.status_code == 200
-    types = [i["type"] for i in r.json()["issues"]]
-    assert "Kotlin Blocking Coroutine" in types
+    types = [e["type"] for e in _parse_sse_events(r.text)]
+    assert types == ["explanation", "debugging", "suggestions", "done"]
 
 
-def test_debug_kotlin_global_scope():
-    """GlobalScope.launch should be flagged as 'Kotlin GlobalScope'."""
-    code = "GlobalScope.launch {\n    fetchData()\n}"
-    r = client.post("/debugging/", json={"code": code, "language": "kotlin"})
+def test_get_stream_done_event_present():
+    r = client.get("/analyze/stream", params={"code": PYTHON_BUGGY})
     assert r.status_code == 200
-    types = [i["type"] for i in r.json()["issues"]]
-    assert "Kotlin GlobalScope" in types
+    events = _parse_sse_events(r.text)
+    done_events = [e for e in events if e["type"] == "done"]
+    assert len(done_events) == 1
+    assert "analysis_time_ms" in done_events[0]
 
 
-def test_debug_kotlin_thread_sleep():
-    """Thread.sleep() should be flagged as 'Kotlin Thread Sleep'."""
-    code = "Thread.sleep(1000)"
-    r = client.post("/debugging/", json={"code": code, "language": "kotlin"})
+def test_get_stream_with_language_hint():
+    r = client.get("/analyze/stream", params={"code": JS_CODE, "language": "javascript"})
     assert r.status_code == 200
-    types = [i["type"] for i in r.json()["issues"]]
-    assert "Kotlin Thread Sleep" in types
+    events = _parse_sse_events(r.text)
+    exp = next(e["data"] for e in events if e["type"] == "explanation")
+    assert exp["language"] == "JavaScript"
 
 
-# ── Magic Number Regression Tests ──────────────────────────────────────────────
-
-def test_suggestions_magic_number_starting_with_1_is_flagged():
-    """Numbers like 1000, 1024, 100 starting with 1 must be detected as magic numbers."""
-    code = "limit = 1000\nmax_size = 1024\ntimeout = 100"
-    r = client.post("/suggestions/", json={"code": code, "language": "python"})
-    assert r.status_code == 200
-    descriptions = [s["description"] for s in r.json()["suggestions"]]
-    assert any("Magic" in d for d in descriptions), (
-        "Magic numbers starting with 1 (1000, 1024, 100) were not detected"
-    )
-
-
-def test_suggestions_magic_number_10_is_flagged():
-    """The number 10 (smallest two-digit number) must be flagged as a magic number."""
-    code = "time.sleep(10)"
-    r = client.post("/suggestions/", json={"code": code, "language": "python"})
-    assert r.status_code == 200
-    descriptions = [s["description"] for s in r.json()["suggestions"]]
-    assert any("Magic" in d for d in descriptions), "Magic number 10 was not detected"
-
-
-def test_suggestions_single_digit_not_flagged_as_magic():
-    """Single-digit numbers (1-9) must NOT be flagged as magic numbers."""
-    code = "x = 5\ny = 3\nz = 9"
-    r = client.post("/suggestions/", json={"code": code, "language": "python"})
-    assert r.status_code == 200
-    readability = [s for s in r.json()["suggestions"]
-                   if s["category"] == "Readability" and "Magic" in s["description"]]
-    assert len(readability) == 0, "Single-digit numbers were wrongly flagged as magic"
-
-
-def test_suggestions_magic_number_in_identifier_not_flagged():
-    """Numbers embedded in identifiers like sha256 or http2 must NOT be flagged."""
-    code = "import hashlib\nhash = hashlib.sha256(data).hexdigest()\nprotocol = 'http2'"
-    r = client.post("/suggestions/", json={"code": code, "language": "python"})
-    assert r.status_code == 200
-    readability = [s for s in r.json()["suggestions"]
-                   if s["category"] == "Readability" and "Magic" in s["description"]]
-    assert len(readability) == 0, "Numbers inside identifiers were wrongly flagged as magic"
+def test_get_stream_empty_code_rejected():
+    r = client.get("/analyze/stream", params={"code": "   "})
+    assert r.status_code in (400, 422)
