@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 import time
 import os
 from collections import defaultdict
+import logging
 from contextlib import asynccontextmanager
 
 # Add user_data (or whatever your file name is) to the imports
@@ -20,6 +21,7 @@ from .schemas import HealthResponse
 
 from .routers import explanation, debugging, suggestions, analyze, subscribe, share
 from .services.scheduler import start_scheduler, stop_scheduler
+from .database import Base, engine
 
 from .schemas import HealthResponse
 
@@ -53,6 +55,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("🚀 QyverixAI backend starting…")
+    Base.metadata.create_all(bind=engine)
     start_scheduler()
     yield
     stop_scheduler()
@@ -188,6 +191,7 @@ if os.path.isdir(_frontend):
 # ── Global error handler ──────────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logging.exception("Unhandled error")
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error. Please try again."},
