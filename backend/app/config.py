@@ -67,6 +67,8 @@ class Settings:
     llm_base_url: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
     llm_model: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
     llm_timeout_seconds: int = _int_env("LLM_TIMEOUT_SECONDS", 30)
+    llm_max_retries: int = _int_env("LLM_MAX_RETRIES", 3)
+    llm_retry_backoff: float = _float_env("LLM_RETRY_BACKOFF", 1.0)
 
     # ── Email / Digest ──────────────────────────────────────────
     smtp_host: str = os.getenv("SMTP_HOST", "")
