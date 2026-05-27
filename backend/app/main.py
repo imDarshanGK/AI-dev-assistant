@@ -3,31 +3,28 @@ QyverixAI — Backend API
 FastAPI application with advanced middleware, rate limiting, and full analysis engine.
 """
 
-# Ensure environment variables from project .env are loaded before other imports
-from dotenv import find_dotenv, load_dotenv
-load_dotenv(find_dotenv(filename=".env", usecwd=True), override=False)
-
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
+# stdlib — safe to import before env loading
 import time
 import os
 from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
 
-from .routers import explanation, debugging, suggestions, analyze, subscribe
-from .services.scheduler import start_scheduler, stop_scheduler
-from .schemas import HealthResponse
-from .services import ai_provider
+# Load .env before importing app modules that read env vars at import time
+from dotenv import find_dotenv, load_dotenv
+load_dotenv(find_dotenv(filename=".env", usecwd=True), override=False)
 
-from .routers import explanation, debugging, suggestions, analyze, subscribe, share
-from .services.scheduler import start_scheduler, stop_scheduler
-from .database import Base, engine
+from fastapi import FastAPI, Request  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.middleware.gzip import GZipMiddleware  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
 
-from .schemas import HealthResponse
+from .routers import explanation, debugging, suggestions, analyze, subscribe, share  # noqa: E402
+from .services.scheduler import start_scheduler, stop_scheduler  # noqa: E402
+from .schemas import HealthResponse  # noqa: E402
+from .services import ai_provider  # noqa: E402
+from .database import Base, engine  # noqa: E402
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))

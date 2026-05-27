@@ -9,11 +9,9 @@ import os
 import asyncio
 import logging
 import time
+import hashlib
 from urllib.parse import urlparse
 import httpx
-
-import hashlib
-import time
 
 _LLM_FIX_CACHE: dict[str,tuple[str,float]] = {}
 logger = logging.getLogger("ai_provider")
@@ -154,7 +152,7 @@ def call_llm_sync(system:str, user:str)->str | None:
     """sync version of call_llm for use in sync contexts."""
     if not LLM_ENABLED or not LLM_API_KEY:
         return None
-    
+
     headers = {
         "Authorization":f"Bearer {LLM_API_KEY}",
         "Content-Type":"application/json",
@@ -175,7 +173,7 @@ def call_llm_sync(system:str, user:str)->str | None:
             r = client.post(
                 f"{LLM_BASE_URL}/chat/completions",
                 headers = headers,
-                json = payload, 
+                json = payload,
             )
 
             r.raise_for_status()
@@ -184,7 +182,7 @@ def call_llm_sync(system:str, user:str)->str | None:
     except Exception as e:
         print(f"[LLM] sync Error: {e}")
         return None
-    
+
 
 def get_fix_for_issue(
         bug_type: str,
@@ -197,7 +195,7 @@ def get_fix_for_issue(
 
     if not is_enabled():
         return None, False
-    
+
     # cache key from bug_type + description + code_context(first 512)
     raw_key = f"{bug_type}|{description}|{code_context[:512]}"
     cache_key = hashlib.sha256(raw_key.encode()).hexdigest()
@@ -208,7 +206,7 @@ def get_fix_for_issue(
 
         if time.time()<expires_at:
             return cached_text, True  #cachehit
-        
+
         del _LLM_FIX_CACHE[cache_key] #cache expired, remove
 
     system_prompt = (

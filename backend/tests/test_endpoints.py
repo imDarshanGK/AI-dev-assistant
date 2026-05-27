@@ -713,9 +713,6 @@ def test_llm_enabled_generates_fix(monkeypatch):
     )
 
     r = client.post("/debugging/", json={"code": "x = eval(user_input)", "language": "python"})
-
-def test_explanation_swift_with_hint():
-    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT, "language": "swift"})
     assert r.status_code == 200
     issues = r.json()["issues"]
     eval_issue = next((i for i in issues if i["type"] == "Eval Usage"), None)
@@ -723,6 +720,12 @@ def test_explanation_swift_with_hint():
     assert eval_issue["suggestion"] == "Use ast.literal_eval() instead of eval() to safely parse expressions."
     assert eval_issue["ai_generated"] is True
     assert eval_issue["ai_cached"] is False
+
+def test_explanation_swift_with_hint():
+    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT, "language": "swift"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["language"].lower() == "swift"
 
 
 def test_llm_fallback_to_rule_on_failure(monkeypatch):
