@@ -3384,11 +3384,12 @@
 
         const base = getApiBase();
         const endpointMap = {
+          analyze: '/analyze/',
           explain: '/explanation/',
           debug: '/debugging/',
           suggest: '/suggestions/',
         };
-        const endpoint = endpointMap[selectedMode] || '/explanation/';
+        const endpoint = endpointMap[selectedMode] || '/analyze/';
 
         try {
           if (selectedZipFile) {
@@ -3431,7 +3432,9 @@
           const elapsed = res.headers.get('X-Process-Time-Ms');
 
           let result;
-          if (selectedMode === 'explain') {
+          if (selectedMode === 'analyze') {
+            result = data;
+          } else if (selectedMode === 'explain') {
             result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
           } else if (selectedMode === 'debug') {
             result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
