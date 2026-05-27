@@ -2,12 +2,13 @@
 QyverixAI — Test Suite
 Run: cd backend && pytest -v
 """
-import io
-import zipfile
+
+import json
 
 import pytest
 from fastapi.testclient import TestClient
-import sys, os
+import sys
+import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app import main as app_main
@@ -691,8 +692,42 @@ def test_single_line_code():
     assert r.status_code == 200
 
 
-# ── Swift Detection (issue #62) ──
-SAMPLE_SWIFT = 'import Foundation\nfunc greet() {\n    let msg = "Hello"\n    print(msg)\n}\nvar score: Int = 0\n'
+# ── SSE Streaming ─────────────────────────────────────────────────────────────
+def _parse_sse_events(text: str) -> list[dict]:
+    events = []
+    for line in text.splitlines():
+        if line.startswith("data: "):
+            try:
+                events.append(json.loads(line[6:]))
+            except json.JSONDecodeError:
+                pass
+    return events
+
+
+def test_post_stream_returns_event_stream_content_type():
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    assert "text/event-stream" in r.headers.get("content-type", "")
+
+
+def test_post_stream_emits_all_sections():
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    types = [e["type"] for e in _parse_sse_events(r.text)]
+    assert types == ["explanation", "debugging", "suggestions", "done"]
+
+
+def test_get_stream_returns_event_stream_content_type():
+    r = client.get("/analyze/stream", params={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    assert "text/event-stream" in r.headers.get("content-type", "")
+
+
+def test_get_stream_emits_all_sections():
+    r = client.get("/analyze/stream", params={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    types = [e["type"] for e in _parse_sse_events(r.text)]
+    assert types == ["explanation", "debugging", "suggestions", "done"]
 
 
 
@@ -721,8 +756,8 @@ def test_llm_enabled_generates_fix(monkeypatch):
     assert eval_issue["ai_generated"] is True
     assert eval_issue["ai_cached"] is False
 
-def test_explanation_swift_with_hint():
-    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT, "language": "swift"})
+def test_get_stream_with_language_hint():
+    r = client.get("/analyze/stream", params={"code": JS_CODE, "language": "javascript"})
     assert r.status_code == 200
     data = r.json()
     assert data["language"].lower() == "swift"
