@@ -1,6 +1,6 @@
 from __future__ import annotations
 import json
-from pydantic import BaseModel, field_validator, BeforeValidator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, BeforeValidator, ConfigDict
 from typing import Any, Annotated
 
 # Safely parse text database strings back into genuine Python dictionaries
@@ -11,7 +11,6 @@ def auto_parse_json(v: Any) -> Any:
         except (json.JSONDecodeError, TypeError):
             return {}
     return v
-from pydantic import BaseModel, Field, field_validator
 
 FlexibleDict = Annotated[dict[str, Any], BeforeValidator(auto_parse_json)]
 
