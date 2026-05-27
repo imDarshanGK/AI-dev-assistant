@@ -1,12 +1,14 @@
 import ast
 
+from .line_utils import format_code_snippet
+
 def _get_snippet(code: str, line: int) -> str:
     lines = code.splitlines()
     if 0 < line <= len(lines):
         return lines[line-1].strip()[:120]
     return ""
 
-def _make_issue(type, line, description, suggestion, severity, snippet):
+def _make_issue(type, line, description, suggestion, severity, snippet, code_str=""):
     return {
         "type": type,
         "line": line,
@@ -14,7 +16,7 @@ def _make_issue(type, line, description, suggestion, severity, snippet):
         "suggestion": suggestion,
         "severity": severity,
         "snippet": snippet,
-        "code_context": ""
+        "code_context": format_code_snippet(code_str, [line], context_lines=2) if code_str else ""
     }
 
 def detect_unreachable_code(tree, code):
@@ -37,6 +39,7 @@ def detect_unreachable_code(tree, code):
                         "Remove the unreachable code or fix the control flow.",
                         "warning",
                         _get_snippet(code, stmt.lineno),
+                        code,
                     ))
                 if isinstance(stmt, terminal):
                     terminal_line = getattr(stmt, "lineno", None)
@@ -78,6 +81,7 @@ def detect_unused_imports(tree, code):
                 "Remove the unused import.",
                 "warning",
                 _get_snippet(code, line),
+                code,
             ))
     return issues
 
@@ -107,6 +111,7 @@ def detect_unused_arguments(tree, code):
                     f"Remove '{param}' or prefix with '_' if intentionally unused.",
                     "info",
                     _get_snippet(code, node.lineno),
+                    code,
                 ))
 
     return issues
@@ -145,6 +150,7 @@ def detect_too_many_returns(tree, code):
                 "Refactor into smaller functions or use early returns consistently.",
                 "info",
                 _get_snippet(code, node.lineno),
+                code,
             ))
 
     return issues
@@ -164,6 +170,7 @@ def detect_deep_nesting(tree, code):
                     "Extract nested logic into separate functions.",
                     "warning",
                     _get_snippet(code, child.lineno),
+                    code,
                 ))
             walk(child, d)
 
