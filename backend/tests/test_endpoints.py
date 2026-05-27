@@ -2,12 +2,13 @@
 QyverixAI — Test Suite
 Run: cd backend && pytest -v
 """
-import io
-import zipfile
+
+import json
 
 import pytest
 from fastapi.testclient import TestClient
-import sys, os
+import sys
+import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app import main as app_main
@@ -604,6 +605,19 @@ def test_add():
     d = r.json()
     assert d["overall_score"] >= 60  # clean code should score reasonably
 
+def test_suggestions_observability_print_only_python():
+    # Pasting code with print() in Java should NOT trigger the Observability suggestion
+    r_java = client.post("/suggestions/", json={"code": 'print("hello");', "language": "java"})
+    assert r_java.status_code == 200
+    s_java = [s["category"] for s in r_java.json()["suggestions"]]
+    assert "Observability" not in s_java
+
+    # Pasting code with print() in Python SHOULD trigger the Observability suggestion
+    r_py = client.post("/suggestions/", json={"code": 'print("hello")', "language": "python"})
+    assert r_py.status_code == 200
+    s_py = [s["category"] for s in r_py.json()["suggestions"]]
+    assert "Observability" in s_py
+
 
 # ── Full Analysis ─────────────────────────────────────────────────────────────
 def test_full_analyze():
@@ -705,17 +719,61 @@ def test_single_line_code():
     assert r.status_code == 200
 
 
-# ── Swift Detection (issue #62) ──
-SAMPLE_SWIFT = 'import Foundation\nfunc greet() {\n    let msg = "Hello"\n    print(msg)\n}\nvar score: Int = 0\n'
+# ── SSE Streaming ─────────────────────────────────────────────────────────────
+def _parse_sse_events(text: str) -> list[dict]:
+    events = []
+    for line in text.splitlines():
+        if line.startswith("data: "):
+            try:
+                events.append(json.loads(line[6:]))
+            except json.JSONDecodeError:
+                pass
+    return events
 
 
-def test_explanation_swift():
-    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT})
+def test_post_stream_returns_event_stream_content_type():
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
     assert r.status_code == 200
-    assert r.json()["language"] == "Swift"
+    assert "text/event-stream" in r.headers.get("content-type", "")
 
 
-def test_explanation_swift_with_hint():
-    r = client.post("/explanation/", json={"code": SAMPLE_SWIFT, "language": "swift"})
+def test_post_stream_emits_all_sections():
+    r = client.post("/analyze/stream", json={"code": PYTHON_BUGGY})
     assert r.status_code == 200
-    assert r.json()["language"] == "Swift"
+    types = [e["type"] for e in _parse_sse_events(r.text)]
+    assert types == ["explanation", "debugging", "suggestions", "done"]
+
+
+def test_get_stream_returns_event_stream_content_type():
+    r = client.get("/analyze/stream", params={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    assert "text/event-stream" in r.headers.get("content-type", "")
+
+
+def test_get_stream_emits_all_sections():
+    r = client.get("/analyze/stream", params={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    types = [e["type"] for e in _parse_sse_events(r.text)]
+    assert types == ["explanation", "debugging", "suggestions", "done"]
+
+
+def test_get_stream_done_event_present():
+    r = client.get("/analyze/stream", params={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    events = _parse_sse_events(r.text)
+    done_events = [e for e in events if e["type"] == "done"]
+    assert len(done_events) == 1
+    assert "analysis_time_ms" in done_events[0]
+
+
+def test_get_stream_with_language_hint():
+    r = client.get("/analyze/stream", params={"code": JS_CODE, "language": "javascript"})
+    assert r.status_code == 200
+    events = _parse_sse_events(r.text)
+    exp = next(e["data"] for e in events if e["type"] == "explanation")
+    assert exp["language"] == "JavaScript"
+
+
+def test_get_stream_empty_code_rejected():
+    r = client.get("/analyze/stream", params={"code": "   "})
+    assert r.status_code in (400, 422)
