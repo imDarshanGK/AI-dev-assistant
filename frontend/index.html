@@ -526,6 +526,82 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
+       FEATURES SECTION (REDESIGNED)
+    ═══════════════════════════════════════════════════════════════ */
+    .features-section {
+      padding: 48px 0 32px;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .features-title {
+      text-align: center;
+      font-family: var(--font-disp);
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 32px;
+      color: var(--text);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 24px;
+      transition: all var(--transition);
+      cursor: default;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+    }
+
+    .feature-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      border: 1px solid transparent;
+    }
+
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .feature-card p {
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 600px) {
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      .features-section {
+        padding: 32px 0 24px;
+      }
+      .feature-card {
+        padding: 20px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
    WORKSPACE
 ═══════════════════════════════════════════════════════════════ */
     .workspace {
@@ -2091,61 +2167,59 @@
       </div>
     </section>
 
-    <!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
-    <div class="features-row">
-      <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg></div>
-        <div class="feat-pill-info">
-          <h4 data-i18n="pill_patterns_title">40+ Bug Patterns</h4>
-          <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
+    <!-- ── FEATURES SECTION ──────────────────────────────────────── -->
+    <section class="features-section" aria-label="Features">
+      <h2 class="features-title" data-i18n="features_title">Why Developers Love QyverixAI</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background: linear-gradient(135deg, rgba(34,212,123,0.15), rgba(34,212,123,0.05)); border-color: rgba(34,212,123,0.25);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--green);">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </div>
+          <h3 data-i18n="pill_patterns_title">40+ Bug Patterns</h3>
+          <p data-i18n="pill_patterns_desc">Detect issues across Python, JavaScript, TypeScript, Java, and C++ with rule-based precision.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background: linear-gradient(135deg, rgba(91,156,246,0.15), rgba(91,156,246,0.05)); border-color: rgba(91,156,246,0.25);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent);">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+          </div>
+          <h3 data-i18n="mode_explain">Code Explanation</h3>
+          <p data-i18n="pill_explain_desc">Get plain-English breakdowns of what your code does, complexity analysis, and key insights.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(124,58,237,0.05)); border-color: rgba(124,58,237,0.25);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent2);">
+              <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+            </svg>
+          </div>
+          <h3 data-i18n="mode_improve">Smart Suggestions</h3>
+          <p data-i18n="pill_improve_desc">Receive actionable improvements with a quality score and letter grade for your code.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background: linear-gradient(135deg, rgba(245,146,62,0.15), rgba(245,146,62,0.05)); border-color: rgba(245,146,62,0.25);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--orange);">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </div>
+          <h3 data-i18n="pill_theme_title">Dark / Light Mode</h3>
+          <p data-i18n="pill_theme_desc">Switch between themes seamlessly with your preference persisted across sessions.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background: linear-gradient(135deg, rgba(245,200,66,0.15), rgba(245,200,66,0.05)); border-color: rgba(245,200,66,0.25);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--yellow);">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            </svg>
+          </div>
+          <h3 data-i18n="pill_upload_title">File Upload</h3>
+          <p data-i18n="pill_upload_desc">Upload .py, .js, .ts, .java, .cpp, .kt, or .zip files for instant analysis.</p>
         </div>
       </div>
-      <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-          </svg></div>
-        <div class="feat-pill-info">
-          <h4 data-i18n="mode_explain">Code Explanation</h4>
-          <p data-i18n="pill_explain_desc">Plain English breakdowns</p>
-        </div>
-      </div>
-      <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
-          </svg></div>
-        <div class="feat-pill-info">
-          <h4 data-i18n="mode_improve">Smart Suggestions</h4>
-          <p data-i18n="pill_improve_desc">Quality score + grade</p>
-        </div>
-      </div>
-      <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg></div>
-        <div class="feat-pill-info">
-          <h4 data-i18n="pill_theme_title">Dark / Light Mode</h4>
-          <p data-i18n="pill_theme_desc">Persisted preference</p>
-        </div>
-      </div>
-      <div class="feat-pill">
-        <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-          </svg></div>
-        <div class="feat-pill-info">
-          <h4 data-i18n="pill_upload_title">File Upload</h4>
-          <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
-        </div>
-      </div>
-    </div>
+    </section>
 
     <!-- ── WORKSPACE ─────────────────────────────────────────────── -->
     <section id="workspace" class="workspace">
