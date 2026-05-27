@@ -1,7 +1,7 @@
 from pathlib import Path
 import magic
 
-from app.utils.upload_config import (
+from .upload_config import (
     ALLOWED_EXTENSIONS,
     ALLOWED_MIME_TYPES,
     BLOCKED_EXTENSIONS,
