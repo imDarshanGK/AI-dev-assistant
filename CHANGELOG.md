@@ -21,3 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Streaming API endpoint for real-time analysis
 - In-memory and Redis cache support
 - Share endpoint for saving and retrieving analysis results
+
+[Unreleased]: https://github.com/imDarshanGK/AI-dev-assistant/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/imDarshanGK/AI-dev-assistant/releases/tag/v1.0.0
