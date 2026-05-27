@@ -2075,6 +2075,155 @@
   .lang-tab{padding:7px 10px;font-size:0.72rem}
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
+
+/* ── Footer ── */
+.site-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+  font-family: var(--font-ui);
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 32px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 48px;
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent);
+  font-family: var(--font-disp);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.footer-logo svg {
+  stroke: var(--accent);
+}
+
+.footer-tagline {
+  font-size: 0.875rem;
+  color: var(--text2);
+  line-height: 1.6;
+  max-width: 240px;
+}
+
+.footer-nav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.footer-nav-col h4 {
+  font-family: var(--font-disp);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.footer-nav-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-nav-col a {
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer-nav-col a:hover {
+  color: var(--accent);
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.footer-bottom-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.footer-copyright {
+  font-size: 0.8rem;
+  color: var(--text3);
+}
+
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r2);
+  color: var(--text2);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+}
+
+.footer-social a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 32px 20px 24px;
+  }
+  .footer-nav {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  .footer-bottom-container {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-nav {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
 <link rel="icon" href="data:,">
 </head>
@@ -4405,6 +4554,71 @@ int main() {
         }
       });
     </script>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FOOTER
+    ═══════════════════════════════════════════════════════════════ -->
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+            <span>QyverixAI</span>
+          </div>
+          <p class="footer-tagline">AI-powered developer assistant for smarter coding.</p>
+        </div>
+
+        <div class="footer-nav">
+          <div class="footer-nav-col">
+            <h4>Product</h4>
+            <ul>
+              <li><a href="#workspace">Code Analyzer</a></li>
+              <li><a href="#workspace">Debugger</a></li>
+              <li><a href="#workspace">Explainer</a></li>
+              <li><a href="#workspace">Suggestions</a></li>
+            </ul>
+          </div>
+          <div class="footer-nav-col">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" rel="noopener">GitHub Repo</a></li>
+              <li><a href="/docs">API Docs</a></li>
+              <li><a href="#features">Features</a></li>
+            </ul>
+          </div>
+          <div class="footer-nav-col">
+            <h4>Community</h4>
+            <ul>
+              <li><a href="https://github.com/imDarshanGK/AI-dev-assistant/issues" target="_blank" rel="noopener">Issues</a></li>
+              <li><a href="https://github.com/imDarshanGK/AI-dev-assistant/discussions" target="_blank" rel="noopener">Discussions</a></li>
+              <li><a href="mailto:contact@qyverixai.com">Contact</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="footer-bottom-container">
+          <p class="footer-copyright">© 2026 QyverixAI. All rights reserved.</p>
+          <div class="footer-social">
+            <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" rel="noopener" aria-label="GitHub">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+              </svg>
+            </a>
+            <a href="#" aria-label="Twitter">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
 </body>
 
 </html>

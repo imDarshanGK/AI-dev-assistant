@@ -181,6 +181,21 @@ if os.path.isdir(_frontend):
     app.mount("/app", StaticFiles(directory=_frontend, html=True), name="frontend")
 
 
+# ── 404 Fallback for frontend routes ──────────────────────────────────────────
+from fastapi.responses import FileResponse
+
+@app.get("/app/{path:path}")
+async def frontend_fallback(path: str):
+    """Serve 404.html for any unmatched frontend route."""
+    not_found = os.path.join(_frontend, "404.html")
+    if os.path.isfile(not_found):
+        return FileResponse(not_found, status_code=404)
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Page not found."},
+    )
+
+
 # ── Global error handler ──────────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
