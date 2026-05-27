@@ -131,7 +131,10 @@ def _project_grade(score: int) -> str:
 
 
 def _safe_zip_name(name: str) -> str:
-    return name.replace("\\", "/").lstrip("/")
+    clean_name = name.replace("\\", "/").lstrip("/")
+    if ".." in PurePosixPath(clean_name).parts:
+        raise ValueError("Invalid path: contains '..'")
+    return clean_name
 
 
 def _is_safe_member(name: str) -> bool:
