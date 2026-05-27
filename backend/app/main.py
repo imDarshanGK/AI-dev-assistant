@@ -20,6 +20,7 @@ from .routers import (
     explanation,
     history,
     share,
+    suggestions,
     subscribe,
     upload_file,
 )
