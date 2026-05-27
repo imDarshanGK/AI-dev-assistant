@@ -692,6 +692,15 @@
       color: var(--text3)
     }
 
+    #charCount.warn {
+      color: var(--yellow)
+    }
+
+    #charCount.danger,
+    #charCount.limit {
+      color: var(--red)
+    }
+
     /* ── Mode Selector ── */
     .mode-row {
       display: flex;
@@ -2865,17 +2874,40 @@
       /* ═══════════════════════════════════════════════════════════════
          EDITOR
       ═══════════════════════════════════════════════════════════════ */
+      const CHAR_WARN = 40_000;
+      const CHAR_DANGER = 48_000;
+      const CHAR_MAX = 50_000;
+
       function updateEditor() {
         const val = editor.value;
         const lines = val ? val.split('\n').length : 0;
         const chars = val.length;
         const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-        charCount.textContent = val
-          ? getTranslation('char_count_format')
-              .replace('{chars}', chars.toLocaleString())
-              .replace('{lines}', lines)
-              .replace('{nonBlank}', nonBlank)
-          : getTranslation('char_count_initial');
+
+        charCount.classList.remove('warn', 'danger', 'limit');
+
+        if (!val) {
+          charCount.textContent = 'Paste or type code to begin';
+        } else if (chars >= CHAR_MAX) {
+          charCount.classList.add('limit');
+          charCount.textContent = 'Code too long - max 50,000 characters';
+        } else if (chars >= CHAR_DANGER) {
+          charCount.classList.add('danger');
+          charCount.textContent =
+            chars.toLocaleString() + ' chars · ' + lines + ' lines · Approaching limit';
+        } else if (chars >= CHAR_WARN) {
+          charCount.classList.add('warn');
+          charCount.textContent =
+            chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank';
+        } else {
+          charCount.textContent =
+            chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank';
+        }
+
+        if (!analyzeBtn.classList.contains('loading')) {
+          analyzeBtn.disabled = chars >= CHAR_MAX;
+        }
+
         const lineCount = Math.max(lines, 1);
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
@@ -3221,7 +3253,8 @@
 
       async function doAnalyze() {
         const code = editor.value.trim();
-        if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
+        if (!code) { toast('Please paste some code first.', 'error'); return; }
+        if (editor.value.length >= CHAR_MAX) return;
 
         const base = getApiBase();
         const endpointMap = {
@@ -3305,7 +3338,7 @@
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');
-          analyzeBtn.disabled = false;
+          analyzeBtn.disabled = editor.value.length >= CHAR_MAX;
         }
       }
 
