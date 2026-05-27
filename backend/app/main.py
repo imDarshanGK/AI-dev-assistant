@@ -19,11 +19,9 @@ from .routers import explanation, debugging, suggestions, analyze, subscribe, us
 from .services.scheduler import start_scheduler, stop_scheduler
 from .schemas import HealthResponse
 
-from .routers import explanation, debugging, suggestions, analyze, subscribe, share
-from .services.scheduler import start_scheduler, stop_scheduler
+from .routers import share
 from .database import Base, engine
 
-from .schemas import HealthResponse
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
