@@ -25,7 +25,7 @@ def index_upload():
 
 
 @router.post('/validate')
-async def upload_file(file: UploadFile):
+async def upload_file_route(file: UploadFile):
 
     if file is None:
         raise HTTPException(
