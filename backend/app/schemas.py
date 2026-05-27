@@ -120,6 +120,30 @@ class UnsubscribeRequest(BaseModel):
     token: str
 
 
+class ChatRequest(BaseModel):
+    message: str
+    code: str | None = None
+    history: list[str] = Field(default_factory=list)
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
+class ChatMessageRequest(BaseModel):
+    message: str
+    code: str | None = None
+    history: list[str] = Field(default_factory=list)
+    level: str = "beginner"
+
+
+class ChatMessageResponse(BaseModel):
+    provider: str
+    model: str
+    mode: str
+    reply: str
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str

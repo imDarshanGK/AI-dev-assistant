@@ -1351,3 +1351,34 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         "suggestions": sugg,
         "analysis_time_ms": round(elapsed_ms, 2),
     }
+
+
+def chat_fallback_reply(message: str, code: str | None, history: list[str], level: str) -> str:
+    """Generate a simple rule-based chat reply when LLM is unavailable.
+
+    Args:
+        message: The user's question.
+        code: Optional code snippet for context.
+        history: Previous chat messages.
+        level: Explanation level (beginner, intermediate, advanced).
+
+    Returns:
+        A friendly fallback response.
+    """
+    if not code:
+        return (
+            f"I'm a rule-based assistant (LLM offline). I can analyze code for bugs, "
+            f"explain what it does, and suggest improvements. Paste some code and I'll help!"
+        )
+
+    language = detect_language(code)
+    complexity = estimate_complexity(code)
+
+    return (
+        f"I'm running in fallback mode (LLM unavailable). Based on the {language} code you shared "
+        f"({complexity} level), I can:\n"
+        f"1. Run a full analysis (bugs + explanations + suggestions)\n"
+        f"2. Explain what the code does in {level}-friendly terms\n"
+        f"3. Debug and find issues\n\n"
+        f"Paste the code in the editor and click 'Analyze' to get started!"
+    )
