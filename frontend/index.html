@@ -10,6 +10,24 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet" />
+    <link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism-tomorrow.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs/prism.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-python.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-javascript.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-typescript.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-java.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-c.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-cpp.min.js"></script>
+
+<style>
   <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -643,40 +661,151 @@
     }
 
     /* ── Code Editor ── */
-    .editor-wrap {
-      position: relative;
-      display: flex
-    }
 
-    .line-numbers {
-      padding: 16px 0 16px 12px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.7;
-      color: var(--text3);
-      user-select: none;
-      min-width: 44px;
-      text-align: right;
-      background: var(--bg3);
-      border-right: 1px solid var(--border);
-    }
+.editor-wrap {
+    position: relative;
+    display: flex;
+}
 
-    #codeEditor {
-      width: 100%;
-      min-height: 300px;
-      max-height: 500px;
-      padding: 16px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.7;
-      color: var(--text);
-      background: transparent;
-      border: none;
-      outline: none;
-      resize: vertical;
-      tab-size: 2;
-    }
+.editor-area {
 
+    position: relative;
+
+    width: 100%;
+
+    height: 500px;
+
+    overflow: hidden;
+}
+.line-numbers {
+    padding: 16px 0 16px 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text3);
+    user-select: none;
+    min-width: 44px;
+    text-align: right;
+    background: var(--bg3);
+    border-right: 1px solid var(--border);
+}
+
+#highlighting {
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    margin: 0;
+
+    padding: 16px;
+
+    padding-top: 17px;
+
+    overflow: auto;
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    letter-spacing: normal;
+
+    white-space: pre-wrap;
+
+    word-wrap: break-word;
+
+    line-height: 24px;
+
+    user-select: none;
+
+    font-variant-ligatures: none;
+
+    tab-size: 2;
+
+    pointer-events: none;
+
+    background: transparent;
+
+    color: var(--text);
+
+    z-index: 1;
+}
+
+#highlighting-content {
+
+    display: block;
+
+    min-height: 300px;
+
+    font-family: inherit;
+}
+.token.comment { color: #6a9955; }
+.token.keyword { color: #569cd6; }
+.token.string { color: #ce9178; }
+.token.function { color: #dcdcaa; }
+.token.number { color: #b5cea8; }
+.token.operator { color: #d4d4d4; }
+.token.class-name { color: #4ec9b0; }
+.token.directive { color: #c586c0;}
+.token.macro { color: #c586c0;}
+
+#codeEditor {
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    margin: 0;
+
+    padding: 16px;
+
+    padding-top: 17px;
+
+    width: 100%;
+
+    overflow: auto;
+
+    border: none;
+
+    outline: none;
+
+    resize: none;
+
+    background: transparent;
+
+    color: transparent;
+
+    caret-color: var(--text);
+
+    font-family: var(--font-mono);
+
+    font-variant-ligatures: none;
+
+    line-height: 24px;
+
+    font-size: 13px;
+
+    letter-spacing: normal;
+
+    white-space: pre-wrap;
+
+    word-wrap: break-word;
+
+    tab-size: 2;
+
+    z-index: 2;
+}
+#codeEditor,
+#highlighting {
+
+    box-sizing: border-box;
+}
     .editor-footer {
       display: flex;
       align-items: center;
@@ -2091,6 +2220,20 @@
       </div>
     </section>
 
+    <!-- Language tabs -->
+    <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
+      <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
+      <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false">JavaScript</button>
+      <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false">TypeScript</button>
+      <button class="lang-tab" data-lang="java" role="tab" aria-selected="false">Java</button>
+      <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false">C++</button>
+    </div>
+        <!-- Editor -->
+<div class="editor-wrap">
+        <div class="editor-wrap">
+          <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…"
+            spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" aria-label="Code Editor"></textarea>
     <!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
     <div class="features-row">
       <div class="feat-pill">
@@ -2147,6 +2290,79 @@
       </div>
     </div>
 
+  <div class="line-numbers"
+       id="lineNumbers"
+       aria-hidden="true">1</div>
+
+  <div class="editor-area">
+
+    <pre id="highlighting"
+         aria-hidden="true">
+
+<code id="highlighting-content"
+class="language-python"></code>
+
+    </pre>
+
+    <textarea
+      id="codeEditor"
+      placeholder="# Paste your code here or click 'Try Sample Code' above…"
+      spellcheck="false"
+      autocorrect="off"
+      autocapitalize="off"
+      autocomplete="off"
+      aria-label="Code Editor"></textarea>
+
+  </div>
+
+</div>
+
+<div class="editor-footer">
+  <span id="charCount">0 chars · 0 lines</span>
+  <span>Ctrl+Enter to analyze</span>
+</div>
+        <!-- Mode buttons -->
+        <div class="mode-row" role="tablist" aria-label="Analysis Modes">
+          <button class="mode-btn active" data-mode="analyze" role="tab" aria-selected="true">
+            <span class="mode-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+              </svg></span>
+            <span class="mode-btn-label">Full</span>
+          </button>
+          <button class="mode-btn" data-mode="explain" role="tab" aria-selected="false">
+            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg></span>
+            <span class="mode-btn-label">Explain</span>
+          </button>
+          <button class="mode-btn" data-mode="debug" role="tab" aria-selected="false">
+            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M8 2l1.5 1.5" />
+                <path d="M14.5 3.5L16 2" />
+                <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
+                <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
+                <line x1="12" y1="12" x2="12" y2="16" />
+                <path d="M4.5 15H2" />
+                <path d="M22 15h-2.5" />
+                <path d="M4.5 19l-2 2" />
+                <path d="M19.5 19l2 2" />
+              </svg></span>
+            <span class="mode-btn-label">Debug</span>
+          </button>
+          <button class="mode-btn" data-mode="suggest" role="tab" aria-selected="false">
+            <span class="mode-btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+              </svg></span>
+            <span class="mode-btn-label">Improve</span>
+          </button>
     <!-- ── WORKSPACE ─────────────────────────────────────────────── -->
     <section id="workspace" class="workspace">
 
@@ -4292,6 +4508,88 @@ int main() {
       renderFavorites();
 
       // Save API URL
+      apiUrlInput.addEventListener('change', () => {
+        localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
+      });
+      const savedUrl = localStorage.getItem('qyx_apiUrl');
+      if (savedUrl) apiUrlInput.value = savedUrl;
+      const highlighting =
+    document.getElementById("highlighting-content");
+
+const highlightingContainer =
+    document.getElementById("highlighting");
+
+function updateHighlight() {
+
+    let activeLang =
+        document.querySelector(".lang-tab.active")
+        ?.dataset.lang || "python";
+
+    const prismLanguageMap = {
+
+        python: "python",
+
+        javascript: "javascript",
+
+        typescript: "typescript",
+
+        java: "java",
+
+        cpp: "cpp"
+
+    };
+
+    const prismLang =
+        prismLanguageMap[activeLang]
+        || "javascript";
+
+    highlighting.className =
+        `language-${prismLang}`;
+
+    highlighting.innerHTML =
+        Prism.highlight(
+            editor.value,
+            Prism.languages[prismLang]
+            || Prism.languages.javascript,
+            prismLang
+        );
+}
+
+editor.addEventListener(
+    "input",
+    updateHighlight
+);
+
+editor.addEventListener(
+    "scroll",
+    () => {
+
+        highlightingContainer.scrollTop =
+            editor.scrollTop;
+
+        highlightingContainer.scrollLeft =
+            editor.scrollLeft;
+    }
+);
+
+document
+.querySelectorAll(".lang-tab")
+.forEach(tab => {
+
+    tab.addEventListener(
+        "click",
+        () => {
+
+            setTimeout(
+                updateHighlight,
+                0
+            );
+        }
+    );
+
+});
+
+updateHighlight();
       if (apiUrlInput) {
         apiUrlInput.addEventListener('change', () => {
           localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
