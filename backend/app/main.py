@@ -14,6 +14,7 @@ from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
 
+from .routers import  upload_file
 
 from .routers import explanation, debugging, suggestions, analyze, subscribe, share
 from .services.scheduler import start_scheduler, stop_scheduler
@@ -130,8 +131,11 @@ async def add_cache_header(request: Request, call_next):
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
 app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
-app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
+app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
+app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
+app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+# app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+# app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
 app.include_router(share.router)
 
 
