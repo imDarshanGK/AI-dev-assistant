@@ -692,6 +692,15 @@
       color: var(--text3)
     }
 
+    #charCount.warn {
+      color: var(--yellow)
+    }
+
+    #charCount.danger,
+    #charCount.limit {
+      color: var(--red)
+    }
+
     /* ── Mode Selector ── */
     .mode-row {
       display: flex;
@@ -2213,6 +2222,18 @@
           </button>
         </div>
 
+        <!-- API Config (input + status) -->
+        <div class="api-config-row" style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <div style="display:flex;align-items:center;gap:8px;flex:1">
+            <div id="apiDot" class="api-dot" aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:var(--text3)"></div>
+            <input id="apiUrl" placeholder="https://qyverixai.onrender.com" style="flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)" />
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="apiStatusText" data-status="disconnected" style="font-size:0.85rem;color:var(--text3)">Disconnected</div>
+            <button id="pingBtn" class="icon-btn" title="Ping API" style="padding:6px 10px">Ping</button>
+          </div>
+        </div>
+
         <!-- Result action buttons (hidden until results) -->
         <div id="resultActions" class="result-actions" style="display:none">
           <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
@@ -2307,18 +2328,9 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title" data-i18n="history_title">Query History</div>
-          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear"
-        data-i18n="btn_clear">>Clear</button>
-
-<button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">
-  Download JSON
-</button>
-
-<button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">
-  Download CSV
-</button>
-          <div class="panel-title" data-i18n="history_title">Query History</div>
           <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
+          <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
+          <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
           <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
@@ -2874,17 +2886,40 @@
       /* ═══════════════════════════════════════════════════════════════
          EDITOR
       ═══════════════════════════════════════════════════════════════ */
+      const CHAR_WARN = 40_000;
+      const CHAR_DANGER = 48_000;
+      const CHAR_MAX = 50_000;
+
       function updateEditor() {
         const val = editor.value;
         const lines = val ? val.split('\n').length : 0;
         const chars = val.length;
         const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-        charCount.textContent = val
-          ? getTranslation('char_count_format')
-              .replace('{chars}', chars.toLocaleString())
-              .replace('{lines}', lines)
-              .replace('{nonBlank}', nonBlank)
-          : getTranslation('char_count_initial');
+
+        charCount.classList.remove('warn', 'danger', 'limit');
+
+        if (!val) {
+          charCount.textContent = 'Paste or type code to begin';
+        } else if (chars >= CHAR_MAX) {
+          charCount.classList.add('limit');
+          charCount.textContent = 'Code too long - max 50,000 characters';
+        } else if (chars >= CHAR_DANGER) {
+          charCount.classList.add('danger');
+          charCount.textContent =
+            chars.toLocaleString() + ' chars · ' + lines + ' lines · Approaching limit';
+        } else if (chars >= CHAR_WARN) {
+          charCount.classList.add('warn');
+          charCount.textContent =
+            chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank';
+        } else {
+          charCount.textContent =
+            chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank';
+        }
+
+        if (!analyzeBtn.classList.contains('loading')) {
+          analyzeBtn.disabled = chars >= CHAR_MAX;
+        }
+
         const lineCount = Math.max(lines, 1);
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
@@ -3170,7 +3205,8 @@
           document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
           t.classList.add('active');
           t.setAttribute('aria-selected', 'true');
-          document.getElementById(`pane-${tab}`).classList.add('active');
+          const paneEl = document.getElementById(`pane-${tab}`);
+          if (paneEl) paneEl.classList.add('active');
         });
       });
 
@@ -3192,24 +3228,24 @@
          API PING
       ═══════════════════════════════════════════════════════════════ */
       async function pingApi() {
-        if (!apiUrlInput || !apiDot || !apiStatusText) return;
+        if (!apiUrlInput || !apiStatusText) return;
         const base = getApiBase();
         try {
           const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
           if (r.ok) {
-            apiDot.classList.add('connected');
+            apiDot?.classList.add('connected');
             apiStatusText.dataset.status = 'connected';
             delete apiStatusText.dataset.statusCode;
             syncApiStatusText();
             toast(getTranslation('toast_api_reachable'), 'success');
           } else {
-            apiDot.classList.remove('connected');
+            apiDot?.classList.remove('connected');
             apiStatusText.dataset.status = 'error';
             apiStatusText.dataset.statusCode = String(r.status);
             syncApiStatusText();
           }
         } catch {
-          apiDot.classList.remove('connected');
+          apiDot?.classList.remove('connected');
           apiStatusText.dataset.status = 'unreachable';
           delete apiStatusText.dataset.statusCode;
           syncApiStatusText();
@@ -3229,21 +3265,16 @@
 
       async function doAnalyze() {
         const code = editor.value.trim();
-        if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
+        if (!code) { toast('Please paste some code first.', 'error'); return; }
+        if (editor.value.length >= CHAR_MAX) return;
 
         const base = getApiBase();
         const endpointMap = {
-          analyze: '/analyze/',
           explain: '/explanation/',
           debug: '/debugging/',
           suggest: '/suggestions/',
         };
-        const endpoint = endpointMap[selectedMode] || '/analyze/';
-
-        // Loading state
-        analyzeBtn.classList.add('loading');
-        analyzeBtn.disabled = true;
-        showShimmers();
+        const endpoint = endpointMap[selectedMode] || '/explanation/';
 
         try {
           if (selectedZipFile) {
@@ -3263,8 +3294,8 @@
             currentResult = data;
             renderZipResults(data);
             addToHistory(`ZIP: ${selectedZipFile.name}`, data);
-            apiDot.classList.add('connected');
-            apiStatusText.textContent = 'Connected';
+            apiDot?.classList.add('connected');
+            if (apiStatusText) apiStatusText.textContent = 'Connected';
             document.getElementById('engineBar').style.display = 'flex';
             engineInfo.textContent = `${data.provider || 'rule-based'} · ${data.model || ''}`;
             timeInfo.textContent = data.analysis_time_ms ? data.analysis_time_ms + 'ms' : '';
@@ -3285,11 +3316,8 @@
           const data = await res.json();
           const elapsed = res.headers.get('X-Process-Time-Ms');
 
-          // Normalize to full analysis shape
           let result;
-          if (selectedMode === 'analyze') {
-            result = data;
-          } else if (selectedMode === 'explain') {
+          if (selectedMode === 'explain') {
             result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
           } else if (selectedMode === 'debug') {
             result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
@@ -3300,21 +3328,91 @@
           currentResult = result;
           renderResults(result, code);
           addToHistory(code, result);
-          apiDot.classList.add('connected');
-          apiStatusText.textContent = getTranslation('api_status_connected');
+          apiDot?.classList.add('connected');
+          if (apiStatusText) apiStatusText.textContent = getTranslation('api_status_connected');
           document.getElementById('engineBar').style.display = 'flex';
           engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
           if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
-          else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
-          resultActions.style.display = 'flex';
 
+          resultActions.style.display = 'flex';
         } catch (err) {
           toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');
-          analyzeBtn.disabled = false;
+          analyzeBtn.disabled = editor.value.length >= CHAR_MAX;
         }
+      }
+
+      /**
+       * Stream the full analysis via POST /analyze/stream (SSE).
+       * Renders each section (explain → debug → suggest) as its chunk arrives,
+       * replacing the shimmer placeholder progressively.
+       */
+      async function doAnalyzeStream(code) {
+        const base = getApiBase();
+        const res = await fetch(`${base}/analyze/stream`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, language: selectedLang }),
+          signal: AbortSignal.timeout(30000),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let result = { explanation: null, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+        let firstSection = true;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // SSE lines end with \n\n — split on that to get complete events
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop() || '';   // keep any incomplete trailing chunk
+
+          for (const part of parts) {
+            for (const line of part.split('\n')) {
+              if (!line.startsWith('data: ')) continue;
+              let event;
+              try { event = JSON.parse(line.slice(6)); } catch { continue; }
+
+              if (event.type === 'explanation') {
+                result.explanation = event.data;
+                renderExplain(event.data);
+                if (firstSection) {
+                  document.querySelector('[data-rtab="explain"]').click();
+                  firstSection = false;
+                }
+              } else if (event.type === 'debugging') {
+                result.debugging = event.data;
+                renderDebug(event.data);
+              } else if (event.type === 'suggestions') {
+                result.suggestions = event.data;
+                renderSuggest(event.data);
+              } else if (event.type === 'done') {
+                result.provider = event.provider || 'rule-based';
+                result.model = event.model || '';
+                result.analysis_time_ms = event.analysis_time_ms;
+                document.getElementById('engineBar').style.display = 'flex';
+                engineInfo.textContent = result.provider + ' · ' + result.model;
+                if (event.analysis_time_ms) timeInfo.textContent = event.analysis_time_ms + 'ms';
+                resultActions.style.display = 'flex';
+              }
+            }
+          }
+        }
+
+        currentResult = result;
+        addToHistory(code, result);
       }
 
       /* ═══════════════════════════════════════════════════════════════
@@ -3880,55 +3978,49 @@
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
-  history = [];
-  localStorage.removeItem('qyx_history');
-  renderHistory();
-  toast('History cleared', 'info');
-});
+      document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+        if (!history || history.length === 0) {
+          toast('No history to download', 'info');
+          return;
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+        const dlNode = document.createElement('a');
+        dlNode.setAttribute("href", dataStr);
+        dlNode.setAttribute("download", "history.json");
+        document.body.appendChild(dlNode);
+        dlNode.click();
+        dlNode.remove();
+        toast('Downloaded history.json', 'success');
+      });
 
-document.getElementById('downloadJsonBtn').addEventListener('click', () => {
-  if (!history || history.length === 0) {
-    toast('No history to download', 'info');
-    return;
-  }
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
-  const dlNode = document.createElement('a');
-  dlNode.setAttribute("href", dataStr);
-  dlNode.setAttribute("download", "history.json");
-  document.body.appendChild(dlNode);
-  dlNode.click();
-  dlNode.remove();
-  toast('Downloaded history.json', 'success');
-});
+      document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+        if (!history || history.length === 0) {
+          toast('No history to download', 'info');
+          return;
+        }
 
-document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-  if (!history || history.length === 0) {
-    toast('No history to download', 'info');
-    return;
-  }
-  
-  const headers = Object.keys(history[0]);
-  const csvRows = [];
-  csvRows.push(headers.join(','));
-  
-  for (const row of history) {
-    const values = headers.map(header => {
-      let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
-      val = val.replace(/"/g, '""');
-      return `"${val}"`;
-    });
-    csvRows.push(values.join(','));
-  }
-  
-  const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
-  const dlNode = document.createElement('a');
-  dlNode.setAttribute("href", csvContent);
-  dlNode.setAttribute("download", "history.csv");
-  document.body.appendChild(dlNode);
-  dlNode.click();
-  dlNode.remove();
-  toast('Downloaded history.csv', 'success');
-});
+        const headers = Object.keys(history[0]);
+        const csvRows = [];
+        csvRows.push(headers.join(','));
+
+        for (const row of history) {
+          const values = headers.map(header => {
+            let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
+            val = val.replace(/"/g, '""');
+            return `"${val}"`;
+          });
+          csvRows.push(values.join(','));
+        }
+
+        const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
+        const dlNode = document.createElement('a');
+        dlNode.setAttribute("href", csvContent);
+        dlNode.setAttribute("download", "history.csv");
+        document.body.appendChild(dlNode);
+        dlNode.click();
+        dlNode.remove();
+        toast('Downloaded history.csv', 'success');
+      });
       function loadEntry(id) {
         const entry = history.find(h => h.id === Number (id));
         console.log(entry);
@@ -3944,6 +4036,8 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
+
+      window.loadEntry = loadEntry;
 
       /* ═══════════════════════════════════════════════════════════════
          FAVORITES
@@ -4001,6 +4095,8 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
+
+      window.loadFav = loadFav;
       /* ═══════════════════════════════════════════════════════════════
          DOWNLOAD
       ═══════════════════════════════════════════════════════════════ */
@@ -4182,6 +4278,8 @@ int main() {
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
         toast(getTranslation('toast_sample_loaded'), 'success');
       }
+
+      window.loadSample = loadSample;
 
       /* ═══════════════════════════════════════════════════════════════
          INIT
