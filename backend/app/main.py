@@ -13,7 +13,6 @@ import os
 from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
-
 from .routers import (
     analyze,
     auth,
@@ -24,8 +23,7 @@ from .routers import (
     subscribe,
     suggestions,
     upload_file,
-    auth,
-    user_data
+    user_data,
 )
 from .services.scheduler import start_scheduler, stop_scheduler
 from .database import Base, engine
@@ -160,6 +158,9 @@ async def root():
         "version": "3.0.0",
         "message": "QyverixAI API is running.",
         "endpoints": [
+            "/auth/signup",
+            "/auth/login",
+            "/auth/me",
             "/explanation/",
             "/debugging/",
             "/suggestions/",
@@ -179,6 +180,9 @@ async def health_check():
         "version": "3.0.0",
         "message": "QyverixAI is healthy",
         "endpoints": [
+            "/auth/signup",
+            "/auth/login",
+            "/auth/me",
             "/explanation/",
             "/debugging/",
             "/suggestions/",

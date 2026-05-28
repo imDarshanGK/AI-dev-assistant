@@ -120,6 +120,56 @@ class UnsubscribeRequest(BaseModel):
     token: str
 
 
+class SignupRequest(BaseModel):
+    """Request body for creating a new user account.
+
+    Attributes:
+        email: The user's email address.
+        password: The user's chosen password (plaintext in request).
+    """
+
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    """Request body for user login.
+
+    Attributes:
+        email: The user's email address.
+        password: The user's password.
+    """
+
+    email: str
+    password: str
+
+
+class AuthResponse(BaseModel):
+    """Response returned after successful authentication.
+
+    Attributes:
+        access_token: JWT bearer token for authenticated requests.
+        user_id: Internal numeric user identifier.
+        email: The user's email address.
+    """
+
+    access_token: str
+    user_id: int
+    email: str
+
+
+class UserProfileResponse(BaseModel):
+    """Public user profile returned by `/auth/me`.
+
+    Attributes:
+        user_id: Internal numeric user identifier.
+        email: The user's email address.
+    """
+
+    user_id: int
+    email: str
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
