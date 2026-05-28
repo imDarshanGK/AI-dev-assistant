@@ -14,9 +14,9 @@ client = TestClient(app)
 def test_analyze_zip_too_large_via_header():
     # Simulate a large file via Content-Length header
     data = b"fake zip content"
-    files = {"file": ("test.zip", data, "application/zip", {"Content-Length": str(15 * 1024 * 1024)})} # 15MB
+    files = {"file": ("test.zip", data, "application/zip")}
     
-    response = client.post("/analyze/zip/", files=files)
+    response = client.post("/analyze/zip/", files=files, headers={"Content-Length": str(15 * 1024 * 1024)})
     assert response.status_code == 413
     assert "ZIP file too large" in response.json()["detail"]
 
@@ -26,8 +26,8 @@ def test_analyze_zip_too_large_via_stream():
     large_data = b"0" * (11 * 1024 * 1024)
     files = {"file": ("test.zip", large_data, "application/zip")}
     
-    # Do NOT provide Content-Length to force it into the streaming loop
-    response = client.post("/analyze/zip/", files=files)
+    # Provide a small Content-Length header to bypass the early check and enter the streaming check
+    response = client.post("/analyze/zip/", files=files, headers={"Content-Length": "100"})
     assert response.status_code == 413
     assert "ZIP file exceeds size limit during upload" in response.json()["detail"]
 

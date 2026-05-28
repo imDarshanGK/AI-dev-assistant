@@ -217,7 +217,7 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
     # 1. Fast check via Content-Length header to reject large uploads early
     # Limit upload size to 10MB (compressed) to prevent OOM/DoS
     MAX_UPLOAD_SIZE = 10 * 1024 * 1024
-    content_length = file.headers.get("content-length")
+    content_length = request.headers.get("content-length")
     if content_length and int(content_length) > MAX_UPLOAD_SIZE:
         raise HTTPException(
             status_code=413,
