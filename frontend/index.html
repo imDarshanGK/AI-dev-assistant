@@ -46,10 +46,38 @@
       --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
+  /* Light Theme Overrides */
+  [data-theme="light"] {
+    --bg: #f4f6fb;
+    --bg2: #ffffff;
+    --bg3: #eef1f8;
+    --border: rgba(0, 0, 0, 0.08);
+    --border2: rgba(0, 0, 0, 0.15);
+    --text: #1a1f26;
+    --text2: #4a5568;
+    --text3: #8a94a6;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow2: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
 
     ::-webkit-scrollbar-thumb:hover {
       background: var(--text3)
     }
+
+    /* Apply background color to body */
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      font-family: var(--font-ui);
+      transition: background-color var(--transition), color var(--transition);
+    }
+    .feat-pill {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+    }
+
+
 
     /* ═══════════════════════════════════════════════════════════════
    BACKGROUND DECORATION
@@ -136,9 +164,7 @@
       padding-right: 24px;
     }
 
-    [data-theme="light"] nav {
-      background: rgba(244, 246, 251, 0.88)
-    }
+
 
     .nav-logo {
       display: flex;
@@ -459,8 +485,8 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
-   WORKSPACE
-═══════════════════════════════════════════════════════════════ */
+                                WORKSPACE
+    ═══════════════════════════════════════════════════════════════ */
     .workspace {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -497,15 +523,34 @@
     }
 
     .panel-title {
+      display: flex;
+      gap: 8px;
+      align-items: center;
       font-family: var(--font-disp);
       font-size: 0.82rem;
       font-weight: 700;
       letter-spacing: 0.05em;
       text-transform: uppercase;
       color: var(--text2);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    }
+    /* Specifically target only the dot, not the text span */
+    .panel-title .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: blink 2s infinite;
+      flex-shrink: 0; /* Prevents dot from squishing */
+    }
+    
+    /* SVG Visibility Fix */
+    .feat-pill-icon svg {
+      display: block;
+      color: var(--accent); /* Give them a base color */
+    }
+
+    [data-theme="light"] .feat-pill-icon svg {
+      color: var(--accent2); /* Contrast adjust for light mode */
     }
 
     .panel-title span {
@@ -1932,6 +1977,95 @@
   .lang-tab{padding:7px 10px;font-size:0.72rem}
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE UX OVERHAUL (THE "PRO" FIX)
+═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* 1. Stack the Navigation */
+  nav {
+    flex-direction: column;
+    height: auto !important;
+    padding: 15px !important;
+    gap: 10px;
+  }
+  
+  .nav-links {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* 2. Horizontal Feature Pills (Pro Touch) */
+  /* Instead of a long vertical list, let users swipe left/right */
+  .features-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    justify-content: flex-start !important;
+    padding: 10px 5px 25px !important;
+    gap: 12px !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Hides scrollbar on Firefox */
+  }
+  
+  .features-row::-webkit-scrollbar { display: none; } /* Hides scrollbar on Chrome */
+  
+  .feat-pill {
+    flex: 0 0 160px; /* Fixed width so they stay in a row */
+    padding: 12px !important;
+  }
+
+  /* 3. Workspace Stacking */
+  .workspace {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+
+  .panel {
+    width: 100% !important;
+    border-radius: var(--r2) !important;
+  }
+
+  /* 4. Optimize Editor & Results Height */
+  #codeEditor {
+    min-height: 250px !important;
+  }
+  
+  .result-content {
+    max-height: 400px !important;
+  }
+
+  /* 5. Fix Hero Text */
+  .hero h1 {
+    font-size: 2.2rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .hero-sub {
+    font-size: 1rem !important;
+    padding: 0 10px;
+  }
+}
+
+/* 6. Clean up the Header Alignment (Global) */
+.panel-title {
+  display: flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  gap: 8px !important;
+}
+
+/* 7. Icon Visibility Fix (Global) */
+svg {
+  stroke: var(--text2) !important;
+  stroke-width: 2.2px !important;
+}
+
 </style>
 <link rel="icon" href="data:,">
 </head>
@@ -2087,8 +2221,10 @@
       <div class="panel" style="grid-column:1">
         <div class="panel-header">
           <div class="panel-title">
-            <span></span>
-            <span data-i18n="editor_title">Code Editor</span>
+            <span class="status-dot"></span>
+              <span class="status-dot" style="animation-delay: 0.5s;"></span> <!-- Second dot with a blink offset -->
+
+            <div data-i18n="editor_title">Code Editor</div>
           </div>
           <div class="panel-actions">
             <button class="icon-btn" id="uploadBtn" type="button" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file">
@@ -2182,12 +2318,25 @@
 
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
           <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
             <span data-i18n="tab_explain">Explain</span>
             <span class="tab-badge" id="explainBadge"></span>
           </button>
           <button class="result-tab" id="tab-debug" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="8" height="14" x="8" y="6" rx="4"></rect>
+                <path d="m19 7-3 2"></path>
+                <path d="m5 7 3 2"></path>
+                <path d="m19 19-3-2"></path>
+                <path d="m5 19 3-2"></path>
+                <path d="M20 13h-4"></path>
+                <path d="M4 13h4"></path>
+                <path d="m10 4 1 2"></path>
+                <path d="m14 4-1 2"></path>
+              </svg>
             <span data-i18n="tab_debug">Debug</span>
             <span class="tab-badge" id="debugBadge"></span>
           </button>
@@ -2201,11 +2350,13 @@
           <!-- Explain Pane -->
           <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-labelledby="tab-explain">
             <div class="empty-state" id="emptyExplain">
-              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="1.5">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                </svg></div>
+              <div class="empty-icon" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+
+              </div>
               <h2 data-i18n="empty_explain_title">No analysis yet</h2>
               <p data-i18n="empty_explain_desc">Paste your code and click Analyze to see results</p>
             </div>
@@ -2214,18 +2365,19 @@
           <!-- Debug Pane -->
           <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-labelledby="tab-debug">
             <div class="empty-state" id="emptyDebug">
-              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="1.5">
-                  <path d="M8 2l1.5 1.5" />
-                  <path d="M14.5 3.5L16 2" />
-                  <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
-                  <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
-                  <line x1="12" y1="12" x2="12" y2="16" />
-                  <path d="M4.5 15H2" />
-                  <path d="M22 15h-2.5" />
-                  <path d="M4.5 19l-2 2" />
-                  <path d="M19.5 19l2 2" />
-                </svg></div>
+              <div class="empty-icon" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="8" height="14" x="8" y="6" rx="4" />
+                  <path d="m19 7-3 2" />
+                  <path d="m5 7 3 2" />
+                  <path d="m19 19-3-2" />
+                  <path d="m5 19 3-2" />
+                  <path d="M20 13h-4" />
+                  <path d="M4 13h4" />
+                  <path d="m10 4 1 2" />
+                  <path d="m14 4-1 2" />
+                </svg>
+              </div>
               <h2 data-i18n="empty_debug_title">No bugs scanned</h2>
               <p data-i18n="empty_debug_desc">Run analysis to detect issues in your code</p>
             </div>
