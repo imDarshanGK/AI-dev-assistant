@@ -24,7 +24,8 @@ from .routers import (
     subscribe,
     suggestions,
     upload_file,
-    user_data,
+    auth,
+    user_data
 )
 from .services.scheduler import start_scheduler, stop_scheduler
 from .database import Base, engine
