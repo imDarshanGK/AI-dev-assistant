@@ -1,0 +1,25 @@
+name: Frontend CI
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+  pull_request:
+    paths:
+      - 'frontend/**'
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate HTML syntax
+        run: npx --yes w3c-html-validator "frontend/index.html"
+
+      - name: Check for broken local links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline "frontend/index.html"
+          fail: true
