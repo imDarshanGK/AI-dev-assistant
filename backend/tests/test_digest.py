@@ -38,7 +38,6 @@ def _override_db():
         db.close()
 
 
-fastapi_app.dependency_overrides[get_db] = _override_db
 client = TestClient(fastapi_app)
 
 
@@ -46,9 +45,11 @@ client = TestClient(fastapi_app)
 @pytest.fixture(autouse=True)
 def _recreate_tables():
     """Recreate all tables before each test for a clean slate."""
+    fastapi_app.dependency_overrides[get_db] = _override_db
     Base.metadata.create_all(bind=TEST_ENGINE)
     yield
     Base.metadata.drop_all(bind=TEST_ENGINE)
+    fastapi_app.dependency_overrides.pop(get_db, None)
 
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
