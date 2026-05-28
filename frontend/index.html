@@ -3187,7 +3187,7 @@
       /* ═══════════════════════════════════════════════════════════════
          API PING
       ═══════════════════════════════════════════════════════════════ */
-      async function pingApi() {
+      async function pingApi({ notify = false } = {}) {
         if (!apiUrlInput || !apiStatusText) return;
         const base = getApiBase();
         try {
@@ -3197,7 +3197,9 @@
             apiStatusText.dataset.status = 'connected';
             delete apiStatusText.dataset.statusCode;
             syncApiStatusText();
-            toast(getTranslation('toast_api_reachable'), 'success');
+            if (notify) {
+              toast(getTranslation('toast_api_reachable'), 'success');
+            }
           } else {
             apiDot?.classList.remove('connected');
             apiStatusText.dataset.status = 'error';
@@ -3209,13 +3211,16 @@
           apiStatusText.dataset.status = 'unreachable';
           delete apiStatusText.dataset.statusCode;
           syncApiStatusText();
-          toast(getTranslation('toast_api_unreachable'), 'error');
+          if (notify) {
+            toast(getTranslation('toast_api_unreachable'), 'error');
+          }
         }
       }
-      const pingBtn = document.getElementById('pingBtn');
-      if (pingBtn) pingBtn.addEventListener('click', pingApi);
 
-      // Auto-ping on load
+      const pingBtn = document.getElementById('pingBtn');
+      if (pingBtn) pingBtn.addEventListener('click', () => pingApi({ notify: true }));
+
+      // Auto-ping on load (quiet by default)
       setTimeout(pingApi, 800);
 
       /* ═══════════════════════════════════════════════════════════════
