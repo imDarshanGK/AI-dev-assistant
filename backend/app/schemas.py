@@ -131,6 +131,21 @@ class SignupRequest(BaseModel):
     email: str
     password: str
 
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        return v
+
 
 class LoginRequest(BaseModel):
     """Request body for user login.
@@ -189,40 +204,6 @@ class ShareRecord(BaseModel):
     created_at: str
 
 
-class SignupRequest(BaseModel):
-    email: str
-    password: str
-
-    @field_validator("email")
-    @classmethod
-    def email_must_be_valid(cls, v: str) -> str:
-        v = v.strip().lower()
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Invalid email address")
-        return v
-
-    @field_validator("password")
-    @classmethod
-    def password_min_length(cls, v: str) -> str:
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters long")
-        return v
-
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-
-class AuthResponse(BaseModel):
-    access_token: str
-    user_id: int
-    email: str
-
-
-class UserProfileResponse(BaseModel):
-    user_id: int
-    email: str
 
 
 class HistoryCreateRequest(BaseModel):
