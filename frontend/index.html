@@ -3941,6 +3941,11 @@
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
+      function normalizeSavedEntryId(id) {
+        const normalizedId = Number(id);
+        return Number.isNaN(normalizedId) ? null : normalizedId;
+      }
+
       document.getElementById('downloadJsonBtn').addEventListener('click', () => {
         if (!history || history.length === 0) {
           toast('No history to download', 'info');
@@ -3984,20 +3989,25 @@
         dlNode.remove();
         toast('Downloaded history.csv', 'success');
       });
-      function loadEntry(id) {
-        const entry = history.find(h => h.id === Number (id));
-        console.log(entry);
-        if (!entry) return;
-        editor.value = entry.code;
 
-        if(entry.lang){
+      function restoreSavedEntry(entry) {
+        if (!entry) return;
+
+        editor.value = entry.code;
+        if (entry.lang) {
           setLanguage(entry.lang.toLowerCase());
         }
-
         updateEditor();
         currentResult = entry.result;
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function loadEntry(id) {
+        const normalizedId = normalizeSavedEntryId(id);
+        if (normalizedId === null) return;
+        const entry = history.find(h => h.id === normalizedId);
+        restoreSavedEntry(entry);
       }
 
       window.loadEntry = loadEntry;
@@ -4044,19 +4054,10 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
   toast(getTranslation('toast_favorites_cleared'), 'info');
 });
       function loadFav(id) {
-        const entry = favorites.find(f => f.id === Number(id));
-        if (!entry) return;
-        editor.value = entry.code;
-        selectedLang = entry.lang.toLowerCase();
-        document.querySelectorAll('.lang-tab').forEach(tab =>{
-          const active = tab.dataset.lang === selectedLang;
-          tab.classList.toggle('active', active);
-          tab.setAttribute('aria-selected', active ? 'true' : 'false');
-        });
-        updateEditor();
-        currentResult = entry.result;
-        renderResults(entry.result, entry.code);
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+        const normalizedId = normalizeSavedEntryId(id);
+        if (normalizedId === null) return;
+        const entry = favorites.find(f => f.id === normalizedId);
+        restoreSavedEntry(entry);
       }
 
       window.loadFav = loadFav;
