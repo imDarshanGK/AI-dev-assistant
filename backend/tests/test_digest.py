@@ -9,8 +9,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from urllib.parse import parse_qs, urlparse
 
-import os
 import sys
+import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
