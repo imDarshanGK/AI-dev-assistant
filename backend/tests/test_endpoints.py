@@ -380,7 +380,7 @@ def route(req, user, db, cache, logger):
 # ── Debugging ─────────────────────────────────────────────────────────────────
 def test_debug_detects_zero_division():
     r = client.post(
-        "/debugging/", json={"code": "result = a / b", "language": "python"}
+        "/debugging/", json={"code": "result = a / 0", "language": "python"}
     )
     assert r.status_code == 200
     d = r.json()

@@ -311,7 +311,7 @@ def detect_deep_nesting(tree, code):
 
 def detect_zero_division(tree, code):
     issues = []
-    
+
     # 1. Direct literal division by zero
     for node in ast.walk(tree):
         if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
