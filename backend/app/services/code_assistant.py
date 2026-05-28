@@ -893,7 +893,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 3: Magic Numbers
     # ─────────────────────────────────────────────────────────────
-    magic_pattern = r"\b(?<![a-zA-Z_])[2-9]\d{1,}(?![a-zA-Z_])\b"
+    magic_pattern = r"\b(?<![a-zA-Z_])[1-9]\d{1,}(?![a-zA-Z_])\b"
     magic_lines = find_lines_matching_pattern(code, magic_pattern)
 
     if magic_lines:
