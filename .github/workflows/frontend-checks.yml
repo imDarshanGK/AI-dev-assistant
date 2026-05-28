@@ -1,0 +1,32 @@
+name: Frontend Checks
+
+on:
+  push:
+    paths:
+      - "frontend/**"
+  pull_request:
+    paths:
+      - "frontend/**"
+
+jobs:
+  static-checks:
+    name: frontend static checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate HTML syntax
+        run: npx --yes w3c-html-validator frontend/index.html
+
+      - name: Check local links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --verbose frontend/index.html
+          fail: true

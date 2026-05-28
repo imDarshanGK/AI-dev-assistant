@@ -1,28 +1,28 @@
-from fastapi import APIRouter, HTTPException
-from app.schemas import CodeRequest, DebuggingResponse
-from app.services.code_assistant import debug_code
-import logging
+"""Debugging router — POST /debugging/"""
 
-logger = logging.getLogger("qyverix.debugging")
+from fastapi import APIRouter
+from ..schemas import CodeRequest, DebuggingResponse
+from ..services.code_assistant import detect_language, run_bug_detection
+
 router = APIRouter()
 
 
-@router.post("/", response_model=DebuggingResponse, summary="Detect bugs and issues in code")
-async def debugging_endpoint(request: CodeRequest):
-    """
-    Scans the code for:
-    - Runtime errors (ZeroDivisionError, bare excepts, etc.)
-    - Security issues (hardcoded secrets, eval(), HTTP URLs)
-    - Style warnings (Python 2 syntax, var usage in JS)
-    - TODO/FIXME markers
-
-    Returns a list of issues with line numbers, descriptions, and fix suggestions.
-    """
-    try:
-        result = debug_code(request.code, request.language)
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:
-        logger.error(f"Debugging failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to debug code. Please try again.")
+@router.post("/", response_model=DebuggingResponse, summary="Detect bugs and issues")
+async def debug(req: CodeRequest):
+    lang = detect_language(req.code, req.language)
+    issues = run_bug_detection(req.code, lang)
+    errors = sum(1 for i in issues if i["severity"] == "error")
+    warnings = sum(1 for i in issues if i["severity"] == "warning")
+    infos = sum(1 for i in issues if i["severity"] == "info")
+    return {
+        "issues": issues,
+        "summary": (
+            f"Found {len(issues)} issue(s): {errors} error(s), {warnings} warning(s), {infos} info."
+            if issues
+            else "✅ No issues detected!"
+        ),
+        "clean": len(issues) == 0,
+        "error_count": errors,
+        "warning_count": warnings,
+        "info_count": infos,
+    }

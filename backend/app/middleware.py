@@ -7,7 +7,7 @@ from threading import Lock
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from app.config import settings
+from .config import settings
 
 logger = logging.getLogger("ai_assistant.api")
 
