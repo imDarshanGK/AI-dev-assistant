@@ -187,6 +187,16 @@ LANG_PATTERNS = {
 }
 
 def detect_language(code: str) -> str:
+    
+    """
+    Detects the programming language of the given source code.
+
+    Args:
+        code (str): Source code to analyze.
+
+    Returns:
+        str: Detected programming language or "Unknown" if no match is found.
+    """
     scores = {}
     for lang, patterns in LANG_PATTERNS.items():
         scores[lang] = sum(1 for p in patterns if re.search(p, code))
@@ -195,6 +205,16 @@ def detect_language(code: str) -> str:
 
 # ── Complexity ──
 def estimate_complexity(code: str) -> str:
+    
+    """
+    Estimates the complexity level of the given source code.
+
+    Args:
+        code (str): Source code to evaluate.
+
+    Returns:
+        str: Complexity level classified as Beginner, Intermediate, or Advanced.
+    """
     lines = len(code.strip().splitlines())
     func_count = len(re.findall(r"\bdef |\bfunction |\bfunc \b", code))
     if lines < 15 and func_count <= 1:
@@ -205,6 +225,16 @@ def estimate_complexity(code: str) -> str:
 
 # ── Explanation Service ──
 def explain_code(code: str, language: Optional[str] = None) -> ExplanationResponse:
+    """
+Generates a human-readable explanation of the provided source code.
+
+Args:
+    code (str): Source code to explain.
+    language (str): Programming language of the source code.
+
+Returns:
+    ExplanationResponse: Explanation summary, key points, and complexity details.
+"""
     lang = language or detect_language(code)
     lines = code.strip().splitlines()
     line_count = len(lines)
@@ -261,6 +291,16 @@ DEBUG_RULES = [
 ]
 
 def debug_code(code: str, language: Optional[str] = None) -> DebuggingResponse:
+    """
+Analyzes the source code for potential bugs, security risks, and bad practices.
+
+Args:
+    code (str): Source code to inspect.
+    language (Optional[str]): Programming language of the source code.
+
+Returns:
+    DebuggingResponse: Detected issues and debugging suggestions.
+"""
     lang = language or detect_language(code)
     issues: list[DebugIssue] = []
     seen: set[tuple[str, Optional[int], str]] = set()
@@ -318,6 +358,16 @@ SUGGESTION_RULES = [
 ]
 
 def suggest_improvements(code: str, language: Optional[str] = None) -> SuggestionsResponse:
+    """
+Generates suggestions to improve code quality, readability, and maintainability.
+
+Args:
+    code (str): Source code to analyze.
+    language (Optional[str]): Programming language of the source code.
+
+Returns:
+    SuggestionsResponse: Suggested improvements and optimization recommendations.
+"""
     cards: list[SuggestionCard] = []
     seen_cats = set()
     lines_list = code.splitlines()
