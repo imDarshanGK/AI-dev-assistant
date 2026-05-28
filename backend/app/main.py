@@ -14,17 +14,21 @@ from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
 
-# Add user_data (or whatever your file name is) to the imports
-from .routers import explanation, debugging, suggestions, analyze, subscribe, user_data
-from .routers import  upload_file
-
-from .routers import explanation, debugging, suggestions, analyze, subscribe, share
 from .services.scheduler import start_scheduler, stop_scheduler
 from .schemas import HealthResponse
-
-from .routers import share
+from .services import database
 from .database import Base, engine
-
+from .routers import (
+    analyze,
+    debugging,
+    explanation,
+    history,
+    share,
+    suggestions,
+    subscribe,
+    upload_file,
+    user_data,
+)
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
@@ -55,6 +59,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await database.init_db()
     print("🚀 QyverixAI backend starting…")
     Base.metadata.create_all(bind=engine)
     start_scheduler()
@@ -138,12 +143,9 @@ app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
 app.include_router(user_data.router,   prefix="",             tags=["User Data"])
-app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
-app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
-app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
-# app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
-# app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
+app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'])
 app.include_router(share.router)
+app.include_router(history.router,     prefix="/history",     tags=["History"])
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
@@ -159,7 +161,9 @@ async def root():
             "/suggestions/",
             "/analyze/",
             "/analyze/zip/",
+            "/subscribe/",
             "/share/",
+            "/history/",
         ],
     }
 
@@ -176,7 +180,9 @@ async def health_check():
             "/suggestions/",
             "/analyze/",
             "/analyze/zip/",
+            "/subscribe/",
             "/share/",
+            "/history/",
         ],
     }
 
