@@ -14,10 +14,9 @@ client = TestClient(app)
 def test_analyze_zip_too_large_via_header():
     # Simulate a large file via Content-Length header
     data = b"fake zip content"
-    files = {"file": ("test.zip", data, "application/zip")}
-    headers = {"Content-Length": str(15 * 1024 * 1024)} # 15MB
+    files = {"file": ("test.zip", data, "application/zip", {"Content-Length": str(15 * 1024 * 1024)})} # 15MB
     
-    response = client.post("/analyze/zip/", files=files, headers=headers)
+    response = client.post("/analyze/zip/", files=files)
     assert response.status_code == 413
     assert "ZIP file too large" in response.json()["detail"]
 
