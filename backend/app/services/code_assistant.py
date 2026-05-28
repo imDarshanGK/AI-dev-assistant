@@ -1085,7 +1085,7 @@ def chat_fallback_reply(
         return "To improve your code, look for 'Suggestions' in the analysis results. I focus on readability and performance."
     if "complexity" in message:
         return "I calculate cyclomatic complexity to help you keep your functions simple and maintainable."
-    
+
     return "I'm currently in rule-based mode. For deep code discussion, please enable an LLM provider in the settings. How else can I assist you with your code today?"
 
 
