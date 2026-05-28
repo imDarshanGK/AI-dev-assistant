@@ -28,6 +28,7 @@ def setup_db():
     yield
     Base.metadata.drop_all(bind=engine)
     app.dependency_overrides.pop(get_db, None)
+    engine.dispose()
     if os.path.exists("./test_app.db"):
         os.remove("./test_app.db")
 
