@@ -22,13 +22,13 @@ class CodeRequest(BaseModel):
 class ExplanationResponse(BaseModel):
     language: str
     summary: str
-    key_points: list[str]
-    complexity: str
-    line_count: int
-    function_count: int
-    class_count: int
-    cyclomatic_complexity: int
-    complexity_risk: str
+    key_points: list[str] | None = None
+    complexity: str | None = None
+    line_count: int | None = None
+    function_count: int | None = None
+    class_count: int | None = None
+    cyclomatic_complexity: int | None = None
+    complexity_risk: str | None = None
 
 
 class Issue(BaseModel):
@@ -42,7 +42,7 @@ class Issue(BaseModel):
 
 
 class DebuggingResponse(BaseModel):
-    issues: list[Issue]
+    issues: list[dict]
     summary: str
     clean: bool
     error_count: int
@@ -61,18 +61,18 @@ class Suggestion(BaseModel):
 
 
 class SuggestionsResponse(BaseModel):
-    suggestions: list[Suggestion]
+    suggestions: list[dict]
     overall_score: int
     grade: str
-    next_step: str
+    next_step: str | None = None
 
 
 class AnalyzeResponse(BaseModel):
     provider: str
-    model: str
-    explanation: ExplanationResponse
-    debugging: DebuggingResponse
-    suggestions: SuggestionsResponse
+    model: str | None = None
+    explanation: dict | ExplanationResponse | None = None
+    debugging: dict | DebuggingResponse | None = None
+    suggestions: dict | SuggestionsResponse | None = None
     analysis_time_ms: float | None = None
 
 
@@ -118,6 +118,56 @@ class SubscribeResponse(BaseModel):
 class UnsubscribeRequest(BaseModel):
     email: str
     token: str
+
+
+class SignupRequest(BaseModel):
+    """Request body for creating a new user account.
+
+    Attributes:
+        email: The user's email address.
+        password: The user's chosen password (plaintext in request).
+    """
+
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    """Request body for user login.
+
+    Attributes:
+        email: The user's email address.
+        password: The user's password.
+    """
+
+    email: str
+    password: str
+
+
+class AuthResponse(BaseModel):
+    """Response returned after successful authentication.
+
+    Attributes:
+        access_token: JWT bearer token for authenticated requests.
+        user_id: Internal numeric user identifier.
+        email: The user's email address.
+    """
+
+    access_token: str
+    user_id: int
+    email: str
+
+
+class UserProfileResponse(BaseModel):
+    """Public user profile returned by `/auth/me`.
+
+    Attributes:
+        user_id: Internal numeric user identifier.
+        email: The user's email address.
+    """
+
+    user_id: int
+    email: str
 
 
 class HealthResponse(BaseModel):

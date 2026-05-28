@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QyverixAI — AI Developer Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
-    rel="stylesheet" />
+    rel="stylesheet">
   <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -45,74 +45,7 @@
       --font-mono: 'JetBrains Mono', monospace;
       --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    [data-theme="light"] {
-      --bg: #f4f6fb;
-      --bg2: #ffffff;
-      --bg3: #eef1f7;
-      --border: rgba(0, 0, 0, 0.07);
-      --border2: rgba(0, 0, 0, 0.13);
-      --text: #111827;
-      --text2: #4b5563;
-      --text3: #9ca3af;
-      --shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-      --shadow2: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-   RESET & BASE
-═══════════════════════════════════════════════════════════════ */
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0
-    }
-
-    html {
-      scroll-behavior: smooth;
-      font-size: 16px
-    }
-
-    body {
-      font-family: var(--font-ui);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-      line-height: 1.6;
-      transition: background var(--transition), color var(--transition);
-    }
-
-    ::selection {
-      background: var(--accent);
-      color: #fff
-    }
-
-    *:focus-visible {
-      outline: 3px solid var(--accent);
-      outline-offset: 3px;
-      box-shadow: 0 0 0 4px rgba(91, 156, 246, 0.4);
-      border-radius: 2px;
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════════════════════════════ */
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--bg)
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--border2);
-      border-radius: 99px
-    }
+    
 
     ::-webkit-scrollbar-thumb:hover {
       background: var(--text3)
@@ -327,7 +260,7 @@
 ═══════════════════════════════════════════════════════════════ */
     .hero {
       text-align: center;
-      padding: 64px 0 48px;
+      padding: 48px 0 32px;
       animation: heroEnter 0.7s ease both;
     }
 
@@ -394,11 +327,11 @@
 
     .hero h1 {
       font-family: var(--font-disp);
-      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-size: clamp(2rem, 4.8vw, 3.4rem);
       font-weight: 800;
       letter-spacing: -0.04em;
-      line-height: 1.16;
-      margin-bottom: 20px;
+      line-height: 1.12;
+      margin-bottom: 12px;
     }
 
     .hero h1 em {
@@ -514,7 +447,7 @@
       font-size: 15px;
     }
 
-    .feat-pill-info h4 {
+    .feat-pill-info .feat-pill-title {
       font-size: 0.82rem;
       font-weight: 600;
       margin-bottom: 1px
@@ -690,6 +623,15 @@
 
     #charCount {
       color: var(--text3)
+    }
+
+    #charCount.warn {
+      color: var(--yellow)
+    }
+
+    #charCount.danger,
+    #charCount.limit {
+      color: var(--red)
     }
 
     /* ── Mode Selector ── */
@@ -942,7 +884,7 @@
       }
     }
 
-    .empty-state h3 {
+    .empty-state h2 {
       font-family: var(--font-disp);
       font-size: 1rem;
       font-weight: 700
@@ -2052,7 +1994,7 @@
         <div class="badge-dot"></div>
         <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
       </div>
-      <h1 data-i18n="hero_title">Debug. Understand.<br /><em>Ship faster.</em></h1>
+      <h1 data-i18n="hero_title">Debug. Understand.<br><em>Ship faster.</em></h1>
       <p class="hero-sub" data-i18n="hero_subtitle">
         Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
         suggestions — no account needed.
@@ -2075,7 +2017,7 @@
         <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path
-              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32(3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
           </svg>
           <span data-i18n="btn_star_github">Star on GitHub</span>
         </a>
@@ -2091,7 +2033,7 @@
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="pill_patterns_title">40+ Bug Patterns</h4>
+          <p class="feat-pill-title" data-i18n="pill_patterns_title">40+ Bug Patterns</p>
           <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
         </div>
       </div>
@@ -2102,7 +2044,7 @@
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="mode_explain">Code Explanation</h4>
+          <p class="feat-pill-title" data-i18n="mode_explain">Code Explanation</p>
           <p data-i18n="pill_explain_desc">Plain English breakdowns</p>
         </div>
       </div>
@@ -2112,7 +2054,7 @@
             <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="mode_improve">Smart Suggestions</h4>
+          <p class="feat-pill-title" data-i18n="mode_improve">Smart Suggestions</p>
           <p data-i18n="pill_improve_desc">Quality score + grade</p>
         </div>
       </div>
@@ -2122,7 +2064,7 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="pill_theme_title">Dark / Light Mode</h4>
+          <p class="feat-pill-title" data-i18n="pill_theme_title">Dark / Light Mode</p>
           <p data-i18n="pill_theme_desc">Persisted preference</p>
         </div>
       </div>
@@ -2132,7 +2074,7 @@
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="pill_upload_title">File Upload</h4>
+          <p class="feat-pill-title" data-i18n="pill_upload_title">File Upload</p>
           <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
         </div>
       </div>
@@ -2149,18 +2091,16 @@
             <span data-i18n="editor_title">Code Editor</span>
           </div>
           <div class="panel-actions">
-            <label class="icon-btn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" tabindex="0" role="button"
-              aria-label="Upload code file"
-              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
+            <button class="icon-btn" id="uploadBtn" type="button" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17,8 12,3 7,8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
-                tabindex="-1" />
-            </label>
+            </button>
+            <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
+              tabindex="-1">
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
@@ -2181,12 +2121,12 @@
         </div>
 
         <!-- Language tabs -->
-        <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
-          <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true" data-i18n="lang_tab_python">Python</button>
-          <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false" data-i18n="lang_tab_javascript">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false" data-i18n="lang_tab_typescript">TypeScript</button>
-          <button class="lang-tab" data-lang="java" role="tab" aria-selected="false" data-i18n="lang_tab_java">Java</button>
-          <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false" data-i18n="lang_tab_cpp">C++</button>
+        <div class="lang-tabs" role="group" aria-label="Select Programming Language">
+          <button class="lang-tab active" data-lang="python" aria-pressed="true" data-i18n="lang_tab_python">Python</button>
+          <button class="lang-tab" data-lang="javascript" aria-pressed="false" data-i18n="lang_tab_javascript">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript" aria-pressed="false" data-i18n="lang_tab_typescript">TypeScript</button>
+          <button class="lang-tab" data-lang="java" aria-pressed="false" data-i18n="lang_tab_java">Java</button>
+          <button class="lang-tab" data-lang="cpp" aria-pressed="false" data-i18n="lang_tab_cpp">C++</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap">
@@ -2197,7 +2137,7 @@
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
-            <div class="mode-row" role="tablist" aria-label="Mode selector">
+            <div class="mode-row" role="group" aria-label="Mode selector">
               <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
               <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
               <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
@@ -2208,9 +2148,21 @@
 
         <div class="analyze-row">
           <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
-            <div class="spinner" id="spinner"></div>
+            <span class="spinner" id="spinner"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
+        </div>
+
+        <!-- API Config (input + status) -->
+        <div class="api-config-row" style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <div style="display:flex;align-items:center;gap:8px;flex:1">
+            <div id="apiDot" class="api-dot" aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:var(--text3)"></div>
+            <input id="apiUrl" placeholder="https://qyverixai.onrender.com" style="flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="apiStatusText" data-status="disconnected" style="font-size:0.85rem;color:var(--text3)">Disconnected</div>
+            <button id="pingBtn" class="icon-btn" title="Ping API" style="padding:6px 10px">Ping</button>
+          </div>
         </div>
 
         <!-- Result action buttons (hidden until results) -->
@@ -2229,17 +2181,17 @@
         </div>
 
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
-          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true">
+          <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
             <span data-i18n="tab_explain">Explain</span>
             <span class="tab-badge" id="explainBadge"></span>
           </button>
-          <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false">
+          <button class="result-tab" id="tab-debug" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/></svg>
             <span data-i18n="tab_debug">Debug</span>
             <span class="tab-badge" id="debugBadge"></span>
           </button>
-          <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false">
+          <button class="result-tab" id="tab-suggest" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
             <span data-i18n="tab_improve">Improve</span>
             <span class="tab-badge" id="suggestBadge"></span>
@@ -2247,20 +2199,20 @@
         </div>
         <div class="result-content">
           <!-- Explain Pane -->
-          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
+          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-labelledby="tab-explain">
             <div class="empty-state" id="emptyExplain">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg></div>
-              <h3 data-i18n="empty_explain_title">No analysis yet</h3>
+              <h2 data-i18n="empty_explain_title">No analysis yet</h2>
               <p data-i18n="empty_explain_desc">Paste your code and click Analyze to see results</p>
             </div>
             <div id="explainResult" style="display:none"></div>
           </div>
           <!-- Debug Pane -->
-          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel">
+          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-labelledby="tab-debug">
             <div class="empty-state" id="emptyDebug">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2274,19 +2226,19 @@
                   <path d="M4.5 19l-2 2" />
                   <path d="M19.5 19l2 2" />
                 </svg></div>
-              <h3 data-i18n="empty_debug_title">No bugs scanned</h3>
+              <h2 data-i18n="empty_debug_title">No bugs scanned</h2>
               <p data-i18n="empty_debug_desc">Run analysis to detect issues in your code</p>
             </div>
             <div id="debugResult" style="display:none"></div>
           </div>
           <!-- Suggest Pane -->
-          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel">
+          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-labelledby="tab-suggest">
             <div class="empty-state" id="emptySuggest">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
                   <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
                 </svg></div>
-              <h3 data-i18n="empty_suggest_title">No suggestions yet</h3>
+              <h2 data-i18n="empty_suggest_title">No suggestions yet</h2>
               <p data-i18n="empty_suggest_desc">Run analysis to get improvement ideas</p>
             </div>
             <div id="suggestResult" style="display:none"></div>
@@ -2308,6 +2260,8 @@
         <div class="panel-header">
           <div class="panel-title" data-i18n="history_title">Query History</div>
           <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
+          <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
+          <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
           <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
@@ -2571,7 +2525,7 @@
           hero_title: "डीबग करें। समझें।<br /><em>तेज़ी से शिप करें।</em>",
           hero_subtitle: "अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।",
           btn_start_analyzing: "विश्लेषण शुरू करें",
-          btn_try_sample: "सैंपल कोड आज़माएं",
+          btn_try_sample: "सैंपल कोड आज़माएं",
           btn_star_github: "गिटहब पर स्टार करें",
           pill_patterns_title: "40+ बग पैटर्न",
           pill_patterns_desc: "Python, JS, TS, Java, C++",
@@ -2584,7 +2538,7 @@
           pill_upload_title: "फ़ाइल अपलोड",
           pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
           editor_title: "कोड एडिटर",
-          editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
+          editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
           char_count_initial: "शुरू करने के लिए कोड पेस्ट करें या टाइप करें",
           char_count_format: "{chars} वर्ण · {lines} पंक्तियाँ · {nonBlank} गैर-रिक्त",
           ctrl_enter_hint: "विश्लेषण करने के लिए Ctrl+Enter दबाएं",
@@ -2863,17 +2817,40 @@
       /* ═══════════════════════════════════════════════════════════════
          EDITOR
       ═══════════════════════════════════════════════════════════════ */
+      const CHAR_WARN = 40_000;
+      const CHAR_DANGER = 48_000;
+      const CHAR_MAX = 50_000;
+
       function updateEditor() {
         const val = editor.value;
         const lines = val ? val.split('\n').length : 0;
         const chars = val.length;
         const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-        charCount.textContent = val
-          ? getTranslation('char_count_format')
-              .replace('{chars}', chars.toLocaleString())
-              .replace('{lines}', lines)
-              .replace('{nonBlank}', nonBlank)
-          : getTranslation('char_count_initial');
+
+        charCount.classList.remove('warn', 'danger', 'limit');
+
+        if (!val) {
+          charCount.textContent = 'Paste or type code to begin';
+        } else if (chars >= CHAR_MAX) {
+          charCount.classList.add('limit');
+          charCount.textContent = 'Code too long - max 50,000 characters';
+        } else if (chars >= CHAR_DANGER) {
+          charCount.classList.add('danger');
+          charCount.textContent =
+            chars.toLocaleString() + ' chars · ' + lines + ' lines · Approaching limit';
+        } else if (chars >= CHAR_WARN) {
+          charCount.classList.add('warn');
+          charCount.textContent =
+            chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank';
+        } else {
+          charCount.textContent =
+            chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank';
+        }
+
+        if (!analyzeBtn.classList.contains('loading')) {
+          analyzeBtn.disabled = chars >= CHAR_MAX;
+        }
+
         const lineCount = Math.max(lines, 1);
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
@@ -3045,6 +3022,10 @@
       /* ═══════════════════════════════════════════════════════════════
          FILE UPLOAD
       ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('uploadBtn').addEventListener('click', () => {
+        document.getElementById('fileInput').click();
+      });
+
       document.getElementById('fileInput').addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
@@ -3113,7 +3094,7 @@
         document.querySelectorAll('.lang-tab').forEach(t => {
           const isActive = t.dataset.lang === lang;
           t.classList.toggle('active', isActive);
-          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+          t.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
 
         // 2. Check if the editor currently contains one of the samples
@@ -3159,7 +3140,8 @@
           document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
           t.classList.add('active');
           t.setAttribute('aria-selected', 'true');
-          document.getElementById(`pane-${tab}`).classList.add('active');
+          const paneEl = document.getElementById(`pane-${tab}`);
+          if (paneEl) paneEl.classList.add('active');
         });
       });
 
@@ -3180,33 +3162,37 @@
       /* ═══════════════════════════════════════════════════════════════
          API PING
       ═══════════════════════════════════════════════════════════════ */
-      async function pingApi() {
+      async function pingApi({ notify = false } = {}) {
         if (!apiUrlInput || !apiDot || !apiStatusText) return;
         const base = getApiBase();
         try {
           const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
           if (r.ok) {
             apiDot.classList.add('connected');
+            if (notify) {
+              toast(getTranslation('toast_api_reachable'), 'success');
+            }
             apiStatusText.dataset.status = 'connected';
             delete apiStatusText.dataset.statusCode;
             syncApiStatusText();
-            toast(getTranslation('toast_api_reachable'), 'success');
           } else {
-            apiDot.classList.remove('connected');
+            apiDot?.classList.remove('connected');
             apiStatusText.dataset.status = 'error';
             apiStatusText.dataset.statusCode = String(r.status);
             syncApiStatusText();
           }
         } catch {
           apiDot.classList.remove('connected');
+          if (notify) {
+            toast(getTranslation('toast_api_unreachable'), 'error');
+          }
           apiStatusText.dataset.status = 'unreachable';
           delete apiStatusText.dataset.statusCode;
           syncApiStatusText();
-          toast(getTranslation('toast_api_unreachable'), 'error');
         }
       }
       const pingBtn = document.getElementById('pingBtn');
-      if (pingBtn) pingBtn.addEventListener('click', pingApi);
+      if (pingBtn) pingBtn.addEventListener('click', () => pingApi({ notify: true }));
 
       // Auto-ping on load
       setTimeout(pingApi, 800);
@@ -3218,7 +3204,8 @@
 
       async function doAnalyze() {
         const code = editor.value.trim();
-        if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
+        if (!code) { toast('Please paste some code first.', 'error'); return; }
+        if (editor.value.length >= CHAR_MAX) return;
 
         const base = getApiBase();
         const endpointMap = {
@@ -3228,11 +3215,6 @@
           suggest: '/suggestions/',
         };
         const endpoint = endpointMap[selectedMode] || '/analyze/';
-
-        // Loading state
-        analyzeBtn.classList.add('loading');
-        analyzeBtn.disabled = true;
-        showShimmers();
 
         try {
           if (selectedZipFile) {
@@ -3252,8 +3234,8 @@
             currentResult = data;
             renderZipResults(data);
             addToHistory(`ZIP: ${selectedZipFile.name}`, data);
-            apiDot.classList.add('connected');
-            apiStatusText.textContent = 'Connected';
+            apiDot?.classList.add('connected');
+            if (apiStatusText) apiStatusText.textContent = 'Connected';
             document.getElementById('engineBar').style.display = 'flex';
             engineInfo.textContent = `${data.provider || 'rule-based'} · ${data.model || ''}`;
             timeInfo.textContent = data.analysis_time_ms ? data.analysis_time_ms + 'ms' : '';
@@ -3274,7 +3256,6 @@
           const data = await res.json();
           const elapsed = res.headers.get('X-Process-Time-Ms');
 
-          // Normalize to full analysis shape
           let result;
           if (selectedMode === 'analyze') {
             result = data;
@@ -3289,21 +3270,91 @@
           currentResult = result;
           renderResults(result, code);
           addToHistory(code, result);
-          apiDot.classList.add('connected');
-          apiStatusText.textContent = getTranslation('api_status_connected');
+          apiDot?.classList.add('connected');
+          if (apiStatusText) apiStatusText.textContent = getTranslation('api_status_connected');
           document.getElementById('engineBar').style.display = 'flex';
           engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
           if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
-          else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
-          resultActions.style.display = 'flex';
 
+          resultActions.style.display = 'flex';
         } catch (err) {
           toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');
-          analyzeBtn.disabled = false;
+          analyzeBtn.disabled = editor.value.length >= CHAR_MAX;
         }
+      }
+
+      /**
+       * Stream the full analysis via POST /analyze/stream (SSE).
+       * Renders each section (explain → debug → suggest) as its chunk arrives,
+       * replacing the shimmer placeholder progressively.
+       */
+      async function doAnalyzeStream(code) {
+        const base = getApiBase();
+        const res = await fetch(`${base}/analyze/stream`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, language: selectedLang }),
+          signal: AbortSignal.timeout(30000),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let result = { explanation: null, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
+        let firstSection = true;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // SSE lines end with \n\n — split on that to get complete events
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop() || '';   // keep any incomplete trailing chunk
+
+          for (const part of parts) {
+            for (const line of part.split('\n')) {
+              if (!line.startsWith('data: ')) continue;
+              let event;
+              try { event = JSON.parse(line.slice(6)); } catch { continue; }
+
+              if (event.type === 'explanation') {
+                result.explanation = event.data;
+                renderExplain(event.data);
+                if (firstSection) {
+                  document.querySelector('[data-rtab="explain"]').click();
+                  firstSection = false;
+                }
+              } else if (event.type === 'debugging') {
+                result.debugging = event.data;
+                renderDebug(event.data);
+              } else if (event.type === 'suggestions') {
+                result.suggestions = event.data;
+                renderSuggest(event.data);
+              } else if (event.type === 'done') {
+                result.provider = event.provider || 'rule-based';
+                result.model = event.model || '';
+                result.analysis_time_ms = event.analysis_time_ms;
+                document.getElementById('engineBar').style.display = 'flex';
+                engineInfo.textContent = result.provider + ' · ' + result.model;
+                if (event.analysis_time_ms) timeInfo.textContent = event.analysis_time_ms + 'ms';
+                resultActions.style.display = 'flex';
+              }
+            }
+          }
+        }
+
+        currentResult = result;
+        addToHistory(code, result);
       }
 
       /* ═══════════════════════════════════════════════════════════════
@@ -3442,25 +3493,34 @@
         document.getElementById('emptyExplain').style.display = 'none';
         const el = document.getElementById('explainResult');
         el.style.display = 'block';
-        document.getElementById('explainBadge').textContent = exp.complexity;
+        document.getElementById('explainBadge').textContent = escHtml(exp.complexity);
+
+        const cleanComplexity = sanitizeClassToken(exp.complexity);
+        const cleanRisk = sanitizeClassToken((exp.complexity_risk || 'Simple').replace(/\s+/g, '-'));
+        const escapedLang = escHtml(exp.language);
+        const lineCountInt = parseInt(exp.line_count, 10) || 0;
+        const funcCountInt = parseInt(exp.function_count, 10) || 0;
+        const classCountInt = parseInt(exp.class_count, 10) || 0;
+        const cyclomaticComplexityInt = exp.cyclomatic_complexity != null ? parseInt(exp.cyclomatic_complexity, 10) : null;
+        const escapedRisk = escHtml(exp.complexity_risk || 'Simple');
 
         el.innerHTML = `
-    <div class="explain-summary" tabindex="0">${exp.summary}</div>
+    <div class="explain-summary" tabindex="0">${renderMarkdown(exp.summary)}</div>
     <div class="explain-meta">
-      <div class="meta-chip complexity-${exp.complexity}">
-        <div class="dot"></div>${exp.complexity}
+      <div class="meta-chip complexity-${cleanComplexity}">
+        <div class="dot"></div>${escHtml(exp.complexity)}
       </div>
       <div class="meta-chip">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-        ${exp.language}
+        ${escapedLang}
       </div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', exp.line_count)}</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', exp.function_count)}</div>
-      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', exp.class_count) + '</div>' : ''}
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
-      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
-      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', lineCountInt)}</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', funcCountInt)}</div>
+      ${classCountInt > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', classCountInt) + '</div>' : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${lineCountInt} lines</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${funcCountInt} fn${funcCountInt !== 1 ? 's' : ''}</div>
+      ${classCountInt > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + classCountInt + ' class' + (classCountInt !== 1 ? 'es' : '') + '</div>' : ''}
+      ${cyclomaticComplexityInt != null ? `<div class="meta-chip risk-${cleanRisk}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${cyclomaticComplexityInt} &middot; ${escapedRisk}</div>` : ''}
     </div>
     <ul class="key-points">
       ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
@@ -3489,30 +3549,37 @@
         const statBar = `
     <div class="stat-bar">
       <div class="stat-chip error-chip">
-        <div class="stat-chip-num">${dbg.error_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.error_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_errors')}</div>
       </div>
       <div class="stat-chip warn-chip">
-        <div class="stat-chip-num">${dbg.warning_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.warning_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_warnings')}</div>
       </div>
       <div class="stat-chip info-chip">
-        <div class="stat-chip-num">${dbg.info_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.info_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_info')}</div>
       </div>
     </div>`;
 
-        const cards = dbg.issues.map((issue, i) => `
-    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
+        const cards = dbg.issues.map((issue, i) => {
+          const cleanSeverity = sanitizeClassToken(issue.severity);
+          const escapedType = escHtml(issue.type);
+          const escapedDesc = escHtml(issue.description);
+          const escapedSuggestion = escHtml(issue.suggestion);
+          const escapedLine = issue.line ? escHtml(issue.line) : '';
+          return `
+    <div class="issue-card ${cleanSeverity}" style="animation-delay:${i * 0.05}s" tabindex="0">
       <div class="issue-header">
-        <span class="issue-badge">${issue.severity}</span>
-        <span class="issue-type">${issue.type}</span>
-        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', issue.line)}</span>` : ''}
+        <span class="issue-badge">${escHtml(issue.severity)}</span>
+        <span class="issue-type">${escapedType}</span>
+        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', escapedLine)}</span>` : ''}
       </div>
-      <div class="issue-desc">${issue.description}</div>
+      <div class="issue-desc">${escapedDesc}</div>
       ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
-      <div class="issue-fix">${issue.suggestion}</div>
-    </div>`).join('');
+      <div class="issue-fix">${escapedSuggestion}</div>
+    </div>`;
+        }).join('');
 
         el.innerHTML = statBar + cards;
       }
@@ -3688,13 +3755,13 @@
             style="transition:stroke-dashoffset 1s ease"/>
         </svg>
         <div class="score-ring-text">
-          <div class="score-num" style="color:${scoreColor}">${sugg.overall_score}</div>
-          <div class="score-grade">${sugg.grade}</div>
+          <div class="score-num" style="color:${scoreColor}">${parseInt(sugg.overall_score, 10) || 0}</div>
+          <div class="score-grade">${escHtml(sugg.grade)}</div>
         </div>
       </div>
       <div class="score-info">
         <h3>${getTranslation('suggest_quality_score')}</h3>
-        <p>${sugg.next_step}</p>
+        <p>${escHtml(sugg.next_step)}</p>
       </div>
     </div>`;
 
@@ -3729,33 +3796,38 @@
                   if (originalSnippet) {
                     exampleHtml = buildDiffHtml(originalSnippet, s.example, copyId);
                   } else {
-                    // No match – show fixed code as green "Fixed Code" block
-                    const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
-                    exampleHtml = `
-                    <div class="diff-wrapper">
-                      <div class="diff-header">
-                        <div class="diff-header-labels">
-                          <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
-                        </div>
-                        <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                          Copy fixed
-                        </button>
-                      </div>
-                      <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
-                    </div>`;
+                     // No match – show fixed code as green "Fixed Code" block
+                     const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+                     exampleHtml = `
+                     <div class="diff-wrapper">
+                       <div class="diff-header">
+                         <div class="diff-header-labels">
+                           <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
+                         </div>
+                         <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
+                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                           Copy fixed
+                         </button>
+                       </div>
+                       <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
+                     </div>`;
                   }
                 }
               }
             }
 
+            const cleanPriority = sanitizeClassToken(s.priority);
+            const escapedCat = escHtml(s.category);
+            const escapedPriority = escHtml(s.priority);
+            const escapedDesc = escHtml(s.description);
+
             return `
-      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
+      <div class="suggest-card priority-${cleanPriority}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
-          <span class="suggest-cat">${s.category}</span>
-          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', s.priority)}</span>
+          <span class="suggest-cat">${escapedCat}</span>
+          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', escapedPriority)}</span>
         </div>
-        <div class="suggest-desc">${s.description}</div>
+        <div class="suggest-desc">${escapedDesc}</div>
         ${exampleHtml}
       </div>`;
           }).join('');
@@ -3831,6 +3903,21 @@
       /* ═══════════════════════════════════════════════════════════════
          HISTORY
       ═══════════════════════════════════════════════════════════════ */
+      async function saveHistoryToBackend(code, lang, result) {
+        try {
+          const base = apiUrlInput.value.replace(/\/$/, '');
+          const score = result.suggestions?.overall_score ?? null;
+          const issue_count = result.debugging?.error_count ?? null;
+          await fetch(`${base}/history/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language: lang, score, issue_count }),
+          });
+        } catch (_) {
+          // backend unavailable — localStorage fallback is still active
+        }
+      }
+
       function addToHistory(code, result) {
         const lang = result.explanation?.language || result.debugging?.language||result.suggestions?.language||selectedLang;
         const entry = {
@@ -3845,6 +3932,7 @@
         if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
         localStorage.setItem('qyx_history', JSON.stringify(history));
         renderHistory();
+        saveHistoryToBackend(code, lang, result);
       }
 
       function renderHistory() {
@@ -3860,30 +3948,90 @@
     </div>`).join('');
       }
 
-      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
 
+        const base = apiUrlInput.value.replace(/\/$/, '');
+        const entries = await fetch(`${base}/history/?limit=100`).then(r => r.json()).catch(() => []);
+        for (const e of entries) {
+          fetch(`${base}/history/${e.id}`, { method: 'DELETE' }).catch(() => {});
+        }
         history = [];
         localStorage.removeItem('qyx_history');
         renderHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
-      function loadEntry(id) {
-        const entry = history.find(h => h.id === Number (id));
-        console.log(entry);
-        if (!entry) return;
-        editor.value = entry.code;
+      function normalizeSavedEntryId(id) {
+        const normalizedId = Number(id);
+        return Number.isNaN(normalizedId) ? null : normalizedId;
+      }
 
-        if(entry.lang){
-          setLanguage(entry.lang.toLowerCase());
+      document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+        if (!history || history.length === 0) {
+          toast('No history to download', 'info');
+          return;
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+        const dlNode = document.createElement('a');
+        dlNode.setAttribute("href", dataStr);
+        dlNode.setAttribute("download", "history.json");
+        document.body.appendChild(dlNode);
+        dlNode.click();
+        dlNode.remove();
+        toast('Downloaded history.json', 'success');
+      });
+
+      document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+        if (!history || history.length === 0) {
+          toast('No history to download', 'info');
+          return;
         }
 
+        const headers = Object.keys(history[0]);
+        const csvRows = [];
+        csvRows.push(headers.join(','));
+
+        for (const row of history) {
+          const values = headers.map(header => {
+            let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
+            val = val.replace(/"/g, '""');
+            return `"${val}"`;
+          });
+          csvRows.push(values.join(','));
+        }
+
+        const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
+        const dlNode = document.createElement('a');
+        dlNode.setAttribute("href", csvContent);
+        dlNode.setAttribute("download", "history.csv");
+        document.body.appendChild(dlNode);
+        dlNode.click();
+        dlNode.remove();
+        toast('Downloaded history.csv', 'success');
+      });
+
+      function restoreSavedEntry(entry) {
+        if (!entry) return;
+
+        editor.value = entry.code;
+        if (entry.lang) {
+          setLanguage(entry.lang.toLowerCase());
+        }
         updateEditor();
         currentResult = entry.result;
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
+
+      function loadEntry(id) {
+        const normalizedId = normalizeSavedEntryId(id);
+        if (normalizedId === null) return;
+        const entry = history.find(h => h.id === normalizedId);
+        restoreSavedEntry(entry);
+      }
+
+      window.loadEntry = loadEntry;
 
       /* ═══════════════════════════════════════════════════════════════
          FAVORITES
@@ -3927,20 +4075,13 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
   toast(getTranslation('toast_favorites_cleared'), 'info');
 });
       function loadFav(id) {
-        const entry = favorites.find(f => f.id === Number(id));
-        if (!entry) return;
-        editor.value = entry.code;
-        selectedLang = entry.lang.toLowerCase();
-        document.querySelectorAll('.lang-tab').forEach(tab =>{
-          const active = tab.dataset.lang === selectedLang;
-          tab.classList.toggle('active', active);
-          tab.setAttribute('aria-selected', active ? 'true' : 'false');
-        });
-        updateEditor();
-        currentResult = entry.result;
-        renderResults(entry.result, entry.code);
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+        const normalizedId = normalizeSavedEntryId(id);
+        if (normalizedId === null) return;
+        const entry = favorites.find(f => f.id === normalizedId);
+        restoreSavedEntry(entry);
       }
+
+      window.loadFav = loadFav;
       /* ═══════════════════════════════════════════════════════════════
          DOWNLOAD
       ═══════════════════════════════════════════════════════════════ */
@@ -4002,10 +4143,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
          HELPERS
       ═══════════════════════════════════════════════════════════════ */
       function escHtml(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+      }
+      function sanitizeClassToken(token) {
+        return String(token || '').replace(/[^a-zA-Z0-9\-]/g, '');
       }
       function renderMarkdown(s) {
-        return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        const escaped = escHtml(s);
+        return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
           .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
       }
 
@@ -4122,6 +4267,8 @@ int main() {
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
         toast(getTranslation('toast_sample_loaded'), 'success');
       }
+
+      window.loadSample = loadSample;
 
       /* ═══════════════════════════════════════════════════════════════
          INIT
