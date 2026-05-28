@@ -3806,18 +3806,6 @@
       attachIssueNavigation();
     }
 
-    function attachIssueNavigation() {
-  const debugResult = document.getElementById('debugResult');
-
-  if (!debugResult) return;
-
-  debugResult.addEventListener('click', handleIssueJump);
-  debugResult.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      handleIssueJump(e);
-    }
-  });
-}
 
 function handleIssueJump(event) {
   const card = event.target.closest('.issue-card');
