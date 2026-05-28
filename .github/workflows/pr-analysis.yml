@@ -26,7 +26,7 @@ jobs:
       - name: Analyze changed files and post PR comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          QYVERIXAI_API_KEY: ${{ secrets.QYVERIXAI_API_KEY || 'public' }}
+          QYVERIXAI_API_KEY: ${{ secrets.QYVERIXAI_API_KEY }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           QYVERIXAI_API_URL: https://qyverixai.onrender.com/analyze/
         run: |
