@@ -1,4 +1,4 @@
-"""Full analysis router - POST /analyze/, /analyze/stream/ and /analyze/zip/."""
+"""Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
 from __future__ import annotations
 
 import asyncio
@@ -109,14 +109,12 @@ async def _stream_analysis(code: str, language_hint: str | None):
     await asyncio.sleep(0)
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
-
     done_payload = {
-    "type": "done",
-    "provider": "rule-based",
-    "model": "qyverix-engine-v3",
-    "analysis_time_ms": elapsed_ms,
-}
-
+        "type": "done",
+        "provider": "rule-based",
+        "model": "qyverix-engine-v3",
+        "analysis_time_ms": elapsed_ms,
+    }
     yield f"data: {json.dumps(done_payload)}\n\n"
 
 
