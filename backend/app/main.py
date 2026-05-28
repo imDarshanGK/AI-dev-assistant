@@ -14,9 +14,16 @@ from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
 
-from .routers import  upload_file
-
-from .routers import explanation, debugging, suggestions, analyze, subscribe, share,history
+from .routers import (
+    analyze,
+    debugging,
+    explanation,
+    history,
+    share,
+    suggestions,
+    subscribe,
+    upload_file,
+)
 from .services.scheduler import start_scheduler, stop_scheduler
 from .database import Base, engine
 
@@ -136,8 +143,6 @@ app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
 app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
-# app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
-# app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
 app.include_router(share.router)
 app.include_router(history.router,     prefix="/history",     tags=["History"])
 
