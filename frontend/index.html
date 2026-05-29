@@ -1879,7 +1879,7 @@
     <div class="badge-dot"></div>
     Open Source · AI-Powered · Free
   </div>
-  <h1>Debug. Understand.<br/><em>Ship faster.</em></h1>
+  <h2>Debug. Understand.<br/><em>Ship faster.</em></h2>
   <p class="hero-sub">
     Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.
   </p>
@@ -1939,7 +1939,7 @@
 </div>
 
 <!-- ── WORKSPACE ─────────────────────────────────────────────── -->
-<section id="workspace" class="workspace">
+<section class="workspace">
 
   <!-- Editor Panel -->
   <div class="panel">
@@ -1951,7 +1951,7 @@
       <div class="panel-actions">
         <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button" aria-label="Upload code file" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1"/>
+          <input type="file" class="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1"/>
         </label>
         <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
@@ -2527,7 +2527,7 @@
       /* ═══════════════════════════════════════════════════════════════
          CLEAR / COPY
       ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('clearBtn').addEventListener('click', () => {
+      document.querySelector('.clearBtn').addEventListener('click', () => {
         editor.value = '';
         updateEditor();
         resetResults();

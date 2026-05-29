@@ -76,7 +76,7 @@ codeInput.addEventListener('keydown', (e) => {
 
 // ── File upload ──
 document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', (e) => {
+const fileInput = document.querySelector('.fileInput');
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -88,7 +88,7 @@ fileInput.addEventListener('change', (e) => {
 });
 
 // ── Clear ──
-document.getElementById('clearBtn').addEventListener('click', () => {
+document.querySelector('.clearBtn').addEventListener('click', () => {
   codeInput.value = '';
   lineCount.textContent = '0 lines';
   resetOutput();

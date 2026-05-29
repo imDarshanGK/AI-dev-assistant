@@ -197,7 +197,7 @@ function renderAnalyzeHtml(res: AnalyzeResponse): string {
 </style>
 </head>
 <body>
-  <h1>QyverixAI Analysis</h1>
+  <h2>QyverixAI Analysis</h2>
   <div class="meta">
     ${res.provider} &middot; ${res.model} &middot;
     ${res.analysis_time_ms !== null ? `${(res.analysis_time_ms / 1000).toFixed(2)}s` : ''}
@@ -259,7 +259,7 @@ function renderExplainHtml(res: ExplanationResponse): string {
 </style>
 </head>
 <body>
-  <h1>Code Explanation</h1>
+  <h2>Code Explanation</h2>
   <div class="meta">${escapeHtml(res.language)} &middot; ${res.complexity}</div>
   <div class="summary">
     <p>${escapeHtml(res.summary)}</p>
@@ -469,7 +469,7 @@ function renderDebugHtml(res: DebuggingResponse): string {
 </style>
 </head>
 <body>
-  <h1>Debug Results</h1>
+  <h2>Debug Results</h2>
   <p style="color:var(--vscode-descriptionForeground);">${escapeHtml(res.summary)}</p>
   <div class="stats">
     <div class="stat"><div class="stat-num" style="color:#f14c4c">${res.error_count}</div><div class="stat-label">Errors</div></div>
