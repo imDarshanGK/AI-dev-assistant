@@ -1,6 +1,6 @@
 """Tests for the AST-based Python analyzer."""
 
-from app.services.ast_analyzer import analyze_python_ast
+from app.services.ast_analyzer import analyze_python_ast, analyze
 
 
 def _types(code: str) -> list[str]:
@@ -150,7 +150,6 @@ def test_issue_shape_has_required_fields():
         assert "severity" in issue
         assert "line" in issue
         assert issue["severity"] in ("error", "warning", "info")
-from app.services.ast_analyzer import analyze
 
 def test_unreachable_code():
     code = "def f():\n    return 1\n    x = 2\n"
