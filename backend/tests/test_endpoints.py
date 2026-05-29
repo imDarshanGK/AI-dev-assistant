@@ -498,6 +498,7 @@ def test_debug_kotlin():
     assert d is not None
 
 
+
 def test_debug_cpp_syntax_errors():
     code = "void main() {\n    cout << 'Hello World'\n}"
     r = client.post("/debugging/", json={"code": code, "language": "cpp"})
