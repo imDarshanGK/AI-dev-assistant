@@ -1,7 +1,7 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class CodeRequest(BaseModel):
@@ -19,32 +19,30 @@ class CodeRequest(BaseModel):
         return v
 
 
-# ── Explanation ────────────────────────────────────────────────────────────────
 class ExplanationResponse(BaseModel):
     language: str
     summary: str
-    key_points: list[str]
-    complexity: str
-    line_count: int
-    function_count: int
-    class_count: int
-    cyclomatic_complexity: int
-    complexity_risk: str
+    key_points: list[str] | None = None
+    complexity: str | None = None
+    line_count: int | None = None
+    function_count: int | None = None
+    class_count: int | None = None
+    cyclomatic_complexity: int | None = None
+    complexity_risk: str | None = None
 
 
-# ── Debugging ─────────────────────────────────────────────────────────────────
 class Issue(BaseModel):
     type: str
     line: int | None
     description: str
     suggestion: str
-    severity: str          # "error" | "warning" | "info"
+    severity: str
     code_snippet: str | None = None
-    code_context: str | None = None  # NEW: Formatted code with line numbers
+    code_context: str | None = None
 
 
 class DebuggingResponse(BaseModel):
-    issues: list[Issue]
+    issues: list[dict]
     summary: str
     clean: bool
     error_count: int
@@ -52,35 +50,52 @@ class DebuggingResponse(BaseModel):
     info_count: int
 
 
-# ── Suggestions ───────────────────────────────────────────────────────────────
 class Suggestion(BaseModel):
     category: str
     description: str
-    line_number: int | None = None              # NEW
-    line_range: list[int] | None = None         # NEW (for multi-line issues)
+    line_number: int | None = None
+    line_range: list[int] | None = None
     code_context: str | None = None
     example: str | None = None
-    priority: str          # "high" | "medium" | "low"
+    priority: str
 
 
 class SuggestionsResponse(BaseModel):
-    suggestions: list[Suggestion]
+    suggestions: list[dict]
     overall_score: int
     grade: str
-    next_step: str
+    next_step: str | None = None
 
 
-# ── Full Analysis ─────────────────────────────────────────────────────────────
 class AnalyzeResponse(BaseModel):
     provider: str
-    model: str
-    explanation: ExplanationResponse
-    debugging: DebuggingResponse
-    suggestions: SuggestionsResponse
+    model: str | None = None
+    explanation: dict | ExplanationResponse | None = None
+    debugging: dict | DebuggingResponse | None = None
+    suggestions: dict | SuggestionsResponse | None = None
     analysis_time_ms: float | None = None
 
 
-# ── Weekly Digest / Subscription ───────────────────────────────
+class ZipAnalyzeFileResult(BaseModel):
+    filename: str
+    language: str
+    size_bytes: int
+    analysis: AnalyzeResponse
+
+
+class ZipAnalyzeResponse(BaseModel):
+    provider: str
+    model: str
+    file_count: int
+    total_size_bytes: int
+    overall_project_score: int
+    grade: str
+    summary: str
+    files: list[ZipAnalyzeFileResult]
+    skipped_files: list[str] = Field(default_factory=list)
+    analysis_time_ms: float | None = None
+
+
 class SubscribeRequest(BaseModel):
     email: str
 
@@ -105,7 +120,56 @@ class UnsubscribeRequest(BaseModel):
     token: str
 
 
-# ── Health ────────────────────────────────────────────────────────────────────
+class SignupRequest(BaseModel):
+    """Request body for creating a new user account.
+
+    Attributes:
+        email: The user's email address.
+        password: The user's chosen password (plaintext in request).
+    """
+
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    """Request body for user login.
+
+    Attributes:
+        email: The user's email address.
+        password: The user's password.
+    """
+
+    email: str
+    password: str
+
+
+class AuthResponse(BaseModel):
+    """Response returned after successful authentication.
+
+    Attributes:
+        access_token: JWT bearer token for authenticated requests.
+        user_id: Internal numeric user identifier.
+        email: The user's email address.
+    """
+
+    access_token: str
+    user_id: int
+    email: str
+
+
+class UserProfileResponse(BaseModel):
+    """Public user profile returned by `/auth/me`.
+
+    Attributes:
+        user_id: Internal numeric user identifier.
+        email: The user's email address.
+    """
+
+    user_id: int
+    email: str
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
@@ -113,7 +177,6 @@ class HealthResponse(BaseModel):
     endpoints: list[str] | None = None
 
 
-# ── Share / Snippets ───────────────────────────────────────────────────────────
 class ShareCreateRequest(BaseModel):
     code: str
     result: dict

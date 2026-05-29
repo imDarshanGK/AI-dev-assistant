@@ -127,6 +127,9 @@ The app can still run without external AI providers when `LLM_ENABLED=false`.
 | API root | http://localhost:8000/ |
 | Interactive docs | http://localhost:8000/docs |
 | Health check | http://localhost:8000/health |
+| Signup | http://localhost:8000/auth/signup |
+| Login | http://localhost:8000/auth/login |
+| Current user | http://localhost:8000/auth/me |
 
 ### 3 - Open the frontend
 
@@ -265,13 +268,14 @@ AI-dev-assistant/
 │   │   │   ├── analyze.py            # POST /analyze/
 │   │   │   ├── debugging.py          # POST /debugging/
 │   │   │   ├── explanation.py        # POST /explanation/
-│   │   │   └── suggestions.py        # POST /suggestions/
+│   │   │   ├── suggestions.py        # POST /suggestions/
+│   │   │   └── auth.py               # /auth/signup, /auth/login, /auth/me
 │   │   └── services/
 │   │       ├── code_assistant.py     # Rule-based engine — 40+ patterns, 5 languages
 │   │       └── ai_provider.py        # Optional LLM abstraction layer
 │   ├── requirements.txt
 │   └── tests/
-│       └── test_endpoints.py         # 39 tests across all endpoints and languages
+│       └── test_endpoints.py         # 52 tests across all endpoints and languages
 ├── frontend/
 │   └── index.html                    # Complete UI — no build step, self-contained
 ├── .github/
@@ -293,7 +297,7 @@ cd backend
 pytest -v
 ```
 
-39 tests covering all endpoints, all 5 languages, 10+ individual bug patterns, suggestions scoring, full analysis, and edge cases including empty code, unicode, and single-line input.
+52 tests covering all endpoints, all 5 languages, 10+ individual bug patterns, suggestions scoring, full analysis, and edge cases including empty code, unicode, and single-line input.
 
 Tests run automatically on every push and pull request via GitHub Actions across Python 3.11 and 3.12.
 
@@ -317,6 +321,25 @@ Tests run automatically on every push and pull request via GitHub Actions across
 docker build -t qyverixai .
 docker run -p 8000:8000 qyverixai
 ```
+### Docker Compose
+
+Run the complete local development environment:
+
+```bash
+docker compose up --build
+```
+
+Available services:
+
+- Frontend → http://localhost:3000
+- Backend API → http://localhost:8000
+- PostgreSQL → localhost:5432
+
+Stop containers:
+
+```bash
+docker compose down
+```
 
 ---
 
@@ -335,6 +358,12 @@ LLM_TIMEOUT_SECONDS=30
 Compatible with **OpenAI**, **Groq** (free tier), **Together AI**, **Ollama** (local, free), and any OpenAI-compatible endpoint.
 
 > Never commit API keys. Use environment variables or your host's secrets manager.
+
+### Provider Reliability
+The backend includes built-in resilience for LLM requests:
+- **Exponential Backoff**: Automatic retries on timeouts and connection failures.
+- **Rate Limit Handling**: Pauses and retries on HTTP 429 Rate Limit responses.
+- **Graceful Fallback**: Preserves offline/rule-based features seamlessly if the LLM provider becomes fully unavailable.
 
 ---
 

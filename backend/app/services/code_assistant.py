@@ -7,6 +7,7 @@ from __future__ import annotations
 import ast
 import re
 import time
+from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
 
 # ── Language Detection ─────────────────────────────────────────────────────────
@@ -114,6 +115,9 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "php": "PHP",
             "rust": "Rust",
             "rs": "Rust",
+            "kotlin": "Kotlin",
+            "kt": "Kotlin",
+            "kts": "Kotlin",
         }
         if normalized in mapping:
             return mapping[normalized]
@@ -763,10 +767,21 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
         A list of detected issues with metadata and suggestions.
     """
     from .line_utils import format_code_snippet
+    from .ast_analyzer import analyze_python_ast
 
     lines = code.splitlines()
     found: list[dict] = []
     seen: set[str] = set()
+
+    if language == "Python":
+        for issue in analyze_python_ast(code):
+            key = f"{issue['type']}:{issue['line']}"
+            if key not in seen:
+                seen.add(key)
+                line_idx = issue["line"] - 1
+                issue["code_snippet"] = lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
+                issue["code_context"] = format_code_snippet(code, [issue["line"]], context_lines=2)
+                found.append(issue)
 
     for bp in BUG_PATTERNS:
         if language not in bp.languages and "All" not in bp.languages:
@@ -799,6 +814,16 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                     }
                 )
                 break  # one hit per pattern is enough
+
+    if language == "Python":
+        try:
+            for issue in ast_analyze(code):
+                key = f"{issue['type']}:{issue['line']}"
+                if key not in seen:
+                    seen.add(key)
+                    found.append(issue)
+        except SyntaxError:
+            pass
 
     return found
 
@@ -879,7 +904,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 3: Magic Numbers
     # ─────────────────────────────────────────────────────────────
-    magic_pattern = r"\b(?<![a-zA-Z_])[2-9]\d{1,}(?![a-zA-Z_])\b"
+    magic_pattern = r"\b(?<![a-zA-Z_])[1-9]\d{1,}(?![a-zA-Z_])\b"
     magic_lines = find_lines_matching_pattern(code, magic_pattern)
 
     if magic_lines:
@@ -975,22 +1000,21 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 7: Logging
     # ─────────────────────────────────────────────────────────────
-    print_lines = find_lines_matching_pattern(code, r"\bprint\s*\(")
-    has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
+    if language == "Python":
+        print_lines = find_lines_matching_pattern(code, r"\bprint\s*\(")
+        has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
 
-    if print_lines and not has_logging:
-        sample_print = print_lines[:3]
-        suggestions.append(
-            {
+        if print_lines and not has_logging:
+            sample_print = print_lines[:3]
+            suggestions.append({
                 "category": "Observability",
                 "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
                 "line_number": print_lines[0],
                 "line_range": sample_print,
                 "code_context": format_code_snippet(code, sample_print),
-                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",  # noqa: E501
+                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
                 "priority": "medium",
-            }
-        )
+            })
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 8: Environment Variables (JS/TS)
