@@ -18,9 +18,7 @@
     })();
   </script>
   <style>
-    /* ═══════════════════════════════════════════════════════════════
-   DESIGN TOKENS
-═══════════════════════════════════════════════════════════════ */
+    /* DESIGN TOKENS */
     :root {
       --bg: #0a0c10;
       --bg2: #0f1117;
@@ -59,9 +57,7 @@
       --shadow2: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    /* ═══════════════════════════════════════════════════════════════
-   RESET & BASE
-═══════════════════════════════════════════════════════════════ */
+    /* RESET & BASE */
     *,
     *::before,
     *::after {
@@ -590,14 +586,6 @@
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .panel-title span {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: blink 2s infinite;
     }
 
     .panel-actions {
@@ -2010,7 +1998,7 @@
 </style>
 <link rel="icon" href="data:,">
 </head>
-<body>
+<body id="top">
   <div class="bg-orb bg-orb-1"></div>
   <div class="bg-orb bg-orb-2"></div>
 
@@ -2018,7 +2006,7 @@
 
     <!-- ── NAV ──────────────────────────────────────────────────── -->
     <nav>
-      <a href="#" class="nav-logo">
+      <a href="#top" class="nav-logo">
         <div class="logo-hex">Q</div>
         QyverixAI
         <span
@@ -2161,10 +2149,9 @@
       <!-- Editor Panel -->
       <div class="panel" style="grid-column:1">
         <div class="panel-header">
-          <div class="panel-title">
-            <span></span>
-            <span data-i18n="editor_title">Code Editor</span>
-          </div>
+            <div class="panel-title">
+              <span data-i18n="editor_title">Code Editor</span>
+            </div>
           <div class="panel-actions">
             <button class="icon-btn" id="uploadBtn" type="button" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -2384,9 +2371,7 @@
     <div id="toastContainer"></div>
 
     <script>
-      /* ═══════════════════════════════════════════════════════════════
-         STATE & TRANSLATIONS
-      ═══════════════════════════════════════════════════════════════ */
+      /* STATE & TRANSLATIONS */
       const TRANSLATIONS = {
         en: {
           lang_select_label: "Select language",
@@ -2402,7 +2387,7 @@
           nav_github: "GitHub",
           nav_api_docs: "API Docs",
           hero_badge: "Open Source · AI-Powered · Free",
-          hero_title: "Debug. Understand.<br ><em>Ship faster.</em>",
+          hero_title: "Debug. Understand.<br><em>Ship faster.</em>",
           hero_subtitle: "Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.",
           btn_start_analyzing: "Start Analyzing",
           btn_try_sample: "Try Sample Code",
@@ -2499,7 +2484,7 @@
           nav_github: "கிட்ஹப் (GitHub)",
           nav_api_docs: "ஏபிஐ ஆவணங்கள் (API Docs)",
           hero_badge: "திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்",
-          hero_title: "பிழையறி. புரிந்துகொள்.<br ><em>வேகமாக அனுப்பு.</em>",
+          hero_title: "பிழையறி. புரிந்துகொள்.<br><em>வேகமாக அனுப்பு.</em>",
           hero_subtitle: "உங்கள் குறியீட்டை ஒட்டி, உடனடி பிழை கண்டறிதல், எளிய ஆங்கில விளக்கங்கள் மற்றும் பயனுள்ள மேம்பாட்டு பரிந்துரைகளைப் பெறுங்கள் — கணக்கு தேவையில்லை.",
           btn_start_analyzing: "பகுப்பாய்வைத் தொடங்கு",
           btn_try_sample: "மாதிரிக் குறியீட்டை முயல்க",
@@ -2596,7 +2581,7 @@
           nav_github: "गिटहब (GitHub)",
           nav_api_docs: "एपीआई दस्तावेज़ (API Docs)",
           hero_badge: "ओपन सोर्स · एआई-संचालित · मुफ्त",
-          hero_title: "डीबग करें। समझें।<br ><em>तेज़ी से शिप करें।</em>",
+          hero_title: "डीबग करें। समझें।<br><em>तेज़ी से शिप करें।</em>",
           hero_subtitle: "अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।",
           btn_start_analyzing: "विश्लेषण शुरू करें",
           btn_try_sample: "सैंपल कोड आज़माएं",
@@ -2693,7 +2678,7 @@
           nav_github: "GitHub",
           nav_api_docs: "Docs API",
           hero_badge: "Open Source · Propulsé par l'IA · Gratuit",
-          hero_title: "Déboguez. Comprenez.<br ><em>Lisez plus vite.</em>",
+          hero_title: "Déboguez. Comprenez.<br><em>Lisez plus vite.</em>",
           hero_subtitle: "Collez votre code et obtenez une détection instantanée des bogues, des explications simples et des suggestions d'amélioration exploitables — aucun compte requis.",
           btn_start_analyzing: "Démarrer l'analyse",
           btn_try_sample: "Essayer l'exemple",
@@ -2787,9 +2772,7 @@
       let selectedZipFile = null;
       let appLang = localStorage.getItem('qyx_lang') || 'en';
 
-      /* ═══════════════════════════════════════════════════════════════
-         DOM REFS
-      ═══════════════════════════════════════════════════════════════ */
+      /* DOM REFS */
       const editor = document.getElementById('codeEditor');
       const lineNumbers = document.getElementById('lineNumbers');
       const charCount = document.getElementById('charCount');
@@ -2804,9 +2787,7 @@
       const engineInfo = document.getElementById('engineInfo');
       const timeInfo = document.getElementById('timeInfo');
 
-      /* ═══════════════════════════════════════════════════════════════
-         THEME
-      ═══════════════════════════════════════════════════════════════ */
+      /* THEME */
       // dark mode → moon, light mode → sun
       function setThemeIcon(theme) {
         const icon = document.getElementById('themeIcon');
@@ -2928,8 +2909,30 @@
         return /<\s*html|<\s*style|<\s*script|function\s+updateEditor\s*\(|\.stat-bar|\.hero\s*\{|\.workspace\s*\{/i.test(text);
       }
 
+      const DEFAULT_API_BASE = 'https://qyverixai.onrender.com';
+
+      function getHostname(url) {
+        try {
+          return new URL(url).hostname;
+        } catch {
+          return '';
+        }
+      }
+
+      function isLocalHostName(hostname) {
+        return hostname === 'localhost' || hostname === '127.0.0.1';
+      }
+
+      function isLocalApiUrl(url) {
+        return isLocalHostName(getHostname(url));
+      }
+
       function getApiBase() {
-        return ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || 'http://localhost:8000').replace(/\/$/, '');
+        const candidate = ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || DEFAULT_API_BASE).replace(/\/$/, '');
+        if (window.location.protocol === 'file:' && isLocalApiUrl(candidate)) {
+          return DEFAULT_API_BASE;
+        }
+        return candidate;
       }
 
       function isNetworkFetchFailure(err) {
@@ -4244,9 +4247,7 @@ int main() {
 
       window.loadSample = loadSample;
 
-      /* ═══════════════════════════════════════════════════════════════
-         INIT
-      ═══════════════════════════════════════════════════════════════ */
+      /* INIT */
       // Wire up language selector
       const langSelect = document.getElementById('langSelect');
       if (langSelect) {
@@ -4272,12 +4273,14 @@ int main() {
           localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
         });
         const savedUrl = localStorage.getItem('qyx_apiUrl');
-        if (savedUrl) apiUrlInput.value = savedUrl;
+        if (savedUrl && !(window.location.protocol === 'file:' && isLocalApiUrl(savedUrl))) {
+          apiUrlInput.value = savedUrl;
+        } else {
+          apiUrlInput.value = DEFAULT_API_BASE;
+        }
       }
 
-      /* ═══════════════════════════════════════════════════════════════
-         DIGEST SUBSCRIBE
-      ═══════════════════════════════════════════════════════════════ */
+      /* DIGEST SUBSCRIBE */
       document.getElementById('digestForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('digestEmail').value.trim();
