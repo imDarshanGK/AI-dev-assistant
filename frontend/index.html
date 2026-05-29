@@ -1875,14 +1875,31 @@
 
 <!-- ── HERO ──────────────────────────────────────────────────── -->
 <section class="hero">
-  <div class="hero-badge">
-    <div class="badge-dot"></div>
-    Open Source · AI-Powered · Free
-  </div>
-  <h1>Debug. Understand.<br/><em>Ship faster.</em></h1>
-  <p class="hero-sub">
-    Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.
-  </p>
+    <div class="hero-badge">
+        <div class="badge-dot"></div>
+        Open Source • AI-Powered • Free
+    </div>
+
+    <div class="panel-actions">
+        <button class="icon-btn" title="Upload file" aria-label="Upload file" style="cursor: pointer;" tabindex="0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+            </svg>
+        </button>
+        <input type="file" id="pillFileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display: none;" tabindex="-1" />
+
+        <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">\n\n
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/>
+            </svg>
+        </button>
+    </div>
+
+    <h1>Debug. Understand.<br /><em>Ship faster.</em></h1>
+    <p class="hero-sub">
+        Paste your code and get instant bug detection, plain-English explanations, and actionable improvements — no account needed.
+    </p>
+
   <div class="hero-cta">
     <button class="btn btn-primary" onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21"/></svg>
@@ -1901,34 +1918,31 @@
 
 <!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
 <div class="features-row">
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>40+ Bug Patterns</h4>
-      <p>Python, JS, TS, Java, C++</p>
+    <div class="feat-pill">
+        <div class="feat-pill-icon" style="background: rgba(124,58,237,0.12)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 0 1-2 2h0a2 2 0 0 1-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+        </div>
+        <div class="feat-pill-info">
+            <h2>Smart Suggestions</h2>
+            <p>Quality score + grade</p>
+        </div>
     </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Code Explanation</h4>
-      <p>Plain English breakdowns</p>
+
+    <div class="feat-pill">
+        <div class="feat-pill-icon" style="background: rgba(245,146,62,0.12)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        </div>
+        <div class="feat-pill-info">
+            <h2>Dark / Light Mode</h2>
+            <p>Persisted preference</p>
+        </div>
     </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Smart Suggestions</h4>
-      <p>Quality score + grade</p>
-    </div>
-  </div>
-  <div class="feat-pill">
-    <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
-    <div class="feat-pill-info">
-      <h4>Dark / Light Mode</h4>
-      <p>Persisted preference</p>
-    </div>
-  </div>
+</div>
+         
   <div class="feat-pill">
     <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
     <div class="feat-pill-info">
@@ -1948,21 +1962,26 @@
         <span></span>
         Code Editor
       </div>
-     <div class="panel-actions">
-    <button class="icon-btn" title="Upload file" aria-label="Upload file" style="cursor: pointer;" tabindex="0">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-        </svg>
-    </button>
-    <input type="file" id="pillFileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display: none;" tabindex="-1" />
+  <section class="hero" id="hero">
+    <div class="hero-badge">
+        <span data-i18n="hero_badge">Open Source • AI-Powered • Free</span>
+    </div>
 
-    <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/>
-        </svg>
-    </button>
-</div>
+    <div class="panel-actions">
+        <button class="icon-btn" title="Upload file" aria-label="Upload file" style="cursor: pointer;" tabindex="0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+            </svg>
+        </button>
+        <input type="file" id="pillFileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display: none;" tabindex="-1"/>
 
+        <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/>
+            </svg>
+        </button>
+    </div>
+          
     <!-- Language tabs -->
     <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
       <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true">Python</button>
@@ -2047,28 +2066,21 @@
             <span class="btn-text">Analyze Code</span>
           </button>
         </div>
-      </div>
+      </div>\n
       <!-- Results Panel -->
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">Analysis Results</div>
-          <div class="panel-actions" id="resultActions" style="display:none">
+      <div class="panel-actions" id="resultActions" style="display:none;">
             <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save analysis to favorites">
-                width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                aria-hidden="true">
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg></button>
-            <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7,10 12,15 17,10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
             </button>
-          </div>
+            <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download results">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+            </button>
         </div>
+         
 
         <!-- Result tabs -->
         <div class="result-tabs" role="tablist" aria-label="Analysis Results">
@@ -2181,7 +2193,7 @@
       </div>
     </div>
 
-  </div><!-- /app -->
+
   
 
     <!-- ── FOOTER ─────────────────────────────────────────────────── -->
