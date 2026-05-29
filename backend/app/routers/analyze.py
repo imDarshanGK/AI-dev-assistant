@@ -11,7 +11,24 @@ import json
 import time
 import zipfile
 from io import BytesIO
+
 from typing import Any, Dict, List
+
+from pathlib import PurePosixPath
+
+from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
+from fastapi.responses import StreamingResponse
+
+from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
+from ..services.cache import cache
+from ..services.code_assistant import (
+    detect_language,
+    full_analysis,
+    run_bug_detection,
+    run_explanation,
+    run_suggestions,
+)
+
 
 from app.models.analyze import AnalyzeResponse, CodeRequest, ZipAnalyzerResponse
 from app.utils.cache import cache
@@ -213,8 +230,19 @@ async def analyze(req: CodeRequest, response: Response):
     response_model=ZipAnalyzerResponse,
     summary="Run full analysis for source files in a ZIP",
 )
-async def analyze_zip(file: UploadFile = File(...)):
+async def analyze_zip(request: Request, file: UploadFile = File(...)):
     """Analyze up to 20 source files from an uploaded ZIP archive."""
+
+    # 1. Fast check via Content-Length header to reject large uploads early
+    # Limit upload size to 10MB (compressed) to prevent OOM/DoS
+    MAX_UPLOAD_SIZE = 10 * 1024 * 1024
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > MAX_UPLOAD_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"ZIP file too large (max {MAX_UPLOAD_SIZE // (1024 * 1024)}MB)",
+        )
+
     filename = file.filename or ""
 
     if not filename.lower().endswith(".zip"):
@@ -223,11 +251,28 @@ async def analyze_zip(file: UploadFile = File(...)):
             detail="Only .zip uploads are supported",
         )
 
+
     uploaded = await file.read()
+
+    # 2. Secure chunked read to prevent memory exhaustion from missing headers
+    buffer = BytesIO()
+    total_read = 0
+    while chunk := await file.read(64 * 1024):  # 64KB chunks
+        total_read += len(chunk)
+        if total_read > MAX_UPLOAD_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail=f"ZIP file exceeds size limit during upload (max {MAX_UPLOAD_SIZE // (1024 * 1024)}MB)",
+            )
+        buffer.write(chunk)
+
+    uploaded = buffer.getvalue()
+
     if not uploaded:
         raise HTTPException(status_code=400, detail="Empty file uploaded")
 
     try:
+
         with zipfile.ZipFile(BytesIO(uploaded)) as z:
             namelist = [
                 f
@@ -239,6 +284,58 @@ async def analyze_zip(file: UploadFile = File(...)):
                 raise HTTPException(
                     status_code=400,
                     detail="ZIP file does not contain readable source files",
+
+        archive = zipfile.ZipFile(buffer)
+    except zipfile.BadZipFile as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid ZIP file",
+        ) from exc
+
+    t0 = time.perf_counter()
+
+    results: list[dict] = []
+    skipped_files: list[str] = []
+    total_size = 0
+
+    with archive:
+        members = [
+            info for info in archive.infolist()
+            if not info.is_dir()
+        ]
+
+        if not members:
+            raise HTTPException(
+                status_code=400,
+                detail="ZIP file does not contain any files",
+            )
+
+        for info in members:
+            safe_name = _safe_zip_name(info.filename)
+            ext = PurePosixPath(safe_name).suffix.lower()
+
+            if _is_ignored_member(info.filename):
+                continue
+
+            if not _is_safe_member(info.filename):
+                _add_skipped(
+                    skipped_files,
+                    f"{safe_name} (unsafe path)",
+                )
+                continue
+
+            if ext not in SOURCE_EXTENSIONS:
+                _add_skipped(
+                    skipped_files,
+                    f"{safe_name} (unsupported file type)",
+                )
+                continue
+
+            if len(results) >= MAX_ZIP_FILES:
+                _add_skipped(
+                    skipped_files,
+                    f"{safe_name} (file limit reached)",
+
                 )
 
             if len(namelist) > 20:
