@@ -1,4 +1,4 @@
-"""Full analysis router - POST /analyze/, /analyze/stream/ and /analyze/zip/."""
+"""Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
 from __future__ import annotations
 
 import asyncio
@@ -8,7 +8,7 @@ import zipfile
 from io import BytesIO
 from pathlib import PurePosixPath
 
-from fastapi import APIRouter, File, HTTPException, Query, Response, UploadFile
+from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 
 from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
@@ -109,14 +109,12 @@ async def _stream_analysis(code: str, language_hint: str | None):
     await asyncio.sleep(0)
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
-
     done_payload = {
-    "type": "done",
-    "provider": "rule-based",
-    "model": "qyverix-engine-v3",
-    "analysis_time_ms": elapsed_ms,
-}
-
+        "type": "done",
+        "provider": "rule-based",
+        "model": "qyverix-engine-v3",
+        "analysis_time_ms": elapsed_ms,
+    }
     yield f"data: {json.dumps(done_payload)}\n\n"
 
 
@@ -213,8 +211,18 @@ async def analyze(req: CodeRequest, response: Response):
     response_model=ZipAnalyzeResponse,
     summary="Run full analysis for source files in a ZIP",
 )
-async def analyze_zip(file: UploadFile = File(...)):
+async def analyze_zip(request: Request, file: UploadFile = File(...)):
     """Analyze up to 20 source files from an uploaded ZIP archive."""
+
+    # 1. Fast check via Content-Length header to reject large uploads early
+    # Limit upload size to 10MB (compressed) to prevent OOM/DoS
+    MAX_UPLOAD_SIZE = 10 * 1024 * 1024
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > MAX_UPLOAD_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"ZIP file too large (max {MAX_UPLOAD_SIZE // (1024 * 1024)}MB)",
+        )
 
     filename = file.filename or ""
 
@@ -224,8 +232,19 @@ async def analyze_zip(file: UploadFile = File(...)):
             detail="Only .zip uploads are supported",
         )
 
-    uploaded = await file.read()
+    # 2. Secure chunked read to prevent memory exhaustion from missing headers
+    buffer = BytesIO()
+    total_read = 0
+    while chunk := await file.read(64 * 1024):  # 64KB chunks
+        total_read += len(chunk)
+        if total_read > MAX_UPLOAD_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail=f"ZIP file exceeds size limit during upload (max {MAX_UPLOAD_SIZE // (1024 * 1024)}MB)",
+            )
+        buffer.write(chunk)
 
+    uploaded = buffer.getvalue()
     if not uploaded:
         raise HTTPException(
             status_code=400,
@@ -233,7 +252,7 @@ async def analyze_zip(file: UploadFile = File(...)):
         )
 
     try:
-        archive = zipfile.ZipFile(BytesIO(uploaded))
+        archive = zipfile.ZipFile(buffer)
     except zipfile.BadZipFile as exc:
         raise HTTPException(
             status_code=400,
