@@ -1,9 +1,6 @@
 from pathlib import Path
-
-try:
-    import magic
-except ImportError:  # pragma: no cover - optional system dependency
-    magic = None
+import logging
+import magic
 
 from .upload_config import (
     ALLOWED_EXTENSIONS,
@@ -47,31 +44,14 @@ def validate_file_extension(filename: str) -> None:
         )
     return extension
 
-def detect_mime_type(ext: str, file_content: bytes) -> str:
-    if magic is not None:
-        mime = magic.Magic(mime=True)
-        return mime.from_buffer(file_content)
-
-    if file_content.startswith(b"%PDF-"):
-        return "application/pdf"
-
-    if file_content.startswith((b"MZ", b"\x7fELF", b"PK\x03\x04")):
-        return "application/x-msdownload"
-
-    fallback_mime_types = {
-        ".py": "text/x-python",
-        ".js": "application/javascript",
-        ".ts": "application/typescript",
-        ".java": "text/x-java-source",
-        ".cpp": "text/x-c++src",
-        ".txt": "text/plain",
-    }
-
-    return fallback_mime_types.get(ext, "application/octet-stream")
+def detect_mime_type(file_content: bytes) -> str:
+    mime = magic.Magic(mime=True)
+    return mime.from_buffer(file_content)
 
 def validate_mime_type(ext:str, filecontent:bytes) -> None:
-    detected_mime = detect_mime_type(ext, filecontent)
-    print(f"Detected MIME Type: {detected_mime}")
+    detected_mime = detect_mime_type(filecontent)
+    logger = logging.getLogger(__name__)
+    logger.debug("Detected MIME Type: %s", detected_mime)
     if detected_mime not in ALLOWED_MIME_TYPES[ext]:
         raise ValueError(
             f"{UPLOAD_ERROR_MESSAGES['invalid_mime']}"
