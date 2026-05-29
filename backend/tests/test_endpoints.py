@@ -532,6 +532,7 @@ def test_explanation_go():
     assert d["complexity"] in ("Beginner", "Intermediate", "Advanced", "Expert")
     assert d["function_count"] >= 2
 
+
 def test_debug_cpp_syntax_errors():
     code = "void main() {\n    cout << 'Hello World'\n}"
     r = client.post("/debugging/", json={"code": code, "language": "cpp"})
