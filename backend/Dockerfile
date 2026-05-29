@@ -2,7 +2,12 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install dependencies
+# Install system dependencies required by some Python packages
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends libmagic1 \
+	&& rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
