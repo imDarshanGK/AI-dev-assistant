@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "description": "Playwright end-to-end tests for the QyverixAI frontend.",
   "scripts": {
+    "test": "npm run test:e2e",
     "test:e2e": "playwright test",
     "test:e2e:ci": "playwright test --reporter=list",
     "test:e2e:headed": "playwright test --headed"

@@ -97,39 +97,48 @@ def detect_language(code: str, hint: str | None = None) -> str:
     Returns:
         Detected language name as a string.
     """
+    mapping = {
+        "python": "Python",
+        "py": "Python",
+        "javascript": "JavaScript",
+        "js": "JavaScript",
+        "typescript": "TypeScript",
+        "ts": "TypeScript",
+        "java": "Java",
+        "cpp": "C++",
+        "c++": "C++",
+        "cxx": "C++",
+        "swift": "Swift",
+        "php": "PHP",
+        "rust": "Rust",
+        "rs": "Rust",
+        "kotlin": "Kotlin",
+        "kt": "Kotlin",
+        "kts": "Kotlin",
+    }
+    normalized_hint = hint.strip().lower() if hint else None
+    hinted_lang = mapping.get(normalized_hint) if normalized_hint else None
 
-    if hint:
-        normalized = hint.strip().lower()
-        mapping = {
-            "python": "Python",
-            "py": "Python",
-            "javascript": "JavaScript",
-            "js": "JavaScript",
-            "typescript": "TypeScript",
-            "ts": "TypeScript",
-            "java": "Java",
-            "cpp": "C++",
-            "c++": "C++",
-            "cxx": "C++",
-            "swift": "Swift",
-            "php": "PHP",
-            "rust": "Rust",
-            "rs": "Rust",
-            "kotlin": "Kotlin",
-            "kt": "Kotlin",
-            "kts": "Kotlin",
-        }
-        if normalized in mapping:
-            return mapping[normalized]
-
+    # Compute detection scores based on code signatures.
     scores: dict[str, int] = {lang: 0 for lang in LANG_SIGNATURES}
     for lang, patterns in LANG_SIGNATURES.items():
         for pat in patterns:
             if re.search(pat, code, re.MULTILINE):
                 scores[lang] += 1
-
     best = max(scores, key=lambda lang_key: scores[lang_key])
-    return best if scores[best] > 0 else "Unknown"
+    best_score = scores[best]
+
+    if hinted_lang:
+        # For short/ambiguous snippets, prefer the caller hint.
+        if best_score <= 1:
+            return hinted_lang
+        # For confident detections, accept hint only when it agrees.
+        if hinted_lang == best:
+            return best
+
+    return best if best_score > 0 else "Unknown"
+
+
 
 
 # ── Cyclomatic Complexity ──────────────────────────────────────────────────────

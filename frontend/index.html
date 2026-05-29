@@ -21,6 +21,8 @@
     /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS
 ═══════════════════════════════════════════════════════════════ */
+
+
     :root {
       --bg: #0a0c10;
       --bg2: #0f1117;
@@ -571,6 +573,27 @@
       border-color: var(--border2)
     }
 
+    /* floating animation for code editor heading text */
+    .panel-title .editor-title-float {
+      display: inline-block;
+      will-change: transform;
+      animation: editorTitleFloat 4s ease-in-out infinite;
+    }
+
+    @keyframes editorTitleFloat {
+      0% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-2px)
+      }
+
+      100% {
+        transform: translateY(0)
+      }
+    }
+
     .panel-header {
       display: flex;
       align-items: center;
@@ -592,12 +615,14 @@
       gap: 8px;
     }
 
-    .panel-title span {
+    .panel-title .status-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
       background: var(--green);
-      animation: blink 2s infinite;
+      display: inline-block;
+      will-change: transform;
+      animation: blink 2s infinite, editorTitleFloat 4s ease-in-out infinite;
     }
 
     .panel-actions {
@@ -676,6 +701,8 @@
       text-align: right;
       background: var(--bg3);
       border-right: 1px solid var(--border);
+      white-space: pre;
+      overflow: hidden;
     }
 
     #codeEditor {
@@ -692,6 +719,8 @@
       outline: none;
       resize: vertical;
       tab-size: 2;
+      white-space: pre;
+      overflow-wrap: normal;
     }
 
     .editor-footer {
@@ -1951,6 +1980,17 @@
       height: 28px
     }
 
+    .panel-title .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+      will-change: transform;
+      animation: blink 2s infinite, editorTitleFloat 4s ease-in-out infinite;
+    }
+
+
     /* ═══════════════════════════════════════════════════════════════
    STAT BAR (quick summary at top of result)
 ═══════════════════════════════════════════════════════════════ */
@@ -2162,8 +2202,8 @@
       <div class="panel" style="grid-column:1">
         <div class="panel-header">
           <div class="panel-title">
-            <span></span>
-            <span data-i18n="editor_title">Code Editor</span>
+            <span class="status-dot" aria-hidden="true"></span>
+            <span class="editor-title-float" data-i18n="editor_title">Code Editor</span>
           </div>
           <div class="panel-actions">
             <button type="button" class="icon-btn" id="uploadBtn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
@@ -2206,7 +2246,7 @@
         <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap">
           <div class="line-numbers" id="lineNumbers">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%" wrap="off"></textarea>
         </div>
 
         <div class="editor-footer">
@@ -2888,6 +2928,14 @@
       /* ═══════════════════════════════════════════════════════════════
          EDITOR
       ═══════════════════════════════════════════════════════════════ */
+      const CHAR_WARN = 40_000;
+      const CHAR_DANGER = 48_000;
+      const CHAR_MAX = 50_000;
+
+      function syncLineNumbersViewport() {
+        lineNumbers.style.height = `${editor.clientHeight}px`;
+      }
+
       function updateEditor() {
         const val = editor.value;
         const lines = val ? val.split('\n').length : 0;
@@ -2900,9 +2948,10 @@
               .replace('{nonBlank}', nonBlank)
           : getTranslation('char_count_initial');
         const lineCount = Math.max(lines, 1);
-        lineNumbers.innerHTML = val
-          ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
+        lineNumbers.textContent = val
+          ? Array.from({ length: lineCount }, (_, i) => i + 1).join('\n')
           : '1';
+        syncLineNumbersViewport();
       }
 
       function syncApiStatusText() {
@@ -2952,6 +3001,15 @@
       editor.addEventListener('scroll', () => {
         lineNumbers.scrollTop = editor.scrollTop;
       });
+
+      if (window.ResizeObserver) {
+        const editorResizeObserver = new ResizeObserver(() => {
+          syncLineNumbersViewport();
+        });
+        editorResizeObserver.observe(editor);
+      } else {
+        window.addEventListener('resize', syncLineNumbersViewport);
+      }
 
       // Tab key support
       editor.addEventListener('keydown', e => {
