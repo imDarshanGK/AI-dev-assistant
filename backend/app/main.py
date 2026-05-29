@@ -18,27 +18,20 @@ from .routers import (
     analyze,
     auth,
     chat,
-from .routers import (
-    analyze,
     debugging,
     explanation,
     history,
     share,
     subscribe,
     suggestions,
+    upload_file,
     user_data,
 )
 from .services import database
-    suggestions,
-    subscribe,
-    upload_file,
-    auth,
-)
 from .services.scheduler import start_scheduler, stop_scheduler
 from .database import Base, engine
 
 from .schemas import HealthResponse
-from .services import database
 
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
@@ -154,9 +147,6 @@ app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
-app.include_router(share.router)
-app.include_router(auth.router)
-app.include_router(history.router,     prefix="/history",     tags=["History"])
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
