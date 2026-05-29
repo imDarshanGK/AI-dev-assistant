@@ -10,7 +10,6 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 import time
 import os
-from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
 from .routers import (
@@ -47,7 +46,7 @@ async def lifespan(app: FastAPI):
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
     Base.metadata.create_all(bind=engine)
-    
+
     if settings.redis_url and FastAPILimiter is not None:
         try:
             redis_client = redis.from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
@@ -58,7 +57,7 @@ async def lifespan(app: FastAPI):
             print(f"⚠️ Redis connection failed: {e}. Falling back to in-memory rate limiter.")
     else:
         print("⚠️ Redis URL not configured or fastapi-limiter not installed. Using in-memory rate limiter.")
-        
+
     start_scheduler()
     yield
     stop_scheduler()
@@ -89,7 +88,7 @@ app.add_middleware(
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start = time.perf_counter()
-    
+
     response = await call_next(request)
     elapsed = (time.perf_counter() - start) * 1000
     response.headers["X-Process-Time-Ms"] = f"{elapsed:.2f}"
