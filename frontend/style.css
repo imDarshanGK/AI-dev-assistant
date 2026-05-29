@@ -600,3 +600,36 @@ body {
   .features, .app-section { padding: 2rem 1rem; }
   .section-label { padding: 0 1rem; }
 }
+/* Mobile Navbar Fix */
+@media screen and (max-width: 768px) {
+
+  .nav {
+    flex-direction: column;
+    height: auto;
+    padding: 1rem;
+    gap: 10px;
+  }
+
+  .nav-left {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .nav-links {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav-links a {
+    width: 100%;
+    text-align: center;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+}
