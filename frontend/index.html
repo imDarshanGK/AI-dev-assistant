@@ -329,7 +329,7 @@
 ═══════════════════════════════════════════════════════════════ */
     .hero {
       text-align: center;
-      padding: 64px 0 48px;
+      padding: 52px 0 36px;
       animation: heroEnter 0.7s ease both;
     }
 
@@ -396,11 +396,11 @@
 
     .hero h1 {
       font-family: var(--font-disp);
-      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-size: clamp(2.6rem, 5.4vw, 4.4rem);
       font-weight: 800;
-      letter-spacing: -0.04em;
-      line-height: 1.16;
-      margin-bottom: 20px;
+      letter-spacing: -0.05em;
+      line-height: 1.08;
+      margin-bottom: 16px;
     }
 
     .hero h1 em {
@@ -413,10 +413,10 @@
     }
 
     .hero-sub {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: var(--text2);
-      max-width: 520px;
-      margin: 0 auto 36px;
+      max-width: 580px;
+      margin: 0 auto 30px;
       line-height: 1.7;
     }
 
@@ -468,12 +468,23 @@
    FEATURE PILLS ROW
 ═══════════════════════════════════════════════════════════════ */
     .features-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
       padding: 16px 0 48px;
       animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    @media(max-width: 1200px) {
+      .features-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media(max-width: 720px) {
+      .features-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     @keyframes fadeUp {
@@ -492,12 +503,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 12px 20px;
+      padding: 14px 16px;
       border-radius: var(--r);
       background: var(--bg2);
       border: 1px solid var(--border);
       transition: all var(--transition);
       cursor: default;
+      min-height: 72px;
     }
 
     .feat-pill:hover {
@@ -535,8 +547,8 @@
       /* Constrain right-hand results column to a comfortable width while
          letting the editor take remaining space. Prevents large vertical
          stretching when the right panel is empty. */
-      grid-template-columns: minmax(0, 1fr) 480px;
-      gap: 16px;
+      grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+      gap: 18px;
       margin-bottom: 16px;
       align-items: start;
       animation: fadeUp 0.6s 0.4s ease both;
@@ -554,6 +566,7 @@
       border-radius: var(--r);
       overflow: hidden;
       transition: border-color var(--transition);
+      min-width: 0;
     }
 
     .panel:focus-within {
@@ -1695,8 +1708,8 @@
 ═══════════════════════════════════════════════════════════════ */
     .bottom-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
       animation: fadeUp 0.6s 0.5s ease both;
     }
 
@@ -2388,10 +2401,18 @@
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
-                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
+                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);">
             <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
-          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
+          <!-- Hidden API status inputs used by the JS. Present to avoid missing DOM refs. -->
+          <div id="apiConfig" class="api-config-row" style="display:none;">
+            <div class="api-status" style="display:flex;align-items:center;gap:8px">
+              <span id="apiDot" class="api-dot" aria-hidden="true"></span>
+              <span id="apiStatusText" data-status="disconnected" style="color:var(--text3);font-size:0.9rem"></span>
+            </div>
+            <input id="apiUrl" placeholder="https://qyverixai.onrender.com" style="display:none;" />
+          </div>
+          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--text3);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
       </div>
     </footer>
@@ -2957,6 +2978,11 @@
         return ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || 'http://localhost:8000').replace(/\/$/, '');
       }
 
+      function isNetworkFetchFailure(err) {
+        const message = String(err?.message || err || '');
+        return err?.name === 'TypeError' && /fetch/i.test(message);
+      }
+
       function normalizeEditorOnLoad() {
         if (looksLikeRestoredPageSource(editor.value || '')) {
           editor.value = '';
@@ -3365,7 +3391,15 @@
           resultActions.style.display = 'flex';
 
         } catch (err) {
-          toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
+          if (isNetworkFetchFailure(err)) {
+            apiDot?.classList.remove('connected');
+            apiStatusText.dataset.status = 'unreachable';
+            delete apiStatusText.dataset.statusCode;
+            syncApiStatusText();
+            toast(getTranslation('toast_api_unreachable'), 'error');
+          } else {
+            toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
+          }
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');

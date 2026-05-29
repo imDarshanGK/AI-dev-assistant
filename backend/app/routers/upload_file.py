@@ -1,8 +1,9 @@
 from fastapi import UploadFile, APIRouter, HTTPException, status
+import logging
 
-from ..utils.upload_config import ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, BLOCKED_EXTENSIONS
-from ..utils.file_validator import validate_file
-from ..utils.upload_config import max_file_size
+from app.utils.upload_config import ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, BLOCKED_EXTENSIONS
+from app.utils.file_validator import validate_file
+from app.utils.upload_config import max_file_size
 
 router = APIRouter(
     tags=['Upload Files']
@@ -28,9 +29,9 @@ async def upload_file(file: UploadFile):
             detail="No file uploaded"
         )
     filename = file.filename
-    # print(filetype)
+    logger = logging.getLogger(__name__)
     filecontent = await file.read()
-    # print(filecontent)
+    logger.debug("Received upload: %s (%d bytes)", filename, len(filecontent))
     filesize = len(filecontent)
 
     # Validate max size

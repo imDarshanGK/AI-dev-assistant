@@ -600,3 +600,14 @@ body {
   .features, .app-section { padding: 2rem 1rem; }
   .section-label { padding: 0 1rem; }
 }
+@media (max-width: 480px) {
+  .code-editor {
+    min-height: 200px;
+  }
+  .editor-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
+  }
+}
