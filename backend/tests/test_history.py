@@ -1,19 +1,21 @@
 """
 Tests for the /history/ endpoints.
 """
-import sys, os, tempfile, asyncio
+import sys
+import os
+import tempfile
+import asyncio
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.services import database
+from fastapi.testclient import TestClient
+from app.main import app
 
 _tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 _tmp.close()
 database.DB_PATH = _tmp.name
 
 asyncio.run(database.init_db())
-
-from fastapi.testclient import TestClient
-from app.main import app
 
 client = TestClient(app, raise_server_exceptions=True)
 

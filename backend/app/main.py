@@ -44,7 +44,7 @@ from .config import settings
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
-    print("🚀 QyverixAI backend starting…")
+    logging.getLogger(__name__).info("🚀 QyverixAI backend starting…")
     Base.metadata.create_all(bind=engine)
 
     if settings.redis_url and FastAPILimiter is not None:
@@ -61,7 +61,7 @@ async def lifespan(app: FastAPI):
     start_scheduler()
     yield
     stop_scheduler()
-    print("🛑 QyverixAI backend shutting down…")
+    logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
