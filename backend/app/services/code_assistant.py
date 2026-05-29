@@ -767,10 +767,21 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
         A list of detected issues with metadata and suggestions.
     """
     from .line_utils import format_code_snippet
+    from .ast_analyzer import analyze_python_ast
 
     lines = code.splitlines()
     found: list[dict] = []
     seen: set[str] = set()
+
+    if language == "Python":
+        for issue in analyze_python_ast(code):
+            key = f"{issue['type']}:{issue['line']}"
+            if key not in seen:
+                seen.add(key)
+                line_idx = issue["line"] - 1
+                issue["code_snippet"] = lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
+                issue["code_context"] = format_code_snippet(code, [issue["line"]], context_lines=2)
+                found.append(issue)
 
     for bp in BUG_PATTERNS:
         if language not in bp.languages and "All" not in bp.languages:
@@ -893,7 +904,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 3: Magic Numbers
     # ─────────────────────────────────────────────────────────────
-    magic_pattern = r"\b(?<![a-zA-Z_])[2-9]\d{1,}(?![a-zA-Z_])\b"
+    magic_pattern = r"\b(?<![a-zA-Z_])[1-9]\d{1,}(?![a-zA-Z_])\b"
     magic_lines = find_lines_matching_pattern(code, magic_pattern)
 
     if magic_lines:
