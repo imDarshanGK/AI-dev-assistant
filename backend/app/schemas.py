@@ -147,8 +147,8 @@ class SignupRequest(BaseModel):
         password: The user's chosen password (plaintext in request).
     """
 
-    email: str
-    password: str
+    email: str = Field(..., min_length=5, max_length=320)
+    password: str = Field(..., min_length=8, max_length=128)
 
 
 class LoginRequest(BaseModel):
@@ -159,8 +159,8 @@ class LoginRequest(BaseModel):
         password: The user's password.
     """
 
-    email: str
-    password: str
+    email: str = Field(..., min_length=5, max_length=320)
+    password: str = Field(..., min_length=8, max_length=128)
 
 
 class AuthResponse(BaseModel):
@@ -173,6 +173,7 @@ class AuthResponse(BaseModel):
     """
 
     access_token: str
+    token_type: str = "bearer"
     user_id: int
     email: str
 
@@ -194,29 +195,6 @@ class HealthResponse(BaseModel):
     version: str
     message: str
     endpoints: list[str] | None = None
-
-
-# ── Auth ──────────────────────────────────────────────────────────────────────
-class SignupRequest(BaseModel):
-    email: str = Field(..., min_length=5, max_length=320)
-    password: str = Field(..., min_length=8, max_length=128)
-
-
-class LoginRequest(BaseModel):
-    email: str = Field(..., min_length=5, max_length=320)
-    password: str = Field(..., min_length=8, max_length=128)
-
-
-class AuthResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    user_id: int
-    email: str
-
-
-class UserProfileResponse(BaseModel):
-    user_id: int
-    email: str
 
 
 # ── History ───────────────────────────────────────────────────────────────────
