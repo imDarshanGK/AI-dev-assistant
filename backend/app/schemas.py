@@ -6,10 +6,8 @@ import json
 from typing import Any
 
 from .config import settings
-from .sanitize import sanitize_code_input
 from .schema_validators import (
     validate_chat_history,
-    validate_language_hint,
     validate_stored_action,
     validate_stored_code,
     validate_stored_result_json,

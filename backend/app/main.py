@@ -35,7 +35,6 @@ from .observability import (
     initialise_app_info,
     prometheus_metrics_middleware,
 )
-from .database import Base, engine
 
 from .schemas import HealthResponse
 
