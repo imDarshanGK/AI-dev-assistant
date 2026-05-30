@@ -3290,11 +3290,17 @@
          CLEAR / COPY
       ═══════════════════════════════════════════════════════════════ */
       document.getElementById('clearBtn').addEventListener('click', () => {
-        selectedZipFile = null;
-        editor.value = '';
-        updateEditor();
-        resetResults();
-      });
+    const confirmed = confirm('Are you sure you want to clear the editor?');
+
+    if (!confirmed) {
+    return;
+}
+
+    selectedZipFile = null;
+    editor.value = '';
+    updateEditor();
+    resetResults();
+});
       document.getElementById('copyBtn').addEventListener('click', () => {
         if (!editor.value.trim()) return;
         navigator.clipboard.writeText(editor.value).then(() => toast(getTranslation('toast_code_copied'), 'success'));
@@ -3347,8 +3353,8 @@
       async function doAnalyze() {
         const code = sanitizeClientCode(editor.value.trim());
         if (!code) { toast('Please paste some code first.', 'error'); return; }
-        const code = editor.value.trim();
-        if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
+        const rawCode = editor.value.trim();
+        if (!selectedZipFile && !rawCode) { toast(getTranslation('toast_please_paste'), 'error'); return; }
         const endpointMap = {
           analyze: '/analyze/',
           explain: '/explanation/',
