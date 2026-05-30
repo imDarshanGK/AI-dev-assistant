@@ -2144,10 +2144,7 @@
       <!-- Editor Panel -->
       <div class="panel" style="grid-column:1">
         <div class="panel-header">
-          <div class="panel-title">
-            <span></span>
-            <span data-i18n="editor_title">Code Editor</span>
-          </div>
+          <div class="panel-title"></div>
           <div class="panel-actions">
             <label class="icon-btn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" tabindex="0" role="button"
               aria-label="Upload code file"
@@ -2760,6 +2757,8 @@
       let selectedMode = 'analyze';
       let selectedZipFile = null;
       let appLang = localStorage.getItem('qyx_lang') || 'en';
+      const LOCAL_API_BASE = 'http://localhost:8000';
+      const REMOTE_API_BASE = 'https://qyverixai.onrender.com';
 
       /* ═══════════════════════════════════════════════════════════════
          DOM REFS
@@ -2903,7 +2902,34 @@
       }
 
       function getApiBase() {
-        return ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || 'http://localhost:8000').replace(/\/$/, '');
+        const configuredBase = ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || '').trim();
+        if (configuredBase) return configuredBase.replace(/\/$/, '');
+        return window.location.protocol === 'file:' ? REMOTE_API_BASE : LOCAL_API_BASE;
+      }
+
+      function getApiFallbackBase(base) {
+        const normalized = String(base || '').replace(/\/$/, '');
+        return /localhost:8000|127\.0\.0\.1:8000/i.test(normalized) ? REMOTE_API_BASE : null;
+      }
+
+      function persistApiBase(base) {
+        const normalized = String(base || '').replace(/\/$/, '');
+        if (!normalized) return;
+        localStorage.setItem('qyx_apiUrl', normalized);
+        if (apiUrlInput) apiUrlInput.value = normalized;
+      }
+
+      async function fetchWithApiFallback(base, path, options) {
+        const normalizedBase = String(base || '').replace(/\/$/, '');
+        try {
+          const response = await fetch(`${normalizedBase}${path}`, options);
+          return { response, baseUsed: normalizedBase, fallbackUsed: false };
+        } catch (err) {
+          const fallbackBase = getApiFallbackBase(normalizedBase);
+          if (!fallbackBase) throw err;
+          const response = await fetch(`${fallbackBase}${path}`, options);
+          return { response, baseUsed: fallbackBase, fallbackUsed: true };
+        }
       }
 
       function normalizeEditorOnLoad() {
@@ -3187,7 +3213,8 @@
         if (!apiUrlInput || !apiStatusText) return;
         const base = getApiBase();
         try {
-          const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+          const { response: r, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, '/health', { signal: AbortSignal.timeout(5000) });
+          if (fallbackUsed) persistApiBase(baseUsed);
           if (r.ok) {
             apiDot?.classList.add('connected');
             apiStatusText.dataset.status = 'connected';
@@ -3241,11 +3268,12 @@
           if (selectedZipFile) {
             const formData = new FormData();
             formData.append('file', selectedZipFile);
-            const res = await fetch(`${base}/analyze/zip/`, {
+            const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, '/analyze/zip/', {
               method: 'POST',
               body: formData,
               signal: AbortSignal.timeout(60000),
             });
+            if (fallbackUsed) persistApiBase(baseUsed);
             if (!res.ok) {
               const err = await res.json().catch(() => ({}));
               throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3264,12 +3292,13 @@
             return;
           }
 
-          const res = await fetch(`${base}${endpoint}`, {
+          const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code, language: selectedLang }),
             signal: AbortSignal.timeout(30000),
           });
+          if (fallbackUsed) persistApiBase(baseUsed);
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.detail || `HTTP ${res.status}`);
