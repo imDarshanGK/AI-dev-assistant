@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QyverixAI — AI Developer Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
-    rel="stylesheet" />
+    rel="stylesheet">
   <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -18,9 +18,7 @@
     })();
   </script>
   <style>
-    /* ═══════════════════════════════════════════════════════════════
-   DESIGN TOKENS
-═══════════════════════════════════════════════════════════════ */
+    /* DESIGN TOKENS */
     :root {
       --bg: #0a0c10;
       --bg2: #0f1117;
@@ -45,6 +43,7 @@
       --font-mono: 'JetBrains Mono', monospace;
       --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    
 
     [data-theme="light"] {
       --bg: #f4f6fb;
@@ -59,9 +58,7 @@
       --shadow2: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    /* ═══════════════════════════════════════════════════════════════
-   RESET & BASE
-═══════════════════════════════════════════════════════════════ */
+    /* RESET & BASE */
     *,
     *::before,
     *::after {
@@ -327,7 +324,8 @@
 ═══════════════════════════════════════════════════════════════ */
     .hero {
       text-align: center;
-      padding: 64px 0 48px;
+      padding: 48px 0 32px;
+      padding: 52px 0 36px;
       animation: heroEnter 0.7s ease both;
     }
 
@@ -394,11 +392,16 @@
 
     .hero h1 {
       font-family: var(--font-disp);
-      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-size: clamp(2rem, 4.8vw, 3.4rem);
       font-weight: 800;
       letter-spacing: -0.04em;
-      line-height: 1.16;
-      margin-bottom: 20px;
+      line-height: 1.12;
+      margin-bottom: 12px;
+      font-size: clamp(2.6rem, 5.4vw, 4.4rem);
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 1.08;
+      margin-bottom: 16px;
     }
 
     .hero h1 em {
@@ -411,10 +414,10 @@
     }
 
     .hero-sub {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: var(--text2);
-      max-width: 520px;
-      margin: 0 auto 36px;
+      max-width: 580px;
+      margin: 0 auto 30px;
       line-height: 1.7;
     }
 
@@ -466,12 +469,23 @@
    FEATURE PILLS ROW
 ═══════════════════════════════════════════════════════════════ */
     .features-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
       padding: 16px 0 48px;
       animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    @media(max-width: 1200px) {
+      .features-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media(max-width: 720px) {
+      .features-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     @keyframes fadeUp {
@@ -490,12 +504,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 12px 20px;
+      padding: 14px 16px;
       border-radius: var(--r);
       background: var(--bg2);
       border: 1px solid var(--border);
       transition: all var(--transition);
       cursor: default;
+      min-height: 72px;
     }
 
     .feat-pill:hover {
@@ -514,7 +529,7 @@
       font-size: 15px;
     }
 
-    .feat-pill-info h4 {
+    .feat-pill-info h2 {
       font-size: 0.82rem;
       font-weight: 600;
       margin-bottom: 1px
@@ -530,9 +545,13 @@
 ═══════════════════════════════════════════════════════════════ */
     .workspace {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      /* Constrain right-hand results column to a comfortable width while
+         letting the editor take remaining space. Prevents large vertical
+         stretching when the right panel is empty. */
+      grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+      gap: 18px;
       margin-bottom: 16px;
+      align-items: start;
       animation: fadeUp 0.6s 0.4s ease both;
     }
 
@@ -548,6 +567,7 @@
       border-radius: var(--r);
       overflow: hidden;
       transition: border-color var(--transition);
+      min-width: 0;
     }
 
     .panel:focus-within {
@@ -573,14 +593,6 @@
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .panel-title span {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: blink 2s infinite;
     }
 
     .panel-actions {
@@ -1662,8 +1674,8 @@
 ═══════════════════════════════════════════════════════════════ */
     .bottom-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
       animation: fadeUp 0.6s 0.5s ease both;
     }
 
@@ -1993,7 +2005,7 @@
 </style>
 <link rel="icon" href="data:,">
 </head>
-<body>
+<body id="top">
   <div class="bg-orb bg-orb-1"></div>
   <div class="bg-orb bg-orb-2"></div>
 
@@ -2001,7 +2013,7 @@
 
     <!-- ── NAV ──────────────────────────────────────────────────── -->
     <nav>
-      <a href="#" class="nav-logo">
+      <a href="#top" class="nav-logo">
         <div class="logo-hex">Q</div>
         QyverixAI
         <span
@@ -2052,7 +2064,7 @@
         <div class="badge-dot"></div>
         <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
       </div>
-      <h1 data-i18n="hero_title">Debug. Understand.<br /><em>Ship faster.</em></h1>
+      <h1 data-i18n="hero_title">Debug. Understand.<br><em>Ship faster.</em></h1>
       <p class="hero-sub" data-i18n="hero_subtitle">
         Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
         suggestions — no account needed.
@@ -2075,7 +2087,7 @@
         <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path
-              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32(3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
           </svg>
           <span data-i18n="btn_star_github">Star on GitHub</span>
         </a>
@@ -2091,7 +2103,7 @@
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="pill_patterns_title">40+ Bug Patterns</h4>
+          <h2 data-i18n="pill_patterns_title">40+ Bug Patterns</h2>
           <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
         </div>
       </div>
@@ -2102,7 +2114,7 @@
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="mode_explain">Code Explanation</h4>
+          <h2 data-i18n="mode_explain">Code Explanation</h2>
           <p data-i18n="pill_explain_desc">Plain English breakdowns</p>
         </div>
       </div>
@@ -2112,7 +2124,7 @@
             <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="mode_improve">Smart Suggestions</h4>
+          <h2 data-i18n="mode_improve">Smart Suggestions</h2>
           <p data-i18n="pill_improve_desc">Quality score + grade</p>
         </div>
       </div>
@@ -2122,7 +2134,7 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="pill_theme_title">Dark / Light Mode</h4>
+          <h2 data-i18n="pill_theme_title">Dark / Light Mode</h2>
           <p data-i18n="pill_theme_desc">Persisted preference</p>
         </div>
       </div>
@@ -2132,7 +2144,7 @@
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="pill_upload_title">File Upload</h4>
+          <h2 data-i18n="pill_upload_title">File Upload</h2>
           <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
         </div>
       </div>
@@ -2144,23 +2156,20 @@
       <!-- Editor Panel -->
       <div class="panel" style="grid-column:1">
         <div class="panel-header">
-          <div class="panel-title">
-            <span></span>
-            <span data-i18n="editor_title">Code Editor</span>
-          </div>
+            <div class="panel-title">
+              <span data-i18n="editor_title">Code Editor</span>
+            </div>
           <div class="panel-actions">
-            <label class="icon-btn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" tabindex="0" role="button"
-              aria-label="Upload code file"
-              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
+            <button type="button" class="icon-btn" id="uploadBtn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17,8 12,3 7,8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
-                tabindex="-1" />
-            </label>
+            </button>
+            <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
+              tabindex="-1">
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
@@ -2181,12 +2190,12 @@
         </div>
 
         <!-- Language tabs -->
-        <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
-          <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true" data-i18n="lang_tab_python">Python</button>
-          <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false" data-i18n="lang_tab_javascript">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false" data-i18n="lang_tab_typescript">TypeScript</button>
-          <button class="lang-tab" data-lang="java" role="tab" aria-selected="false" data-i18n="lang_tab_java">Java</button>
-          <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false" data-i18n="lang_tab_cpp">C++</button>
+        <div class="lang-tabs" role="group" aria-label="Select Programming Language">
+          <button class="lang-tab active" data-lang="python" data-i18n="lang_tab_python">Python</button>
+          <button class="lang-tab" data-lang="javascript" data-i18n="lang_tab_javascript">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript" data-i18n="lang_tab_typescript">TypeScript</button>
+          <button class="lang-tab" data-lang="java" data-i18n="lang_tab_java">Java</button>
+          <button class="lang-tab" data-lang="cpp" data-i18n="lang_tab_cpp">C++</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap">
@@ -2208,7 +2217,7 @@
 
         <div class="analyze-row">
           <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
-            <div class="spinner" id="spinner"></div>
+            <span class="spinner" id="spinner"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
         </div>
@@ -2229,17 +2238,17 @@
         </div>
 
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
-          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true">
+          <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
             <span data-i18n="tab_explain">Explain</span>
             <span class="tab-badge" id="explainBadge"></span>
           </button>
-          <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false">
+          <button class="result-tab" id="tab-debug" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/></svg>
             <span data-i18n="tab_debug">Debug</span>
             <span class="tab-badge" id="debugBadge"></span>
           </button>
-          <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false">
+          <button class="result-tab" id="tab-suggest" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
             <span data-i18n="tab_improve">Improve</span>
             <span class="tab-badge" id="suggestBadge"></span>
@@ -2247,7 +2256,7 @@
         </div>
         <div class="result-content">
           <!-- Explain Pane -->
-          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
+          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel" aria-labelledby="tab-explain">
             <div class="empty-state" id="emptyExplain">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2260,7 +2269,7 @@
             <div id="explainResult" style="display:none"></div>
           </div>
           <!-- Debug Pane -->
-          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel">
+          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel" aria-labelledby="tab-debug">
             <div class="empty-state" id="emptyDebug">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2280,7 +2289,7 @@
             <div id="debugResult" style="display:none"></div>
           </div>
           <!-- Suggest Pane -->
-          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel">
+          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel" aria-labelledby="tab-suggest">
             <div class="empty-state" id="emptySuggest">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2308,6 +2317,8 @@
         <div class="panel-header">
           <div class="panel-title" data-i18n="history_title">Query History</div>
           <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
+          <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
+          <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
           <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
@@ -2344,10 +2355,18 @@
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
-                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
+                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);">
             <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
-          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
+          <!-- Hidden API status inputs used by the JS. Present to avoid missing DOM refs. -->
+          <div id="apiConfig" class="api-config-row" style="display:none;">
+            <div class="api-status" style="display:flex;align-items:center;gap:8px">
+              <span id="apiDot" class="api-dot" aria-hidden="true"></span>
+              <span id="apiStatusText" data-status="disconnected" style="color:var(--text3);font-size:0.9rem"></span>
+            </div>
+            <input id="apiUrl" placeholder="https://qyverixai.onrender.com" style="display:none;">
+          </div>
+          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--text3);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
       </div>
     </footer>
@@ -2355,10 +2374,9 @@
     <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
     <div id="toastContainer"></div>
 
+    <script src="security-utils.js"></script>
     <script>
-      /* ═══════════════════════════════════════════════════════════════
-         STATE & TRANSLATIONS
-      ═══════════════════════════════════════════════════════════════ */
+      /* STATE & TRANSLATIONS */
       const TRANSLATIONS = {
         en: {
           lang_select_label: "Select language",
@@ -2374,7 +2392,7 @@
           nav_github: "GitHub",
           nav_api_docs: "API Docs",
           hero_badge: "Open Source · AI-Powered · Free",
-          hero_title: "Debug. Understand.<br /><em>Ship faster.</em>",
+          hero_title: "Debug. Understand.<br><em>Ship faster.</em>",
           hero_subtitle: "Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.",
           btn_start_analyzing: "Start Analyzing",
           btn_try_sample: "Try Sample Code",
@@ -2471,7 +2489,7 @@
           nav_github: "கிட்ஹப் (GitHub)",
           nav_api_docs: "ஏபிஐ ஆவணங்கள் (API Docs)",
           hero_badge: "திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்",
-          hero_title: "பிழையறி. புரிந்துகொள்.<br /><em>வேகமாக அனுப்பு.</em>",
+          hero_title: "பிழையறி. புரிந்துகொள்.<br><em>வேகமாக அனுப்பு.</em>",
           hero_subtitle: "உங்கள் குறியீட்டை ஒட்டி, உடனடி பிழை கண்டறிதல், எளிய ஆங்கில விளக்கங்கள் மற்றும் பயனுள்ள மேம்பாட்டு பரிந்துரைகளைப் பெறுங்கள் — கணக்கு தேவையில்லை.",
           btn_start_analyzing: "பகுப்பாய்வைத் தொடங்கு",
           btn_try_sample: "மாதிரிக் குறியீட்டை முயல்க",
@@ -2568,10 +2586,10 @@
           nav_github: "गिटहब (GitHub)",
           nav_api_docs: "एपीआई दस्तावेज़ (API Docs)",
           hero_badge: "ओपन सोर्स · एआई-संचालित · मुफ्त",
-          hero_title: "डीबग करें। समझें।<br /><em>तेज़ी से शिप करें।</em>",
+          hero_title: "डीबग करें। समझें।<br><em>तेज़ी से शिप करें।</em>",
           hero_subtitle: "अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।",
           btn_start_analyzing: "विश्लेषण शुरू करें",
-          btn_try_sample: "सैंपल कोड आज़माएं",
+          btn_try_sample: "सैंपल कोड आज़माएं",
           btn_star_github: "गिटहब पर स्टार करें",
           pill_patterns_title: "40+ बग पैटर्न",
           pill_patterns_desc: "Python, JS, TS, Java, C++",
@@ -2584,7 +2602,7 @@
           pill_upload_title: "फ़ाइल अपलोड",
           pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
           editor_title: "कोड एडिटर",
-          editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
+          editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
           char_count_initial: "शुरू करने के लिए कोड पेस्ट करें या टाइप करें",
           char_count_format: "{chars} वर्ण · {lines} पंक्तियाँ · {nonBlank} गैर-रिक्त",
           ctrl_enter_hint: "विश्लेषण करने के लिए Ctrl+Enter दबाएं",
@@ -2665,7 +2683,7 @@
           nav_github: "GitHub",
           nav_api_docs: "Docs API",
           hero_badge: "Open Source · Propulsé par l'IA · Gratuit",
-          hero_title: "Déboguez. Comprenez.<br /><em>Lisez plus vite.</em>",
+          hero_title: "Déboguez. Comprenez.<br><em>Lisez plus vite.</em>",
           hero_subtitle: "Collez votre code et obtenez une détection instantanée des bogues, des explications simples et des suggestions d'amélioration exploitables — aucun compte requis.",
           btn_start_analyzing: "Démarrer l'analyse",
           btn_try_sample: "Essayer l'exemple",
@@ -2751,17 +2769,29 @@
       };
 
       const MAX_HISTORY = 50;
-      let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
-      let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
+      const {
+        escHtml,
+        sanitizeClientCode,
+        safePriorityClass,
+        safeSeverityClass,
+        safeCssToken,
+        loadStoredHistory,
+        saveStoredHistory,
+        createStoredEntry,
+        renderMarkdown,
+        buildStoredListItemHtml,
+        bindStoredListNavigation,
+      } = window.QyverixSecurity;
+
+      let history = loadStoredHistory('qyx_history');
+      let favorites = loadStoredHistory('qyx_favorites');
       let currentResult = null;
       let selectedLang = 'python';
       let selectedMode = 'analyze';
       let selectedZipFile = null;
       let appLang = localStorage.getItem('qyx_lang') || 'en';
 
-      /* ═══════════════════════════════════════════════════════════════
-         DOM REFS
-      ═══════════════════════════════════════════════════════════════ */
+      /* DOM REFS */
       const editor = document.getElementById('codeEditor');
       const lineNumbers = document.getElementById('lineNumbers');
       const charCount = document.getElementById('charCount');
@@ -2776,9 +2806,13 @@
       const engineInfo = document.getElementById('engineInfo');
       const timeInfo = document.getElementById('timeInfo');
 
+      bindStoredListNavigation(historyList, loadEntry);
+      bindStoredListNavigation(favList, loadFav);
+
       /* ═══════════════════════════════════════════════════════════════
          THEME
       ═══════════════════════════════════════════════════════════════ */
+      /* THEME */
       // dark mode → moon, light mode → sun
       function setThemeIcon(theme) {
         const icon = document.getElementById('themeIcon');
@@ -2793,6 +2827,14 @@
         btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
       }
 
+      const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      setThemeIcon(savedTheme);
+      const savedTheme = localStorage.getItem('qyx_theme');
+
+      // Force dark theme for now to avoid light-theme regressions
+      const initialTheme = 'dark';
+      localStorage.setItem('qyx_theme', initialTheme);
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const initialTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
 
@@ -2900,8 +2942,79 @@
         return /<\s*html|<\s*style|<\s*script|function\s+updateEditor\s*\(|\.stat-bar|\.hero\s*\{|\.workspace\s*\{/i.test(text);
       }
 
-      function getApiBase() {
-        return ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || 'http://localhost:8000').replace(/\/$/, '');
+      const DEFAULT_API_BASE = 'https://qyverixai.onrender.com';
+
+      function getHostname(url) {
+        try {
+          return new URL(url).hostname;
+        } catch {
+          return '';
+        }
+      }
+
+      function isLocalHostName(hostname) {
+        return hostname === 'localhost' || hostname === '127.0.0.1';
+      }
+
+      function isLocalApiUrl(url) {
+        return isLocalHostName(getHostname(url));
+      }
+
+      function normalizeApiBase(url) {
+        return String(url || '').replace(/\/$/, '');
+      }
+
+      function getConfiguredApiBase() {
+        return normalizeApiBase(
+          (apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || DEFAULT_API_BASE
+        );
+      }
+
+      function getApiBaseCandidates() {
+        const lastWorking = sessionStorage.getItem('qyx_lastWorkingApiBase') || '';
+        const candidates = [
+          lastWorking,
+          'http://localhost:8000',
+          'http://127.0.0.1:8000',
+          getConfiguredApiBase(),
+          DEFAULT_API_BASE,
+        ];
+        return [...new Set(candidates.map(normalizeApiBase).filter(Boolean))];
+      }
+
+      async function fetchWithApiFallback(path, init = {}, { primaryTimeoutMs = 10000, fallbackTimeoutMs = 60000 } = {}) {
+        let lastError = null;
+
+        for (let i = 0; i < getApiBaseCandidates().length; i += 1) {
+          const base = getApiBaseCandidates()[i];
+          const timeoutMs = i === 0 ? primaryTimeoutMs : fallbackTimeoutMs;
+
+          try {
+            const response = await fetch(`${base}${path}`, {
+              ...init,
+              signal: AbortSignal.timeout(timeoutMs),
+            });
+
+            if (response.ok || ![429, 500, 502, 503, 504].includes(response.status)) {
+              sessionStorage.setItem('qyx_lastWorkingApiBase', base);
+              return { response, base };
+            }
+
+            lastError = new Error(`HTTP ${response.status}`);
+          } catch (err) {
+            lastError = err;
+            if (!isNetworkFetchFailure(err) && err?.name !== 'AbortError' && err?.name !== 'TimeoutError') {
+              throw err;
+            }
+          }
+        }
+
+        throw lastError || new Error('Unable to reach API');
+      }
+
+      function isNetworkFetchFailure(err) {
+        const message = String(err?.message || err || '');
+        return err?.name === 'TypeError' && /fetch/i.test(message);
       }
 
       function normalizeEditorOnLoad() {
@@ -3048,6 +3161,16 @@
       document.getElementById('fileInput').addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
+        const ext = file.name.split('.').pop().toLowerCase();
+        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
+        if (langMap[ext]) setLanguage(langMap[ext]);
+        const reader = new FileReader();
+        reader.onload = ev => {
+          editor.value = sanitizeClientCode(ev.target.result);
+          updateEditor();
+          toast(`Loaded ${file.name}`, 'success');
+        };
+        reader.readAsText(file);
         handleUploadedFile(file);
         e.target.value = '';
       });
@@ -3095,7 +3218,7 @@
         if (langMap[ext]) setLanguage(langMap[ext]);
         const reader = new FileReader();
         reader.onload = ev => {
-          editor.value = ev.target.result;
+          editor.value = sanitizeClientCode(ev.target.result);
           updateEditor();
           resetResults();
           toast(getTranslation('toast_loaded').replace('{name}', file.name), 'success');
@@ -3113,7 +3236,6 @@
         document.querySelectorAll('.lang-tab').forEach(t => {
           const isActive = t.dataset.lang === lang;
           t.classList.toggle('active', isActive);
-          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
 
         // 2. Check if the editor currently contains one of the samples
@@ -3159,7 +3281,8 @@
           document.querySelectorAll('.result-pane').forEach(x => x.classList.remove('active'));
           t.classList.add('active');
           t.setAttribute('aria-selected', 'true');
-          document.getElementById(`pane-${tab}`).classList.add('active');
+          const paneEl = document.getElementById(`pane-${tab}`);
+          if (paneEl) paneEl.classList.add('active');
         });
       });
 
@@ -3180,35 +3303,40 @@
       /* ═══════════════════════════════════════════════════════════════
          API PING
       ═══════════════════════════════════════════════════════════════ */
-      async function pingApi() {
-        if (!apiUrlInput || !apiDot || !apiStatusText) return;
-        const base = getApiBase();
+      async function pingApi({ notify = false } = {}) {
+        if (!apiUrlInput || !apiStatusText) return;
         try {
-          const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+          const { response: r, base } = await fetchWithApiFallback('/health', { method: 'GET' }, { primaryTimeoutMs: 2000, fallbackTimeoutMs: 5000 });
           if (r.ok) {
-            apiDot.classList.add('connected');
+            apiUrlInput.value = base;
+            apiDot?.classList.add('connected');
             apiStatusText.dataset.status = 'connected';
             delete apiStatusText.dataset.statusCode;
             syncApiStatusText();
-            toast(getTranslation('toast_api_reachable'), 'success');
+            if (notify) {
+              toast(getTranslation('toast_api_reachable'), 'success');
+            }
           } else {
-            apiDot.classList.remove('connected');
+            apiDot?.classList.remove('connected');
             apiStatusText.dataset.status = 'error';
             apiStatusText.dataset.statusCode = String(r.status);
             syncApiStatusText();
           }
         } catch {
-          apiDot.classList.remove('connected');
+          apiDot?.classList.remove('connected');
           apiStatusText.dataset.status = 'unreachable';
           delete apiStatusText.dataset.statusCode;
           syncApiStatusText();
-          toast(getTranslation('toast_api_unreachable'), 'error');
+          if (notify) {
+            toast(getTranslation('toast_api_unreachable'), 'error');
+          }
         }
       }
-      const pingBtn = document.getElementById('pingBtn');
-      if (pingBtn) pingBtn.addEventListener('click', pingApi);
 
-      // Auto-ping on load
+      const pingBtn = document.getElementById('pingBtn');
+      if (pingBtn) pingBtn.addEventListener('click', () => pingApi({ notify: true }));
+
+      // Auto-ping on load (quiet by default)
       setTimeout(pingApi, 800);
 
       /* ═══════════════════════════════════════════════════════════════
@@ -3217,10 +3345,10 @@
       analyzeBtn.addEventListener('click', doAnalyze);
 
       async function doAnalyze() {
+        const code = sanitizeClientCode(editor.value.trim());
+        if (!code) { toast('Please paste some code first.', 'error'); return; }
         const code = editor.value.trim();
         if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
-
-        const base = getApiBase();
         const endpointMap = {
           analyze: '/analyze/',
           explain: '/explanation/',
@@ -3238,11 +3366,10 @@
           if (selectedZipFile) {
             const formData = new FormData();
             formData.append('file', selectedZipFile);
-            const res = await fetch(`${base}/analyze/zip/`, {
+            const { response: res, base: resolvedBase } = await fetchWithApiFallback('/analyze/zip/', {
               method: 'POST',
               body: formData,
-              signal: AbortSignal.timeout(60000),
-            });
+            }, { primaryTimeoutMs: 3000, fallbackTimeoutMs: 60000 });
             if (!res.ok) {
               const err = await res.json().catch(() => ({}));
               throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3252,8 +3379,9 @@
             currentResult = data;
             renderZipResults(data);
             addToHistory(`ZIP: ${selectedZipFile.name}`, data);
-            apiDot.classList.add('connected');
-            apiStatusText.textContent = 'Connected';
+            apiUrlInput.value = resolvedBase;
+            apiDot?.classList.add('connected');
+            if (apiStatusText) apiStatusText.textContent = 'Connected';
             document.getElementById('engineBar').style.display = 'flex';
             engineInfo.textContent = `${data.provider || 'rule-based'} · ${data.model || ''}`;
             timeInfo.textContent = data.analysis_time_ms ? data.analysis_time_ms + 'ms' : '';
@@ -3261,12 +3389,11 @@
             return;
           }
 
-          const res = await fetch(`${base}${endpoint}`, {
+          const { response: res, base: resolvedBase } = await fetchWithApiFallback(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code, language: selectedLang }),
-            signal: AbortSignal.timeout(30000),
-          });
+          }, { primaryTimeoutMs: 3000, fallbackTimeoutMs: 60000 });
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3289,8 +3416,9 @@
           currentResult = result;
           renderResults(result, code);
           addToHistory(code, result);
-          apiDot.classList.add('connected');
-          apiStatusText.textContent = getTranslation('api_status_connected');
+          apiUrlInput.value = resolvedBase;
+          apiDot?.classList.add('connected');
+          if (apiStatusText) apiStatusText.textContent = getTranslation('api_status_connected');
           document.getElementById('engineBar').style.display = 'flex';
           engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
           if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
@@ -3298,7 +3426,15 @@
           resultActions.style.display = 'flex';
 
         } catch (err) {
-          toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
+          if (isNetworkFetchFailure(err)) {
+            apiDot?.classList.remove('connected');
+            apiStatusText.dataset.status = 'unreachable';
+            delete apiStatusText.dataset.statusCode;
+            syncApiStatusText();
+            toast(getTranslation('toast_api_unreachable'), 'error');
+          } else {
+            toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
+          }
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');
@@ -3442,17 +3578,29 @@
         document.getElementById('emptyExplain').style.display = 'none';
         const el = document.getElementById('explainResult');
         el.style.display = 'block';
-        document.getElementById('explainBadge').textContent = exp.complexity;
+        document.getElementById('explainBadge').textContent = escHtml(exp.complexity);
+
+        const cleanComplexity = sanitizeClassToken(exp.complexity);
+        const cleanRisk = sanitizeClassToken((exp.complexity_risk || 'Simple').replace(/\s+/g, '-'));
+        const escapedLang = escHtml(exp.language);
+        const lineCountInt = parseInt(exp.line_count, 10) || 0;
+        const funcCountInt = parseInt(exp.function_count, 10) || 0;
+        const classCountInt = parseInt(exp.class_count, 10) || 0;
+        const cyclomaticComplexityInt = exp.cyclomatic_complexity != null ? parseInt(exp.cyclomatic_complexity, 10) : null;
+        const escapedRisk = escHtml(exp.complexity_risk || 'Simple');
 
         el.innerHTML = `
-    <div class="explain-summary" tabindex="0">${exp.summary}</div>
+    <div class="explain-summary" tabindex="0">${escHtml(exp.summary)}</div>
     <div class="explain-meta">
-      <div class="meta-chip complexity-${exp.complexity}">
-        <div class="dot"></div>${exp.complexity}
+      <div class="meta-chip complexity-${safeCssToken(exp.complexity, 'unknown')}">
+    <div class="explain-summary" tabindex="0">${renderMarkdown(exp.summary)}</div>
+    <div class="explain-meta">
+      <div class="meta-chip complexity-${cleanComplexity}">
+        <div class="dot"></div>${escHtml(exp.complexity)}
       </div>
       <div class="meta-chip">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-        ${exp.language}
+        ${escHtml(exp.language)}
       </div>
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', exp.line_count)}</div>
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', exp.function_count)}</div>
@@ -3460,7 +3608,16 @@
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
       ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
-      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
+      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${safeCssToken(exp.complexity_risk, 'simple')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${escHtml(exp.complexity_risk)}</div>` : ''}
+        ${escapedLang}
+      </div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', lineCountInt)}</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', funcCountInt)}</div>
+      ${classCountInt > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', classCountInt) + '</div>' : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${lineCountInt} lines</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${funcCountInt} fn${funcCountInt !== 1 ? 's' : ''}</div>
+      ${classCountInt > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + classCountInt + ' class' + (classCountInt !== 1 ? 'es' : '') + '</div>' : ''}
+      ${cyclomaticComplexityInt != null ? `<div class="meta-chip risk-${cleanRisk}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${cyclomaticComplexityInt} &middot; ${escapedRisk}</div>` : ''}
     </div>
     <ul class="key-points">
       ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
@@ -3489,30 +3646,51 @@
         const statBar = `
     <div class="stat-bar">
       <div class="stat-chip error-chip">
-        <div class="stat-chip-num">${dbg.error_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.error_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_errors')}</div>
       </div>
       <div class="stat-chip warn-chip">
-        <div class="stat-chip-num">${dbg.warning_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.warning_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_warnings')}</div>
       </div>
       <div class="stat-chip info-chip">
-        <div class="stat-chip-num">${dbg.info_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.info_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_info')}</div>
       </div>
     </div>`;
 
         const cards = dbg.issues.map((issue, i) => `
-    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
+    <div class="issue-card ${safeSeverityClass(issue.severity)}" style="animation-delay:${i * 0.05}s" tabindex="0">
       <div class="issue-header">
+        <span class="issue-badge">${escHtml(issue.severity)}</span>
+        <span class="issue-type">${escHtml(issue.type)}</span>
+        ${issue.line ? `<span class="issue-line">Line ${issue.line}</span>` : ''}
         <span class="issue-badge">${issue.severity}</span>
         <span class="issue-type">${issue.type}</span>
         ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', issue.line)}</span>` : ''}
       </div>
-      <div class="issue-desc">${issue.description}</div>
+      <div class="issue-desc">${escHtml(issue.description)}</div>
       ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
-      <div class="issue-fix">${issue.suggestion}</div>
+      <div class="issue-fix">${escHtml(issue.suggestion)}</div>
     </div>`).join('');
+        const cards = dbg.issues.map((issue, i) => {
+          const cleanSeverity = sanitizeClassToken(issue.severity);
+          const escapedType = escHtml(issue.type);
+          const escapedDesc = escHtml(issue.description);
+          const escapedSuggestion = escHtml(issue.suggestion);
+          const escapedLine = issue.line ? escHtml(issue.line) : '';
+          return `
+    <div class="issue-card ${cleanSeverity}" style="animation-delay:${i * 0.05}s" tabindex="0">
+      <div class="issue-header">
+        <span class="issue-badge">${escHtml(issue.severity)}</span>
+        <span class="issue-type">${escapedType}</span>
+        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', escapedLine)}</span>` : ''}
+      </div>
+      <div class="issue-desc">${escapedDesc}</div>
+      ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
+      <div class="issue-fix">${escapedSuggestion}</div>
+    </div>`;
+        }).join('');
 
         el.innerHTML = statBar + cards;
       }
@@ -3689,12 +3867,15 @@
         </svg>
         <div class="score-ring-text">
           <div class="score-num" style="color:${scoreColor}">${sugg.overall_score}</div>
-          <div class="score-grade">${sugg.grade}</div>
+          <div class="score-num" style="color:${scoreColor}">${parseInt(sugg.overall_score, 10) || 0}</div>
+          <div class="score-grade">${escHtml(sugg.grade)}</div>
         </div>
       </div>
       <div class="score-info">
+        <h3>Quality Score</h3>
+        <p>${escHtml(sugg.next_step)}</p>
         <h3>${getTranslation('suggest_quality_score')}</h3>
-        <p>${sugg.next_step}</p>
+        <p>${escHtml(sugg.next_step)}</p>
       </div>
     </div>`;
 
@@ -3729,33 +3910,46 @@
                   if (originalSnippet) {
                     exampleHtml = buildDiffHtml(originalSnippet, s.example, copyId);
                   } else {
-                    // No match – show fixed code as green "Fixed Code" block
-                    const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
-                    exampleHtml = `
-                    <div class="diff-wrapper">
-                      <div class="diff-header">
-                        <div class="diff-header-labels">
-                          <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
-                        </div>
-                        <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                          Copy fixed
-                        </button>
-                      </div>
-                      <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
-                    </div>`;
+                     // No match – show fixed code as green "Fixed Code" block
+                     const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+                     exampleHtml = `
+                     <div class="diff-wrapper">
+                       <div class="diff-header">
+                         <div class="diff-header-labels">
+                           <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
+                         </div>
+                         <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
+                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                           Copy fixed
+                         </button>
+                       </div>
+                       <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
+                     </div>`;
                   }
                 }
               }
             }
 
+            const cleanPriority = sanitizeClassToken(s.priority);
+            const escapedCat = escHtml(s.category);
+            const escapedPriority = escHtml(s.priority);
+            const escapedDesc = escHtml(s.description);
+
             return `
-      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
+      <div class="suggest-card priority-${safePriorityClass(s.priority)}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
+          <span class="suggest-cat">${escHtml(s.category)}</span>
+          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${escHtml(s.priority)} priority</span>
           <span class="suggest-cat">${s.category}</span>
           <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', s.priority)}</span>
         </div>
-        <div class="suggest-desc">${s.description}</div>
+        <div class="suggest-desc">${escHtml(s.description)}</div>
+      <div class="suggest-card priority-${cleanPriority}" style="animation-delay:${i * 0.05}s" tabindex="0">
+        <div class="suggest-header">
+          <span class="suggest-cat">${escapedCat}</span>
+          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', escapedPriority)}</span>
+        </div>
+        <div class="suggest-desc">${escapedDesc}</div>
         ${exampleHtml}
       </div>`;
           }).join('');
@@ -3831,20 +4025,39 @@
       /* ═══════════════════════════════════════════════════════════════
          HISTORY
       ═══════════════════════════════════════════════════════════════ */
+      async function saveHistoryToBackend(code, lang, result) {
+        try {
+          const base = apiUrlInput.value.replace(/\/$/, '');
+          const score = result.suggestions?.overall_score ?? null;
+          const issue_count = result.debugging?.error_count ?? null;
+          await fetch(`${base}/history/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language: lang, score, issue_count }),
+          });
+        } catch (_) {
+          // backend unavailable — localStorage fallback is still active
+        }
+      }
+
       function addToHistory(code, result) {
-        const lang = result.explanation?.language || result.debugging?.language||result.suggestions?.language||selectedLang;
-        const entry = {
-          id: Date.now(),
+        const lang =
+          result.explanation?.language ||
+          result.debugging?.language ||
+          result.suggestions?.language ||
+          selectedLang;
+        const entry = createStoredEntry({
           code,
           result,
           lang,
           ts: new Date().toLocaleTimeString(),
-          preview: code.slice(0, 60).replace(/\n/g, ' '),
-        };
+          preview: code,
+        });
         history.unshift(entry);
         if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-        localStorage.setItem('qyx_history', JSON.stringify(history));
+        saveStoredHistory('qyx_history', history);
         renderHistory();
+        saveHistoryToBackend(code, lang, result);
       }
 
       function renderHistory() {
@@ -3852,6 +4065,15 @@
           historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
+        historyList.innerHTML = history.map(h => buildStoredListItemHtml(h)).join('');
+      }
+
+      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+        if (!window.confirm('Are you sure you want to clear your history? This cannot be undone.')) return;
+        history = [];
+        localStorage.removeItem('qyx_history');
+        renderHistory();
+        toast('History cleared', 'info');
         historyList.innerHTML = history.map(h => `
     <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
       <span class="history-lang">${h.lang || '?'}</span>
@@ -3860,47 +4082,138 @@
     </div>`).join('');
       }
 
-      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
 
+        const base = apiUrlInput.value.replace(/\/$/, '');
+        const entries = await fetch(`${base}/history/?limit=100`).then(r => r.json()).catch(() => []);
+        for (const e of entries) {
+          fetch(`${base}/history/${e.id}`, { method: 'DELETE' }).catch(() => {});
+        }
         history = [];
         localStorage.removeItem('qyx_history');
         renderHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
-      function loadEntry(id) {
-        const entry = history.find(h => h.id === Number (id));
-        console.log(entry);
-        if (!entry) return;
-        editor.value = entry.code;
+      function normalizeSavedEntryId(id) {
+        const normalizedId = Number(id);
+        return Number.isNaN(normalizedId) ? null : normalizedId;
+      }
 
-        if(entry.lang){
-          setLanguage(entry.lang.toLowerCase());
+      document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+        if (!history || history.length === 0) {
+          toast('No history to download', 'info');
+          return;
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+        const dlNode = document.createElement('a');
+        dlNode.setAttribute("href", dataStr);
+        dlNode.setAttribute("download", "history.json");
+        document.body.appendChild(dlNode);
+        dlNode.click();
+        dlNode.remove();
+        toast('Downloaded history.json', 'success');
+      });
+
+document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+  if (!history || history.length === 0) {
+    toast('No history to download', 'info');
+    return;
+  }
+  
+  const headers = Object.keys(history[0]);
+  const csvRows = [];
+  csvRows.push(headers.join(','));
+  
+  for (const row of history) {
+    const values = headers.map(header => {
+      let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
+      val = val.replace(/"/g, '""');
+      return `"${val}"`;
+    });
+    csvRows.push(values.join(','));
+  }
+  
+  const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
+  const dlNode = document.createElement('a');
+  dlNode.setAttribute("href", csvContent);
+  dlNode.setAttribute("download", "history.csv");
+  document.body.appendChild(dlNode);
+  dlNode.click();
+  dlNode.remove();
+  toast('Downloaded history.csv', 'success');
+});
+      function loadEntry(id) {
+        const entry = history.find(h => h.id === id);
+        if (!entry) return;
+        editor.value = sanitizeClientCode(entry.code);
+      document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+        if (!history || history.length === 0) {
+          toast('No history to download', 'info');
+          return;
         }
 
+        const headers = Object.keys(history[0]);
+        const csvRows = [];
+        csvRows.push(headers.join(','));
+
+        for (const row of history) {
+          const values = headers.map(header => {
+            let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
+            val = val.replace(/"/g, '""');
+            return `"${val}"`;
+          });
+          csvRows.push(values.join(','));
+        }
+
+        const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
+        const dlNode = document.createElement('a');
+        dlNode.setAttribute("href", csvContent);
+        dlNode.setAttribute("download", "history.csv");
+        document.body.appendChild(dlNode);
+        dlNode.click();
+        dlNode.remove();
+        toast('Downloaded history.csv', 'success');
+      });
+
+      function restoreSavedEntry(entry) {
+        if (!entry) return;
+
+        editor.value = entry.code;
+        if (entry.lang) {
+          setLanguage(entry.lang.toLowerCase());
+        }
         updateEditor();
         currentResult = entry.result;
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
 
+      function loadEntry(id) {
+        const normalizedId = normalizeSavedEntryId(id);
+        if (normalizedId === null) return;
+        const entry = history.find(h => h.id === normalizedId);
+        restoreSavedEntry(entry);
+      }
+
+      window.loadEntry = loadEntry;
+
       /* ═══════════════════════════════════════════════════════════════
          FAVORITES
       ═══════════════════════════════════════════════════════════════ */
       document.getElementById('favBtn').addEventListener('click', () => {
         if (!currentResult || !editor.value.trim()) return;
-        const entry = {
-          id: Date.now(),
+        const entry = createStoredEntry({
           code: editor.value,
           result: currentResult,
           lang: currentResult.explanation?.language || selectedLang,
           ts: new Date().toLocaleDateString(),
-          preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
-        };
+          preview: editor.value,
+        });
         favorites.unshift(entry);
         if (favorites.length > 30) favorites = favorites.slice(0, 30);
-        localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
+        saveStoredHistory('qyx_favorites', favorites);
         renderFavorites();
         toast(getTranslation('toast_saved_favorites'), 'success');
       });
@@ -3910,6 +4223,17 @@
           favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
           return;
         }
+        favList.innerHTML = favorites.map(f => buildStoredListItemHtml(f, { favorite: true })).join('');
+      }
+
+      document.getElementById('clearFavsBtn').addEventListener('click', () => {
+        if (!window.confirm('Are you sure you want to clear your favorites? This cannot be undone.')) return;
+        favorites = [];
+        localStorage.removeItem('qyx_favorites');
+        renderFavorites();
+        toast('Favorites cleared', 'info');
+      });
+
         favList.innerHTML = favorites.map(f => `
     <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${getTranslation('favorite_entry_label').replace('{lang}', f.lang || '?').replace('{time}', f.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
       <span class="history-lang">${f.lang || '?'}</span>
@@ -3927,20 +4251,28 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
   toast(getTranslation('toast_favorites_cleared'), 'info');
 });
       function loadFav(id) {
-        const entry = favorites.find(f => f.id === Number(id));
+        const entry = favorites.find(f => f.id === id);
         if (!entry) return;
-        editor.value = entry.code;
-        selectedLang = entry.lang.toLowerCase();
-        document.querySelectorAll('.lang-tab').forEach(tab =>{
-          const active = tab.dataset.lang === selectedLang;
-          tab.classList.toggle('active', active);
-          tab.setAttribute('aria-selected', active ? 'true' : 'false');
-        });
+        editor.value = sanitizeClientCode(entry.code);
+        if (entry.lang) {
+          selectedLang = entry.lang.toLowerCase();
+          document.querySelectorAll('.lang-tab').forEach(tab => {
+            const active = tab.dataset.lang === selectedLang;
+            tab.classList.toggle('active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+          });
+        }
         updateEditor();
         currentResult = entry.result;
         renderResults(entry.result, entry.code);
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+        const normalizedId = normalizeSavedEntryId(id);
+        if (normalizedId === null) return;
+        const entry = favorites.find(f => f.id === normalizedId);
+        restoreSavedEntry(entry);
       }
+
+      window.loadFav = loadFav;
       /* ═══════════════════════════════════════════════════════════════
          DOWNLOAD
       ═══════════════════════════════════════════════════════════════ */
@@ -3990,7 +4322,7 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         const el = document.createElement('div');
         el.className = 'toast ' + type;
         const icons = { success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>', error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' };
-        el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + msg + '</span>';
+        el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + escHtml(msg) + '</span>';
         container.appendChild(el);
         setTimeout(() => {
           el.classList.add('fadeout');
@@ -4002,10 +4334,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
          HELPERS
       ═══════════════════════════════════════════════════════════════ */
       function escHtml(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+      }
+      function sanitizeClassToken(token) {
+        return String(token || '').replace(/[^a-zA-Z0-9\-]/g, '');
       }
       function renderMarkdown(s) {
-        return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        const escaped = escHtml(s);
+        return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
           .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
       }
 
@@ -4123,9 +4459,9 @@ int main() {
         toast(getTranslation('toast_sample_loaded'), 'success');
       }
 
-      /* ═══════════════════════════════════════════════════════════════
-         INIT
-      ═══════════════════════════════════════════════════════════════ */
+      window.loadSample = loadSample;
+
+      /* INIT */
       // Wire up language selector
       const langSelect = document.getElementById('langSelect');
       if (langSelect) {
@@ -4151,25 +4487,26 @@ int main() {
           localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
         });
         const savedUrl = localStorage.getItem('qyx_apiUrl');
-        if (savedUrl) apiUrlInput.value = savedUrl;
+        if (savedUrl) {
+          apiUrlInput.value = savedUrl;
+        } else {
+          apiUrlInput.value = DEFAULT_API_BASE;
+        }
       }
 
-      /* ═══════════════════════════════════════════════════════════════
-         DIGEST SUBSCRIBE
-      ═══════════════════════════════════════════════════════════════ */
+      /* DIGEST SUBSCRIBE */
       document.getElementById('digestForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('digestEmail').value.trim();
         const btn = document.getElementById('digestBtn');
         btn.disabled = true;
         btn.textContent = 'Subscribing…';
-        const base = getApiBase();
         try {
-          const r = await fetch(`${base}/subscribe/`, {
+          const { response: r } = await fetchWithApiFallback('/subscribe/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }),
-          });
+          }, { primaryTimeoutMs: 10000, fallbackTimeoutMs: 60000 });
           const data = await r.json();
           if (r.ok) {
             toast(data.message, 'success');
