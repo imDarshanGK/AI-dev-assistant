@@ -230,3 +230,10 @@ def test_deep_nesting_exact_boundary():
     )
     issues = analyze(code)
     assert not any(i["type"] == "Deep Nesting" for i in issues)
+
+
+def test_analyze_handles_syntax_error():
+    result = analyze("def f(:\n    pass")
+
+    assert len(result) == 1
+    assert result[0]["type"] == "Syntax Error"

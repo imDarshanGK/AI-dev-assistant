@@ -304,7 +304,20 @@ def detect_deep_nesting(tree, code):
     return issues
 
 def analyze(source: str) -> list[dict]:
-    tree = ast.parse(source)
+    try:
+        tree = ast.parse(source)
+    except SyntaxError as exc:
+        return [
+            _make_issue(
+                "Syntax Error",
+                exc.lineno or 1,
+                f"Python syntax error: {exc.msg}",
+                "Fix the syntax error before running analysis.",
+                "error",
+                ""
+            )
+        ]
+
     issues = []
     issues += detect_unreachable_code(tree, source)
     issues += detect_unused_imports(tree, source)
