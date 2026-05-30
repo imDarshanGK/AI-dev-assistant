@@ -198,6 +198,53 @@ def estimate_complexity(code: str) -> str:
     return "Expert"
 
 
+def chat_fallback_reply(
+    message: str,
+    code: str | None,
+    history: list[str],
+    level: str,
+) -> str:
+    """Return a simple fallback chat response when the LLM is unavailable."""
+    message_text = (message or "").strip()
+    code_text = code or ""
+    recent_history = " ".join(history[-3:]) if history else ""
+
+    if not code_text:
+        base = (
+            "I can’t access the AI service right now, but I’m still here to help. "
+            "Please retry when the assistant is available."
+        )
+        if message_text:
+            base += f" Your question was: {message_text}"
+        return base
+
+    language = detect_language(code_text)
+    complexity = estimate_complexity(code_text)
+    response_parts = [
+        f"I detected {language} code with an estimated {complexity.lower()} complexity.",
+        f"At {level} level, focus on the main intent of the code and any notable branching or error-prone logic.",
+    ]
+
+    if message_text:
+        response_parts.append(f"You asked: {message_text}.")
+
+    if "error" in message_text.lower() or "bug" in message_text.lower():
+        response_parts.append(
+            "Check for common issues such as missing imports, incorrect indentation, or unexpected variable values."
+        )
+    else:
+        response_parts.append(
+            "Try describing the core behavior in plain language and mention the most important statement or loop."
+        )
+
+    if recent_history:
+        response_parts.append(
+            f"Recent chat context: {recent_history}."
+        )
+
+    return " ".join(response_parts)
+
+
 # ── Bug Patterns ───────────────────────────────────────────────────────────────
 @dataclass
 class BugPattern:
@@ -1347,6 +1394,7 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         "error_count": len(errors),
         "warning_count": len(warnings),
         "info_count": len(infos),
+        "code": code,
     }
 
     sugg = run_suggestions(code, language)
