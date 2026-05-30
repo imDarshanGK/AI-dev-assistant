@@ -4519,18 +4519,10 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
-       HELPERS
+       HELPERS (escHtml, renderMarkdown from security-utils.js)
     ═══════════════════════════════════════════════════════════════ */
-    function escHtml(s) {
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-    }
     function sanitizeClassToken(token) {
       return String(token || '').replace(/[^a-zA-Z0-9\-]/g, '');
-    }
-    function renderMarkdown(s) {
-      const escaped = escHtml(s);
-      return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
     }
 
     /* ═══════════════════════════════════════════════════════════════
