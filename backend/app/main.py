@@ -11,10 +11,26 @@ from fastapi.staticfiles import StaticFiles
 import time
 import os
 from collections import defaultdict
+import logging
 from contextlib import asynccontextmanager
 
-from .routers import explanation, debugging, suggestions, analyze, subscribe
+from .routers import (
+    analyze,
+    auth,
+    chat,
+    debugging,
+    explanation,
+    history,
+    share,
+    subscribe,
+    suggestions,
+    upload_file,
+    user_data,
+)
+from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
+from .database import Base, engine
+
 from .schemas import HealthResponse
 
 
@@ -47,11 +63,14 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await database.init_db()
     print("🚀 QyverixAI backend starting…")
+    logging.getLogger(__name__).info("🚀 QyverixAI backend starting…")
+    Base.metadata.create_all(bind=engine)
     start_scheduler()
     yield
     stop_scheduler()
-    print("🛑 QyverixAI backend shutting down…")
+    logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -122,6 +141,12 @@ app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"]
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
+app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(auth.router)
+app.include_router(chat.router)
+app.include_router(share.router)
+app.include_router(user_data.router)
+app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
@@ -131,7 +156,25 @@ async def root():
         "status": "ok",
         "version": "3.0.0",
         "message": "QyverixAI API is running.",
-        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+        "endpoints": [
+            "/auth/signup",
+            "/auth/login",
+            "/auth/me",
+            "/explanation/",
+            "/debugging/",
+            "/suggestions/",
+            "/analyze/",
+            "/subscribe/",
+            "/share/",
+            "/auth/",
+            "/chat/",
+            "/user/",
+            "/analyze/zip/",
+            "/analyze/zip/",
+            "/subscribe/",
+            "/share/",
+            "/history/",
+        ],
     }
 
 
@@ -141,7 +184,25 @@ async def health_check():
         "status": "ok",
         "version": "3.0.0",
         "message": "QyverixAI is healthy",
-        "endpoints": ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+        "endpoints": [
+            "/auth/signup",
+            "/auth/login",
+            "/auth/me",
+            "/explanation/",
+            "/debugging/",
+            "/suggestions/",
+            "/analyze/",
+            "/subscribe/",
+            "/share/",
+            "/auth/",
+            "/chat/",
+            "/user/",
+            "/analyze/zip/",
+            "/analyze/zip/",
+            "/subscribe/",
+            "/share/",
+            "/history/",
+        ],
     }
 
 
@@ -159,6 +220,7 @@ if os.path.isdir(_frontend):
 # ── Global error handler ──────────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logging.exception("Unhandled error")
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error. Please try again."},
