@@ -2892,7 +2892,9 @@
 
         updateEditor();
         renderHistory();
-        renderFavorites();
+        if (typeof renderFavorites === 'function') {
+  renderFavorites();
+}
         if (currentResult) {
           renderResults(currentResult, editor.value);
         }
@@ -4082,6 +4084,7 @@
       <span class="history-thumb">${escHtml(h.preview)}…</span>
       <span class="history-meta">${h.ts}</span>
     </div>`).join('');
+  });
 
       document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
@@ -4145,53 +4148,7 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
   dlNode.remove();
   toast('Downloaded history.csv', 'success');
 });
-      function loadEntry(id){
-        const entry = history.find(h => h.id === id);
-        if (!entry) return;
-        editor.value = sanitizeClientCode(entry.code);
-      document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-        if (!history || history.length === 0) {
-          toast('No history to download', 'info');
-          return;
-        }
-
-
-        const headers = Object.keys(history[0]);
-        const csvRows = [];
-        csvRows.push(headers.join(','));
-
-        for (const row of history) {
-          const values = headers.map(header => {
-            let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
-            val = val.replace(/"/g, '""');
-            return `"${val}"`;
-          });
-          csvRows.push(values.join(','));
-        }
-
-        const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
-        const dlNode = document.createElement('a');
-        dlNode.setAttribute("href", csvContent);
-        dlNode.setAttribute("download", "history.csv");
-        document.body.appendChild(dlNode);
-        dlNode.click();
-        dlNode.remove();
-        toast('Downloaded history.csv', 'success');
-      });
-
-      function restoreSavedEntry(entry) {
-        if (!entry) return;
-
-        editor.value = entry.code;
-        if (entry.lang) {
-          setLanguage(entry.lang.toLowerCase());
-        }
-        updateEditor();
-        currentResult = entry.result;
-        renderResults(entry.result, entry.code);
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-      }
-
+      
       function loadEntry(id) {
         const normalizedId = normalizeSavedEntryId(id);
         if (normalizedId === null) return;
@@ -4200,6 +4157,18 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
       }
 
       window.loadEntry = loadEntry;
+
+      function renderFavorites() {
+  if (!favorites.length) {
+    favList.innerHTML =
+      `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
+    return;
+  }
+
+  favList.innerHTML = favorites
+    .map(f => buildStoredListItemHtml(f, { favorite: true }))
+    .join('');
+}
 
       /* ═══════════════════════════════════════════════════════════════
          FAVORITES
@@ -4242,7 +4211,7 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
       <span class="history-thumb">${escHtml(f.preview)}…</span>
       <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     </div>`).join('');
-      }
+    
       window.loadEntry = loadEntry;
 
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
@@ -4254,29 +4223,33 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
   toast(getTranslation('toast_favorites_cleared'), 'info');
 });
       function loadFav(id) {
-        const entry = favorites.find(f => f.id === id);
-        if (!entry) return;
-        editor.value = sanitizeClientCode(entry.code);
-        if (entry.lang) {
-          selectedLang = entry.lang.toLowerCase();
-          document.querySelectorAll('.lang-tab').forEach(tab => {
-            const active = tab.dataset.lang === selectedLang;
-            tab.classList.toggle('active', active);
-            tab.setAttribute('aria-selected', active ? 'true' : 'false');
-          });
-        }
-        updateEditor();
-        currentResult = entry.result;
-        renderResults(entry.result, entry.code);
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-        const normalizedId = normalizeSavedEntryId(id);
-        if (normalizedId === null) return;
-       const favoriteEntry = favorites.find(f => f.id === normalizedId);
-       restoreSavedEntry(favoriteEntry);
-      }
-      });
+  const entry = favorites.find(f => f.id === id);
+  if (!entry) return;
 
-      window.loadFav = loadFav;
+  editor.value = sanitizeClientCode(entry.code);
+
+  if (entry.lang) {
+    selectedLang = entry.lang.toLowerCase();
+    document.querySelectorAll('.lang-tab').forEach(tab => {
+      const active = tab.dataset.lang === selectedLang;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  }
+
+  updateEditor();
+  currentResult = entry.result;
+  renderResults(entry.result, entry.code);
+  document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+
+  const normalizedId = normalizeSavedEntryId(id);
+  if (normalizedId === null) return;
+
+  const favoriteEntry = favorites.find(f => f.id === normalizedId);
+  restoreSavedEntry(favoriteEntry);
+}
+
+window.loadFav = loadFav;
 
       bindStoredListNavigation(historyList, loadEntry);
       bindStoredListNavigation(favList, loadFav); 
@@ -4479,7 +4452,9 @@ int main() {
       syncApiStatusText();
 
       renderHistory();
-      renderFavorites();
+      if (typeof renderFavorites === 'function') {
+    renderFavorites();
+}
 
       // Save API URL
       if (apiUrlInput) {
@@ -4525,3 +4500,4 @@ int main() {
 </body>
 
 </html>
+  
