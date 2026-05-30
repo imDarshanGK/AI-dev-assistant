@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import json
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -15,6 +15,7 @@ from .schema_validators import (
     validate_stored_code,
     validate_stored_result_json,
 )
+
 
 class CodeRequest(BaseModel):
     code: str
@@ -92,6 +93,70 @@ class AnalyzeResponse(BaseModel):
     explanation: dict | ExplanationResponse | None = None
     debugging: dict | DebuggingResponse | None = None
     suggestions: dict | SuggestionsResponse | None = None
+    analysis_time_ms: float | None = None
+
+
+class IncrementalFileChange(BaseModel):
+    path: str = Field(..., min_length=1, max_length=500)
+    content: str | None = Field(default=None, max_length=50_000)
+    previous_path: str | None = Field(default=None, max_length=500)
+    previous_content: str | None = Field(default=None, max_length=50_000)
+    language: str | None = None
+    status: Literal["added", "modified", "renamed", "deleted"] | None = None
+
+    @field_validator("path", "previous_path")
+    @classmethod
+    def validate_path(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+
+        cleaned = value.replace("\\", "/").strip()
+
+        if not cleaned:
+            raise ValueError("path must not be empty")
+
+        if cleaned.startswith("/") or ".." in cleaned.split("/"):
+            raise ValueError("path must be a safe relative path")
+
+        return cleaned
+
+    @field_validator("content", "previous_content")
+    @classmethod
+    def sanitize_file_content(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        return sanitize_code_input(value)
+
+    @field_validator("language")
+    @classmethod
+    def sanitize_incremental_language(cls, value: str | None) -> str | None:
+        return validate_language_hint(value)
+
+
+class IncrementalAnalyzeRequest(BaseModel):
+    files: list[IncrementalFileChange] = Field(..., min_length=1, max_length=50)
+
+
+class IncrementalAnalyzeFileResult(BaseModel):
+    filename: str
+    previous_filename: str | None = None
+    status: str
+    language: str | None = None
+    changed_line_ranges: list[list[int]] = Field(default_factory=list)
+    changed_line_count: int = 0
+    size_bytes: int = 0
+    analysis: AnalyzeResponse | None = None
+    skipped_reason: str | None = None
+
+
+class IncrementalAnalyzeResponse(BaseModel):
+    provider: str
+    model: str
+    file_count: int
+    analyzed_file_count: int
+    skipped_file_count: int
+    files: list[IncrementalAnalyzeFileResult]
+    summary: str
     analysis_time_ms: float | None = None
 
 

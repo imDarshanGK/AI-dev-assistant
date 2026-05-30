@@ -498,7 +498,6 @@ def test_debug_kotlin():
     assert d is not None
 
 
-
 def test_debug_cpp_syntax_errors():
     code = "void main() {\n    cout << 'Hello World'\n}"
     r = client.post("/debugging/", json={"code": code, "language": "cpp"})
@@ -579,15 +578,20 @@ def test_add():
     d = r.json()
     assert d["overall_score"] >= 60  # clean code should score reasonably
 
+
 def test_suggestions_observability_print_only_python():
     # Pasting code with print() in Java should NOT trigger the Observability suggestion
-    r_java = client.post("/suggestions/", json={"code": 'print("hello");', "language": "java"})
+    r_java = client.post(
+        "/suggestions/", json={"code": 'print("hello");', "language": "java"}
+    )
     assert r_java.status_code == 200
     s_java = [s["category"] for s in r_java.json()["suggestions"]]
     assert "Observability" not in s_java
 
     # Pasting code with print() in Python SHOULD trigger the Observability suggestion
-    r_py = client.post("/suggestions/", json={"code": 'print("hello")', "language": "python"})
+    r_py = client.post(
+        "/suggestions/", json={"code": 'print("hello")', "language": "python"}
+    )
     assert r_py.status_code == 200
     s_py = [s["category"] for s in r_py.json()["suggestions"]]
     assert "Observability" in s_py
@@ -643,6 +647,123 @@ def test_analyze_cache_expires(monkeypatch):
     assert first.headers["X-Cache"] == "MISS"
     assert second.headers["X-Cache"] == "MISS"
     cache.clear_memory()
+
+
+def test_incremental_analysis_analyzes_only_changed_file():
+    payload = {
+        "files": [
+            {
+                "path": "app.py",
+                "previous_content": "def divide(a, b):\n    return a + b\n",
+                "content": "def divide(a, b):\n    return a / b\n",
+                "language": "python",
+            },
+            {
+                "path": "unchanged.py",
+                "previous_content": "print('same')\n",
+                "content": "print('same')\n",
+                "language": "python",
+            },
+        ]
+    }
+
+    response = client.post("/analyze/incremental/", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["provider"] == "rule-based"
+    assert data["file_count"] == 2
+    assert data["analyzed_file_count"] == 1
+    assert data["skipped_file_count"] == 1
+
+    changed_file = data["files"][0]
+    unchanged_file = data["files"][1]
+
+    assert changed_file["filename"] == "app.py"
+    assert changed_file["status"] == "modified"
+    assert changed_file["changed_line_count"] >= 1
+    assert changed_file["analysis"] is not None
+
+    assert unchanged_file["filename"] == "unchanged.py"
+    assert unchanged_file["analysis"] is None
+    assert unchanged_file["skipped_reason"] == "no changed lines detected"
+
+
+def test_incremental_analysis_handles_added_file():
+    payload = {
+        "files": [
+            {
+                "path": "new_app.py",
+                "content": "def divide(a, b):\n    return a / b\n",
+                "language": "python",
+                "status": "added",
+            }
+        ]
+    }
+
+    response = client.post("/analyze/incremental/", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["file_count"] == 1
+    assert data["analyzed_file_count"] == 1
+    assert data["files"][0]["status"] == "added"
+    assert data["files"][0]["analysis"] is not None
+    assert data["files"][0]["changed_line_ranges"] == [[1, 2]]
+
+
+def test_incremental_analysis_skips_deleted_file():
+    payload = {
+        "files": [
+            {
+                "path": "old_app.py",
+                "previous_content": "print('remove me')\n",
+                "content": None,
+                "language": "python",
+                "status": "deleted",
+            }
+        ]
+    }
+
+    response = client.post("/analyze/incremental/", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["file_count"] == 1
+    assert data["analyzed_file_count"] == 0
+    assert data["skipped_file_count"] == 1
+    assert data["files"][0]["status"] == "deleted"
+    assert data["files"][0]["analysis"] is None
+
+
+def test_incremental_analysis_handles_rename_with_content_change():
+    payload = {
+        "files": [
+            {
+                "previous_path": "old_name.py",
+                "path": "new_name.py",
+                "previous_content": "def greet():\n    print('hello')\n",
+                "content": "def greet():\n    print('hello debug')\n",
+                "language": "python",
+                "status": "renamed",
+            }
+        ]
+    }
+
+    response = client.post("/analyze/incremental/", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+
+    file_result = data["files"][0]
+    assert file_result["filename"] == "new_name.py"
+    assert file_result["previous_filename"] == "old_name.py"
+    assert file_result["status"] == "renamed"
+    assert file_result["analysis"] is not None
+    assert file_result["changed_line_count"] >= 1
 
 
 def test_memory_cache_evicts_least_recently_used_entries():
@@ -741,7 +862,9 @@ def test_get_stream_done_event_present():
 
 
 def test_get_stream_with_language_hint():
-    r = client.get("/analyze/stream", params={"code": JS_CODE, "language": "javascript"})
+    r = client.get(
+        "/analyze/stream", params={"code": JS_CODE, "language": "javascript"}
+    )
     assert r.status_code == 200
     events = _parse_sse_events(r.text)
     exp = next(e["data"] for e in events if e["type"] == "explanation")
