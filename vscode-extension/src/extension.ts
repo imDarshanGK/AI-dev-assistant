@@ -148,7 +148,7 @@ function renderAnalyzeHtml(res: AnalyzeResponse): string {
   const issues = res.debugging.issues.map(i => `
     <div class="issue">
       <span class="severity" style="color:${severityColor(i.severity)}">●</span>
-      <strong>${i.type}</strong> ${i.line !== null ? `(line ${i.line})` : ''}
+      <strong>${escapeHtml(i.type)}</strong> ${i.line !== null ? `(line ${i.line})` : ''}
       <p>${escapeHtml(i.description)}</p>
       ${i.suggestion ? `<p class="suggestion">Suggestion: ${escapeHtml(i.suggestion)}</p>` : ''}
       ${i.code_context ? `<pre><code>${escapeHtml(i.code_context)}</code></pre>` : ''}
@@ -199,14 +199,14 @@ function renderAnalyzeHtml(res: AnalyzeResponse): string {
 <body>
   <h1>QyverixAI Analysis</h1>
   <div class="meta">
-    ${res.provider} &middot; ${res.model} &middot;
+    ${escapeHtml(res.provider)} &middot; ${escapeHtml(res.model)} &middot;
     ${res.analysis_time_ms !== null ? `${(res.analysis_time_ms / 1000).toFixed(2)}s` : ''}
   </div>
 
   <h2>Summary</h2>
   <div class="summary">
     <p><strong>Language:</strong> ${escapeHtml(res.explanation.language)}</p>
-    <p><strong>Complexity:</strong> ${res.explanation.complexity}</p>
+    <p><strong>Complexity:</strong> ${escapeHtml(res.explanation.complexity)}</p>
     <p><strong>${res.explanation.line_count}</strong> lines &middot;
        <strong>${res.explanation.function_count}</strong> functions &middot;
        <strong>${res.explanation.class_count}</strong> classes
@@ -221,8 +221,8 @@ function renderAnalyzeHtml(res: AnalyzeResponse): string {
   </ul>` : ''}
 
   <h2>Code Quality Score</h2>
-  <div class="score" style="color: ${res.suggestions.grade === 'A' || res.suggestions.grade === 'B' ? '#4ec948' : res.suggestions.grade === 'C' ? '#cca700' : '#f14c4c'}">
-    ${res.suggestions.grade} (${res.suggestions.overall_score}/100)
+  <div class="score" style="color: ${gradeColor(res.suggestions.grade)}">
+    ${escapeHtml(res.suggestions.grade)} (${res.suggestions.overall_score}/100)
   </div>
 
   <h2>Debugging Results</h2>
@@ -234,7 +234,7 @@ function renderAnalyzeHtml(res: AnalyzeResponse): string {
   ${res.debugging.clean ? '<p>No issues detected.</p>' : issues}
 
   ${res.suggestions.suggestions.length ? `
-  <h2>Suggestions (${res.suggestions.next_step})</h2>
+  <h2>Suggestions (${escapeHtml(res.suggestions.next_step)})</h2>
   ${suggestions}` : ''}
 </body>
 </html>`;
@@ -260,7 +260,7 @@ function renderExplainHtml(res: ExplanationResponse): string {
 </head>
 <body>
   <h1>Code Explanation</h1>
-  <div class="meta">${escapeHtml(res.language)} &middot; ${res.complexity}</div>
+  <div class="meta">${escapeHtml(res.language)} &middot; ${escapeHtml(res.complexity)}</div>
   <div class="summary">
     <p>${escapeHtml(res.summary)}</p>
     <p style="margin-top:8px;font-size:0.85em;color:var(--vscode-descriptionForeground)">
@@ -275,8 +275,24 @@ function renderExplainHtml(res: ExplanationResponse): string {
 }
 
 function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function gradeColor(grade: string): string {
+  switch (grade) {
+    case 'A':
+    case 'B':
+      return '#4ec948';
+    case 'C':
+      return '#cca700';
+    default:
+      return '#f14c4c';
+  }
 }
 
 // ---------------------------------------------------------------------------
