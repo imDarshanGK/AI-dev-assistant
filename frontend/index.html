@@ -2374,18 +2374,15 @@
               <span data-i18n="editor_title">Code Editor</span>
             </div>
           <div class="panel-actions">
-            <label class="icon-btn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" tabindex="0" role="button"
-              aria-label="Upload code file"
-              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
+            <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none" tabindex="-1">
+            <button type="button" class="icon-btn" id="uploadBtn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17,8 12,3 7,8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
-                tabindex="-1" />
-            </label>
+            </button>
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
@@ -2436,12 +2433,12 @@
         <div class="api-config-row">
           <div class="api-status" aria-live="polite">
             <div class="api-dot" id="apiDot" aria-hidden="true"></div>
-            <span id="apiStatusText">Disconnected</span>
+            <span id="apiStatusText" data-status="disconnected">Disconnected</span>
           </div>
 
           <div class="api-config-inner">
             <input type="text" id="apiUrl" placeholder="https://qyverixai.onrender.com"
-              value="https://qyverixai.onrender.com" aria-label="Backend API URL" />
+              value="https://qyverixai.onrender.com" aria-label="Backend API URL">
 
             <button class="btn-clear" id="pingBtn" aria-label="Ping API">
               Ping
@@ -2454,18 +2451,6 @@
             <span class="spinner" id="spinner"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
-        </div>
-
-        <!-- API Config (input + status) -->
-        <div class="api-config-row" style="display:flex;align-items:center;gap:8px;margin-top:8px">
-          <div style="display:flex;align-items:center;gap:8px;flex:1">
-            <div id="apiDot" class="api-dot" aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:var(--text3)"></div>
-            <input id="apiUrl" placeholder="https://qyverixai.onrender.com" style="flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div id="apiStatusText" data-status="disconnected" style="font-size:0.85rem;color:var(--text3)">Disconnected</div>
-            <button id="pingBtn" class="icon-btn" title="Ping API" style="padding:6px 10px">Ping</button>
-          </div>
         </div>
 
         <!-- Result action buttons (hidden until results) -->
@@ -2606,14 +2591,6 @@
                    style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
             <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
-          <!-- Hidden API status inputs used by the JS. Present to avoid missing DOM refs. -->
-          <div id="apiConfig" class="api-config-row" style="display:none;">
-            <div class="api-status" style="display:flex;align-items:center;gap:8px">
-              <span id="apiDot" class="api-dot" aria-hidden="true"></span>
-              <span id="apiStatusText" data-status="disconnected" style="color:var(--text3);font-size:0.9rem"></span>
-            </div>
-            <input id="apiUrl" placeholder="https://qyverixai.onrender.com" style="display:none;">
-          </div>
           <p style="margin:6px 0 0;font-size:0.7rem;color:var(--text3);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
       </div>
