@@ -18,6 +18,8 @@ _PYTHON_BUILTINS = frozenset({
 
 _MUTABLE_TYPES = (ast.List, ast.Dict, ast.Set)
 
+EMPTY_INPUT_MESSAGE = "No code provided. Analysis skipped."
+
 
 def _issue(type_: str, description: str, suggestion: str, severity: str, line: int) -> dict:
     return {
@@ -117,6 +119,9 @@ def analyze_python_ast(code: str) -> list[dict]:
     Returns a list of issue dicts. If the code has a syntax error,
     returns a single issue describing it instead of crashing.
     """
+    if code is None or not str(code).strip():
+        return [_issue("Empty Input", EMPTY_INPUT_MESSAGE, "Provide Python code to analyze.", "info", 0)]
+
     try:
         tree = ast.parse(code)
     except SyntaxError as exc:
@@ -304,6 +309,8 @@ def detect_deep_nesting(tree, code):
     return issues
 
 def analyze(source: str) -> list[dict]:
+    if source is None or not str(source).strip():
+        return [_issue("Empty Input", EMPTY_INPUT_MESSAGE, "Provide Python code to analyze.", "info", 0)]
     tree = ast.parse(source)
     issues = []
     issues += detect_unreachable_code(tree, source)
