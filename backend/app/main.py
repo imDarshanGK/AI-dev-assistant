@@ -12,22 +12,26 @@ import time
 import os
 import logging
 from contextlib import asynccontextmanager
+
 from .routers import (
     analyze,
+    auth,
+    chat,
     debugging,
     explanation,
     history,
     share,
-    suggestions,
     subscribe,
+    suggestions,
     upload_file,
-    auth,
+    user_data,
 )
+from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
 from .database import Base, engine
 
 from .schemas import HealthResponse
-from .services import database
+
 
 # ── Redis Rate Limiting ───────────────────────────────────────────────────────
 import redis.asyncio as redis
@@ -44,6 +48,7 @@ from .config import settings
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
+    print("🚀 QyverixAI backend starting…")
     logging.getLogger(__name__).info("🚀 QyverixAI backend starting…")
     Base.metadata.create_all(bind=engine)
 
@@ -108,14 +113,16 @@ async def add_cache_header(request: Request, call_next):
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"], dependencies=[Depends(dynamic_rate_limiter)])
-app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"], dependencies=[Depends(dynamic_rate_limiter)])
+app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"], dependencies=[Depends(dynamic_rate_limiter)])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"], dependencies=[Depends(dynamic_rate_limiter)])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"], dependencies=[Depends(dynamic_rate_limiter)])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
-app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
-app.include_router(share.router)
-app.include_router(auth.router)
 app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(auth.router)
+app.include_router(chat.router)
+app.include_router(share.router)
+app.include_router(user_data.router)
+app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
@@ -133,6 +140,12 @@ async def root():
             "/debugging/",
             "/suggestions/",
             "/analyze/",
+            "/subscribe/",
+            "/share/",
+            "/auth/",
+            "/chat/",
+            "/user/",
+            "/analyze/zip/",
             "/analyze/zip/",
             "/subscribe/",
             "/share/",
@@ -155,6 +168,12 @@ async def health_check():
             "/debugging/",
             "/suggestions/",
             "/analyze/",
+            "/subscribe/",
+            "/share/",
+            "/auth/",
+            "/chat/",
+            "/user/",
+            "/analyze/zip/",
             "/analyze/zip/",
             "/subscribe/",
             "/share/",
