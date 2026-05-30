@@ -1,3 +1,25 @@
+/** Use security-utils.js when present (production index.html loads it first). */
+const SEC = window.QyverixSecurity || {
+  escHtml(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+  sanitizeClientCode(text) {
+    return String(text).replace(/\x00/g, '').replace(/\x1b\[[0-9;]*[A-Za-z]/g, '');
+  },
+};
+const { escHtml, sanitizeClientCode } = SEC;
+
+const ALLOWED_MODES = new Set(['analyze', 'explanation', 'debugging', 'suggestions']);
+function safeModeLabel(mode) {
+  const key = String(mode || '').toLowerCase();
+  return ALLOWED_MODES.has(key) ? key : 'analyze';
+}
+
 // ── State ──
 let currentMode = 'analyze';
 let history = JSON.parse(localStorage.getItem('qyverix_history') || '[]');
@@ -81,7 +103,7 @@ const fileInput = document.querySelector('.fileInput');
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (ev) => {
-    codeInput.value = ev.target.result;
+    codeInput.value = sanitizeClientCode(ev.target.result);
     codeInput.dispatchEvent(new Event('input'));
   };
   reader.readAsText(file);
@@ -350,7 +372,7 @@ checkConnection();
 
 // ── Main Analysis ──
 async function runAnalysis() {
-  const code = codeInput.value.trim();
+  const code = sanitizeClientCode(codeInput.value.trim());
   if (!code) {
     showError('Please paste some code first.');
     return;
@@ -542,7 +564,7 @@ function renderHistory() {
     <div class="history-item">
       <div>
         <div class="history-preview">${escHtml(h.preview)}</div>
-        <div class="history-meta">${h.mode} · ${h.time}</div>
+        <div class="history-meta">${escHtml(safeModeLabel(h.mode))} · ${escHtml(h.time)}</div>
       </div>
     </div>
   `).join('');
@@ -557,14 +579,10 @@ function renderFavorites() {
     <div class="history-item">
       <div>
         <div class="history-preview">${escHtml(f.code)}...</div>
-        <div class="history-meta">${f.mode} · ${f.time}</div>
+        <div class="history-meta">${escHtml(safeModeLabel(f.mode))} · ${escHtml(f.time)}</div>
       </div>
     </div>
   `).join('');
-}
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ── Toast ──
