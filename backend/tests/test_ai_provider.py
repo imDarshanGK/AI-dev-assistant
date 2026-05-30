@@ -35,6 +35,7 @@ def _make_llm_response(text: str) -> MagicMock:
 def _make_error_response(status_code: int = 500) -> MagicMock:
     """Return a fake httpx.Response whose raise_for_status() raises."""
     resp = MagicMock()
+    resp.status_code = status_code 
     resp.raise_for_status.side_effect = httpx.HTTPStatusError(
         message=f"HTTP {status_code}",
         request=MagicMock(),
