@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="dark">
 
 <head>
   <meta charset="UTF-8">
@@ -18,9 +18,7 @@
     })();
   </script>
   <style>
-    /* ═══════════════════════════════════════════════════════════════
-   DESIGN TOKENS
-═══════════════════════════════════════════════════════════════ */
+    /* DESIGN TOKENS */
     :root {
       --bg: #0a0c10;
       --bg2: #0f1117;
@@ -46,6 +44,72 @@
       --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
+
+    [data-theme="light"] {
+      --bg: #f4f6fb;
+      --bg2: #ffffff;
+      --bg3: #eef1f7;
+      --border: rgba(0, 0, 0, 0.07);
+      --border2: rgba(0, 0, 0, 0.13);
+      --text: #111827;
+      --text2: #4b5563;
+      --text3: #9ca3af;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      --shadow2: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    /* RESET & BASE */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px
+    }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: #fff
+    }
+
+    *:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+      box-shadow: 0 0 0 4px rgba(91, 156, 246, 0.4);
+      border-radius: 2px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════════════════════ */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg)
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 99px
+    }
 
     ::-webkit-scrollbar-thumb:hover {
       background: var(--text3)
@@ -261,6 +325,7 @@
     .hero {
       text-align: center;
       padding: 48px 0 32px;
+      padding: 52px 0 36px;
       animation: heroEnter 0.7s ease both;
     }
 
@@ -332,6 +397,11 @@
       letter-spacing: -0.04em;
       line-height: 1.12;
       margin-bottom: 12px;
+      font-size: clamp(2.6rem, 5.4vw, 4.4rem);
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 1.08;
+      margin-bottom: 16px;
     }
 
     .hero h1 em {
@@ -344,10 +414,10 @@
     }
 
     .hero-sub {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: var(--text2);
-      max-width: 520px;
-      margin: 0 auto 36px;
+      max-width: 580px;
+      margin: 0 auto 30px;
       line-height: 1.7;
     }
 
@@ -399,12 +469,23 @@
    FEATURE PILLS ROW
 ═══════════════════════════════════════════════════════════════ */
     .features-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
       padding: 16px 0 48px;
       animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    @media(max-width: 1200px) {
+      .features-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media(max-width: 720px) {
+      .features-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     @keyframes fadeUp {
@@ -423,13 +504,14 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 12px 20px;
+      padding: 14px 16px;
       border-radius: var(--r);
       background: var(--bg2);
       border: 1px solid var(--border);
       transition: all var(--transition);
       cursor: default;
       color: var(--text2);
+      min-height: 72px;
     }
 
     .feat-pill:hover {
@@ -448,7 +530,7 @@
       font-size: 15px;
     }
 
-    .feat-pill-info .feat-pill-title {
+    .feat-pill-info h2 {
       font-size: 0.82rem;
       font-weight: 600;
       margin-bottom: 1px
@@ -464,9 +546,13 @@
 ═══════════════════════════════════════════════════════════════ */
     .workspace {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      /* Constrain right-hand results column to a comfortable width while
+         letting the editor take remaining space. Prevents large vertical
+         stretching when the right panel is empty. */
+      grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+      gap: 18px;
       margin-bottom: 16px;
+      align-items: start;
       animation: fadeUp 0.6s 0.4s ease both;
     }
 
@@ -482,6 +568,7 @@
       border-radius: var(--r);
       overflow: hidden;
       transition: border-color var(--transition);
+      min-width: 0;
     }
 
     .panel:focus-within {
@@ -507,14 +594,6 @@
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .panel-title span {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: blink 2s infinite;
     }
 
     .panel-actions {
@@ -624,15 +703,6 @@
 
     #charCount {
       color: var(--text3)
-    }
-
-    #charCount.warn {
-      color: var(--yellow)
-    }
-
-    #charCount.danger,
-    #charCount.limit {
-      color: var(--red)
     }
 
     /* ── Mode Selector ── */
@@ -934,7 +1004,7 @@
       }
     }
 
-    .empty-state h2 {
+    .empty-state h3 {
       font-family: var(--font-disp);
       font-size: 1rem;
       font-weight: 700
@@ -1692,8 +1762,8 @@
 ═══════════════════════════════════════════════════════════════ */
     .bottom-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
       animation: fadeUp 0.6s 0.5s ease both;
     }
 
@@ -2148,7 +2218,6 @@
   </style>
   <link rel="icon" href="data:,">
 </head>
-
 <body>
   <div class="bg-orb bg-orb-1"></div>
   <div class="bg-orb bg-orb-2"></div>
@@ -2157,7 +2226,7 @@
 
     <!-- ── NAV ──────────────────────────────────────────────────── -->
     <nav>
-      <a href="#" class="nav-logo">
+      <a href="#top" class="nav-logo">
         <div class="logo-hex">Q</div>
         QyverixAI
         <span
@@ -2248,7 +2317,7 @@
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg></div>
         <div class="feat-pill-info">
-          <p class="feat-pill-title" data-i18n="pill_patterns_title">40+ Bug Patterns</p>
+          <h2 data-i18n="pill_patterns_title">40+ Bug Patterns</h2>
           <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
         </div>
       </div>
@@ -2259,7 +2328,7 @@
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg></div>
         <div class="feat-pill-info">
-          <p class="feat-pill-title" data-i18n="mode_explain">Code Explanation</p>
+          <h2 data-i18n="mode_explain">Code Explanation</h2>
           <p data-i18n="pill_explain_desc">Plain English breakdowns</p>
         </div>
       </div>
@@ -2269,7 +2338,7 @@
             <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
           </svg></div>
         <div class="feat-pill-info">
-          <p class="feat-pill-title" data-i18n="mode_improve">Smart Suggestions</p>
+          <h2 data-i18n="mode_improve">Smart Suggestions</h2>
           <p data-i18n="pill_improve_desc">Quality score + grade</p>
         </div>
       </div>
@@ -2279,7 +2348,7 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg></div>
         <div class="feat-pill-info">
-          <p class="feat-pill-title" data-i18n="pill_theme_title">Dark / Light Mode</p>
+          <h2 data-i18n="pill_theme_title">Dark / Light Mode</h2>
           <p data-i18n="pill_theme_desc">Persisted preference</p>
         </div>
       </div>
@@ -2289,7 +2358,7 @@
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg></div>
         <div class="feat-pill-info">
-          <p class="feat-pill-title" data-i18n="pill_upload_title">File Upload</p>
+          <h2 data-i18n="pill_upload_title">File Upload</h2>
           <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
         </div>
       </div>
@@ -2301,12 +2370,11 @@
       <!-- Editor Panel -->
       <div class="panel" style="grid-column:1">
         <div class="panel-header">
-          <div class="panel-title">
-            <span></span>
-            <span data-i18n="editor_title">Code Editor</span>
-          </div>
+            <div class="panel-title">
+              <span data-i18n="editor_title">Code Editor</span>
+            </div>
           <div class="panel-actions">
-            <button class="icon-btn" id="uploadBtn" type="button" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file">
+            <button type="button" class="icon-btn" id="uploadBtn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -2338,11 +2406,11 @@
 
         <!-- Language tabs -->
         <div class="lang-tabs" role="group" aria-label="Select Programming Language">
-          <button class="lang-tab active" data-lang="python" aria-pressed="true" data-i18n="lang_tab_python">Python</button>
-          <button class="lang-tab" data-lang="javascript" aria-pressed="false" data-i18n="lang_tab_javascript">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript" aria-pressed="false" data-i18n="lang_tab_typescript">TypeScript</button>
-          <button class="lang-tab" data-lang="java" aria-pressed="false" data-i18n="lang_tab_java">Java</button>
-          <button class="lang-tab" data-lang="cpp" aria-pressed="false" data-i18n="lang_tab_cpp">C++</button>
+          <button class="lang-tab active" data-lang="python" data-i18n="lang_tab_python">Python</button>
+          <button class="lang-tab" data-lang="javascript" data-i18n="lang_tab_javascript">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript" data-i18n="lang_tab_typescript">TypeScript</button>
+          <button class="lang-tab" data-lang="java" data-i18n="lang_tab_java">Java</button>
+          <button class="lang-tab" data-lang="cpp" data-i18n="lang_tab_cpp">C++</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap">
@@ -2354,7 +2422,7 @@
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
-            <div class="mode-row" role="group" aria-label="Mode selector">
+            <div class="mode-row" role="tablist" aria-label="Mode selector">
               <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
               <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
               <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
@@ -2386,6 +2454,17 @@
           </button>
         </div>
 
+        <!-- API Config (input + status) -->
+        <div class="api-config-row" style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <div style="display:flex;align-items:center;gap:8px;flex:1">
+            <div id="apiDot" class="api-dot" aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:var(--text3)"></div>
+            <input id="apiUrl" placeholder="https://qyverixai.onrender.com" style="flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="apiStatusText" data-status="disconnected" style="font-size:0.85rem;color:var(--text3)">Disconnected</div>
+            <button id="pingBtn" class="icon-btn" title="Ping API" style="padding:6px 10px">Ping</button>
+          </div>
+        </div>
 
         <!-- Result action buttons (hidden until results) -->
         <div id="resultActions" class="result-actions" style="display:none">
@@ -2421,20 +2500,20 @@
         </div>
         <div class="result-content">
           <!-- Explain Pane -->
-          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-labelledby="tab-explain">
+          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel" aria-labelledby="tab-explain">
             <div class="empty-state" id="emptyExplain">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg></div>
-              <h2 data-i18n="empty_explain_title">No analysis yet</h2>
+              <h3 data-i18n="empty_explain_title">No analysis yet</h3>
               <p data-i18n="empty_explain_desc">Paste your code and click Analyze to see results</p>
             </div>
             <div id="explainResult" style="display:none"></div>
           </div>
           <!-- Debug Pane -->
-          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-labelledby="tab-debug">
+          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel" aria-labelledby="tab-debug">
             <div class="empty-state" id="emptyDebug">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2448,19 +2527,19 @@
                   <path d="M4.5 19l-2 2" />
                   <path d="M19.5 19l2 2" />
                 </svg></div>
-              <h2 data-i18n="empty_debug_title">No bugs scanned</h2>
+              <h3 data-i18n="empty_debug_title">No bugs scanned</h3>
               <p data-i18n="empty_debug_desc">Run analysis to detect issues in your code</p>
             </div>
             <div id="debugResult" style="display:none"></div>
           </div>
           <!-- Suggest Pane -->
-          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-labelledby="tab-suggest">
+          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel" aria-labelledby="tab-suggest">
             <div class="empty-state" id="emptySuggest">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
                   <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
                 </svg></div>
-              <h2 data-i18n="empty_suggest_title">No suggestions yet</h2>
+              <h3 data-i18n="empty_suggest_title">No suggestions yet</h3>
               <p data-i18n="empty_suggest_desc">Run analysis to get improvement ideas</p>
             </div>
             <div id="suggestResult" style="display:none"></div>
@@ -2522,10 +2601,18 @@
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
-                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);"/>
+                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
             <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
-          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
+          <!-- Hidden API status inputs used by the JS. Present to avoid missing DOM refs. -->
+          <div id="apiConfig" class="api-config-row" style="display:none;">
+            <div class="api-status" style="display:flex;align-items:center;gap:8px">
+              <span id="apiDot" class="api-dot" aria-hidden="true"></span>
+              <span id="apiStatusText" data-status="disconnected" style="color:var(--text3);font-size:0.9rem"></span>
+            </div>
+            <input id="apiUrl" placeholder="https://qyverixai.onrender.com" style="display:none;">
+          </div>
+          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--text3);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
       </div>
     </footer>
@@ -2533,10 +2620,9 @@
   <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
   <div id="toastContainer"></div>
 
+    <script src="security-utils.js"></script>
     <script>
-      /* ═══════════════════════════════════════════════════════════════
-         STATE & TRANSLATIONS
-      ═══════════════════════════════════════════════════════════════ */
+      /* STATE & TRANSLATIONS */
       const TRANSLATIONS = {
         en: {
           lang_select_label: "Select language",
@@ -2552,7 +2638,7 @@
           nav_github: "GitHub",
           nav_api_docs: "API Docs",
           hero_badge: "Open Source · AI-Powered · Free",
-          hero_title: "Debug. Understand.<br /><em>Ship faster.</em>",
+          hero_title: "Debug. Understand.<br><em>Ship faster.</em>",
           hero_subtitle: "Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.",
           btn_start_analyzing: "Start Analyzing",
           btn_try_sample: "Try Sample Code",
@@ -2649,7 +2735,7 @@
           nav_github: "கிட்ஹப் (GitHub)",
           nav_api_docs: "ஏபிஐ ஆவணங்கள் (API Docs)",
           hero_badge: "திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்",
-          hero_title: "பிழையறி. புரிந்துகொள்.<br /><em>வேகமாக அனுப்பு.</em>",
+          hero_title: "பிழையறி. புரிந்துகொள்.<br><em>வேகமாக அனுப்பு.</em>",
           hero_subtitle: "உங்கள் குறியீட்டை ஒட்டி, உடனடி பிழை கண்டறிதல், எளிய ஆங்கில விளக்கங்கள் மற்றும் பயனுள்ள மேம்பாட்டு பரிந்துரைகளைப் பெறுங்கள் — கணக்கு தேவையில்லை.",
           btn_start_analyzing: "பகுப்பாய்வைத் தொடங்கு",
           btn_try_sample: "மாதிரிக் குறியீட்டை முயல்க",
@@ -2746,7 +2832,7 @@
           nav_github: "गिटहब (GitHub)",
           nav_api_docs: "एपीआई दस्तावेज़ (API Docs)",
           hero_badge: "ओपन सोर्स · एआई-संचालित · मुफ्त",
-          hero_title: "डीबग करें। समझें।<br /><em>तेज़ी से शिप करें।</em>",
+          hero_title: "डीबग करें। समझें।<br><em>तेज़ी से शिप करें।</em>",
           hero_subtitle: "अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।",
           btn_start_analyzing: "विश्लेषण शुरू करें",
           btn_try_sample: "सैंपल कोड आज़माएं",
@@ -2843,7 +2929,7 @@
           nav_github: "GitHub",
           nav_api_docs: "Docs API",
           hero_badge: "Open Source · Propulsé par l'IA · Gratuit",
-          hero_title: "Déboguez. Comprenez.<br /><em>Lisez plus vite.</em>",
+          hero_title: "Déboguez. Comprenez.<br><em>Lisez plus vite.</em>",
           hero_subtitle: "Collez votre code et obtenez une détection instantanée des bogues, des explications simples et des suggestions d'amélioration exploitables — aucun compte requis.",
           btn_start_analyzing: "Démarrer l'analyse",
           btn_try_sample: "Essayer l'exemple",
@@ -2928,52 +3014,68 @@
         }
       };
 
-    const MAX_HISTORY = 50;
-    let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
-    let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
-    let currentResult = null;
-    let selectedLang = 'python';
-    let selectedMode = 'analyze';
-    let selectedZipFile = null;
-    let appLang = localStorage.getItem('qyx_lang') || 'en';
+      const MAX_HISTORY = 50;
+      const {
+        escHtml,
+        sanitizeClientCode,
+        safePriorityClass,
+        safeSeverityClass,
+        safeCssToken,
+        loadStoredHistory,
+        saveStoredHistory,
+        createStoredEntry,
+        renderMarkdown,
+        buildStoredListItemHtml,
+        bindStoredListNavigation,
+      } = window.QyverixSecurity;
 
-    /* ═══════════════════════════════════════════════════════════════
-       DOM REFS
-    ═══════════════════════════════════════════════════════════════ */
-    const editor = document.getElementById('codeEditor');
-    const lineNumbers = document.getElementById('lineNumbers');
-    const charCount = document.getElementById('charCount');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const spinner = document.getElementById('spinner');
-    const apiUrlInput = document.getElementById('apiUrl');
-    const apiDot = document.getElementById('apiDot');
-    const apiStatusText = document.getElementById('apiStatusText');
-    const historyList = document.getElementById('historyList');
-    const favList = document.getElementById('favList');
-    const resultActions = document.getElementById('resultActions');
-    const engineInfo = document.getElementById('engineInfo');
-    const timeInfo = document.getElementById('timeInfo');
+      let history = loadStoredHistory('qyx_history');
+      let favorites = loadStoredHistory('qyx_favorites');
+      let currentResult = null;
+      let selectedLang = 'python';
+      let selectedMode = 'analyze';
+      let selectedZipFile = null;
+      let appLang = localStorage.getItem('qyx_lang') || 'en';
 
-    /* ═══════════════════════════════════════════════════════════════
-       THEME
-    ═══════════════════════════════════════════════════════════════ */
-    // dark mode → moon, light mode → sun
-    function setThemeIcon(theme) {
-      const icon = document.getElementById('themeIcon');
-      if (!icon) return;
-      if (theme === 'dark') {
-        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-      } else {
-        icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+      /* ═══════════════════════════════════════════════════════════════
+         DOM REFS
+      ═══════════════════════════════════════════════════════════════ */
+      const editor = document.getElementById('codeEditor');
+      const lineNumbers = document.getElementById('lineNumbers');
+      const charCount = document.getElementById('charCount');
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const spinner = document.getElementById('spinner');
+      const apiUrlInput = document.getElementById('apiUrl');
+      const apiDot = document.getElementById('apiDot');
+      const apiStatusText = document.getElementById('apiStatusText');
+      const historyList = document.getElementById('historyList');
+      const favList = document.getElementById('favList');
+      const resultActions = document.getElementById('resultActions');
+      const engineInfo = document.getElementById('engineInfo');
+      const timeInfo = document.getElementById('timeInfo');
+
+      bindStoredListNavigation(historyList, loadEntry);
+      bindStoredListNavigation(favList, loadFav);
+
+      /* ═══════════════════════════════════════════════════════════════
+         THEME
+      ═══════════════════════════════════════════════════════════════ */
+      // dark mode → moon, light mode → sun
+      function setThemeIcon(theme) {
+        const icon = document.getElementById('themeIcon');
+        if (!icon) return;
+        if (theme === 'dark') {
+          icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+        } else {
+          icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+        }
+        const btn = document.getElementById('themeToggle');
+        btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+        btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
       }
-      const btn = document.getElementById('themeToggle');
-      btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-      btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
-    }
 
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const initialTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
-
       document.documentElement.setAttribute('data-theme', initialTheme);
       setThemeIcon(initialTheme);
 
@@ -3041,40 +3143,17 @@
       /* ═══════════════════════════════════════════════════════════════
          EDITOR
       ═══════════════════════════════════════════════════════════════ */
-      const CHAR_WARN = 40_000;
-      const CHAR_DANGER = 48_000;
-      const CHAR_MAX = 50_000;
-
       function updateEditor() {
         const val = editor.value;
         const lines = val ? val.split('\n').length : 0;
         const chars = val.length;
         const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
-
-        charCount.classList.remove('warn', 'danger', 'limit');
-
-        if (!val) {
-          charCount.textContent = 'Paste or type code to begin';
-        } else if (chars >= CHAR_MAX) {
-          charCount.classList.add('limit');
-          charCount.textContent = 'Code too long - max 50,000 characters';
-        } else if (chars >= CHAR_DANGER) {
-          charCount.classList.add('danger');
-          charCount.textContent =
-            chars.toLocaleString() + ' chars · ' + lines + ' lines · Approaching limit';
-        } else if (chars >= CHAR_WARN) {
-          charCount.classList.add('warn');
-          charCount.textContent =
-            chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank';
-        } else {
-          charCount.textContent =
-            chars.toLocaleString() + ' chars · ' + lines + ' lines · ' + nonBlank + ' non-blank';
-        }
-
-        if (!analyzeBtn.classList.contains('loading')) {
-          analyzeBtn.disabled = chars >= CHAR_MAX;
-        }
-
+        charCount.textContent = val
+          ? getTranslation('char_count_format')
+              .replace('{chars}', chars.toLocaleString())
+              .replace('{lines}', lines)
+              .replace('{nonBlank}', nonBlank)
+          : getTranslation('char_count_initial');
         const lineCount = Math.max(lines, 1);
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
@@ -3101,9 +3180,76 @@
       return /<\s*html|<\s*style|<\s*script|function\s+updateEditor\s*\(|\.stat-bar|\.hero\s*\{|\.workspace\s*\{/i.test(text);
     }
 
-    function getApiBase() {
-      return ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || 'http://localhost:8000').replace(/\/$/, '');
-    }
+      const DEFAULT_API_BASE = 'https://qyverixai.onrender.com';
+
+      function getHostname(url) {
+        try {
+          return new URL(url).hostname;
+        } catch {
+          return '';
+        }
+      }
+
+      function normalizeApiBase(url) {
+        return String(url || '').replace(/\/$/, '');
+      }
+
+      function getConfiguredApiBase() {
+        return normalizeApiBase(
+          (apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || DEFAULT_API_BASE
+        );
+      }
+
+      function getApiBaseCandidates() {
+        const lastWorking = sessionStorage.getItem('qyx_lastWorkingApiBase') || '';
+        const candidates = [
+          lastWorking,
+          'http://localhost:8000',
+          'http://127.0.0.1:8000',
+          getConfiguredApiBase(),
+          DEFAULT_API_BASE,
+        ];
+        return [...new Set(candidates.map(normalizeApiBase).filter(Boolean))];
+      }
+
+      async function fetchWithApiFallback(path, init = {}, { primaryTimeoutMs = 10000, fallbackTimeoutMs = 60000 } = {}) {
+        let lastError = null;
+
+        for (let i = 0; i < getApiBaseCandidates().length; i += 1) {
+          const base = getApiBaseCandidates()[i];
+          const timeoutMs = i === 0 ? primaryTimeoutMs : fallbackTimeoutMs;
+
+          try {
+            const response = await fetch(`${base}${path}`, {
+              ...init,
+              signal: AbortSignal.timeout(timeoutMs),
+            });
+
+            if (response.ok || ![429, 500, 502, 503, 504].includes(response.status)) {
+              sessionStorage.setItem('qyx_lastWorkingApiBase', base);
+              return { response, base };
+            }
+
+            lastError = new Error(`HTTP ${response.status}`);
+          } catch (err) {
+            lastError = err;
+            if (!isNetworkFetchFailure(err) && err?.name !== 'AbortError' && err?.name !== 'TimeoutError') {
+              throw err;
+            }
+          }
+        }
+
+        throw lastError || new Error('Unable to reach API');
+      }
+
+      function isNetworkFetchFailure(err) {
+        const message = String(err?.message || err || '');
+        return err?.name === 'TypeError' && /fetch/i.test(message);
+      }
+
+      function getApiBase() {
+        return getConfiguredApiBase();
+      }
 
     function normalizeEditorOnLoad() {
       if (looksLikeRestoredPageSource(editor.value || '')) {
@@ -3246,13 +3392,19 @@
       /* ═══════════════════════════════════════════════════════════════
          FILE UPLOAD
       ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('uploadBtn').addEventListener('click', () => {
-        document.getElementById('fileInput').click();
-      });
-
       document.getElementById('fileInput').addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
+        const ext = file.name.split('.').pop().toLowerCase();
+        const langMap = { py: 'python', js: 'javascript', ts: 'typescript', java: 'java', cpp: 'cpp' };
+        if (langMap[ext]) setLanguage(langMap[ext]);
+        const reader = new FileReader();
+        reader.onload = ev => {
+          editor.value = sanitizeClientCode(ev.target.result);
+          updateEditor();
+          toast(`Loaded ${file.name}`, 'success');
+        };
+        reader.readAsText(file);
         handleUploadedFile(file);
         e.target.value = '';
       });
@@ -3282,30 +3434,31 @@
         return;
       }
 
-      selectedZipFile = null;
-      const langMap = {
-        py: 'python',
-        js: 'javascript',
-        ts: 'typescript',
-        java: 'java',
-        cpp: 'cpp',
-        cc: 'cpp',
-        cxx: 'cpp',
-        c: 'cpp',
-        h: 'cpp',
-        hpp: 'cpp',
-        
-      };
-      if (langMap[ext]) setLanguage(langMap[ext]);
-      const reader = new FileReader();
-      reader.onload = ev => {
-        editor.value = ev.target.result;
-        updateEditor();
-        resetResults();
-        toast(getTranslation('toast_loaded').replace('{name}', file.name), 'success');
-      };
-      reader.readAsText(file);
-    }
+        selectedZipFile = null;
+        const langMap = {
+          py: 'python',
+          js: 'javascript',
+          ts: 'typescript',
+          java: 'java',
+          cpp: 'cpp',
+          cc: 'cpp',
+          cxx: 'cpp',
+          c: 'cpp',
+          h: 'cpp',
+          hpp: 'cpp',
+          kt: 'kotlin',
+          kts: 'kotlin',
+        };
+        if (langMap[ext]) setLanguage(langMap[ext]);
+        const reader = new FileReader();
+        reader.onload = ev => {
+          editor.value = ev.target.result;
+          updateEditor();
+          resetResults();
+          toast(getTranslation('toast_loaded').replace('{name}', file.name), 'success');
+        };
+        reader.readAsText(file);
+      }
 
     /* ═══════════════════════════════════════════════════════════════
        LANGUAGE TABS
@@ -3317,7 +3470,6 @@
         document.querySelectorAll('.lang-tab').forEach(t => {
           const isActive = t.dataset.lang === lang;
           t.classList.toggle('active', isActive);
-          t.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
 
       // 2. Check if the editor currently contains one of the samples
@@ -3386,18 +3538,18 @@
          API PING
       ═══════════════════════════════════════════════════════════════ */
       async function pingApi({ notify = false } = {}) {
-        if (!apiUrlInput || !apiDot || !apiStatusText) return;
-        const base = getApiBase();
+        if (!apiUrlInput || !apiStatusText) return;
         try {
-          const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+          const { response: r, base } = await fetchWithApiFallback('/health', { method: 'GET' }, { primaryTimeoutMs: 2000, fallbackTimeoutMs: 5000 });
           if (r.ok) {
-            apiDot.classList.add('connected');
-            if (notify) {
-              toast(getTranslation('toast_api_reachable'), 'success');
-            }
+            apiUrlInput.value = base;
+            apiDot?.classList.add('connected');
             apiStatusText.dataset.status = 'connected';
             delete apiStatusText.dataset.statusCode;
             syncApiStatusText();
+            if (notify) {
+              toast(getTranslation('toast_api_reachable'), 'success');
+            }
           } else {
             apiDot?.classList.remove('connected');
             apiStatusText.dataset.status = 'error';
@@ -3405,20 +3557,21 @@
             syncApiStatusText();
           }
         } catch {
-          apiDot.classList.remove('connected');
-          if (notify) {
-            toast(getTranslation('toast_api_unreachable'), 'error');
-          }
+          apiDot?.classList.remove('connected');
           apiStatusText.dataset.status = 'unreachable';
           delete apiStatusText.dataset.statusCode;
           syncApiStatusText();
+          if (notify) {
+            toast(getTranslation('toast_api_unreachable'), 'error');
+          }
         }
       }
+
       const pingBtn = document.getElementById('pingBtn');
       if (pingBtn) pingBtn.addEventListener('click', () => pingApi({ notify: true }));
 
-    // Auto-ping on load
-    setTimeout(pingApi, 800);
+      // Auto-ping on load
+      setTimeout(pingApi, 800);
 
     /* ═══════════════════════════════════════════════════════════════
        ANALYZE
@@ -3426,47 +3579,47 @@
     analyzeBtn.addEventListener('click', doAnalyze);
 
       async function doAnalyze() {
-        const code = editor.value.trim();
+        const code = sanitizeClientCode(editor.value.trim());
         if (!selectedZipFile && !code) {
-  toast(getTranslation('toast_please_paste'), 'error');
-  return;
-}
-        if (editor.value.length >= CHAR_MAX) return;
+          toast(getTranslation('toast_please_paste'), 'error');
+          return;
+        }
 
-      const base = getApiBase();
-      const endpointMap = {
-        analyze: '/analyze/',
-        explain: '/explanation/',
-        debug: '/debugging/',
-        suggest: '/suggestions/',
-      };
-      const endpoint = endpointMap[selectedMode] || '/analyze/';
+        const endpointMap = {
+          analyze: '/analyze/',
+          explain: '/explanation/',
+          debug: '/debugging/',
+          suggest: '/suggestions/',
+        };
+        const endpoint = endpointMap[selectedMode] || '/analyze/';
 
-      // Loading state
-      analyzeBtn.classList.add('loading');
-      analyzeBtn.disabled = true;
-      showShimmers();
-        
-      try {
-        if (selectedZipFile) {
-          const formData = new FormData();
-          formData.append('file', selectedZipFile);
-          const res = await fetch(`${base}/analyze/zip/`, {
-            method: 'POST',
-            body: formData,
-            signal: AbortSignal.timeout(60000),
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.detail || `HTTP ${res.status}`);
-          }
+        analyzeBtn.classList.add('loading');
+        analyzeBtn.disabled = true;
+        showShimmers();
+
+        try {
+          if (selectedZipFile) {
+            const formData = new FormData();
+            formData.append('file', selectedZipFile);
+            const { response: res, base: resolvedBase } = await fetchWithApiFallback('/analyze/zip/', {
+              method: 'POST',
+              body: formData,
+            }, { primaryTimeoutMs: 3000, fallbackTimeoutMs: 60000 });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.detail || `HTTP ${res.status}`);
+            }
 
             const data = await res.json();
             currentResult = data;
             renderZipResults(data);
             addToHistory(`ZIP: ${selectedZipFile.name}`, data);
+            apiUrlInput.value = resolvedBase;
             apiDot?.classList.add('connected');
-            if (apiStatusText) apiStatusText.textContent = 'Connected';
+            if (apiStatusText) {
+              apiStatusText.dataset.status = 'connected';
+              syncApiStatusText();
+            }
             document.getElementById('engineBar').style.display = 'flex';
             engineInfo.textContent = `${data.provider || 'rule-based'} · ${data.model || ''}`;
             timeInfo.textContent = data.analysis_time_ms ? data.analysis_time_ms + 'ms' : '';
@@ -3474,20 +3627,18 @@
             return;
           }
 
-        const res = await fetch(`${base}${endpoint}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, language: selectedLang }),
-          signal: AbortSignal.timeout(30000),
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || `HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        const elapsed = res.headers.get('X-Process-Time-Ms');
+          const { response: res, base: resolvedBase } = await fetchWithApiFallback(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language: selectedLang }),
+          }, { primaryTimeoutMs: 3000, fallbackTimeoutMs: 60000 });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          const elapsed = res.headers.get('X-Process-Time-Ms');
 
-        // Normalize to full analysis shape
           let result;
           if (selectedMode === 'analyze') {
             result = data;
@@ -3502,91 +3653,33 @@
           currentResult = result;
           renderResults(result, code);
           addToHistory(code, result);
+          apiUrlInput.value = resolvedBase;
           apiDot?.classList.add('connected');
-          if (apiStatusText) apiStatusText.textContent = getTranslation('api_status_connected');
+          if (apiStatusText) {
+            apiStatusText.dataset.status = 'connected';
+            syncApiStatusText();
+          }
           document.getElementById('engineBar').style.display = 'flex';
           engineInfo.textContent = (data.provider || 'rule-based') + ' · ' + (data.model || '');
           if (elapsed) timeInfo.textContent = parseFloat(elapsed).toFixed(0) + 'ms';
-
+          else if (data.analysis_time_ms) timeInfo.textContent = data.analysis_time_ms + 'ms';
           resultActions.style.display = 'flex';
+
         } catch (err) {
-          toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
+          if (isNetworkFetchFailure(err)) {
+            apiDot?.classList.remove('connected');
+            apiStatusText.dataset.status = 'unreachable';
+            delete apiStatusText.dataset.statusCode;
+            syncApiStatusText();
+            toast(getTranslation('toast_api_unreachable'), 'error');
+          } else {
+            toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
+          }
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');
-          analyzeBtn.disabled = editor.value.length >= CHAR_MAX;
+          analyzeBtn.disabled = false;
         }
-      }
-
-      /**
-       * Stream the full analysis via POST /analyze/stream (SSE).
-       * Renders each section (explain → debug → suggest) as its chunk arrives,
-       * replacing the shimmer placeholder progressively.
-       */
-      async function doAnalyzeStream(code) {
-        const base = getApiBase();
-        const res = await fetch(`${base}/analyze/stream`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, language: selectedLang }),
-          signal: AbortSignal.timeout(30000),
-        });
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || `HTTP ${res.status}`);
-        }
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let result = { explanation: null, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-        let firstSection = true;
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-
-          // SSE lines end with \n\n — split on that to get complete events
-          const parts = buffer.split('\n\n');
-          buffer = parts.pop() || '';   // keep any incomplete trailing chunk
-
-          for (const part of parts) {
-            for (const line of part.split('\n')) {
-              if (!line.startsWith('data: ')) continue;
-              let event;
-              try { event = JSON.parse(line.slice(6)); } catch { continue; }
-
-              if (event.type === 'explanation') {
-                result.explanation = event.data;
-                renderExplain(event.data);
-                if (firstSection) {
-                  document.querySelector('[data-rtab="explain"]').click();
-                  firstSection = false;
-                }
-              } else if (event.type === 'debugging') {
-                result.debugging = event.data;
-                renderDebug(event.data);
-              } else if (event.type === 'suggestions') {
-                result.suggestions = event.data;
-                renderSuggest(event.data);
-              } else if (event.type === 'done') {
-                result.provider = event.provider || 'rule-based';
-                result.model = event.model || '';
-                result.analysis_time_ms = event.analysis_time_ms;
-                document.getElementById('engineBar').style.display = 'flex';
-                engineInfo.textContent = result.provider + ' · ' + result.model;
-                if (event.analysis_time_ms) timeInfo.textContent = event.analysis_time_ms + 'ms';
-                resultActions.style.display = 'flex';
-              }
-            }
-          }
-        }
-
-        currentResult = result;
-        addToHistory(code, result);
       }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -3721,35 +3814,40 @@
       document.querySelector('[data-rtab="explain"]').click();
     }
 
-    function renderExplain(exp) {
-      document.getElementById('emptyExplain').style.display = 'none';
-      const el = document.getElementById('explainResult');
-      el.style.display = 'block';
-      document.getElementById('explainBadge').textContent = exp.complexity;
+      function renderExplain(exp) {
+        document.getElementById('emptyExplain').style.display = 'none';
+        const el = document.getElementById('explainResult');
+        el.style.display = 'block';
+        document.getElementById('explainBadge').textContent = escHtml(exp.complexity);
 
-      el.innerHTML = `
-    <div class="explain-summary" tabindex="0">${exp.summary}</div>
+        const cleanComplexity = sanitizeClassToken(exp.complexity);
+        const cleanRisk = sanitizeClassToken((exp.complexity_risk || 'Simple').replace(/\s+/g, '-'));
+        const lineCountInt = parseInt(exp.line_count, 10) || 0;
+        const funcCountInt = parseInt(exp.function_count, 10) || 0;
+        const classCountInt = parseInt(exp.class_count, 10) || 0;
+        const cyclomaticComplexityInt = exp.cyclomatic_complexity != null ? parseInt(exp.cyclomatic_complexity, 10) : null;
+        const escapedRisk = escHtml(exp.complexity_risk || 'Simple');
+
+        el.innerHTML = `
+    <div class="explain-summary" tabindex="0">${renderMarkdown(exp.summary)}</div>
     <div class="explain-meta">
-      <div class="meta-chip complexity-${exp.complexity}">
-        <div class="dot"></div>${exp.complexity}
+      <div class="meta-chip complexity-${cleanComplexity}">
+        <div class="dot"></div>${escHtml(exp.complexity)}
       </div>
       <div class="meta-chip">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-        ${exp.language}
+        ${escHtml(exp.language)}
       </div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', exp.line_count)}</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', exp.function_count)}</div>
-      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', exp.class_count) + '</div>' : ''}
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
-      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
-      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', lineCountInt)}</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', funcCountInt)}</div>
+      ${classCountInt > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', classCountInt) + '</div>' : ''}
+      ${cyclomaticComplexityInt != null ? `<div class="meta-chip risk-${cleanRisk}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${cyclomaticComplexityInt} &middot; ${escapedRisk}</div>` : ''}
     </div>
     <ul class="key-points">
       ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
     </ul>
   `;
-    }
+      }
 
     function renderDebug(dbg) {
       document.getElementById('emptyDebug').style.display = 'none';
@@ -3772,76 +3870,43 @@
       const statBar = `
     <div class="stat-bar">
       <div class="stat-chip error-chip">
-        <div class="stat-chip-num">${dbg.error_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.error_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_errors')}</div>
       </div>
       <div class="stat-chip warn-chip">
-        <div class="stat-chip-num">${dbg.warning_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.warning_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_warnings')}</div>
       </div>
       <div class="stat-chip info-chip">
-        <div class="stat-chip-num">${dbg.info_count}</div>
+        <div class="stat-chip-num">${parseInt(dbg.info_count, 10) || 0}</div>
         <div class="stat-chip-label">${getTranslation('debug_info')}</div>
       </div>
     </div>`;
 
-      const cards = dbg.issues.map((issue, i) => `
-    <div class="issue-card ${issue.severity}" 
-    data-line="${issue.line || 1}"
-  tabindex="0"
-  role="button"
-  aria-label="Jump to line ${issue.line || 1}"
-  style="animation-delay:${i * 0.05}s">
+        const cards = dbg.issues.map((issue, i) => {
+          const lineNum = parseInt(issue.line, 10) || 1;
+          const escapedLine = issue.line ? escHtml(String(issue.line)) : '';
+          return `
+    <div class="issue-card ${safeSeverityClass(issue.severity)}"
+      data-line="${lineNum}"
+      tabindex="0"
+      role="button"
+      aria-label="Jump to line ${lineNum}"
+      style="animation-delay:${i * 0.05}s">
       <div class="issue-header">
-        <span class="issue-badge">${issue.severity}</span>
-        <span class="issue-type">${issue.type}</span>
-        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', issue.line)}</span>` : ''}
+        <span class="issue-badge">${escHtml(issue.severity)}</span>
+        <span class="issue-type">${escHtml(issue.type)}</span>
+        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', escapedLine)}</span>` : ''}
       </div>
-      <div class="issue-desc">${issue.description}</div>
+      <div class="issue-desc">${escHtml(issue.description)}</div>
       ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
-      <div class="issue-fix">${issue.suggestion}</div>
-    </div>`).join('');
+      <div class="issue-fix">${escHtml(issue.suggestion)}</div>
+    </div>`;
+        }).join('');
 
       el.innerHTML = statBar + cards;
       attachIssueNavigation();
     }
-
-
-function handleIssueJump(event) {
-  const card = event.target.closest('.issue-card');
-
-  if (!card) return;
-
-  const line = parseInt(card.dataset.line || '1', 10);
-
-  const lines = editor.value.split('\n');
-  let position = 0;
-
-  for (let i = 0; i < line - 1; i++) {
-    position += lines[i].length + 1;
-  }
-
-  editor.focus();
-  editor.setSelectionRange(position, position);
-
-  const lineHeight = 22;
-  editor.scrollTo({
-    top: (line - 3) * lineHeight,
-    behavior: 'smooth'
-  });
-
-  document.querySelectorAll('.issue-card').forEach(c => {
-    c.classList.remove('active-issue');
-  });
-
-  card.classList.add('active-issue');
-
-  editor.classList.add('editor-highlight');
-
-  setTimeout(() => {
-    editor.classList.remove('editor-highlight');
-  }, 1200);
-}
 
     /* ═══════════════════════════════════════════════════════════════
        PURE-JS LINE DIFF (LCS-based)
@@ -4014,13 +4079,13 @@ function handleIssueJump(event) {
             style="transition:stroke-dashoffset 1s ease"/>
         </svg>
         <div class="score-ring-text">
-          <div class="score-num" style="color:${scoreColor}">${sugg.overall_score}</div>
-          <div class="score-grade">${sugg.grade}</div>
+          <div class="score-num" style="color:${scoreColor}">${parseInt(sugg.overall_score, 10) || 0}</div>
+          <div class="score-grade">${escHtml(sugg.grade)}</div>
         </div>
       </div>
       <div class="score-info">
         <h3>${getTranslation('suggest_quality_score')}</h3>
-        <p>${sugg.next_step}</p>
+        <p>${escHtml(sugg.next_step)}</p>
       </div>
     </div>`;
 
@@ -4050,14 +4115,14 @@ function handleIssueJump(event) {
 
                 // Case 3 (most common from API): single fixed-code block
                 // → find matching region in editor as "Before", diff against example as "After"
-              } else {
-                const originalSnippet = findOriginalSnippet(editor.value, s.example);
-                if (originalSnippet) {
-                  exampleHtml = buildDiffHtml(originalSnippet, s.example, copyId);
                 } else {
-                  // No match – show fixed code as green "Fixed Code" block
-                  const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
-                  exampleHtml = `
+                  const originalSnippet = findOriginalSnippet(editor.value, s.example);
+                  if (originalSnippet) {
+                    exampleHtml = buildDiffHtml(originalSnippet, s.example, copyId);
+                  } else {
+                    // No match – show fixed code as green "Fixed Code" block
+                    const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+                    exampleHtml = `
                     <div class="diff-wrapper">
                       <div class="diff-header">
                         <div class="diff-header-labels">
@@ -4070,18 +4135,22 @@ function handleIssueJump(event) {
                       </div>
                       <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
                     </div>`;
+                  }
                 }
               }
             }
-          }
 
-          return `
-      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
+            const escapedCat = escHtml(s.category);
+            const escapedPriority = escHtml(s.priority);
+            const escapedDesc = escHtml(s.description);
+
+            return `
+      <div class="suggest-card priority-${safePriorityClass(s.priority)}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
-          <span class="suggest-cat">${s.category}</span>
-          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', s.priority)}</span>
+          <span class="suggest-cat">${escapedCat}</span>
+          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', escapedPriority)}</span>
         </div>
-        <div class="suggest-desc">${s.description}</div>
+        <div class="suggest-desc">${escapedDesc}</div>
         ${exampleHtml}
       </div>`;
         }).join('');
@@ -4173,45 +4242,43 @@ function handleIssueJump(event) {
       }
 
       function addToHistory(code, result) {
-        const lang = result.explanation?.language || result.debugging?.language||result.suggestions?.language||selectedLang;
-        const entry = {
-          id: Date.now(),
+        const lang =
+          result.explanation?.language ||
+          result.debugging?.language ||
+          result.suggestions?.language ||
+          selectedLang;
+        const entry = createStoredEntry({
           code,
           result,
           lang,
           ts: new Date().toLocaleTimeString(),
-          preview: code.slice(0, 60).replace(/\n/g, ' '),
-        };
+          preview: code,
+        });
         history.unshift(entry);
         if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-        localStorage.setItem('qyx_history', JSON.stringify(history));
+        saveStoredHistory('qyx_history', history);
         renderHistory();
         saveHistoryToBackend(code, lang, result);
       }
 
-    function renderHistory() {
-      if (!history.length) {
-        historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
-        return;
+      function renderHistory() {
+        if (!history.length) {
+          historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
+          return;
+        }
+        historyList.innerHTML = history.map(h => buildStoredListItemHtml(h)).join('');
       }
-      historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
-      <span class="history-lang">${h.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(h.preview)}…</span>
-      <span class="history-meta">${h.ts}</span>
-    </div>`).join('');
-    }
 
       document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
 
-        const base = apiUrlInput.value.replace(/\/$/, '');
+        const base = getApiBase();
         const entries = await fetch(`${base}/history/?limit=100`).then(r => r.json()).catch(() => []);
         for (const e of entries) {
           fetch(`${base}/history/${e.id}`, { method: 'DELETE' }).catch(() => {});
         }
         history = [];
-        localStorage.removeItem('qyx_history');
+        saveStoredHistory('qyx_history', history);
         renderHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
@@ -4268,7 +4335,7 @@ function handleIssueJump(event) {
       function restoreSavedEntry(entry) {
         if (!entry) return;
 
-        editor.value = entry.code;
+        editor.value = sanitizeClientCode(entry.code);
         if (entry.lang) {
           setLanguage(entry.lang.toLowerCase());
         }
@@ -4287,47 +4354,41 @@ function handleIssueJump(event) {
 
       window.loadEntry = loadEntry;
 
-    /* ═══════════════════════════════════════════════════════════════
-       FAVORITES
-    ═══════════════════════════════════════════════════════════════ */
-    document.getElementById('favBtn').addEventListener('click', () => {
-      if (!currentResult || !editor.value.trim()) return;
-      const entry = {
-        id: Date.now(),
-        code: editor.value,
-        result: currentResult,
-        lang: currentResult.explanation?.language || selectedLang,
-        ts: new Date().toLocaleDateString(),
-        preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
-      };
-      favorites.unshift(entry);
-      if (favorites.length > 30) favorites = favorites.slice(0, 30);
-      localStorage.setItem('qyx_favorites', JSON.stringify(favorites));
-      renderFavorites();
-      toast(getTranslation('toast_saved_favorites'), 'success');
-    });
+      /* ═══════════════════════════════════════════════════════════════
+         FAVORITES
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('favBtn').addEventListener('click', () => {
+        if (!currentResult || !editor.value.trim()) return;
+        const entry = createStoredEntry({
+          code: editor.value,
+          result: currentResult,
+          lang: currentResult.explanation?.language || selectedLang,
+          ts: new Date().toLocaleDateString(),
+          preview: editor.value,
+        });
+        favorites.unshift(entry);
+        if (favorites.length > 30) favorites = favorites.slice(0, 30);
+        saveStoredHistory('qyx_favorites', favorites);
+        renderFavorites();
+        toast(getTranslation('toast_saved_favorites'), 'success');
+      });
 
-    function renderFavorites() {
-      if (!favorites.length) {
-        favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
-        return;
+      function renderFavorites() {
+        if (!favorites.length) {
+          favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
+          return;
+        }
+        favList.innerHTML = favorites.map(f => buildStoredListItemHtml(f, { favorite: true })).join('');
       }
-      favList.innerHTML = favorites.map(f => `
-    <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${getTranslation('favorite_entry_label').replace('{lang}', f.lang || '?').replace('{time}', f.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
-      <span class="history-lang">${f.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(f.preview)}…</span>
-      <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-    </div>`).join('');
-    }
 
-    document.getElementById('clearFavsBtn').addEventListener('click', () => {
-      if (!confirm(getTranslation('confirm_clear_favs'))) return;
+      document.getElementById('clearFavsBtn').addEventListener('click', () => {
+        if (!confirm(getTranslation('confirm_clear_favs'))) return;
+        favorites = [];
+        saveStoredHistory('qyx_favorites', favorites);
+        renderFavorites();
+        toast(getTranslation('toast_favorites_cleared'), 'info');
+      });
 
-  favorites = [];
-  localStorage.removeItem('qyx_favorites');
-  renderFavorites();
-  toast(getTranslation('toast_favorites_cleared'), 'info');
-});
       function loadFav(id) {
         const normalizedId = normalizeSavedEntryId(id);
         if (normalizedId === null) return;
@@ -4377,95 +4438,93 @@ function handleIssueJump(event) {
       return lines.join('\n');
     }
 
-    /* ═══════════════════════════════════════════════════════════════
-       TOAST
-    ═══════════════════════════════════════════════════════════════ */
-    function toast(msg, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const el = document.createElement('div');
-      el.className = 'toast ' + type;
-      const icons = { success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>', error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' };
-      el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + msg + '</span>';
-      container.appendChild(el);
-      setTimeout(() => {
-        el.classList.add('fadeout');
-        el.addEventListener('animationend', () => el.remove());
-      }, 3000);
-    }
+      /* ═══════════════════════════════════════════════════════════════
+         TOAST
+      ═══════════════════════════════════════════════════════════════ */
+      function toast(msg, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        el.className = 'toast ' + type;
+        const icons = { success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>', error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' };
+        el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + escHtml(msg) + '</span>';
+        container.appendChild(el);
+        setTimeout(() => {
+          el.classList.add('fadeout');
+          el.addEventListener('animationend', () => el.remove());
+        }, 3000);
+      }
 
-    /* ═══════════════════════════════════════════════════════════════
-       HELPERS
-    ═══════════════════════════════════════════════════════════════ */
-    function escHtml(s) {
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-    function renderMarkdown(s) {
-      return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
-    }
-    function attachIssueNavigation() {
-      const debugResult = document.getElementById('debugResult');
-      if (!debugResult) return;
-      // Prevent duplicate delegation 
-      if (debugResult.dataset.navBound === 'true') return; debugResult.dataset.navBound = 'true';
-      const jumpToIssueLine = (card) => {
-        if (!card) return;
-        // Active state
-        document.querySelectorAll('.issue-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-        const line = parseInt(card.dataset.line, 10);
+      /* ═══════════════════════════════════════════════════════════════
+         HELPERS
+      ═══════════════════════════════════════════════════════════════ */
+      function sanitizeClassToken(token) {
+        return String(token || '').replace(/[^a-zA-Z0-9\-]/g, '');
+      }
+
+      let lineHighlightTimer = null;
+
+      function highlightLine() {
+        if (!editor) return;
+        editor.classList.remove('editor-highlight');
+        void editor.offsetWidth;
+        editor.classList.add('editor-highlight');
+        clearTimeout(lineHighlightTimer);
+        lineHighlightTimer = setTimeout(() => {
+          editor.classList.remove('editor-highlight');
+        }, 900);
+      }
+
+      function navigateToLine(line) {
         if (!line || !editor) return;
-
         const lines = editor.value.split('\n');
-
+        const safeLine = Math.min(Math.max(1, line), Math.max(lines.length, 1));
         let cursorPos = 0;
-
-        for (let i = 0; i < line - 1; i++) {
+        for (let i = 0; i < safeLine - 1; i++) {
           cursorPos += lines[i].length + 1;
         }
-
         editor.focus();
-
         editor.setSelectionRange(cursorPos, cursorPos);
-
         const lineHeight = parseFloat(getComputedStyle(editor).lineHeight) || 24;
-
         editor.scrollTo({
-          top: Math.max(0, (line - 3) * lineHeight),
+          top: Math.max(0, (safeLine - 3) * lineHeight),
           behavior: 'smooth'
         });
+        highlightLine();
+      }
 
-        editor.classList.remove('editor-highlight');
+      function attachIssueNavigation() {
+        const debugResult = document.getElementById('debugResult');
+        if (!debugResult) return;
+        if (debugResult.dataset.navBound === 'true') return;
+        debugResult.dataset.navBound = 'true';
 
-        void editor.offsetWidth;
+        const activateIssueCard = (card) => {
+          if (!card) return;
+          document.querySelectorAll('.issue-card').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          navigateToLine(parseInt(card.dataset.line, 10));
+        };
 
-        editor.classList.add('editor-highlight');
-        setTimeout(() => { editor.classList.remove('editor-highlight'); }, 900);
-      };
+        debugResult.addEventListener('click', (e) => {
+          const card = e.target.closest('.issue-card');
+          if (!card) return;
+          activateIssueCard(card);
+        });
 
-      // Click delegation 
-      debugResult.addEventListener('click', (e) => {
-        const card = e.target.closest('.issue-card');
-        if (!card) return;
-        jumpToIssueLine(card);
-      });
+        debugResult.addEventListener('keydown', (e) => {
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          const card = e.target.closest('.issue-card');
+          if (!card) return;
+          e.preventDefault();
+          activateIssueCard(card);
+        });
+      }
 
-      // Keyboard delegation
-      debugResult.addEventListener('keydown', (e) => {
-        if (e.key !== 'Enter' && e.key !== ' ')
-          return;
-        const card = e.target.closest('.issue-card');
-        if (!card) return;
-        e.preventDefault();
-        jumpToIssueLine(card);
-      });
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       SAMPLE CODE LOADER
-    ═══════════════════════════════════════════════════════════════ */
-    const SAMPLES = {
-      python: `// Python Sample
+      /* ═══════════════════════════════════════════════════════════════
+         SAMPLE CODE LOADER
+      ═══════════════════════════════════════════════════════════════ */
+      const SAMPLES = {
+        python: `// Python Sample
   import os
 
 # [!] Hardcoded secret - security risk
@@ -4577,20 +4636,20 @@ int main() {
 
       window.loadSample = loadSample;
 
-    /* ═══════════════════════════════════════════════════════════════
-       INIT
-    ═══════════════════════════════════════════════════════════════ */
-    // Wire up language selector
-    const langSelect = document.getElementById('langSelect');
-    if (langSelect) {
-      langSelect.addEventListener('change', e => {
-        setAppLanguage(e.target.value);
-      });
-      // Also listen for input for immediate responsiveness in some browsers
-      langSelect.addEventListener('input', e => {
-        setAppLanguage(e.target.value);
-      });
-    }
+      /* ═══════════════════════════════════════════════════════════════
+         INIT
+      ═══════════════════════════════════════════════════════════════ */
+      // Wire up language selector
+      const langSelect = document.getElementById('langSelect');
+      if (langSelect) {
+        langSelect.addEventListener('change', e => {
+          setAppLanguage(e.target.value);
+        });
+        // Also listen for input for immediate responsiveness in some browsers
+        langSelect.addEventListener('input', e => {
+          setAppLanguage(e.target.value);
+        });
+      }
 
     // Initialize language
     setAppLanguage(appLang);
@@ -4598,47 +4657,49 @@ int main() {
 
     renderHistory();
     renderFavorites();
+    attachIssueNavigation();
 
-    // Save API URL
-    if (apiUrlInput) {
-      apiUrlInput.addEventListener('change', () => {
-        localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
-      });
-      const savedUrl = localStorage.getItem('qyx_apiUrl');
-      if (savedUrl) apiUrlInput.value = savedUrl;
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       DIGEST SUBSCRIBE
-    ═══════════════════════════════════════════════════════════════ */
-    document.getElementById('digestForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('digestEmail').value.trim();
-      const btn = document.getElementById('digestBtn');
-      btn.disabled = true;
-      btn.textContent = 'Subscribing…';
-      const base = getApiBase();
-      try {
-        const r = await fetch(`${base}/subscribe/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
+      // Save API URL
+      if (apiUrlInput) {
+        apiUrlInput.addEventListener('change', () => {
+          localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
         });
-        const data = await r.json();
-        if (r.ok) {
-          toast(data.message, 'success');
-          document.getElementById('digestEmail').value = '';
-        } else {
-          toast(data.detail || 'Subscription failed', 'error');
-        }
-      } catch {
-        toast('Could not reach the server.', 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Subscribe';
+        const savedUrl = localStorage.getItem('qyx_apiUrl');
+        if (savedUrl) apiUrlInput.value = savedUrl;
+        else apiUrlInput.value = DEFAULT_API_BASE;
       }
-    });
-  </script>
+
+      /* ═══════════════════════════════════════════════════════════════
+         DIGEST SUBSCRIBE
+      ═══════════════════════════════════════════════════════════════ */
+      document.getElementById('digestForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('digestEmail').value.trim();
+        const btn = document.getElementById('digestBtn');
+        btn.disabled = true;
+        btn.textContent = 'Subscribing…';
+        const base = getApiBase();
+        try {
+          const r = await fetch(`${base}/subscribe/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const data = await r.json();
+          if (r.ok) {
+            toast(data.message, 'success');
+            document.getElementById('digestEmail').value = '';
+          } else {
+            toast(data.detail || 'Subscription failed', 'error');
+          }
+        } catch {
+          toast('Could not reach the server.', 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Subscribe';
+        }
+      });
+    </script>
 </body>
 
 </html>
