@@ -104,9 +104,10 @@ def test_sanitize_result_json_strips_null_bytes():
 
 @pytest.fixture(autouse=True)
 def reset_rate_limit():
-    app_main._request_counts.clear()
+    from app.middleware import _rate_limit_buckets
+    _rate_limit_buckets.clear()
     yield
-    app_main._request_counts.clear()
+    _rate_limit_buckets.clear()
 
 
 def test_xss_in_explanation_endpoint():

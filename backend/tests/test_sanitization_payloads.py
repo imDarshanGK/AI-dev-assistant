@@ -42,9 +42,10 @@ client = TestClient(app_main.app)
 
 @pytest.fixture(autouse=True)
 def reset_rate_limit():
-    app_main._request_counts.clear()
+    from app.middleware import _rate_limit_buckets
+    _rate_limit_buckets.clear()
     yield
-    app_main._request_counts.clear()
+    _rate_limit_buckets.clear()
 
 
 @pytest.mark.parametrize("payload", XSS_PAYLOADS + TEMPLATE_INJECTION_PAYLOADS + ENCODED_PAYLOADS)
