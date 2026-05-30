@@ -651,44 +651,37 @@
     .editor-wrap {
       position: relative;
       display: flex;
-      overflow: hidden;
-      align-items: flex-start;
-      max-height: 500px;
+     
 }
     .line-numbers {
-      padding: 16px 0 16px 12px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.7;
-      color: var(--text3);
-      user-select: none;
-      min-width: 44px;
-      text-align: right;
-      background: var(--bg3);
-      border-right: 1px solid var(--border);
-      overflow: hidden;
-      pointer-events: none;
-      min-height: 300px;
-      max-height: 500px;
-      height: 100%;
-      }
-
-    #codeEditor {
-      width: 100%;
-      min-height: 300px;
-      max-height: 500px;
-      overflow-y: auto;
-      padding: 16px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.7;
-      color: var(--text);
-      background: transparent;
-      border: none;
-      outline: none;
-      resize: vertical;
-      tab-size: 2;
+        padding: 16px 0 16px 12px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--text3);
+        user-select: none;
+        min-width: 44px;
+        text-align: right;
+        background: var(--bg3);
+        border-right: 1px solid var(--border);
     }
+
+      #codeEditor {
+
+        width: 100%;
+        min-height: 300px;
+        max-height: 500px;
+        padding: 16px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--text);
+        background: transparent;
+        border: none;
+        outline: none;
+        resize: vertical;
+        tab-size: 2;
+}
 
     .editor-footer {
       display: flex;
@@ -2883,18 +2876,22 @@
         const chars = val.length;
         const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
         charCount.textContent = val
-          ? getTranslation('char_count_format')
-              .replace('{chars}', chars.toLocaleString())
-              .replace('{lines}', lines)
-              .replace('{nonBlank}', nonBlank)
-          : getTranslation('char_count_initial');
-        const lineCount = Math.max(lines, 1);
-        lineNumbers.innerHTML = val
-          ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
-          : '1';
-          // Fix: sync line numbers height exactly to editor height
-          lineNumbers.style.height = editor.offsetHeight + 'px';
-          }
+        ? getTranslation('char_count_format')
+            .replace('{chars}', chars.toLocaleString())
+            .replace('{lines}', lines)
+            .replace('{nonBlank}', nonBlank)
+        : getTranslation('char_count_initial');
+      const lineCount = Math.max(lines, 1);
+      lineNumbers.innerHTML = val
+        ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
+        : '1';
+
+  // Fix: clip line numbers to exactly match visible editor height
+      requestAnimationFrame(() => {
+        lineNumbers.style.height = editor.clientHeight + 'px';
+        lineNumbers.style.overflow = 'hidden';
+      });
+    }
 
       function syncApiStatusText() {
         if (!apiStatusText) return;
