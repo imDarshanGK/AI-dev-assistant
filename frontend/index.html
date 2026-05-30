@@ -2806,9 +2806,6 @@
       const engineInfo = document.getElementById('engineInfo');
       const timeInfo = document.getElementById('timeInfo');
 
-      bindStoredListNavigation(historyList, loadEntry);
-      bindStoredListNavigation(favList, loadFav);
-
       /* ═══════════════════════════════════════════════════════════════
          THEME
       ═══════════════════════════════════════════════════════════════ */
@@ -2830,11 +2827,10 @@
       const savedTheme = localStorage.getItem('qyx_theme') || 'dark';
       document.documentElement.setAttribute('data-theme', savedTheme);
       setThemeIcon(savedTheme);
-      const savedTheme = localStorage.getItem('qyx_theme');
 
       // Force dark theme for now to avoid light-theme regressions
-      const initialTheme = 'dark';
-      localStorage.setItem('qyx_theme', initialTheme);
+      const forcedTheme = 'dark';
+      localStorage.setItem('qyx_theme', forcedTheme);
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const initialTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
 
@@ -3679,7 +3675,7 @@
       ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
       <div class="issue-fix">${escHtml(issue.suggestion)}</div>
     </div>`).join('');
-        const cards = dbg.issues.map((issue, i) => {
+        const issueCards = dbg.issues.map((issue, i) => {
           const cleanSeverity = sanitizeClassToken(issue.severity);
           const escapedType = escHtml(issue.type);
           const escapedDesc = escHtml(issue.description);
@@ -4086,7 +4082,6 @@
       <span class="history-thumb">${escHtml(h.preview)}…</span>
       <span class="history-meta">${h.ts}</span>
     </div>`).join('');
-      }
 
       document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
@@ -4150,7 +4145,7 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
   dlNode.remove();
   toast('Downloaded history.csv', 'success');
 });
-      function loadEntry(id) {
+      function loadEntry(id){
         const entry = history.find(h => h.id === id);
         if (!entry) return;
         editor.value = sanitizeClientCode(entry.code);
@@ -4159,6 +4154,7 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
           toast('No history to download', 'info');
           return;
         }
+
 
         const headers = Object.keys(history[0]);
         const csvRows = [];
@@ -4247,6 +4243,7 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
       <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     </div>`).join('');
       }
+      window.loadEntry = loadEntry;
 
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
   if (!confirm(getTranslation('confirm_clear_favs'))) return;
@@ -4274,11 +4271,15 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
         const normalizedId = normalizeSavedEntryId(id);
         if (normalizedId === null) return;
-        const entry = favorites.find(f => f.id === normalizedId);
-        restoreSavedEntry(entry);
+       const favoriteEntry = favorites.find(f => f.id === normalizedId);
+       restoreSavedEntry(favoriteEntry);
       }
+      });
 
       window.loadFav = loadFav;
+
+      bindStoredListNavigation(historyList, loadEntry);
+      bindStoredListNavigation(favList, loadFav); 
       /* ═══════════════════════════════════════════════════════════════
          DOWNLOAD
       ═══════════════════════════════════════════════════════════════ */
@@ -4339,16 +4340,8 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
       /* ═══════════════════════════════════════════════════════════════
          HELPERS
       ═══════════════════════════════════════════════════════════════ */
-      function escHtml(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-      }
       function sanitizeClassToken(token) {
         return String(token || '').replace(/[^a-zA-Z0-9\-]/g, '');
-      }
-      function renderMarkdown(s) {
-        const escaped = escHtml(s);
-        return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-          .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
       }
 
       /* ═══════════════════════════════════════════════════════════════
@@ -4479,6 +4472,7 @@ int main() {
           setAppLanguage(e.target.value);
         });
       }
+      
 
       // Initialize language
       setAppLanguage(appLang);
