@@ -26,9 +26,14 @@
 
 > **GSSoC 2026 Contributors** -- Welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, then grab a [good first issue](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue) to get started.
 
-## 🌱 Beginner Friendly Issues
+
+## Beginner Friendly Issues
 
 Here are some curated issues to help you get started quickly:
+
+</div>
+
+<div align="left">
 
 - [#649 Create a demo dataset for performance testing](https://github.com/imDarshanGK/AI-dev-assistant/issues/649)
 - [#647 Add a CONTRIBUTING label workflow for triage](https://github.com/imDarshanGK/AI-dev-assistant/issues/647)
@@ -53,8 +58,22 @@ Here are some curated issues to help you get started quickly:
 - [#598 Improve cross-browser compatibility for frontend](https://github.com/imDarshanGK/AI-dev-assistant/issues/598)
 - [#597 Add spell-check to documentation pipeline](https://github.com/imDarshanGK/AI-dev-assistant/issues/597)
 
-👉 To see all beginner issues:  
-https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue
+
+🔗 **How to claim an issue?**
+1. Go to the issue you want to work on
+2. Check that it is not already assigned
+3. Comment on the issue: Hi @maintainer, I’d like to work on this issue. Please assign it to me.
+4. Wait for maintainer assignment
+5. Fork the repository
+6. Create a new branch: git checkout -b fix-issue-number
+7. Make your changes and test locally
+8. Commit your changes: git commit -m "Fix: short description"
+9. Push your branch: git push origin fix-issue-number
+10. Open a Pull Request and link the issue: Fixes #issue-number
+
+</div>
+
+<div align="center">
 
 ---
 
