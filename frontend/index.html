@@ -2374,16 +2374,18 @@
               <span data-i18n="editor_title">Code Editor</span>
             </div>
           <div class="panel-actions">
-            <button type="button" class="icon-btn" id="uploadBtn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
+            <label class="icon-btn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" tabindex="0" role="button"
+              aria-label="Upload code file"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17,8 12,3 7,8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-            </button>
-            <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
-              tabindex="-1"/>
+              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
+                tabindex="-1" />
+            </label>
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
@@ -3181,17 +3183,17 @@
     }
 
       const DEFAULT_API_BASE = 'https://qyverixai.onrender.com';
-
-      function getHostname(url) {
-        try {
-          return new URL(url).hostname;
-        } catch {
-          return '';
-        }
-      }
+      const LOCAL_API_BASE = 'http://localhost:8000';
 
       function normalizeApiBase(url) {
         return String(url || '').replace(/\/$/, '');
+      }
+
+      function persistApiBase(base) {
+        const normalized = normalizeApiBase(base);
+        if (!normalized) return;
+        localStorage.setItem('qyx_apiUrl', normalized);
+        if (apiUrlInput) apiUrlInput.value = normalized;
       }
 
       function getConfiguredApiBase() {
@@ -3200,11 +3202,22 @@
         );
       }
 
+      function getApiBase() {
+        const configuredBase = ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || '').trim();
+        if (configuredBase) return normalizeApiBase(configuredBase);
+        return window.location.protocol === 'file:' ? DEFAULT_API_BASE : LOCAL_API_BASE;
+      }
+
+      function getApiFallbackBase(base) {
+        const normalized = normalizeApiBase(base);
+        return /localhost:8000|127\.0\.0\.1:8000/i.test(normalized) ? DEFAULT_API_BASE : null;
+      }
+
       function getApiBaseCandidates() {
         const lastWorking = sessionStorage.getItem('qyx_lastWorkingApiBase') || '';
         const candidates = [
           lastWorking,
-          'http://localhost:8000',
+          LOCAL_API_BASE,
           'http://127.0.0.1:8000',
           getConfiguredApiBase(),
           DEFAULT_API_BASE,
@@ -3227,12 +3240,29 @@
 
             if (response.ok || ![429, 500, 502, 503, 504].includes(response.status)) {
               sessionStorage.setItem('qyx_lastWorkingApiBase', base);
+              persistApiBase(base);
               return { response, base };
             }
 
             lastError = new Error(`HTTP ${response.status}`);
           } catch (err) {
             lastError = err;
+            const fallbackBase = getApiFallbackBase(base);
+            if (fallbackBase && fallbackBase !== base) {
+              try {
+                const response = await fetch(`${fallbackBase}${path}`, {
+                  ...init,
+                  signal: AbortSignal.timeout(fallbackTimeoutMs),
+                });
+                if (response.ok || ![429, 500, 502, 503, 504].includes(response.status)) {
+                  sessionStorage.setItem('qyx_lastWorkingApiBase', fallbackBase);
+                  persistApiBase(fallbackBase);
+                  return { response, base: fallbackBase };
+                }
+              } catch (fallbackErr) {
+                lastError = fallbackErr;
+              }
+            }
             if (!isNetworkFetchFailure(err) && err?.name !== 'AbortError' && err?.name !== 'TimeoutError') {
               throw err;
             }
@@ -3245,10 +3275,6 @@
       function isNetworkFetchFailure(err) {
         const message = String(err?.message || err || '');
         return err?.name === 'TypeError' && /fetch/i.test(message);
-      }
-
-      function getApiBase() {
-        return getConfiguredApiBase();
       }
 
     function normalizeEditorOnLoad() {
