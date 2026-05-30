@@ -26,7 +26,35 @@
 
 > **GSSoC 2026 Contributors** -- Welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, then grab a [good first issue](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue) to get started.
 
-</div>
+## 🌱 Beginner Friendly Issues
+
+Here are some curated issues to help you get started quickly:
+
+- [#649 Create a demo dataset for performance testing](https://github.com/imDarshanGK/AI-dev-assistant/issues/649)
+- [#647 Add a CONTRIBUTING label workflow for triage](https://github.com/imDarshanGK/AI-dev-assistant/issues/647)
+- [#644 Add onboarding issue templates for GSSoC contributors](https://github.com/imDarshanGK/AI-dev-assistant/issues/644)
+- [#642 Add dark mode support in frontend](https://github.com/imDarshanGK/AI-dev-assistant/issues/642)
+- [#640 Add explicit license header file for assets](https://github.com/imDarshanGK/AI-dev-assistant/issues/640)
+- [#639 Add local mock server for client developers](https://github.com/imDarshanGK/AI-dev-assistant/issues/639)
+- [#638 Improve UX for error states in the UI](https://github.com/imDarshanGK/AI-dev-assistant/issues/638)
+- [#637 Add unit tests for security.py authentication helpers](https://github.com/imDarshanGK/AI-dev-assistant/issues/637)
+- [#635 Add size limits to uploaded files and clear error messages](https://github.com/imDarshanGK/AI-dev-assistant/issues/635)
+- [#634 Add contextual help tooltips to key UI elements](https://github.com/imDarshanGK/AI-dev-assistant/issues/634)
+- [#631 Add lightweight onboarding guide in the app](https://github.com/imDarshanGK/AI-dev-assistant/issues/631)
+- [#626 Add test for email unsubscribe behavior](https://github.com/imDarshanGK/AI-dev-assistant/issues/626)
+- [#624 Add quickstart video link in README](https://github.com/imDarshanGK/AI-dev-assistant/issues/624)
+- [#619 Add CORS docs for integrators](https://github.com/imDarshanGK/AI-dev-assistant/issues/619)
+- [#615 Add easier local debugging for VS Code extension](https://github.com/imDarshanGK/AI-dev-assistant/issues/615)
+- [#611 Add role-based API docs for admins](https://github.com/imDarshanGK/AI-dev-assistant/issues/611)
+- [#609 Optimize frontend images and assets](https://github.com/imDarshanGK/AI-dev-assistant/issues/609)
+- [#607 Add CONTRIBUTING checklist for code quality](https://github.com/imDarshanGK/AI-dev-assistant/issues/607)
+- [#606 Add email templates for notifications](https://github.com/imDarshanGK/AI-dev-assistant/issues/606)
+- [#600 Add script to clean up stale test artifacts](https://github.com/imDarshanGK/AI-dev-assistant/issues/600)
+- [#598 Improve cross-browser compatibility for frontend](https://github.com/imDarshanGK/AI-dev-assistant/issues/598)
+- [#597 Add spell-check to documentation pipeline](https://github.com/imDarshanGK/AI-dev-assistant/issues/597)
+
+👉 To see all beginner issues:  
+https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue
 
 ---
 
