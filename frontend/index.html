@@ -1998,7 +1998,7 @@
 </style>
 <link rel="icon" href="data:,">
 </head>
-<body>
+<body id="top">
   <div class="bg-orb bg-orb-1"></div>
   <div class="bg-orb bg-orb-2"></div>
 
@@ -2006,7 +2006,7 @@
 
     <!-- ── NAV ──────────────────────────────────────────────────── -->
     <nav>
-      <a href="#" class="nav-logo">
+      <a href="#top" class="nav-logo">
         <div class="logo-hex">Q</div>
         QyverixAI
         <span
@@ -2924,12 +2924,56 @@
         return isLocalHostName(getHostname(url));
       }
 
-      function getApiBase() {
-        const candidate = ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || DEFAULT_API_BASE).replace(/\/$/, '');
-        if (window.location.protocol === 'file:' && isLocalApiUrl(candidate)) {
-          return DEFAULT_API_BASE;
+      function normalizeApiBase(url) {
+        return String(url || '').replace(/\/$/, '');
+      }
+
+      function getConfiguredApiBase() {
+        return normalizeApiBase(
+          (apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || DEFAULT_API_BASE
+        );
+      }
+
+      function getApiBaseCandidates() {
+        const lastWorking = sessionStorage.getItem('qyx_lastWorkingApiBase') || '';
+        const candidates = [
+          lastWorking,
+          'http://localhost:8000',
+          'http://127.0.0.1:8000',
+          getConfiguredApiBase(),
+          DEFAULT_API_BASE,
+        ];
+        return [...new Set(candidates.map(normalizeApiBase).filter(Boolean))];
+      }
+
+      async function fetchWithApiFallback(path, init = {}, { primaryTimeoutMs = 10000, fallbackTimeoutMs = 60000 } = {}) {
+        let lastError = null;
+
+        for (let i = 0; i < getApiBaseCandidates().length; i += 1) {
+          const base = getApiBaseCandidates()[i];
+          const timeoutMs = i === 0 ? primaryTimeoutMs : fallbackTimeoutMs;
+
+          try {
+            const response = await fetch(`${base}${path}`, {
+              ...init,
+              signal: AbortSignal.timeout(timeoutMs),
+            });
+
+            if (response.ok || ![429, 500, 502, 503, 504].includes(response.status)) {
+              sessionStorage.setItem('qyx_lastWorkingApiBase', base);
+              return { response, base };
+            }
+
+            lastError = new Error(`HTTP ${response.status}`);
+          } catch (err) {
+            lastError = err;
+            if (!isNetworkFetchFailure(err) && err?.name !== 'AbortError' && err?.name !== 'TimeoutError') {
+              throw err;
+            }
+          }
         }
-        return candidate;
+
+        throw lastError || new Error('Unable to reach API');
       }
 
       function isNetworkFetchFailure(err) {
@@ -3215,10 +3259,10 @@
       ═══════════════════════════════════════════════════════════════ */
       async function pingApi({ notify = false } = {}) {
         if (!apiUrlInput || !apiStatusText) return;
-        const base = getApiBase();
         try {
-          const r = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+          const { response: r, base } = await fetchWithApiFallback('/health', { method: 'GET' }, { primaryTimeoutMs: 2000, fallbackTimeoutMs: 5000 });
           if (r.ok) {
+            apiUrlInput.value = base;
             apiDot?.classList.add('connected');
             apiStatusText.dataset.status = 'connected';
             delete apiStatusText.dataset.statusCode;
@@ -3257,8 +3301,6 @@
       async function doAnalyze() {
         const code = editor.value.trim();
         if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
-
-        const base = getApiBase();
         const endpointMap = {
           analyze: '/analyze/',
           explain: '/explanation/',
@@ -3276,11 +3318,10 @@
           if (selectedZipFile) {
             const formData = new FormData();
             formData.append('file', selectedZipFile);
-            const res = await fetch(`${base}/analyze/zip/`, {
+            const { response: res, base: resolvedBase } = await fetchWithApiFallback('/analyze/zip/', {
               method: 'POST',
               body: formData,
-              signal: AbortSignal.timeout(60000),
-            });
+            }, { primaryTimeoutMs: 3000, fallbackTimeoutMs: 60000 });
             if (!res.ok) {
               const err = await res.json().catch(() => ({}));
               throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3290,6 +3331,7 @@
             currentResult = data;
             renderZipResults(data);
             addToHistory(`ZIP: ${selectedZipFile.name}`, data);
+            apiUrlInput.value = resolvedBase;
             apiDot?.classList.add('connected');
             if (apiStatusText) apiStatusText.textContent = 'Connected';
             document.getElementById('engineBar').style.display = 'flex';
@@ -3299,12 +3341,11 @@
             return;
           }
 
-          const res = await fetch(`${base}${endpoint}`, {
+          const { response: res, base: resolvedBase } = await fetchWithApiFallback(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code, language: selectedLang }),
-            signal: AbortSignal.timeout(30000),
-          });
+          }, { primaryTimeoutMs: 3000, fallbackTimeoutMs: 60000 });
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3327,6 +3368,7 @@
           currentResult = result;
           renderResults(result, code);
           addToHistory(code, result);
+          apiUrlInput.value = resolvedBase;
           apiDot?.classList.add('connected');
           if (apiStatusText) apiStatusText.textContent = getTranslation('api_status_connected');
           document.getElementById('engineBar').style.display = 'flex';
@@ -4270,7 +4312,7 @@ int main() {
           localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
         });
         const savedUrl = localStorage.getItem('qyx_apiUrl');
-        if (savedUrl && !(window.location.protocol === 'file:' && isLocalApiUrl(savedUrl))) {
+        if (savedUrl) {
           apiUrlInput.value = savedUrl;
         } else {
           apiUrlInput.value = DEFAULT_API_BASE;
@@ -4284,13 +4326,12 @@ int main() {
         const btn = document.getElementById('digestBtn');
         btn.disabled = true;
         btn.textContent = 'Subscribing…';
-        const base = getApiBase();
         try {
-          const r = await fetch(`${base}/subscribe/`, {
+          const { response: r } = await fetchWithApiFallback('/subscribe/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }),
-          });
+          }, { primaryTimeoutMs: 10000, fallbackTimeoutMs: 60000 });
           const data = await r.json();
           if (r.ok) {
             toast(data.message, 'success');
