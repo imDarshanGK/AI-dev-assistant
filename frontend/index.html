@@ -2028,11 +2028,38 @@
 
 <!-- ── HERO ──────────────────────────────────────────────────── -->
 <section class="hero">
+    <div class="hero-badge">
+        <div class="badge-dot"></div>
+        Open Source • AI-Powered • Free
+    </div>
+
+    <div class="panel-actions">
+        <button class="icon-btn" title="Upload file" aria-label="Upload file" style="cursor: pointer;" tabindex="0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+            </svg>
+        </button>
+        <input type="file" id="pillFileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display: none;" tabindex="-1" />
+
+        <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
+         <div class="spinner" id="spinner" aria-hidden="true"></div>
+           </button>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/>
+            </svg>
+        </button>
+    </div>
+
+    <h2>Debug. Understand.<br><em>Ship faster.</em></h2>
+    <p class="hero-sub">
+        Paste your code and get instant bug detection, plain-English explanations, and actionable improvements — no account needed.
+    </p>
+
   <div class="hero-badge">
     <div class="badge-dot"></div>
     Open Source · AI-Powered · Free
   </div>
-  <h1>Debug. Understand.<br/><em>Ship faster.</em></h1>
+  <h2>Debug. Understand.<br/><em>Ship faster.</em></h2>
   <p class="hero-sub">
     Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.
   </p>
@@ -2098,11 +2125,19 @@
         <span></span>
         Code Editor
       </div>
-      <div class="panel-actions">
-        <label class="icon-btn" title="Upload file" style="cursor:pointer" tabindex="0" role="button" aria-label="Upload code file" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display:none" tabindex="-1"/>
-        </label>
+  <section class="hero" id="hero">
+    <div class="hero-badge">
+        <span data-i18n="hero_badge">Open Source • AI-Powered • Free</span>
+    </div>
+
+    <div class="panel-actions">
+        <button class="icon-btn" title="Upload file" aria-label="Upload file" style="cursor: pointer;" tabindex="0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+            </svg>
+        </button>
+        <input type="file" class="pillFileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display: none;" tabindex="-1"/>
+
         <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/>
@@ -2335,7 +2370,7 @@
 
         <div class="analyze-row">
           <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
-            <span class="spinner" id="spinner"></span>
+            <span class="spinner" id="spinner" aria-hidden="true"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
         </div>

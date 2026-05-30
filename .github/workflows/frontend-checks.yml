@@ -23,7 +23,7 @@ jobs:
           node-version: "20"
 
       - name: Validate HTML syntax
-        run: npx --yes w3c-html-validator frontend/index.html --ignore-network-error
+        run: npx --yes w3c-html-validator frontend/index.html 
 
       - name: Check local links
         uses: lycheeverse/lychee-action@v2
