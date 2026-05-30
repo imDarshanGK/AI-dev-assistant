@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "html-validate": "^11.4.0"
+  }
+}
