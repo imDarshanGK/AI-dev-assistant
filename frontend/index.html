@@ -4315,20 +4315,6 @@
       historyList.innerHTML = history.map(h => buildStoredListItemHtml(h)).join('');
     }
 
-    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-      if (!window.confirm('Are you sure you want to clear your history? This cannot be undone.')) return;
-      history = [];
-      localStorage.removeItem('qyx_history');
-      renderHistory();
-      toast('History cleared', 'info');
-      historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
-      <span class="history-lang">${h.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(h.preview)}…</span>
-      <span class="history-meta">${h.ts}</span>
-    </div>`).join('');
-    });
-
     document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
       if (!confirm(getTranslation('confirm_clear_history'))) return;
 
@@ -4391,102 +4377,68 @@
       dlNode.remove();
       toast('Downloaded history.csv', 'success');
     });
-    function loadEntry(id) {
-      const entry = history.find(h => h.id === id);
+
+    function restoreSavedEntry(entry) {
       if (!entry) return;
+
       editor.value = sanitizeClientCode(entry.code);
-      document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-        if (!history || history.length === 0) {
-          toast('No history to download', 'info');
-          return;
-        }
+      if (entry.lang) {
+        setLanguage(entry.lang.toLowerCase());
+      }
+      updateEditor();
+      currentResult = entry.result;
 
-        const headers = Object.keys(history[0]);
-        const csvRows = [];
-        csvRows.push(headers.join(','));
-
-        for (const row of history) {
-          const values = headers.map(header => {
-            let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
-            val = val.replace(/"/g, '""');
-            return `"${val}"`;
-          });
-          csvRows.push(values.join(','));
-        }
-
-        const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
-        const dlNode = document.createElement('a');
-        dlNode.setAttribute("href", csvContent);
-        dlNode.setAttribute("download", "history.csv");
-        document.body.appendChild(dlNode);
-        dlNode.click();
-        dlNode.remove();
-        toast('Downloaded history.csv', 'success');
-      });
-
-      function restoreSavedEntry(entry) {
-        if (!entry) return;
-
-        editor.value = entry.code;
-        if (entry.lang) {
-          setLanguage(entry.lang.toLowerCase());
-        }
-        updateEditor();
-        currentResult = entry.result;
-        renderResults(entry.result, entry.code);
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+      const result = entry.result;
+      if (result?.files) {
+        selectedMode = 'analyze';
+      } else if (result?.explanation && !result?.debugging && !result?.suggestions) {
+        selectedMode = 'explain';
+      } else if (result?.debugging && !result?.explanation && !result?.suggestions) {
+        selectedMode = 'debug';
+      } else if (result?.suggestions && !result?.explanation && !result?.debugging) {
+        selectedMode = 'suggest';
+      } else {
+        selectedMode = 'analyze';
       }
 
-      function loadEntry(id) {
-        const normalizedId = normalizeSavedEntryId(id);
-        if (normalizedId === null) return;
-        const entry = history.find(h => h.id === normalizedId);
-        restoreSavedEntry(entry);
-      }
+      renderResults(result, entry.code);
+      document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+    }
 
-      window.loadEntry = loadEntry;
+    function loadEntry(id) {
+      const normalizedId = normalizeSavedEntryId(id);
+      if (normalizedId === null) return;
+      const entry = history.find(h => h.id === normalizedId);
+      restoreSavedEntry(entry);
+    }
 
-      /* ═══════════════════════════════════════════════════════════════
-         FAVORITES
-      ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('favBtn').addEventListener('click', () => {
-        if (!currentResult || !editor.value.trim()) return;
-        const entry = createStoredEntry({
-          code: editor.value,
-          result: currentResult,
-          lang: currentResult.explanation?.language || selectedLang,
-          ts: new Date().toLocaleDateString(),
-          preview: editor.value,
-        });
-        favorites.unshift(entry);
-        if (favorites.length > 30) favorites = favorites.slice(0, 30);
-        saveStoredHistory('qyx_favorites', favorites);
-        renderFavorites();
-        toast(getTranslation('toast_saved_favorites'), 'success');
+    window.loadEntry = loadEntry;
+
+    /* ═══════════════════════════════════════════════════════════════
+       FAVORITES
+    ═══════════════════════════════════════════════════════════════ */
+    document.getElementById('favBtn').addEventListener('click', () => {
+      if (!currentResult || !editor.value.trim()) return;
+      const entry = createStoredEntry({
+        code: editor.value,
+        result: currentResult,
+        lang: currentResult.explanation?.language || selectedLang,
+        ts: new Date().toLocaleDateString(),
+        preview: editor.value,
       });
+      favorites.unshift(entry);
+      if (favorites.length > 30) favorites = favorites.slice(0, 30);
+      saveStoredHistory('qyx_favorites', favorites);
+      renderFavorites();
+      toast(getTranslation('toast_saved_favorites'), 'success');
+    });
 
-      function renderFavorites() {
-        if (!favorites.length) {
-          favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
-          return;
-        }
-        favList.innerHTML = favorites.map(f => buildStoredListItemHtml(f, { favorite: true })).join('');
+    function renderFavorites() {
+      if (!favorites.length) {
+        favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
+        return;
       }
-
-      document.getElementById('clearFavsBtn').addEventListener('click', () => {
-        if (!window.confirm('Are you sure you want to clear your favorites? This cannot be undone.')) return;
-        favorites = [];
-        localStorage.removeItem('qyx_favorites');
-        renderFavorites();
-        toast('Favorites cleared', 'info');
-      });
-
-      favList.innerHTML = favorites.map(f => `
-    <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${getTranslation('favorite_entry_label').replace('{lang}', f.lang || '?').replace('{time}', f.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
-      <span class="history-lang">${f.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(f.preview)}…</span>
-      <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-    </div>`).join('');
+      favList.innerHTML = favorites.map(f => buildStoredListItemHtml(f, { favorite: true })).join('');
     }
 
     document.getElementById('clearFavsBtn').addEventListener('click', () => {
@@ -4497,6 +4449,7 @@
       renderFavorites();
       toast(getTranslation('toast_favorites_cleared'), 'info');
     });
+
     function loadFav(id) {
       const normalizedId = normalizeSavedEntryId(id);
 
