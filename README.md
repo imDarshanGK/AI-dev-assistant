@@ -471,3 +471,9 @@ MIT © [Darshan G K](https://github.com/imDarshanGK)
 Built for the open source community &nbsp;·&nbsp; GSSoC 2026
 
 </div>
+
+## 🤝 Contributors Appreciation
+
+We sincerely thank all contributors who have helped improve this project through code contributions, bug fixes, documentation, testing, and community support 💙
+
+- @GAURAV7820
