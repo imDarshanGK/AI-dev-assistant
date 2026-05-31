@@ -10,6 +10,8 @@ services:
         value: 30
       - key: LLM_ENABLED
         value: false
+      - key: CORS_ALLOW_ORIGINS
+        value: https://qyverixai.onrender.com
     staticPublishPath: frontend
     routes:
       - type: rewrite

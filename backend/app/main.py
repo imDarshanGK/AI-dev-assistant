@@ -30,6 +30,7 @@ from .routers import (
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
 from .database import Base, engine
+from .config import settings
 
 from .schemas import HealthResponse
 
@@ -85,10 +86,18 @@ app = FastAPI(
 
 # ── Middleware ────────────────────────────────────────────────────────────────
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
+def _allow_credentials_for_origins(origins: list[str]) -> bool:
+    return "*" not in origins
+
+
+_cors_allow_origins = settings.cors_allow_origins
+_cors_allow_credentials = _allow_credentials_for_origins(_cors_allow_origins)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=_cors_allow_origins,
+    allow_credentials=_cors_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )

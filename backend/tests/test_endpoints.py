@@ -188,6 +188,40 @@ def test_rate_limit_returns_429_with_retry_after_header():
     assert r.headers["X-RateLimit-Remaining"] == "0"
 
 
+def test_cors_allows_configured_origin_with_credentials():
+    r = client.options(
+        "/auth/me",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "authorization",
+        },
+    )
+
+    assert r.status_code == 200
+    assert r.headers["access-control-allow-origin"] == "http://localhost:5173"
+    assert r.headers["access-control-allow-credentials"] == "true"
+
+
+def test_cors_rejects_unconfigured_origin():
+    r = client.options(
+        "/auth/me",
+        headers={
+            "Origin": "https://attacker.example",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "authorization",
+        },
+    )
+
+    assert r.status_code == 400
+    assert "access-control-allow-origin" not in r.headers
+
+
+def test_wildcard_cors_disables_credentials():
+    assert app_main._allow_credentials_for_origins(["*"]) is False
+    assert app_main._allow_credentials_for_origins(["http://localhost:5173"]) is True
+
+
 # ── Explanation ───────────────────────────────────────────────────────────────
 def test_explanation_python():
     r = client.post("/explanation/", json={"code": PYTHON_CLEAN, "language": "python"})
