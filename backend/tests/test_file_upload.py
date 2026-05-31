@@ -94,10 +94,10 @@ def test_upload_blocked_files(
     )
 
     assert response.status_code == 415
-
     data = response.json()
-
     assert "Executable files are not allowed" in data["detail"]
+    assert data["error"] == "unsupported_file_type"
+
 
 
 # =========================================================
@@ -119,10 +119,10 @@ def test_invalid_mime_type():
     print(response.json())
 
     assert response.status_code == 415
-
     data = response.json()
-
     assert "Invalid MIME type" in data["detail"]
+    assert data["error"] == "unsupported_file_type"
+
 
 
 # =========================================================
@@ -143,10 +143,10 @@ def test_double_extension():
     )
 
     assert response.status_code == 415
-
     data = response.json()
-
     assert "Executable files are not allowed" in data["detail"]
+    assert data["error"] == "unsupported_file_type"
+
 
 
 # =========================================================
@@ -158,6 +158,8 @@ def test_no_file_uploaded():
     response = client.post("/upload/validate")
 
     assert response.status_code in [400, 422]
+    assert response.json()["error"] in ("bad_request", "validation_error")
+
 
 
 # =========================================================
@@ -180,3 +182,4 @@ def test_large_file():
     )
 
     assert response.status_code == 413
+    assert response.json()["error"] == "payload_too_large"

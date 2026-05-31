@@ -67,6 +67,9 @@ def test_delete_history():
 def test_delete_nonexistent():
     r = client.delete("/history/999999")
     assert r.status_code == 404
+    assert r.json()["error"] == "history_not_found"
+    assert "History entry not found" in r.json()["detail"]
+
 
 
 def test_history_entry_fields():

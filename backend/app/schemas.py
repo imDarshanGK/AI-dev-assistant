@@ -378,3 +378,9 @@ class AnalyzeResponse(BaseModel):
     debugging: DebuggingResponse
     suggestions: SuggestionsResponse
     analysis_time_ms: float | None = None
+
+
+class ErrorResponse(BaseModel):
+    error: str
+    detail: str
+

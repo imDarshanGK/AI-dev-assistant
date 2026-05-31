@@ -3,7 +3,8 @@ QyverixAI — Backend API
 FastAPI application with advanced middleware, rate limiting, and full analysis engine.
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
@@ -13,6 +14,13 @@ import os
 from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
+
+from .exceptions import (
+    APIException,
+    api_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+)
 
 from .routers import (
     analyze,
@@ -88,6 +96,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_exception_handler(APIException, api_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+
 # ── Middleware ────────────────────────────────────────────────────────────────
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
@@ -125,6 +137,7 @@ async def add_process_time_header(request: Request, call_next):
             return JSONResponse(
                 status_code=429,
                 content={
+                    "error": "rate_limited",
                     "detail": f"Rate limit exceeded. Max {RATE_LIMIT} requests/minute."
                 },
                 headers=headers,
@@ -238,5 +251,8 @@ async def global_exception_handler(request: Request, exc: Exception):
     logging.exception("Unhandled error")
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error. Please try again."},
+        content={
+            "error": "internal_server_error",
+            "detail": "Internal server error. Please try again.",
+        },
     )

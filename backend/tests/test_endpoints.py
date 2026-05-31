@@ -169,6 +169,8 @@ def test_rate_limit_returns_429_with_retry_after_header():
     assert r.headers["Retry-After"] == str(app_main.RATE_LIMIT_WINDOW_SECONDS)
     assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
     assert r.headers["X-RateLimit-Remaining"] == "0"
+    assert r.json()["error"] == "rate_limited"
+    assert "Rate limit exceeded" in r.json()["detail"]
 
 
 # ── Explanation ───────────────────────────────────────────────────────────────
@@ -214,11 +216,15 @@ def test_explanation_accepts_rust_hint_alias():
 def test_explanation_empty_code():
     r = client.post("/explanation/", json={"code": "   "})
     assert r.status_code == 422
+    assert r.json()["error"] == "validation_error"
+    assert "code" in r.json()["detail"]
 
 
 def test_explanation_too_long():
     r = client.post("/explanation/", json={"code": "x" * 60000})
     assert r.status_code == 422
+    assert r.json()["error"] == "validation_error"
+    assert "code" in r.json()["detail"]
 
 
 def test_explanation_typescript():
@@ -664,6 +670,7 @@ def test_full_analyze_all_languages():
 def test_missing_code_field():
     r = client.post("/analyze/", json={})
     assert r.status_code == 422
+    assert r.json()["error"] == "validation_error"
 
 
 def test_unicode_code():
@@ -734,3 +741,5 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+    assert r.json()["error"] in ("validation_error", "bad_request")
+    assert "code" in r.json()["detail"]
