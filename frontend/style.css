@@ -611,3 +611,68 @@ body {
     text-align: center;
   }
 }
+/* ── TOOLTIP STYLES ─────────────────────────────────────────── */
+
+.tooltip-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--bg-3);
+  color: var(--text-2);
+  font-size: 11px;
+  cursor: help;
+}
+.tooltip-icon::after {
+  content: attr(data-tooltip);
+
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  min-width: 220px;
+  max-width: 260px;
+
+  padding: 8px 10px;
+  border-radius: 6px;
+
+  background: #222;
+  color: white;
+
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+
+  opacity: 0;
+  visibility: hidden;
+
+  transition: opacity 0.2s ease;
+
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Show tooltip on mouse hover */
+.tooltip-icon:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Show tooltip when keyboard focuses it */
+.tooltip-icon:focus::after {
+  opacity: 1;
+  visibility: visible;
+}
+.tooltip-icon {
+  flex-shrink: 0;
+}
+.feat-pill-info h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
