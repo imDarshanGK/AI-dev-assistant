@@ -118,6 +118,7 @@ Important variables:
 - `JWT_SECRET`
 - `DATABASE_URL`
 - `RATE_LIMIT_PER_MINUTE`
+- `CORS_ALLOW_ORIGINS`
 - `LLM_API_KEY` (optional)
 
 The app can still run without external AI providers when `LLM_ENABLED=false`.
@@ -372,6 +373,7 @@ The backend includes built-in resilience for LLM requests:
 | Variable | Default | Description |
 |---|---|---|
 | `RATE_LIMIT_PER_MINUTE` | `30` | Max requests per IP per minute |
+| `CORS_ALLOW_ORIGINS` | Local dev + Render app origins | Comma-separated browser origins allowed to call the API |
 | `LLM_ENABLED` | `false` | Enable LLM provider |
 | `LLM_API_KEY` | — | API key for your LLM provider |
 | `LLM_BASE_URL` | `https://api.openai.com/v1` | LLM base URL |

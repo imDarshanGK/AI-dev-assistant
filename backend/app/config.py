@@ -41,6 +41,15 @@ def _bool_env(name: str, default: bool) -> bool:
     return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _csv_env(name: str, default: list[str]) -> list[str]:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+
+    values = [value.strip() for value in raw_value.split(",") if value.strip()]
+    return values or default
+
+
 class Settings:
     """Application settings loaded from environment variables."""
 
@@ -62,6 +71,16 @@ class Settings:
     jwt_secret: str = os.getenv("JWT_SECRET", "change-this-in-production-min-32-bytes")
     jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_minutes: int = _int_env("ACCESS_TOKEN_MINUTES", 720)
+    cors_allow_origins: list[str] = _csv_env(
+        "CORS_ALLOW_ORIGINS",
+        [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "https://qyverixai.onrender.com",
+        ],
+    )
     llm_enabled: bool = _bool_env("LLM_ENABLED", False)
     llm_api_key: str | None = os.getenv("LLM_API_KEY")
     llm_base_url: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
