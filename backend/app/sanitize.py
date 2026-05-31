@@ -64,7 +64,7 @@ def sanitize_text_input(text: str) -> str:
     return text
 
 
-def sanitize_language_hint(language: str | None) -> str | None:
+def sanitize_language_hint(language: Optional[str]) -> Optional[str]:
     """Normalize optional language hint from API clients."""
     if language is None:
         return None

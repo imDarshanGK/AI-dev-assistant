@@ -1,11 +1,11 @@
 from app.services.code_assistant import debug_code
 
 
-def issue_types(code: str) -> list[str]:
+def issue_types(code: str) -> List[str]:
     return [issue.type for issue in debug_code(code, language="Python").issues]
 
 
-def issue_descriptions(code: str) -> list[str]:
+def issue_descriptions(code: str) -> List[str]:
     return [issue.description for issue in debug_code(code, language="Python").issues]
 
 

@@ -35,7 +35,7 @@ def _get_provider_name(base_url: str) -> str:
         return "ollama"
     return "unknown"
 
-async def call_llm(system: str, user: str) -> str | None:
+async def call_llm(system: str, user: str) -> Optional[str]:
     """Return LLM text response or None if disabled/error."""
     if not LLM_ENABLED or not LLM_API_KEY:
         return None

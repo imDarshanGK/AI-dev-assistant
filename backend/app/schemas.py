@@ -1,8 +1,7 @@
 """Pydantic request / response models for QyverixAI."""
 
-from __future__ import annotations
 import json
-from typing import Any
+from typing import Any, Optional, List, Dict, Union
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -16,9 +15,11 @@ from .schema_validators import (
     validate_stored_result_json,
 )
 
+
+# ── Code Request ───────────────────────────────────────────────
 class CodeRequest(BaseModel):
     code: str
-    language: str | None = None
+    language: Optional[str] = None
 
     @field_validator("code")
     @classmethod
@@ -28,39 +29,40 @@ class CodeRequest(BaseModel):
             raise ValueError("code must not be empty")
         if len(v) > 50_000:
             raise ValueError("code exceeds 50,000 character limit")
-        # Strip null bytes and ANSI escape sequences before any processing
         return sanitize_code_input(v)
 
     @field_validator("language")
     @classmethod
-    def sanitize_language(cls, v: str | None) -> str | None:
+    def sanitize_language(cls, v: Optional[str]) -> Optional[str]:
         return validate_language_hint(v)
 
 
+# ── Explanation ────────────────────────────────────────────────
 class ExplanationResponse(BaseModel):
     language: str
     summary: str
-    key_points: list[str] | None = None
-    complexity: str | None = None
-    line_count: int | None = None
-    function_count: int | None = None
-    class_count: int | None = None
-    cyclomatic_complexity: int | None = None
-    complexity_risk: str | None = None
+    key_points: Optional[List[str]] = None
+    complexity: Optional[str] = None
+    line_count: Optional[int] = None
+    function_count: Optional[int] = None
+    class_count: Optional[int] = None
+    cyclomatic_complexity: Optional[int] = None
+    complexity_risk: Optional[str] = None
 
 
+# ── Debugging ──────────────────────────────────────────────────
 class Issue(BaseModel):
     type: str
-    line: int | None
+    line: Optional[int] = None
     description: str
     suggestion: str
     severity: str
-    code_snippet: str | None = None
-    code_context: str | None = None
+    code_snippet: Optional[str] = None
+    code_context: Optional[str] = None
 
 
 class DebuggingResponse(BaseModel):
-    issues: list[dict]
+    issues: List[Issue]
     summary: str
     clean: bool
     error_count: int
@@ -69,32 +71,35 @@ class DebuggingResponse(BaseModel):
     code: str
 
 
+# ── Suggestions ────────────────────────────────────────────────
 class Suggestion(BaseModel):
     category: str
     description: str
-    line_number: int | None = None
-    line_range: list[int] | None = None
-    code_context: str | None = None
-    example: str | None = None
+    line_number: Optional[int] = None
+    line_range: Optional[List[int]] = None
+    code_context: Optional[str] = None
+    example: Optional[str] = None
     priority: str
 
 
 class SuggestionsResponse(BaseModel):
-    suggestions: list[dict]
+    suggestions: List[Suggestion]
     overall_score: int
     grade: str
-    next_step: str | None = None
+    next_step: Optional[str] = None
 
 
+# ── Analyze ────────────────────────────────────────────────────
 class AnalyzeResponse(BaseModel):
     provider: str
-    model: str | None = None
-    explanation: dict | ExplanationResponse | None = None
-    debugging: dict | DebuggingResponse | None = None
-    suggestions: dict | SuggestionsResponse | None = None
-    analysis_time_ms: float | None = None
+    model: Optional[str] = None
+    explanation: Optional[Union[dict, ExplanationResponse]] = None
+    debugging: Optional[Union[dict, DebuggingResponse]] = None
+    suggestions: Optional[Union[dict, SuggestionsResponse]] = None
+    analysis_time_ms: Optional[float] = None
 
 
+# ── ZIP Analyze ────────────────────────────────────────────────
 class ZipAnalyzeFileResult(BaseModel):
     filename: str
     language: str
@@ -110,11 +115,12 @@ class ZipAnalyzeResponse(BaseModel):
     overall_project_score: int
     grade: str
     summary: str
-    files: list[ZipAnalyzeFileResult]
-    skipped_files: list[str] = Field(default_factory=list)
-    analysis_time_ms: float | None = None
+    files: List[ZipAnalyzeFileResult]
+    skipped_files: List[str] = Field(default_factory=list)
+    analysis_time_ms: Optional[float] = None
 
 
+# ── Email ──────────────────────────────────────────────────────
 class SubscribeRequest(BaseModel):
     email: str
 
@@ -139,39 +145,18 @@ class UnsubscribeRequest(BaseModel):
     token: str
 
 
+# ── Auth ───────────────────────────────────────────────────────
 class SignupRequest(BaseModel):
-    """Request body for creating a new user account.
-
-    Attributes:
-        email: The user's email address.
-        password: The user's chosen password (plaintext in request).
-    """
-
     email: str = Field(..., min_length=5, max_length=320)
     password: str = Field(..., min_length=8, max_length=128)
 
 
 class LoginRequest(BaseModel):
-    """Request body for user login.
-
-    Attributes:
-        email: The user's email address.
-        password: The user's password.
-    """
-
     email: str = Field(..., min_length=5, max_length=320)
     password: str = Field(..., min_length=8, max_length=128)
 
 
 class AuthResponse(BaseModel):
-    """Response returned after successful authentication.
-
-    Attributes:
-        access_token: JWT bearer token for authenticated requests.
-        user_id: Internal numeric user identifier.
-        email: The user's email address.
-    """
-
     access_token: str
     token_type: str = "bearer"
     user_id: int
@@ -179,13 +164,6 @@ class AuthResponse(BaseModel):
 
 
 class UserProfileResponse(BaseModel):
-    """Public user profile returned by `/auth/me`.
-
-    Attributes:
-        user_id: Internal numeric user identifier.
-        email: The user's email address.
-    """
-
     user_id: int
     email: str
 
@@ -194,10 +172,10 @@ class HealthResponse(BaseModel):
     status: str
     version: str
     message: str
-    endpoints: list[str] | None = None
+    endpoints: Optional[List[str]] = None
 
 
-# ── History ───────────────────────────────────────────────────────────────────
+# ── History ────────────────────────────────────────────────────
 class HistoryCreateRequest(BaseModel):
     action: str = Field(..., min_length=3, max_length=50)
     code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
@@ -227,7 +205,7 @@ class HistoryRecord(BaseModel):
     created_at: str
 
 
-# ── Favorites ─────────────────────────────────────────────────────────────────
+# ── Favorites ──────────────────────────────────────────────────
 class FavoriteCreateRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     action: str = Field(..., min_length=3, max_length=50)
@@ -259,78 +237,34 @@ class FavoriteRecord(BaseModel):
     created_at: str
 
 
-# ── Share ─────────────────────────────────────────────────────────────────────
+# ── Share ──────────────────────────────────────────────────────
 class ShareCreateRequest(BaseModel):
     action: str = Field("share", min_length=3, max_length=50)
     code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
-    result: dict[str, Any] | None = Field(default=None)
-    result_json: str | None = Field(default=None)
-
-    @field_validator("action")
-    @classmethod
-    def sanitize_action(cls, v: str) -> str:
-        return validate_stored_action(v)
-
-    @field_validator("code")
-    @classmethod
-    def sanitize_code(cls, v: str) -> str:
-        return validate_stored_code(v)
-
-    @field_validator("result_json")
-    @classmethod
-    def sanitize_result_json(cls, v: str | None) -> str | None:
-        if v is None:
-            return v
-        return validate_stored_result_json(v)
+    result: Optional[Dict[str, Any]] = None
+    result_json: Optional[str] = None
 
     @model_validator(mode="before")
     @classmethod
-    def parse_result_json(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if values.get("result") is None and values.get("result_json") is not None:
-            try:
-                values["result"] = json.loads(values["result_json"])
-            except ValueError as exc:
-                raise ValueError("result_json must be valid JSON") from exc
+    def parse_result_json(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        if values.get("result") is None and values.get("result_json"):
+            values["result"] = json.loads(values["result_json"])
         return values
-
-    @model_validator(mode="after")
-    @classmethod
-    def ensure_result_present(cls, model: "ShareCreateRequest") -> "ShareCreateRequest":
-        if model.result is None:
-            raise ValueError("result or result_json is required")
-        return model
 
 
 class ShareRecord(BaseModel):
     id: str
     action: str
     code: str
-    result: dict[str, Any]
+    result: Dict[str, Any]
     created_at: str
 
 
-# ── Chat ──────────────────────────────────────────────────────────────────────
+# ── Chat ───────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=4_000)
-    code: str | None = Field(default=None, max_length=settings.max_code_chars)
-    history: list[str] = Field(default_factory=list, max_length=20)
-
-    @field_validator("message")
-    @classmethod
-    def sanitize_message(cls, v: str) -> str:
-        return validate_stored_action(v)
-
-    @field_validator("code")
-    @classmethod
-    def sanitize_code(cls, v: str | None) -> str | None:
-        if v is None:
-            return v
-        return validate_stored_code(v)
-
-    @field_validator("history")
-    @classmethod
-    def sanitize_history(cls, v: list[str]) -> list[str]:
-        return validate_chat_history(v)
+    message: str
+    code: Optional[str] = None
+    history: List[str] = Field(default_factory=list)
 
 
 class ChatResponse(BaseModel):
@@ -338,32 +272,10 @@ class ChatResponse(BaseModel):
 
 
 class ChatMessageRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=4_000)
-    code: str | None = Field(default=None, max_length=settings.max_code_chars)
-    history: list[str] = Field(default_factory=list, max_length=20)
-    level: str = Field(default="beginner")
-
-    @field_validator("message")
-    @classmethod
-    def sanitize_message(cls, v: str) -> str:
-        return validate_stored_action(v)
-
-    @field_validator("code")
-    @classmethod
-    def sanitize_code(cls, v: str | None) -> str | None:
-        if v is None:
-            return v
-        return validate_stored_code(v)
-
-    @field_validator("history")
-    @classmethod
-    def sanitize_history(cls, v: list[str]) -> list[str]:
-        return validate_chat_history(v)
-
-    @field_validator("level")
-    @classmethod
-    def sanitize_level(cls, v: str) -> str:
-        return validate_stored_action(v)
+    message: str
+    code: Optional[str] = None
+    history: List[str] = Field(default_factory=list)
+    level: str = "beginner"
 
 
 class ChatMessageResponse(BaseModel):

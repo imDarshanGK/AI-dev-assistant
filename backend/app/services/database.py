@@ -63,7 +63,7 @@ async def save_entry(
         return row_id
 
 
-async def get_entries(limit: int = 20, offset: int = 0) -> list[dict]:
+async def get_entries(limit: int = 20, offset: int = 0) -> List[Dtr]:
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute(
@@ -79,7 +79,7 @@ async def get_entries(limit: int = 20, offset: int = 0) -> list[dict]:
         return [dict(row) for row in rows]
 
 
-async def search_entries(q: str, limit: int = 20) -> list[dict]:
+async def search_entries(q: str, limit: int = 20) -> List[Dtr]:
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute(

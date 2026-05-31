@@ -694,7 +694,7 @@ def test_single_line_code():
 
 
 # ── SSE Streaming ─────────────────────────────────────────────────────────────
-def _parse_sse_events(text: str) -> list[dict]:
+def _parse_sse_events(text: str) -> List[Dtr]:
     events = []
     for line in text.splitlines():
         if line.startswith("data: "):

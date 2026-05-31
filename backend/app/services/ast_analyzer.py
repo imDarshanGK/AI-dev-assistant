@@ -31,7 +31,7 @@ def _issue(type_: str, description: str, suggestion: str, severity: str, line: i
 
 class PythonASTAnalyzer(ast.NodeVisitor):
     def __init__(self) -> None:
-        self.issues: list[dict] = []
+        self.issues: List[Dtr] = []
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self._check_mutable_defaults(node)
@@ -111,7 +111,7 @@ class PythonASTAnalyzer(ast.NodeVisitor):
                 break
 
 
-def analyze_python_ast(code: str) -> list[dict]:
+def analyze_python_ast(code: str) -> List[Dtr]:
     """Parse and analyze Python source code using the AST.
 
     Returns a list of issue dicts. If the code has a syntax error,
@@ -303,7 +303,7 @@ def detect_deep_nesting(tree, code):
     walk(tree, 0)
     return issues
 
-def analyze(source: str) -> list[dict]:
+def analyze(source: str) -> List[Dtr]:
     tree = ast.parse(source)
     issues = []
     issues += detect_unreachable_code(tree, source)

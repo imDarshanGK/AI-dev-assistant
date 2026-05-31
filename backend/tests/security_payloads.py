@@ -85,7 +85,7 @@ _DANGEROUS_SERVER_PATTERNS = (
 def assert_no_raw_script_tag(data: dict | list) -> None:
     """Fail if any response value contains a literal <script> tag."""
 
-    def walk(obj: object, parent_key: str | None = None) -> None:
+    def walk(obj: object, parent_key: Optional[str] = None) -> None:
         if isinstance(obj, str):
             if parent_key in USER_ECHO_FIELD_KEYS:
                 return
@@ -103,7 +103,7 @@ def assert_no_raw_script_tag(data: dict | list) -> None:
 def assert_server_generated_text_safe(data: dict | list) -> None:
     """Server-authored strings must not contain active HTML/JS markers."""
 
-    def walk(obj: object, parent_key: str | None = None) -> None:
+    def walk(obj: object, parent_key: Optional[str] = None) -> None:
         if isinstance(obj, str):
             if parent_key in USER_ECHO_FIELD_KEYS:
                 return
