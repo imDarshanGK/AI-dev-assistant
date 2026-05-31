@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
   <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet" />
   <script>
     (function() {
@@ -393,12 +393,13 @@
     }
 
     .hero h1 {
-      font-family: var(--font-disp);
-      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2.4rem, 4.5vw, 3.8rem);
       font-weight: 800;
-      letter-spacing: -0.04em;
-      line-height: 1.16;
-      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin: 0 auto 20px;
+      max-width: 750px;
     }
 
     .hero h1 em {
@@ -459,7 +460,10 @@
 
     .btn-secondary:hover {
       transform: translateY(-2px);
-      border-color: var(--accent)
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 8px 30px rgba(91, 156, 246, 0.45);
     }
 
     /* ═══════════════════════════════════════════════════════════════
