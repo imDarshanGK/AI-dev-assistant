@@ -471,3 +471,8 @@ MIT © [Darshan G K](https://github.com/imDarshanGK)
 Built for the open source community &nbsp;·&nbsp; GSSoC 2026
 
 </div>
+
+## demo video link
+Watch quick demo video of AI-dev Assistant:
+
+https://youtube.com
