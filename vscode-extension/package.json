@@ -30,6 +30,15 @@
     "onCommand:qyverixai.explain"
   ],
   "main": "./extension.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/vscode": "1.82.0",
+    "typescript": "^5.4.5"
+  },
   "contributes": {
     "commands": [
       {
