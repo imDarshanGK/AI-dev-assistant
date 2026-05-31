@@ -13,7 +13,7 @@
   <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
+      const savedTheme = localStorage.getItem('qyverix_theme') || (systemDark ? 'dark' : 'light');
       document.documentElement.setAttribute('data-theme', savedTheme);
     })();
   </script>
@@ -2817,7 +2817,7 @@
       }
 
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
+      const initialTheme = localStorage.getItem('qyverix_theme') || (systemDark ? 'dark' : 'light');
 
       document.documentElement.setAttribute('data-theme', initialTheme);
       setThemeIcon(initialTheme);
@@ -2826,7 +2826,7 @@
         const cur = document.documentElement.getAttribute('data-theme');
         const next = cur === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('qyx_theme', next);
+        localStorage.setItem('qyverix_theme', next);
         setThemeIcon(next);
       });
 
