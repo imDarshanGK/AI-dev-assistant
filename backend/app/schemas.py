@@ -300,6 +300,14 @@ class ShareCreateRequest(BaseModel):
             raise ValueError("result or result_json is required")
         return model
 
+    @model_validator(mode="after")
+    def validate_fields(self) -> "ShareCreateRequest":
+        if not self.code or not self.code.strip():
+            raise ValueError("code must not be empty")
+        if not self.result:
+            raise ValueError("result must not be empty")
+        return self
+
 
 class ShareRecord(BaseModel):
     id: str
