@@ -21,6 +21,10 @@ def test_mutable_default_set():
     issues = _types("def f(x=set()): pass\ndef g(y={1, 2}): pass")
     assert "Mutable Default Argument" in issues
 
+def test_mutable_keyword_only_default_detected():
+    issues = _types("def f(*, options={}): pass")
+    assert "Mutable Default Argument" in issues
+
 def test_no_mutable_default_with_none():
     issues = _types("def f(x=None): pass")
     assert "Mutable Default Argument" not in issues
@@ -102,6 +106,10 @@ def test_unreachable_after_return():
 
 def test_unreachable_after_raise():
     code = "def f():\n    raise ValueError()\n    x = 1"
+    assert "Unreachable Code" in _types(code)
+
+def test_unreachable_in_async_function_detected():
+    code = "async def f():\n    return 1\n    await other()"
     assert "Unreachable Code" in _types(code)
 
 def test_reachable_code_not_flagged():
@@ -189,6 +197,16 @@ def test_underscore_param_not_flagged():
 
 def test_used_alias_not_flagged():
     code = "import os as o\npath = o.getcwd()\n"
+    issues = analyze(code)
+    assert not any(i["type"] == "Unused Import" for i in issues)
+
+def test_used_from_import_alias_not_flagged():
+    code = "from pathlib import Path as P\nroot = P('.')\n"
+    issues = analyze(code)
+    assert not any(i["type"] == "Unused Import" for i in issues)
+
+def test_star_import_not_flagged_as_unused_import():
+    code = "from math import *\nvalue = sqrt(4)\n"
     issues = analyze(code)
     assert not any(i["type"] == "Unused Import" for i in issues)
 
