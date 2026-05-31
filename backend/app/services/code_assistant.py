@@ -203,6 +203,7 @@ def chat_fallback_reply(
     code: str | None,
     history: list[str],
     level: str,
+    error_context: dict | None = None,
 ) -> str:
     """Return a simple fallback chat response when the LLM is unavailable."""
     message_text = (message or "").strip()
@@ -241,6 +242,17 @@ def chat_fallback_reply(
         response_parts.append(
             f"Recent chat context: {recent_history}."
         )
+
+    if error_context:
+        code_val = error_context.get("code", "")
+        message_val = error_context.get("message", "An upstream service error occurred.")
+        metadata_val = error_context.get("metadata", {})
+        error_detail = f"Error context — code: {code_val}, message: {message_val}"
+        if metadata_val:
+            meta_parts = [f"{k}: {v}" for k, v in metadata_val.items()]
+            if meta_parts:
+                error_detail += f", details: {'; '.join(meta_parts)}"
+        response_parts.append(error_detail)
 
     return " ".join(response_parts)
 
@@ -862,14 +874,11 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                 )
 
     if language == "Python":
-        try:
-            for issue in ast_analyze(code):
-                key = f"{issue['type']}:{issue['line']}"
-                if key not in seen:
-                    seen.add(key)
-                    found.append(issue)
-        except SyntaxError:
-            pass
+        for issue in ast_analyze(code):
+            key = f"{issue['type']}:{issue['line']}"
+            if key not in seen:
+                seen.add(key)
+                found.append(issue)
 
     return found
 
@@ -1370,42 +1379,52 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         language_hint: Optional language override hint.
 
     Returns:
-        Combined explanation, debugging, and suggestion analysis results.
+        Combined explanation, debugging, and suggestion analysis results,
+        or a structured error response if an upstream failure occurs.
     """
+    try:
+        t0 = time.perf_counter()
+        language = detect_language(code, language_hint)
 
-    t0 = time.perf_counter()
-    language = detect_language(code, language_hint)
+        explanation = run_explanation(code, language)
 
-    explanation = run_explanation(code, language)
+        raw_issues = run_bug_detection(code, language)
+        errors = [i for i in raw_issues if i["severity"] == "error"]
+        warnings = [i for i in raw_issues if i["severity"] == "warning"]
+        infos = [i for i in raw_issues if i["severity"] == "info"]
+        issue_summary = (
+            f"Found {len(raw_issues)} issue(s): {len(errors)} error(s), {len(warnings)} warning(s), {len(infos)} info."
+            if raw_issues
+            else "✅ No issues detected!"
+        )
+        debugging = {
+            "issues": raw_issues,
+            "summary": issue_summary,
+            "clean": len(raw_issues) == 0,
+            "error_count": len(errors),
+            "warning_count": len(warnings),
+            "info_count": len(infos),
+            "code": code,
+        }
 
-    raw_issues = run_bug_detection(code, language)
-    errors = [i for i in raw_issues if i["severity"] == "error"]
-    warnings = [i for i in raw_issues if i["severity"] == "warning"]
-    infos = [i for i in raw_issues if i["severity"] == "info"]
-    issue_summary = (
-        f"Found {len(raw_issues)} issue(s): {len(errors)} error(s), {len(warnings)} warning(s), {len(infos)} info."
-        if raw_issues
-        else "✅ No issues detected!"
-    )
-    debugging = {
-        "issues": raw_issues,
-        "summary": issue_summary,
-        "clean": len(raw_issues) == 0,
-        "error_count": len(errors),
-        "warning_count": len(warnings),
-        "info_count": len(infos),
-        "code": code,
-    }
+        sugg = run_suggestions(code, language)
 
-    sugg = run_suggestions(code, language)
+        elapsed_ms = (time.perf_counter() - t0) * 1000
 
-    elapsed_ms = (time.perf_counter() - t0) * 1000
-
-    return {
-        "provider": "rule-based",
-        "model": "qyverix-engine-v3",
-        "explanation": explanation,
-        "debugging": debugging,
-        "suggestions": sugg,
-        "analysis_time_ms": round(elapsed_ms, 2),
-    }
+        return {
+            "provider": "rule-based",
+            "model": "qyverix-engine-v3",
+            "explanation": explanation,
+            "debugging": debugging,
+            "suggestions": sugg,
+            "analysis_time_ms": round(elapsed_ms, 2),
+        }
+    except Exception as exc:
+        return {
+            "code": "UPSTREAM_FAILURE",
+            "message": f"Analysis failed: {exc}",
+            "metadata": {
+                "error_type": type(exc).__name__,
+                "language_hint": language_hint,
+            },
+        }

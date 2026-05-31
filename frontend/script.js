@@ -337,6 +337,11 @@ function getApiUrl() {
 }
 
 function getUserFriendlyError(err, responseStatus) {
+  if (err && typeof err === 'object' && err.code && err.message && err.metadata !== undefined) {
+    const codeLabel = err.code ? `[${err.code}] ` : '';
+    return codeLabel + String(err.message);
+  }
+
   const raw = (err && err.message ? String(err.message) : '').toLowerCase();
 
   if (raw.includes('failed to fetch') || raw.includes('networkerror') || raw.includes('network request failed')) {
@@ -355,11 +360,68 @@ function getUserFriendlyError(err, responseStatus) {
     return 'Server error while analyzing code. Try again in a moment.';
   }
 
+  if (err && typeof err === 'object' && err.code) {
+    const codeLabel = err.code ? `[${err.code}] ` : '';
+    const message = err.message || 'An unexpected error occurred.';
+    return codeLabel + message;
+  }
+
   if (err && err.message) {
     return err.message;
   }
 
   return 'Could not reach the backend. Make sure it is running.';
+}
+
+const GRAPHQL_ERROR_MAP = {
+  'UPSTREAM_FAILURE': 'Upstream service unavailable',
+  'QUOTA_EXCEEDED': 'Provider quota exceeded',
+  'RATE_LIMITED': 'Rate limit exceeded',
+  'VALIDATION_ERROR': 'Invalid request parameters',
+};
+
+function formatGraphQLError(err) {
+  const code = err.code || (GRAPHQL_ERROR_MAP[err.message] ? Object.keys(GRAPHQL_ERROR_MAP).find(k => GRAPHQL_ERROR_MAP[k] === err.message) : null);
+  const mappedCode = code || err.code || 'GRAPHQL_ERROR';
+  return {
+    code: mappedCode,
+    message: err.message || 'A GraphQL error occurred.',
+    metadata: err.metadata || {},
+  };
+}
+
+function normalizeGraphQLErrors(errors) {
+  if (!Array.isArray(errors)) return [];
+  return errors.map(err => formatGraphQLError(err));
+}
+
+async function graphqlQuery(query, variables = {}) {
+  try {
+    const resp = await fetch(`${getApiUrl()}/graphql`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, variables }),
+    });
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+      const normalized = normalizeGraphQLErrors(data.errors);
+      const firstError = normalized[0];
+      const err = new Error(getUserFriendlyError(firstError, resp.status));
+      err.status = resp.status;
+      throw err;
+    }
+
+    return data;
+  } catch (err) {
+    if (err instanceof SyntaxError) {
+      const e = new Error('Failed to parse GraphQL response.');
+      e.status = resp.status;
+      throw e;
+    }
+    throw err;
+  }
 }
 
 initializeApiUrl();
@@ -383,28 +445,14 @@ async function runAnalysis() {
   runLabel.textContent = '⟳ Analyzing...';
   showLoading();
 
-  const url = `${getApiUrl()}/${currentMode === 'analyze' ? 'analyze' : currentMode}/`;
-
   try {
-    let responseStatus = 0;
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
-    });
-    responseStatus = resp.status;
-
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(getUserFriendlyError({ message: err.detail || `HTTP ${resp.status}` }, responseStatus));
-    }
-
-    const data = await resp.json();
+    const mutation = `mutation RunAnalysis($code: String!) { ${currentMode}(code: $code) }`;
+    const data = await graphqlQuery(mutation, { code });
     renderResult(data, currentMode);
     saveHistory(code, currentMode, data);
     statusDot.className = 'status-dot online';
   } catch (err) {
-    showError(getUserFriendlyError(err, 0));
+    showError(getUserFriendlyError(err, err.status ?? 0));
     statusDot.className = 'status-dot offline';
     setEngineBadge('unknown');
   } finally {
