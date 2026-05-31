@@ -1,11 +1,5 @@
 import os
 
-from dotenv import find_dotenv, load_dotenv
-
-# Load .env from current directory or parent directories if present.
-load_dotenv(find_dotenv(filename=".env", usecwd=True), override=False)
-
-
 def _int_env(name: str, default: int) -> int:
     raw_value = os.getenv(name)
     if raw_value is None:
@@ -56,6 +50,8 @@ class Settings:
     redis_url: str | None = os.getenv("REDIS_URL")
     sentry_dsn: str | None = os.getenv("SENTRY_DSN")
     sentry_traces_sample_rate: float = _float_env("SENTRY_TRACES_SAMPLE_RATE", 0.0)
+    log_max_bytes: int = _int_env("LOG_MAX_BYTES", 5242880)
+    log_backup_count: int = _int_env("LOG_BACKUP_COUNT", 3)
     enable_docs: bool = _bool_env("ENABLE_DOCS", False)
     public_root_info: bool = _bool_env("PUBLIC_ROOT_INFO", False)
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./assistant.db")
