@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QyverixAI — AI Developer Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
-    rel="stylesheet" />
+    rel="stylesheet">
   <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -514,7 +514,7 @@
       font-size: 15px;
     }
 
-    .feat-pill-info h4 {
+    .feat-pill-info h2 {
       font-size: 0.82rem;
       font-weight: 600;
       margin-bottom: 1px
@@ -2052,7 +2052,7 @@
         <div class="badge-dot"></div>
         <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
       </div>
-      <h1 data-i18n="hero_title">Debug. Understand.<br /><em>Ship faster.</em></h1>
+      <h1 data-i18n="hero_title">Debug. Understand.<br><em>Ship faster.</em></h1>
       <p class="hero-sub" data-i18n="hero_subtitle">
         Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
         suggestions — no account needed.
@@ -2091,7 +2091,7 @@
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="pill_patterns_title">40+ Bug Patterns</h4>
+          <h2 data-i18n="pill_patterns_title">40+ Bug Patterns</h2>
           <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
         </div>
       </div>
@@ -2102,7 +2102,7 @@
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="mode_explain">Code Explanation</h4>
+          <h2 data-i18n="mode_explain">Code Explanation</h2>
           <p data-i18n="pill_explain_desc">Plain English breakdowns</p>
         </div>
       </div>
@@ -2112,7 +2112,7 @@
             <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="mode_improve">Smart Suggestions</h4>
+          <h2 data-i18n="mode_improve">Smart Suggestions</h2>
           <p data-i18n="pill_improve_desc">Quality score + grade</p>
         </div>
       </div>
@@ -2122,7 +2122,7 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="pill_theme_title">Dark / Light Mode</h4>
+          <h2 data-i18n="pill_theme_title">Dark / Light Mode</h2>
           <p data-i18n="pill_theme_desc">Persisted preference</p>
         </div>
       </div>
@@ -2132,7 +2132,7 @@
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h4 data-i18n="pill_upload_title">File Upload</h4>
+          <h2 data-i18n="pill_upload_title">File Upload</h2>
           <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
         </div>
       </div>
@@ -2146,8 +2146,7 @@
         <div class="panel-header">
           <div class="panel-title"></div>
           <div class="panel-actions">
-            <label class="icon-btn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" tabindex="0" role="button"
-              aria-label="Upload code file"
+            <label class="icon-btn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" tabindex="0"
               onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); document.getElementById('fileInput').click();}">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
@@ -2156,7 +2155,7 @@
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
               <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
-                tabindex="-1" />
+                tabindex="-1">
             </label>
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -2178,12 +2177,12 @@
         </div>
 
         <!-- Language tabs -->
-        <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
-          <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true" data-i18n="lang_tab_python">Python</button>
-          <button class="lang-tab" data-lang="javascript" role="tab" aria-selected="false" data-i18n="lang_tab_javascript">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false" data-i18n="lang_tab_typescript">TypeScript</button>
-          <button class="lang-tab" data-lang="java" role="tab" aria-selected="false" data-i18n="lang_tab_java">Java</button>
-          <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false" data-i18n="lang_tab_cpp">C++</button>
+        <div class="lang-tabs" role="group" aria-label="Select Programming Language">
+          <button class="lang-tab active" data-lang="python" aria-pressed="true" data-i18n="lang_tab_python">Python</button>
+          <button class="lang-tab" data-lang="javascript" aria-pressed="false" data-i18n="lang_tab_javascript">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript" aria-pressed="false" data-i18n="lang_tab_typescript">TypeScript</button>
+          <button class="lang-tab" data-lang="java" aria-pressed="false" data-i18n="lang_tab_java">Java</button>
+          <button class="lang-tab" data-lang="cpp" aria-pressed="false" data-i18n="lang_tab_cpp">C++</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap">
@@ -2205,7 +2204,7 @@
 
         <div class="analyze-row">
           <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
-            <div class="spinner" id="spinner"></div>
+            <span class="spinner" id="spinner"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
         </div>
@@ -2226,17 +2225,17 @@
         </div>
 
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
-          <button class="result-tab active" data-rtab="explain" role="tab" aria-selected="true">
+          <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
             <span data-i18n="tab_explain">Explain</span>
             <span class="tab-badge" id="explainBadge"></span>
           </button>
-          <button class="result-tab" data-rtab="debug" role="tab" aria-selected="false">
+          <button class="result-tab" id="tab-debug" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/></svg>
             <span data-i18n="tab_debug">Debug</span>
             <span class="tab-badge" id="debugBadge"></span>
           </button>
-          <button class="result-tab" data-rtab="suggest" role="tab" aria-selected="false">
+          <button class="result-tab" id="tab-suggest" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
             <span data-i18n="tab_improve">Improve</span>
             <span class="tab-badge" id="suggestBadge"></span>
@@ -2244,7 +2243,7 @@
         </div>
         <div class="result-content">
           <!-- Explain Pane -->
-          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
+          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-labelledby="tab-explain">
             <div class="empty-state" id="emptyExplain">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2257,7 +2256,7 @@
             <div id="explainResult" style="display:none"></div>
           </div>
           <!-- Debug Pane -->
-          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel">
+          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-labelledby="tab-debug">
             <div class="empty-state" id="emptyDebug">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2277,7 +2276,7 @@
             <div id="debugResult" style="display:none"></div>
           </div>
           <!-- Suggest Pane -->
-          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel">
+          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-labelledby="tab-suggest">
             <div class="empty-state" id="emptySuggest">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2570,7 +2569,7 @@
           hero_title: "डीबग करें। समझें।<br /><em>तेज़ी से शिप करें।</em>",
           hero_subtitle: "अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।",
           btn_start_analyzing: "विश्लेषण शुरू करें",
-          btn_try_sample: "सैंपल कोड आज़माएं",
+          btn_try_sample: "सैंपल कोड आज़माएं",
           btn_star_github: "गिटहब पर स्टार करें",
           pill_patterns_title: "40+ बग पैटर्न",
           pill_patterns_desc: "Python, JS, TS, Java, C++",
@@ -2583,7 +2582,7 @@
           pill_upload_title: "फ़ाइल अपलोड",
           pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
           editor_title: "कोड एडिटर",
-          editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
+          editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
           char_count_initial: "शुरू करने के लिए कोड पेस्ट करें या टाइप करें",
           char_count_format: "{chars} वर्ण · {lines} पंक्तियाँ · {nonBlank} गैर-रिक्त",
           ctrl_enter_hint: "विश्लेषण करने के लिए Ctrl+Enter दबाएं",
@@ -3141,7 +3140,7 @@
         document.querySelectorAll('.lang-tab').forEach(t => {
           const isActive = t.dataset.lang === lang;
           t.classList.toggle('active', isActive);
-          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+          t.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
 
         // 2. Check if the editor currently contains one of the samples
@@ -4091,7 +4090,7 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
          SAMPLE CODE LOADER
       ═══════════════════════════════════════════════════════════════ */
       const SAMPLES = {
-        python: `// Python Sample
+        python: `# Python Sample
   import os
 
 # [!] Hardcoded secret - security risk
