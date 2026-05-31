@@ -1097,6 +1097,72 @@ def run_suggestions(code: str, language: str) -> dict:
                 }
             )
 
+    # PHP specific suggestions
+    if language == "PHP":
+        if re.search(r"\b\$_GET|\b\$_POST|\b\$_REQUEST", code) and not re.search(r"\bfilter_input\b|\bfilter_var\b", code):
+            suggestions.append(
+                {
+                    "category": "Security",
+                    "description": "Direct access to superglobals ($_GET, $_POST) detected. Use input filtering (e.g., filter_input) to prevent XSS/SQL Injection.",
+                    "example": "$userId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);",
+                    "priority": "high",
+                }
+            )
+        if re.search(r"\b(count|is_array|strlen|in_array)\s*\(", code) and not re.search(r"\b\\(count|is_array|strlen|in_array)\s*\(", code):
+            suggestions.append(
+                {
+                    "category": "Performance",
+                    "description": "Global PHP function calls in namespaced code should be prefixed with a backslash for compiler optimization.",
+                    "example": "\\count($array);",
+                    "priority": "low",
+                }
+            )
+
+    # Rust specific suggestions
+    if language == "Rust":
+        unwrap_count = len(re.findall(r"\.unwrap\s*\(", code))
+        if unwrap_count > 0:
+            suggestions.append(
+                {
+                    "category": "Robustness",
+                    "description": f"Detected {unwrap_count} call(s) to `.unwrap()`. Consider using pattern matching, `unwrap_or`, or the `?` operator to handle errors safely.",
+                    "example": "let val = numbers.get(5).ok_or(\"Index out of bounds\")?;",
+                    "priority": "high",
+                }
+            )
+        clone_count = len(re.findall(r"\.clone\s*\(", code))
+        if clone_count > 0:
+            suggestions.append(
+                {
+                    "category": "Performance",
+                    "description": f"Detected {clone_count} call(s) to `.clone()`. Avoid cloning owned types by passing references where possible.",
+                    "example": "fn print_length(s: &str) { ... }",
+                    "priority": "medium",
+                }
+            )
+
+    # Kotlin specific suggestions
+    if language == "Kotlin":
+        bang_bang_count = len(re.findall(r"\b\w+!!", code))
+        if bang_bang_count > 0:
+            suggestions.append(
+                {
+                    "category": "Null Safety",
+                    "description": f"Detected {bang_bang_count} use(s) of non-null assertion operator (!!). Use safe calls (?.) or Elvis operator (?:) to avoid NullPointerExceptions.",
+                    "example": "println(name?.length ?: 0)",
+                    "priority": "high",
+                }
+            )
+        if re.search(r"fun\s+\w+\s*\([^)]*\)\s*:\s*\w+\s*\{\s*return\s+[^}]*\}", code):
+            suggestions.append(
+                {
+                    "category": "Readability",
+                    "description": "Explicit return in single-expression function. Use Kotlin's expression body syntax for cleaner code.",
+                    "example": "fun doubleValue(x: Int) = x * 2",
+                    "priority": "medium",
+                }
+            )
+
     # Score
     # Score calculation
     deductions = sum(

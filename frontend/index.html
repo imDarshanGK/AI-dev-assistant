@@ -12,9 +12,9 @@
     rel="stylesheet" />
   <script>
     (function() {
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', savedTheme);
+      const sysDarkPref = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const loadedTheme = localStorage.getItem('qyx_theme') || (sysDarkPref ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', loadedTheme);
     })();
   </script>
   <style>
@@ -2184,6 +2184,9 @@
           <button class="lang-tab" data-lang="typescript" role="tab" aria-selected="false" data-i18n="lang_tab_typescript">TypeScript</button>
           <button class="lang-tab" data-lang="java" role="tab" aria-selected="false" data-i18n="lang_tab_java">Java</button>
           <button class="lang-tab" data-lang="cpp" role="tab" aria-selected="false" data-i18n="lang_tab_cpp">C++</button>
+          <button class="lang-tab" data-lang="php" role="tab" aria-selected="false" data-i18n="lang_tab_php">PHP</button>
+          <button class="lang-tab" data-lang="rust" role="tab" aria-selected="false" data-i18n="lang_tab_rust">Rust</button>
+          <button class="lang-tab" data-lang="kotlin" role="tab" aria-selected="false" data-i18n="lang_tab_kotlin">Kotlin</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap">
@@ -2370,6 +2373,9 @@
           lang_tab_typescript: "TypeScript",
           lang_tab_java: "Java",
           lang_tab_cpp: "C++",
+          lang_tab_php: "PHP",
+          lang_tab_rust: "Rust",
+          lang_tab_kotlin: "Kotlin",
           nav_github: "GitHub",
           nav_api_docs: "API Docs",
           hero_badge: "Open Source · AI-Powered · Free",
@@ -2467,6 +2473,9 @@
           lang_tab_typescript: "TypeScript",
           lang_tab_java: "Java",
           lang_tab_cpp: "C++",
+          lang_tab_php: "PHP",
+          lang_tab_rust: "Rust",
+          lang_tab_kotlin: "Kotlin",
           nav_github: "கிட்ஹப் (GitHub)",
           nav_api_docs: "ஏபிஐ ஆவணங்கள் (API Docs)",
           hero_badge: "திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்",
@@ -2564,6 +2573,9 @@
           lang_tab_typescript: "TypeScript",
           lang_tab_java: "Java",
           lang_tab_cpp: "C++",
+          lang_tab_php: "PHP",
+          lang_tab_rust: "Rust",
+          lang_tab_kotlin: "Kotlin",
           nav_github: "गिटहब (GitHub)",
           nav_api_docs: "एपीआई दस्तावेज़ (API Docs)",
           hero_badge: "ओपन सोर्स · एआई-संचालित · मुफ्त",
@@ -2661,6 +2673,9 @@
           lang_tab_typescript: "TypeScript",
           lang_tab_java: "Java",
           lang_tab_cpp: "C++",
+          lang_tab_php: "PHP",
+          lang_tab_rust: "Rust",
+          lang_tab_kotlin: "Kotlin",
           nav_github: "GitHub",
           nav_api_docs: "Docs API",
           hero_badge: "Open Source · Propulsé par l'IA · Gratuit",
@@ -2750,7 +2765,7 @@
       };
 
       const MAX_HISTORY = 50;
-      let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+      let appHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
       let selectedLang = 'python';
@@ -3873,18 +3888,18 @@
           ts: new Date().toLocaleTimeString(),
           preview: code.slice(0, 60).replace(/\n/g, ' '),
         };
-        history.unshift(entry);
-        if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-        localStorage.setItem('qyx_history', JSON.stringify(history));
+        appHistory.unshift(entry);
+        if (appHistory.length > MAX_HISTORY) appHistory = appHistory.slice(0, MAX_HISTORY);
+        localStorage.setItem('qyx_history', JSON.stringify(appHistory));
         renderHistory();
       }
 
       function renderHistory() {
-        if (!history.length) {
+        if (!appHistory.length) {
           historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
-        historyList.innerHTML = history.map(h => `
+        historyList.innerHTML = appHistory.map(h => `
     <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
       <span class="history-lang">${h.lang || '?'}</span>
       <span class="history-thumb">${escHtml(h.preview)}…</span>
@@ -3895,18 +3910,18 @@
       document.getElementById('clearHistoryBtn').addEventListener('click', () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
 
-        history = [];
+        appHistory = [];
         localStorage.removeItem('qyx_history');
         renderHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
       document.getElementById('downloadJsonBtn').addEventListener('click', () => {
-        if (!history || history.length === 0) {
+        if (!appHistory || appHistory.length === 0) {
           toast('No history to download', 'info');
           return;
         }
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appHistory, null, 2));
         const dlNode = document.createElement('a');
         dlNode.setAttribute("href", dataStr);
         dlNode.setAttribute("download", "history.json");
@@ -3917,16 +3932,16 @@
       });
 
       document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-        if (!history || history.length === 0) {
+        if (!appHistory || appHistory.length === 0) {
           toast('No history to download', 'info');
           return;
         }
 
-        const headers = Object.keys(history[0]);
+        const headers = Object.keys(appHistory[0]);
         const csvRows = [];
         csvRows.push(headers.join(','));
 
-        for (const row of history) {
+        for (const row of appHistory) {
           const values = headers.map(header => {
             let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
             val = val.replace(/"/g, '""');
@@ -3964,7 +3979,7 @@
       function loadEntry(id) {
         const normalizedId = normalizeSavedEntryId(id);
         if (normalizedId === null) return;
-        const entry = history.find(h => h.id === normalizedId);
+        const entry = appHistory.find(h => h.id === normalizedId);
         restoreSavedEntry(entry);
       }
 
@@ -4190,6 +4205,44 @@ void processData() {
 int main() {
     processData();
     return 0;
+}`,
+        php: `// PHP Sample
+// [!] Direct access to $_GET without filtering/validation
+$userId = $_GET['id'];
+echo "User profile: " . $userId; // [!] Cross-Site Scripting (XSS) vulnerability
+
+// [!] Non-strict comparison
+if ($userId == 100) {
+    // Anti-pattern: using print_r directly for debugging output
+    print_r($_GET);
+}`,
+        rust: `// Rust Sample
+fn main() {
+    let numbers = vec![1, 2, 3];
+    // Anti-pattern 1: Using unwrap() blindly (will panic if index out of bounds)
+    let val = numbers.get(5).unwrap();
+    println!("Value: {}", val);
+
+    // Anti-pattern 2: Unnecessary clone on String
+    let s = String::from("Hello");
+    let s_clone = s.clone();
+    print_length(s_clone);
+}
+
+fn print_length(s: String) {
+    println!("Length: {}", s.len());
+}`,
+        kotlin: `// Kotlin Sample
+fun main() {
+    val name: String? = null
+    // Anti-pattern 1: Use of !! (non-null assertion) which will throw NullPointerException
+    println(name!!.length)
+
+    val numbers = listOf(1, 2, 3)
+    // Anti-pattern 2: Explicit return in a single expression function
+    fun doubleValue(x: Int): Int {
+        return x * 2
+    }
 }`
       };
 
