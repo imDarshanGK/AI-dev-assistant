@@ -470,4 +470,13 @@ MIT © [Darshan G K](https://github.com/imDarshanGK)
 
 Built for the open source community &nbsp;·&nbsp; GSSoC 2026
 
+## Contributors Appreciation
+
+We sincerely thank all contributors who have helped improve this project through code contributions, bug fixes, documentation enhancements, feature suggestions, testing, and community support.
+
+Your efforts make this project better for everyone and help grow the open-source community.
+
+<a href="https://github.com/imDarshanGK/AI-dev-assistant/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=imDarshanGK/AI-dev-assistant" />
+</a>
 </div>
