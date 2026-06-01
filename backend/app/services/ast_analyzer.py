@@ -114,9 +114,12 @@ class PythonASTAnalyzer(ast.NodeVisitor):
 def analyze_python_ast(code: str) -> list[dict]:
     """Parse and analyze Python source code using the AST.
 
-    Returns a list of issue dicts. If the code has a syntax error,
-    returns a single issue describing it instead of crashing.
+    Returns a list of issue dicts. Protected against DoS via depth limits.
     """
+    # SECURITY FIX: Prevent massive file AST parsing DoS
+    if len(code) > 500_000:
+        return [_issue("Security Error", "File is too large for AST analysis.", "Reduce file size.", "error", 1)]
+
     try:
         tree = ast.parse(code)
     except SyntaxError as exc:
@@ -127,6 +130,10 @@ def analyze_python_ast(code: str) -> list[dict]:
             "error",
             exc.lineno or 1,
         )]
+    except (RecursionError, MemoryError):
+        return [_issue("Security Error", "Code complexity/nesting is too high and crashed the parser.", "Reduce nesting depth.", "error", 1)]
+    except Exception as exc:
+        return [_issue("Analysis Error", f"Failed to parse AST: {str(exc)}", "Check code formatting.", "error", 1)]
 
     analyzer = PythonASTAnalyzer()
     analyzer.visit(tree)
@@ -303,8 +310,17 @@ def detect_deep_nesting(tree, code):
     walk(tree, 0)
     return issues
 
+
 def analyze(source: str) -> list[dict]:
-    tree = ast.parse(source)
+    # SECURITY FIX: Prevent AST bombs and Recursion crashes
+    if len(source) > 500_000:
+        return []
+        
+    try:
+        tree = ast.parse(source)
+    except (SyntaxError, RecursionError, MemoryError, Exception):
+        return [] # Fail gracefully instead of crashing the FastAPI worker
+        
     issues = []
     issues += detect_unreachable_code(tree, source)
     issues += detect_unused_imports(tree, source)
