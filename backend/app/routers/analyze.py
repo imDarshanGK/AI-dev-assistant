@@ -3,6 +3,7 @@ from app.schemas import CodeRequest, AnalyzeResponse
 from app.services.code_assistant import explain_code, debug_code, suggest_improvements
 from app.services.ai_provider import get_provider_info
 import logging
+from app.services.cache import cache
 
 logger = logging.getLogger("qyverix.analyze")
 router = APIRouter()
@@ -21,17 +22,25 @@ async def analyze_endpoint(request: CodeRequest):
     """
     try:
         provider_info = get_provider_info()
+        cached = cache.get("analysis", request.code)
+
+        if cached:
+            return AnalyzeResponse(**cached)
         explanation = explain_code(request.code, request.language)
         debugging = debug_code(request.code, request.language)
         suggestions = suggest_improvements(request.code, request.language)
 
-        return AnalyzeResponse(
-            provider=provider_info["provider"],
-            model=provider_info["model"],
-            explanation=explanation,
-            debugging=debugging,
-            suggestions=suggestions,
-        )
+        payload = {
+            "provider": provider_info["provider"],
+            "model": provider_info["model"],
+            "explanation": explanation.model_dump(),
+            "debugging": debugging.model_dump(),
+            "suggestions": suggestions.model_dump(),
+        }
+
+        cache.set("analysis", request.code, payload)
+        return AnalyzeResponse(**payload)
+
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
