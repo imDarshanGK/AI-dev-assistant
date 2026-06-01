@@ -1,0 +1,44 @@
+{% extends "base_notification.html" %}
+
+{% block title %}{{ title | default('System Alert') }} - QyverixAI{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #f8fafc; font-size: 20px; font-weight: 700; font-family: 'Outfit', 'Inter', system-ui, sans-serif;">
+    {{ title }}
+</h2>
+<p style="margin-top: 16px; margin-bottom: 20px; color: #94a3b8; font-size: 15px;">
+    Hello {{ user_name | default('Developer') }},
+</p>
+<div style="background-color: #0f172a; border-left: 4px solid {{ alert_color | default('#0ea5e9') }}; padding: 18px 20px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #334155; border-left-width: 4px;">
+    <p style="margin: 0; color: #f1f5f9; font-size: 15px; font-weight: 500; font-family: -apple-system, system-ui, sans-serif;">
+        {{ alert_message }}
+    </p>
+</div>
+<p style="margin-bottom: 8px; color: #cbd5e1; font-size: 15px; line-height: 1.6;">
+    {{ body_text }}
+</p>
+{% endblock %}
+
+{% block action_button %}
+{% if action_url %}
+<tr>
+    <td align="center" style="padding: 0 40px 40px 40px;" class="content-padding">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td align="center">
+                    <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                        <tr>
+                            <td align="center" style="border-radius: 8px; background: {{ alert_color | default('#0ea5e9') }};">
+                                <a href="{{ action_url }}" target="_blank" style="display: inline-block; padding: 14px 28px; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 8px; letter-spacing: 0.2px; font-family: -apple-system, system-ui, sans-serif;" class="btn-full">
+                                    {{ action_text | default('Take Action') }}
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </td>
+</tr>
+{% endif %}
+{% endblock %}

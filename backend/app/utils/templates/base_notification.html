@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block title %}QyverixAI Notification{% endblock %}</title>
+    <style>
+        /* Modern CSS resets & style rules */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; }
+        img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        table { border-collapse: collapse !important; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+
+        /* Outlook-specific styles */
+        @media screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 10px !important;
+            }
+            .content-padding {
+                padding: 24px !important;
+            }
+            .btn-full {
+                width: 100% !important;
+                display: block !important;
+                box-sizing: border-box !important;
+            }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0f172a; table-layout: fixed;">
+        <tr>
+            <td align="center" valign="top" style="padding: 40px 10px 40px 10px;">
+                <!--[if (gte mso 9)|(IE)]>
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+                <tr>
+                <td align="center" valign="top" width="600">
+                <![endif]-->
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" max-width="600" style="max-width: 600px; background-color: #1e293b; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4); border: 1px solid #334155;" class="email-container">
+                    
+                    <!-- Decorative Top Gradient Line -->
+                    <tr>
+                        <td height="6" style="background: linear-gradient(95deg, #0ea5e9 0%, #2dd4bf 100%); font-size: 0px; line-height: 0px;">
+                            &nbsp;
+                        </td>
+                    </tr>
+
+                    <!-- Header Section -->
+                    <tr>
+                        <td align="center" valign="top" style="padding: 32px 40px 16px 40px;" class="content-padding">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <!-- Logo Brand text with glowing effect -->
+                                        <span style="font-size: 24px; font-weight: 800; letter-spacing: 0.5px; color: #f8fafc; font-family: 'Outfit', 'Inter', system-ui, sans-serif;">
+                                            Qyverix<span style="color: #0ea5e9;">AI</span>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top: 8px;">
+                                        <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; font-weight: 600;">
+                                            INTELLIGENT CODE INSIGHTS
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Divider -->
+                    <tr>
+                        <td style="padding: 0 40px;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-bottom: 1px solid #334155;">
+                                <tr><td height="1" style="font-size: 0px; line-height: 0px;">&nbsp;</td></tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Main Body Content Block -->
+                    <tr>
+                        <td align="left" valign="top" style="padding: 32px 40px 24px 40px; color: #cbd5e1; font-size: 16px; line-height: 1.6;" class="content-padding">
+                            {% block content %}
+                            <!-- Default block content placeholder -->
+                            {% endblock %}
+                        </td>
+                    </tr>
+
+                    <!-- Action Button Block -->
+                    {% block action_button %}
+                    <!-- Rendered conditionally inside templates extending base -->
+                    {% endblock %}
+
+                    <!-- Divider -->
+                    <tr>
+                        <td style="padding: 0 40px;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-bottom: 1px solid #334155;">
+                                <tr><td height="1" style="font-size: 0px; line-height: 0px;">&nbsp;</td></tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer Section -->
+                    <tr>
+                        <td align="center" valign="top" style="padding: 32px 40px; background-color: #0f172a;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td align="center" style="color: #64748b; font-size: 12px; line-height: 1.8;">
+                                        <p style="margin: 0; font-weight: 600; color: #94a3b8;">
+                                            © 2026 QyverixAI. All rights reserved.
+                                        </p>
+                                        <p style="margin: 6px 0 0 0;">
+                                            You received this transactional system notification because your email is registered on our platform.
+                                        </p>
+                                        <p style="margin: 12px 0 0 0;">
+                                            <a href="https://qyverixai.onrender.com/app" target="_blank" style="color: #0ea5e9; text-decoration: none; font-weight: 600;">Dashboard</a>
+                                            &nbsp;&bull;&nbsp;
+                                            <a href="https://qyverixai.onrender.com/privacy" target="_blank" style="color: #0ea5e9; text-decoration: none; font-weight: 600;">Privacy Policy</a>
+                                            &nbsp;&bull;&nbsp;
+                                            <a href="https://qyverixai.onrender.com/support" target="_blank" style="color: #0ea5e9; text-decoration: none; font-weight: 600;">Support</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <!--[if (gte mso 9)|(IE)]>
+                </td>
+                </tr>
+                </table>
+                <![endif]-->
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
