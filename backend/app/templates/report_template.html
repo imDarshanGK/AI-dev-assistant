@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QyverixAI - Code Analysis Report</title>
+  
+  <!-- Modern Outfit and Fira Code Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Theme Variables (Dark Mode Default) */
+      --bg: #0b0f19;
+      --bg2: #111827;
+      --bg3: #1f2937;
+      --fg: #f3f4f6;
+      --text2: #9ca3af;
+      --text3: #6b7280;
+      
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.15);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(59, 130, 246, 0.4);
+      
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.1);
+      --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.1);
+      --yellow: #f59e0b;
+      --yellow-bg: rgba(245, 158, 11, 0.1);
+      --info: #06b6d4;
+      --info-bg: rgba(6, 182, 212, 0.1);
+      
+      --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      --r1: 16px;
+      --r2: 12px;
+      --r3: 8px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="light"] {
+      --bg: #f9fafb;
+      --bg2: #ffffff;
+      --bg3: #f3f4f6;
+      --fg: #111827;
+      --text2: #4b5563;
+      --text3: #9ca3af;
+      
+      --accent: #2563eb;
+      --accent-glow: rgba(37, 99, 235, 0.1);
+      --border: rgba(0, 0, 0, 0.08);
+      --border-focus: rgba(37, 99, 235, 0.3);
+      
+      --green-bg: rgba(16, 185, 129, 0.08);
+      --red-bg: rgba(239, 68, 68, 0.08);
+      --yellow-bg: rgba(245, 158, 11, 0.08);
+      --info-bg: rgba(6, 182, 212, 0.08);
+      
+      --shadow: 0 10px 35px -15px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding: 32px 16px;
+      transition: background var(--transition), color var(--transition);
+      overflow-x: hidden;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       DECORATIVE ORBS
+    ═══════════════════════════════════════════════════════════════ */
+    .bg-orb {
+      position: fixed;
+      width: 40vw;
+      height: 40vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow) 0%, rgba(0,0,0,0) 70%);
+      z-index: -1;
+      pointer-events: none;
+      filter: blur(80px);
+      opacity: 0.8;
+    }
+    .orb-1 { top: -10%; left: -10%; }
+    .orb-2 { bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(124, 58, 237, 0.08) 0%, rgba(0,0,0,0) 70%); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       LAYOUT & HEADER
+    ═══════════════════════════════════════════════════════════════ */
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      background: rgba(var(--bg2), 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--r1);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-decoration: none;
+      color: var(--fg);
+    }
+
+    .brand-hex {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 900;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .brand-meta {
+      font-size: 0.65rem;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid var(--border-focus);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .timestamp {
+      font-size: 0.8rem;
+      color: var(--text2);
+      font-family: monospace;
+      padding: 6px 12px;
+      background: var(--bg3);
+      border-radius: var(--r3);
+      border: 1px solid var(--border);
+    }
+
+    .theme-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--r3);
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--fg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .theme-btn:hover {
+      background: var(--border);
+      border-color: var(--accent);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       MAIN REPORT WORKSPACE
+    ═══════════════════════════════════════════════════════════════ */
+    .report-workspace {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    /* Shown only when there are multiple files (ZIP) */
+    .report-workspace.has-sidebar {
+      grid-template-columns: 280px 1fr;
+    }
+
+    @media (max-width: 900px) {
+      .report-workspace.has-sidebar {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FILE SIDEBAR Tree
+    ═══════════════════════════════════════════════════════════════ */
+    .sidebar {
+      background: rgba(var(--bg2), 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--r1);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: var(--shadow);
+      max-height: 700px;
+    }
+
+    .sidebar-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--r3);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      outline: none;
+      font-family: inherit;
+      font-size: 0.85rem;
+      transition: var(--transition);
+    }
+    .search-box:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .file-item {
+      padding: 10px 12px;
+      border-radius: var(--r3);
+      border: 1px solid transparent;
+      background: var(--bg3);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: var(--transition);
+    }
+    .file-item:hover {
+      background: var(--border);
+    }
+    .file-item.active {
+      background: var(--accent-glow);
+      border-color: var(--accent);
+    }
+
+    .file-name {
+      font-size: 0.84rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-meta {
+      font-size: 0.7rem;
+      color: var(--text2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .score-badge {
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+    }
+    .score-badge.high { background: var(--green-bg); color: var(--green); }
+    .score-badge.med { background: var(--yellow-bg); color: var(--yellow); }
+    .score-badge.low { background: var(--red-bg); color: var(--red); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       MAIN CARD / PANEL
+    ═══════════════════════════════════════════════════════════════ */
+    .main-panel {
+      background: rgba(var(--bg2), 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--r1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+      min-height: 500px;
+    }
+
+    .panel-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .panel-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .panel-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .panel-subtitle {
+      font-size: 0.8rem;
+      color: var(--text2);
+    }
+
+    /* ── TABS ── */
+    .tabs-row {
+      display: flex;
+      background: var(--bg3);
+      padding: 4px;
+      border-radius: var(--r2);
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: var(--r3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+    .tab-btn:hover {
+      color: var(--fg);
+    }
+    .tab-btn.active {
+      background: var(--bg);
+      color: var(--accent);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .panel-content {
+      padding: 24px;
+      flex: 1;
+    }
+
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       TAB: OVERVIEW
+    ═══════════════════════════════════════════════════════════════ */
+    .overview-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .score-banner {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .score-ring-container {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-ring-svg {
+      transform: rotate(-90deg);
+    }
+
+    .score-ring-text {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .score-ring-num {
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .score-ring-grade {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text2);
+      margin-top: 2px;
+    }
+
+    .banner-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .banner-info h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .banner-info p {
+      font-size: 0.86rem;
+      color: var(--text2);
+    }
+
+    /* Stats bar */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      padding: 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: var(--transition);
+    }
+    .stat-card:hover {
+      border-color: var(--accent-glow);
+      transform: translateY(-2px);
+    }
+
+    .stat-num {
+      font-size: 1.8rem;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      line-height: 1.2;
+    }
+    .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text2);
+      letter-spacing: 0.05em;
+    }
+    .stat-card.errors .stat-num { color: var(--red); }
+    .stat-card.warnings .stat-num { color: var(--yellow); }
+    .stat-card.info-stat .stat-num { color: var(--info); }
+
+    /* Project dashboard files table */
+    .project-section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .files-table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: var(--r2);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--bg3);
+      font-weight: 700;
+      color: var(--text2);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .btn-table-view {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .btn-table-view:hover {
+      opacity: 0.9;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       TAB: EXPLANATION
+    ═══════════════════════════════════════════════════════════════ */
+    .explain-pane {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .explain-summary-card {
+      background: var(--bg3);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--r2);
+      padding: 18px 20px;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .meta-chips-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .meta-chip {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .meta-chip.complexity-Beginner { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+    .meta-chip.complexity-Intermediate { background: var(--info-bg); color: var(--info); border-color: var(--info); }
+    .meta-chip.complexity-Advanced { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow); }
+    .meta-chip.complexity-Expert { background: var(--red-bg); color: var(--red); border-color: var(--red); }
+    
+    .meta-chip.risk-Simple { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+    .meta-chip.risk-Moderate-Risk { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow); }
+    .meta-chip.risk-High-Risk { background: var(--red-bg); color: var(--red); border-color: var(--red); }
+
+    .bullet-points-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .bullet-point {
+      padding: 12px 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      font-size: 0.88rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: var(--transition);
+    }
+    .bullet-point:hover {
+      border-color: var(--accent-glow);
+      transform: translateX(4px);
+    }
+
+    .bullet-point-icon {
+      color: var(--accent);
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       TAB: DEBUGGING & ISSUES
+    ═══════════════════════════════════════════════════════════════ */
+    .debugging-split {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+      height: 600px;
+    }
+
+    @media (max-width: 900px) {
+      .debugging-split {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+    }
+
+    /* Interactive Code Viewer */
+    .code-viewer-container {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    .code-viewer-header {
+      padding: 8px 16px;
+      background: #161b22;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      font-family: monospace;
+      color: var(--text2);
+    }
+
+    .code-lines-scroll {
+      flex: 1;
+      overflow: auto;
+      font-family: 'Fira Code', 'Courier New', Courier, monospace;
+      font-size: 0.8rem;
+      padding: 14px 0;
+      white-space: pre;
+    }
+
+    .code-line-row {
+      display: flex;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .code-line-row:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    .code-line-row.has-error {
+      background: rgba(239, 68, 68, 0.12);
+    }
+    .code-line-row.has-warning {
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .code-line-row.has-info {
+      background: rgba(6, 182, 212, 0.08);
+    }
+    .code-line-row.highlighted {
+      background: rgba(59, 130, 246, 0.25) !important;
+    }
+
+    .code-line-num {
+      width: 50px;
+      padding-right: 14px;
+      text-align: right;
+      color: var(--text3);
+      user-select: none;
+      border-right: 1px solid var(--border);
+      background: #0d1117;
+      flex-shrink: 0;
+    }
+    .code-line-row.has-error .code-line-num { color: var(--red); font-weight: bold; }
+    .code-line-row.has-warning .code-line-num { color: var(--yellow); font-weight: bold; }
+
+    .code-line-content {
+      padding-left: 14px;
+      color: #e6edf3;
+      word-break: break-all;
+    }
+
+    /* Issues List Column */
+    .issues-pane-scroll {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+      padding-right: 4px;
+    }
+
+    .clean-issues-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      padding: 32px;
+      gap: 12px;
+    }
+
+    .clean-icon-wrap {
+      font-size: 2.2rem;
+      color: var(--green);
+      line-height: 1;
+    }
+
+    .issue-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--text3);
+      border-radius: var(--r2);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .issue-card:hover {
+      border-color: var(--accent-glow);
+      transform: translateX(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .issue-card.active {
+      border-color: var(--accent) !important;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .issue-card.error { border-left-color: var(--red); }
+    .issue-card.warning { border-left-color: var(--yellow); }
+    .issue-card.info { border-left-color: var(--info); }
+
+    .issue-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .issue-card-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .issue-card.error .issue-card-badge { background: var(--red-bg); color: var(--red); }
+    .issue-card.warning .issue-card-badge { background: var(--yellow-bg); color: var(--yellow); }
+    .issue-card.info .issue-card-badge { background: var(--info-bg); color: var(--info); }
+
+    .issue-card-type {
+      font-size: 0.84rem;
+      font-weight: 700;
+      flex: 1;
+    }
+
+    .issue-card-line {
+      font-size: 0.72rem;
+      color: var(--text2);
+      font-family: monospace;
+      background: var(--bg);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .issue-card-desc {
+      font-size: 0.84rem;
+      color: var(--fg);
+    }
+
+    .issue-card-fix {
+      font-size: 0.8rem;
+      background: var(--green-bg);
+      color: var(--green);
+      padding: 6px 10px;
+      border-radius: var(--r3);
+      font-weight: 500;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       TAB: SUGGESTIONS & DIFFS
+    ═══════════════════════════════════════════════════════════════ */
+    .suggestions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .suggest-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--text2);
+      border-radius: var(--r2);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: var(--transition);
+    }
+    .suggest-card:hover {
+      border-color: var(--accent-glow);
+    }
+    .suggest-card.priority-high { border-left-color: var(--red); }
+    .suggest-card.priority-medium { border-left-color: var(--yellow); }
+    .suggest-card.priority-low { border-left-color: var(--info); }
+
+    .suggest-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .suggest-cat {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--accent-glow);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .suggest-priority {
+      font-size: 0.7rem;
+      color: var(--text2);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .suggest-card.priority-high .suggest-priority { color: var(--red); }
+    .suggest-card.priority-medium .suggest-priority { color: var(--yellow); }
+
+    .suggest-desc {
+      font-size: 0.9rem;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    /* Premium Diff Component */
+    .diff-wrapper {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .diff-header {
+      background: #161b22;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .diff-header-labels {
+      display: flex;
+      gap: 16px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text2);
+    }
+
+    .diff-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .diff-label-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .diff-label-before .diff-label-dot { background: var(--red); }
+    .diff-label-after .diff-label-dot { background: var(--green); }
+
+    .diff-view {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      divide-x: 1px solid var(--border);
+    }
+
+    @media (max-width: 600px) {
+      .diff-view {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .diff-col {
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.75rem;
+      padding: 10px 0;
+    }
+    .diff-col:first-child {
+      border-right: 1px solid var(--border);
+    }
+
+    .diff-line {
+      display: flex;
+      width: 100%;
+      min-height: 18px;
+    }
+    .diff-line-num {
+      width: 32px;
+      text-align: right;
+      padding-right: 10px;
+      color: var(--text3);
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .diff-line-content {
+      padding-left: 10px;
+      color: #e6edf3;
+      white-space: pre;
+    }
+
+    .diff-line-removed {
+      background: rgba(248, 81, 73, 0.15);
+    }
+    .diff-line-removed .diff-line-num { color: #f85149; }
+    .diff-line-removed .diff-line-content { color: #ff7b72; }
+
+    .diff-line-added {
+      background: rgba(63, 185, 80, 0.15);
+    }
+    .diff-line-added .diff-line-num { color: #3fb950; }
+    .diff-line-added .diff-line-content { color: #7ee787; }
+
+    .diff-line-placeholder {
+      background: rgba(255,255,255,0.01);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════════════════════ */
+    footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text3);
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <a href="#" class="brand">
+        <div class="brand-hex">Q</div>
+        QyverixAI
+        <span class="brand-meta">REPORT</span>
+      </a>
+      <div class="header-actions">
+        <span class="timestamp" id="reportTime"></span>
+        <button class="theme-btn" id="themeToggle" title="Toggle Light/Dark Theme">◑</button>
+      </div>
+    </header>
+
+    <!-- WORKSPACE -->
+    <div class="report-workspace" id="workspace">
+      
+      <!-- SIDEBAR (Dynamic file selector, shown if ZIP report) -->
+      <div class="sidebar" id="sidebarEl" style="display: none;">
+        <div class="sidebar-title">Project Source Files</div>
+        <input type="text" class="search-box" id="fileSearch" placeholder="Filter files by name...">
+        <div class="file-list" id="fileListContainer"></div>
+      </div>
+
+      <!-- MAIN RESULT PANEL -->
+      <div class="main-panel">
+        
+        <!-- HEADER OF PANEL -->
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <h2 class="panel-title" id="activeFileName">File Analysis</h2>
+            <div class="panel-subtitle" id="activeFileMeta">Static rule-based scan</div>
+          </div>
+          <div class="tabs-row">
+            <button class="tab-btn active" data-tab="overview">◆ Overview</button>
+            <button class="tab-btn" data-tab="explain">ℹ Explanation</button>
+            <button class="tab-btn" data-tab="debug">✕ Issues</button>
+            <button class="tab-btn" data-tab="suggest">★ Suggestions</button>
+          </div>
+        </div>
+
+        <!-- PANEL CONTENT -->
+        <div class="panel-content">
+          
+          <!-- OVERVIEW TAB -->
+          <div class="tab-pane active" id="pane-overview">
+            <div class="overview-grid">
+              
+              <div class="score-banner">
+                <div class="score-ring-container">
+                  <svg class="score-ring-svg" width="80" height="80" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" stroke-width="5"/>
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="var(--accent)" stroke-width="5"
+                      stroke-dasharray="201" stroke-dashoffset="0" stroke-linecap="round" id="gaugeCircle" />
+                  </svg>
+                  <div class="score-ring-text">
+                    <span class="score-ring-num" id="overviewScore">0</span>
+                    <span class="score-ring-grade" id="overviewGrade">-</span>
+                  </div>
+                </div>
+                <div class="banner-info">
+                  <h3 id="overviewTitle">Analysis Summary</h3>
+                  <p id="overviewText">Code quality overview metrics.</p>
+                </div>
+              </div>
+
+              <!-- Key Metrics stats cards -->
+              <div class="stats-row" id="statsGrid">
+                <!-- Stat chips injected here -->
+              </div>
+
+              <!-- ZIP Specific File Dashboard (Hidden for single-file mode) -->
+              <div id="zipDashboardSection" style="display: none; margin-top: 16px;">
+                <div class="project-section-title">Scan Overview Table</div>
+                <div class="files-table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Filename</th>
+                        <th>Language</th>
+                        <th>Size</th>
+                        <th>Quality</th>
+                        <th>Issues Scanned</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="filesTableBody">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- EXPLANATION TAB -->
+          <div class="tab-pane" id="pane-explain">
+            <div class="explain-pane">
+              <div class="explain-summary-card" id="explainSummary"></div>
+              
+              <div class="meta-chips-grid" id="explainChips"></div>
+              
+              <div style="margin-top: 16px;">
+                <div class="project-section-title" style="margin-bottom: 12px;">Key Structural Points</div>
+                <ul class="bullet-points-list" id="explainKeyPoints"></ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- DEBUGGING TAB -->
+          <div class="tab-pane" id="pane-debug">
+            <div class="debugging-split">
+              <!-- Left side: Interactive Code view -->
+              <div class="code-viewer-container">
+                <div class="code-viewer-header">
+                  <span id="codeLangLabel">source_code</span>
+                  <span id="codeLinesCount">0 lines</span>
+                </div>
+                <div class="code-lines-scroll" id="codeContainer"></div>
+              </div>
+
+              <!-- Right side: Issues List -->
+              <div class="issues-pane-scroll" id="issuesList"></div>
+            </div>
+          </div>
+
+          <!-- SUGGESTIONS TAB -->
+          <div class="tab-pane" id="pane-suggest">
+            <div class="suggestions-list" id="suggestionsGrid"></div>
+          </div>
+
+        </div><!-- /panel-content -->
+      </div><!-- /main-panel -->
+    </div><!-- /workspace -->
+
+    <footer>
+      QyverixAI standalone analysis export report &middot; MIT License &middot; Viewable completely offline
+    </footer>
+  </div>
+
+  <!-- EMBEDDED DATA FROM BACKEND -->
+  <script>
+    // Injected by the FastAPI Jinja2 template engine
+    const REPORT_DATA = {{ report_data_json | safe }};
+    const CODE_DATA = {{ code_data_json | safe }};
+  </script>
+
+  <!-- INTERACTIVE LOGIC -->
+  <script>
+    let activeFileIndex = 0;
+    let filteredFiles = [];
+
+    // Theme toggler
+    const themeBtn = document.getElementById('themeToggle');
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      themeBtn.textContent = isDark ? '☀' : '◑';
+    });
+
+    // Wire up Tabs row clicking
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        
+        btn.classList.add('active');
+        const tabName = btn.dataset.tab;
+        document.getElementById(`pane-${tabName}`).classList.add('active');
+      });
+    });
+
+    function getTranslation(key, count = 0) {
+      const dict = {
+        errors: count === 1 ? '1 Error' : `${count} Errors`,
+        warnings: count === 1 ? '1 Warning' : `${count} Warnings`,
+        info: count === 1 ? '1 Info' : `${count} Info`,
+      };
+      return dict[key] || key;
+    }
+
+    function escHtml(s) {
+      return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function renderMarkdown(s) {
+      return String(s ?? '')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.+?)`/g, '<code style="font-family:monospace;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.9em">$1</code>');
+    }
+
+    // ── diff engine ──
+    function computeDiff(originalText, fixedText) {
+      const aLines = originalText.split('\n');
+      const bLines = fixedText.split('\n');
+      const m = aLines.length, n = bLines.length;
+
+      const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          dp[i][j] = aLines[i - 1] === bLines[j - 1]
+            ? dp[i - 1][j - 1] + 1
+            : Math.max(dp[i - 1][j], dp[i][j - 1]);
+        }
+      }
+
+      const left = [], right = [];
+      let i = m, j = n;
+      const edits = [];
+      while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && aLines[i - 1] === bLines[j - 1]) {
+          edits.push({ type: 'equal', a: aLines[i - 1], b: bLines[j - 1] });
+          i--; j--;
+        } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+          edits.push({ type: 'added', b: bLines[j - 1] });
+          j--;
+        } else {
+          edits.push({ type: 'removed', a: aLines[i - 1] });
+          i--;
+        }
+      }
+      edits.reverse();
+
+      let aIdx = 0, bIdx = 0;
+      edits.forEach(e => {
+        if (e.type === 'equal') {
+          left.push({ type: 'equal', text: e.a, num: ++aIdx });
+          right.push({ type: 'equal', text: e.b, num: ++bIdx });
+        } else if (e.type === 'removed') {
+          left.push({ type: 'removed', text: e.a, num: ++aIdx });
+          right.push({ type: 'placeholder', text: '' });
+        } else {
+          left.push({ type: 'placeholder', text: '' });
+          right.push({ type: 'added', text: e.b, num: ++bIdx });
+        }
+      });
+      return { left, right };
+    }
+
+    function renderDiffCol(lines) {
+      return lines.map(l => {
+        if (l.type === 'placeholder') {
+          return `<div class="diff-line diff-line-placeholder"><span class="diff-line-num"></span><span class="diff-line-content"> </span></div>`;
+        }
+        const cls = l.type === 'removed' ? 'diff-line-removed' : l.type === 'added' ? 'diff-line-added' : '';
+        const prefix = l.type === 'removed' ? '− ' : l.type === 'added' ? '+ ' : '  ';
+        return `<div class="diff-line ${cls}"><span class="diff-line-num">${l.num}</span><span class="diff-line-content">${prefix}${escHtml(l.text)}</span></div>`;
+      }).join('');
+    }
+
+    function findOriginalSnippet(editorCode, fixedCode) {
+      if (!editorCode || !fixedCode) return null;
+      const fixedLines = fixedCode.split('\n').map(l => l.trim()).filter(Boolean);
+      const editorLines = editorCode.split('\n');
+      if (!fixedLines.length || !editorLines.length) return null;
+
+      let bestScore = 0, bestStart = -1;
+      for (let i = 0; i < editorLines.length; i++) {
+        let score = 0;
+        for (let j = 0; j < fixedLines.length && i + j < editorLines.length; j++) {
+          const el = editorLines[i + j].trim();
+          const fl = fixedLines[j].trim();
+          if (!el || !fl) continue;
+          if (el === fl) {
+            score += 2;
+          } else if (fl.length > 6 && el.includes(fl.slice(0, 18))) {
+            score += 1;
+          }
+        }
+        if (score > bestScore) { bestScore = score; bestStart = i; }
+      }
+
+      if (bestStart === -1 || bestScore < 1) return null;
+      const start = Math.max(0, bestStart);
+      const end = Math.min(editorLines.length, bestStart + fixedLines.length);
+      return editorLines.slice(start, end).join('\n');
+    }
+
+    function buildDiffHtml(originalSnippet, fixedCode) {
+      const diff = computeDiff(originalSnippet, fixedCode);
+      const hasChanges = diff.left.some(l => l.type === 'removed') || diff.right.some(r => r.type === 'added');
+      if (!hasChanges) {
+        const lines = fixedCode.split('\n').map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+        return `
+        <div class="diff-wrapper">
+          <div class="diff-header">
+            <div class="diff-header-labels">
+              <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
+            </div>
+          </div>
+          <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
+        </div>`;
+      }
+      return `
+      <div class="diff-wrapper">
+        <div class="diff-header">
+          <div class="diff-header-labels">
+            <span class="diff-label diff-label-before"><span class="diff-label-dot"></span>Before</span>
+            <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>After</span>
+          </div>
+        </div>
+        <div class="diff-view">
+          <div class="diff-col">${renderDiffCol(diff.left)}</div>
+          <div class="diff-col">${renderDiffCol(diff.right)}</div>
+        </div>
+      </div>`;
+    }
+
+    // ── core rendering ──
+    function init() {
+      // Set timestamp
+      document.getElementById('reportTime').textContent = new Date().toLocaleString();
+
+      if (REPORT_DATA.files) {
+        // Multi-file ZIP Mode
+        document.getElementById('workspace').classList.add('has-sidebar');
+        document.getElementById('sidebarEl').style.display = 'flex';
+        document.getElementById('zipDashboardSection').style.display = 'block';
+        
+        filteredFiles = [...REPORT_DATA.files];
+        renderSidebar();
+        
+        // Search filter
+        document.getElementById('fileSearch').addEventListener('input', (e) => {
+          const q = e.target.value.toLowerCase();
+          filteredFiles = REPORT_DATA.files.filter(f => f.filename.toLowerCase().includes(q));
+          renderSidebar();
+        });
+
+        selectFile(0);
+      } else {
+        // Single File Mode
+        selectSingleFileReport();
+      }
+    }
+
+    function renderSidebar() {
+      const container = document.getElementById('fileListContainer');
+      container.innerHTML = '';
+      
+      filteredFiles.forEach((file, index) => {
+        const actualIndex = REPORT_DATA.files.findIndex(f => f.filename === file.filename);
+        const activeCls = actualIndex === activeFileIndex ? 'active' : '';
+        const analysis = file.analysis;
+        const totalIssues = analysis.debugging ? analysis.debugging.issues.length : 0;
+        const score = analysis.suggestions ? analysis.suggestions.overall_score : 100;
+        
+        const scoreCls = score >= 80 ? 'high' : score >= 60 ? 'med' : 'low';
+        
+        const item = document.createElement('div');
+        item.className = `file-item ${activeCls}`;
+        item.addEventListener('click', () => selectFile(actualIndex));
+        
+        item.innerHTML = `
+          <div class="file-name" title="${escHtml(file.filename)}">${escHtml(file.filename)}</div>
+          <div class="file-meta">
+            <span>${escHtml(file.language)}</span>
+            <span style="display:flex;gap:6px;align-items:center;">
+              <span style="color:var(--text3);">${totalIssues} issue${totalIssues !== 1 ? 's' : ''}</span>
+              <span class="score-badge ${scoreCls}">${score}/100</span>
+            </span>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function selectFile(index) {
+      activeFileIndex = index;
+      renderSidebar();
+      
+      const fileData = REPORT_DATA.files[index];
+      document.getElementById('activeFileName').textContent = fileData.filename;
+      document.getElementById('activeFileMeta').textContent = `Project scan · ${escHtml(fileData.language)} · ${(fileData.size_bytes / 1024).toFixed(2)} KB`;
+      
+      const analysis = fileData.analysis;
+      const code = analysis.debugging ? analysis.debugging.code : '';
+      renderFullReportData(analysis, code);
+    }
+
+    function selectSingleFileReport() {
+      // Hide project-specific file table
+      document.getElementById('zipDashboardSection').style.display = 'none';
+      
+      const title = REPORT_DATA.explanation ? `Source Analysis` : 'Code Analysis Report';
+      document.getElementById('activeFileName').textContent = title;
+      document.getElementById('activeFileMeta').textContent = `Standalone file scan · ${REPORT_DATA.explanation?.language || 'auto'}`;
+      
+      renderFullReportData(REPORT_DATA, CODE_DATA);
+    }
+
+    function updateGauge(score) {
+      document.getElementById('overviewScore').textContent = score;
+      const circ = 201; // Circumference (2 * pi * r)
+      const offset = circ - (score / 100) * circ;
+      const circle = document.getElementById('gaugeCircle');
+      circle.style.strokeDashoffset = offset;
+      
+      const scoreColor = score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--yellow)' : 'var(--red)';
+      circle.style.stroke = scoreColor;
+      document.getElementById('overviewScore').style.color = scoreColor;
+    }
+
+    function renderFullReportData(r, code) {
+      // 1. OVERVIEW
+      const score = r.suggestions ? r.suggestions.overall_score : 100;
+      const grade = r.suggestions ? r.suggestions.grade : 'A';
+      updateGauge(score);
+      document.getElementById('overviewGrade').textContent = grade;
+      
+      document.getElementById('overviewTitle').textContent = r.explanation ? `${r.explanation.complexity} Complexity` : 'Report Overview';
+      document.getElementById('overviewText').textContent = r.explanation ? r.explanation.summary : (r.summary || 'Code analysis metrics.');
+      
+      // Render Stats chips
+      const statsGrid = document.getElementById('statsGrid');
+      statsGrid.innerHTML = '';
+      
+      const metrics = [
+        { label: 'Complexity', val: r.explanation?.complexity || 'Simple', type: 'text' },
+        { label: 'Lines Of Code', val: r.explanation?.line_count || code.split('\n').length, type: 'num' },
+        { label: 'Errors', val: r.debugging?.error_count ?? 0, cls: 'errors' },
+        { label: 'Warnings', val: r.debugging?.warning_count ?? 0, cls: 'warnings' },
+        { label: 'Info Alerts', val: r.debugging?.info_count ?? 0, cls: 'info-stat' }
+      ];
+      
+      metrics.forEach(m => {
+        const card = document.createElement('div');
+        card.className = `stat-card ${m.cls || ''}`;
+        card.innerHTML = `
+          <div class="stat-num">${m.val}</div>
+          <div class="stat-label">${m.label}</div>
+        `;
+        statsGrid.appendChild(card);
+      });
+
+      // If project report, render files table in Overview tab
+      if (REPORT_DATA.files) {
+        const tableBody = document.getElementById('filesTableBody');
+        tableBody.innerHTML = REPORT_DATA.files.map((file, idx) => {
+          const activeS = file.analysis.suggestions;
+          const activeD = file.analysis.debugging;
+          const scoreColor = activeS.overall_score >= 80 ? 'var(--green)' : activeS.overall_score >= 60 ? 'var(--yellow)' : 'var(--red)';
+          return `
+            <tr>
+              <td style="font-weight:600;">${escHtml(file.filename)}</td>
+              <td>${escHtml(file.language)}</td>
+              <td>(${(file.size_bytes/1024).toFixed(1)} KB)</td>
+              <td style="color:${scoreColor};font-weight:bold;">${activeS.overall_score} (${activeS.grade})</td>
+              <td>${activeD.issues.length} issue(s) (${activeD.error_count} E / ${activeD.warning_count} W)</td>
+              <td><button class="btn-table-view" onclick="selectFile(${idx})">Inspect</button></td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // 2. EXPLANATION
+      if (r.explanation) {
+        document.getElementById('explainSummary').innerHTML = r.explanation.summary;
+        
+        // Chips
+        const chipsContainer = document.getElementById('explainChips');
+        chipsContainer.innerHTML = `
+          <div class="meta-chip complexity-${r.explanation.complexity}">◆ Complexity: ${r.explanation.complexity}</div>
+          <div class="meta-chip risk-${r.explanation.complexity_risk || 'Simple'}">⚠ Risk: ${r.explanation.complexity_risk || 'Simple'}</div>
+          <div class="meta-chip">☕ Functions: ${r.explanation.function_count}</div>
+          <div class="meta-chip">◆ Classes: ${r.explanation.class_count}</div>
+          <div class="meta-chip">☕ Cyclomatic Complexity: M=${r.explanation.cyclomatic_complexity || 1}</div>
+        `;
+        
+        // Bullet points
+        const bulletContainer = document.getElementById('explainKeyPoints');
+        bulletContainer.innerHTML = r.explanation.key_points.map(point => `
+          <li class="bullet-point">
+            <span class="bullet-point-icon">⬡</span>
+            <span>${renderMarkdown(point)}</span>
+          </li>
+        `).join('');
+      } else {
+        document.getElementById('explainSummary').textContent = 'Explanation is not available for this analysis mode.';
+        document.getElementById('explainChips').innerHTML = '';
+        document.getElementById('explainKeyPoints').innerHTML = '';
+      }
+
+      // 3. DEBUGGING
+      const codeContainer = document.getElementById('codeContainer');
+      const issuesList = document.getElementById('issuesList');
+      
+      codeContainer.innerHTML = '';
+      issuesList.innerHTML = '';
+      
+      if (!code) {
+        codeContainer.innerHTML = '<div style="color:var(--text3);padding:20px;">Source code is unavailable.</div>';
+      } else {
+        document.getElementById('codeLangLabel').textContent = (r.explanation?.language || 'source_code').toLowerCase();
+        
+        const lines = code.split('\n');
+        document.getElementById('codeLinesCount').textContent = `${lines.length} lines`;
+        
+        lines.forEach((lineText, idx) => {
+          const lineNum = idx + 1;
+          const row = document.createElement('div');
+          row.className = 'code-line-row';
+          row.id = `line-row-${lineNum}`;
+          
+          // Check if line has an issue
+          let rowIssue = null;
+          if (r.debugging && r.debugging.issues) {
+            rowIssue = r.debugging.issues.find(iss => iss.line === lineNum);
+          }
+          
+          if (rowIssue) {
+            row.classList.add(`has-${rowIssue.severity}`);
+          }
+          
+          row.innerHTML = `
+            <span class="code-line-num">${lineNum}</span>
+            <span class="code-line-content">${escHtml(lineText)}</span>
+          `;
+          
+          row.addEventListener('click', () => {
+            if (rowIssue) {
+              const cardId = `issue-card-${r.debugging.issues.indexOf(rowIssue)}`;
+              const cardEl = document.getElementById(cardId);
+              if (cardEl) {
+                cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                cardEl.click();
+              }
+            } else {
+              // Clicked line with no issue
+              highlightCodeLine(lineNum);
+            }
+          });
+          
+          codeContainer.appendChild(row);
+        });
+      }
+      
+      // Render issues
+      if (r.debugging && r.debugging.issues && r.debugging.issues.length > 0) {
+        r.debugging.issues.forEach((iss, idx) => {
+          const card = document.createElement('div');
+          card.className = `issue-card ${iss.severity}`;
+          card.id = `issue-card-${idx}`;
+          
+          card.innerHTML = `
+            <div class="issue-card-header">
+              <span class="issue-card-badge">${iss.severity}</span>
+              <span class="issue-card-type">${escHtml(iss.type)}</span>
+              ${iss.line ? `<span class="issue-card-line">Line ${iss.line}</span>` : ''}
+            </div>
+            <div class="issue-card-desc">${escHtml(iss.description)}</div>
+            ${iss.suggestion ? `<div class="issue-card-fix">💡 Fix: ${escHtml(iss.suggestion)}</div>` : ''}
+          `;
+          
+          card.addEventListener('click', () => {
+            document.querySelectorAll('.issue-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            
+            if (iss.line) {
+              highlightCodeLine(iss.line);
+              const lineRow = document.getElementById(`line-row-${iss.line}`);
+              if (lineRow) {
+                lineRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }
+          });
+          
+          issuesList.appendChild(card);
+        });
+      } else {
+        issuesList.innerHTML = `
+          <div class="clean-issues-state">
+            <div class="clean-icon-wrap">✓</div>
+            <h3>No Issues Detected!</h3>
+            <p>Code successfully passed all structured safety and logic pattern checks. Keep up the high standard!</p>
+          </div>
+        `;
+      }
+
+      // 4. SUGGESTIONS
+      const suggestionsGrid = document.getElementById('suggestionsGrid');
+      suggestionsGrid.innerHTML = '';
+      
+      if (r.suggestions && r.suggestions.suggestions && r.suggestions.suggestions.length > 0) {
+        r.suggestions.suggestions.forEach((sug, idx) => {
+          const card = document.createElement('div');
+          card.className = `suggest-card priority-${sug.priority}`;
+          
+          let exampleHtml = '';
+          if (sug.example) {
+            const rawLines = sug.example.split('\n');
+            const hasMarkers = rawLines.some(l => /^[\-\+]/.test(l) && l.length > 1);
+            
+            if (hasMarkers) {
+              const originalText = rawLines.filter(l => !l.startsWith('+')).map(l => l.replace(/^-\s?/, '')).join('\n');
+              const fixedText = rawLines.filter(l => !l.startsWith('-')).map(l => l.replace(/^\+\s?/, '')).join('\n');
+              exampleHtml = buildDiffHtml(originalText, fixedText);
+            } else {
+              const blankIdx = rawLines.findIndex(l => l.trim() === '');
+              if (blankIdx > 0 && blankIdx < rawLines.length - 1) {
+                const originalText = rawLines.slice(0, blankIdx).join('\n');
+                const fixedText = rawLines.slice(blankIdx + 1).join('\n');
+                exampleHtml = buildDiffHtml(originalText, fixedText);
+              } else {
+                const originalSnippet = findOriginalSnippet(code, sug.example);
+                if (originalSnippet) {
+                  exampleHtml = buildDiffHtml(originalSnippet, sug.example);
+                } else {
+                  const lines = rawLines.map((text, index) => ({ type: 'added', text, num: index + 1 }));
+                  exampleHtml = `
+                    <div class="diff-wrapper">
+                      <div class="diff-header">
+                        <div class="diff-header-labels">
+                          <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
+                        </div>
+                      </div>
+                      <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
+                    </div>`;
+                }
+              }
+            }
+          }
+          
+          card.innerHTML = `
+            <div class="suggest-header">
+              <span class="suggest-cat">${escHtml(sug.category)}</span>
+              <span class="suggest-priority">${sug.priority} priority</span>
+            </div>
+            <div class="suggest-desc">${escHtml(sug.description)}</div>
+            ${exampleHtml}
+          `;
+          
+          suggestionsGrid.appendChild(card);
+        });
+      } else {
+        suggestionsGrid.innerHTML = `
+          <div class="clean-issues-state" style="height: unset; padding: 40px 24px;">
+            <div class="clean-icon-wrap" style="color: var(--accent);">★</div>
+            <h3>Perfect Quality Score!</h3>
+            <p>We found zero actionable design, testing, or readability improvement suggestions. Your code is optimized and exceptionally structured.</p>
+          </div>
+        `;
+      }
+    }
+
+    function highlightCodeLine(lineNum) {
+      document.querySelectorAll('.code-line-row').forEach(row => row.classList.remove('highlighted'));
+      const activeRow = document.getElementById(`line-row-${lineNum}`);
+      if (activeRow) {
+        activeRow.classList.add('highlighted');
+      }
+    }
+
+    // Initialize report
+    init();
+  </script>
+</body>
+</html>

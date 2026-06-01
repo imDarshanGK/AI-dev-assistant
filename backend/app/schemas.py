@@ -115,6 +115,12 @@ class ZipAnalyzeResponse(BaseModel):
     analysis_time_ms: float | None = None
 
 
+class ExportHTMLRequest(BaseModel):
+    analysis: dict
+    code: str | None = None
+
+
+
 class SubscribeRequest(BaseModel):
     email: str
 

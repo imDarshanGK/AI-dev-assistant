@@ -9,9 +9,11 @@ from io import BytesIO
 from pathlib import PurePosixPath
 
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.templating import Jinja2Templates
+from pathlib import Path
 
-from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
+from ..schemas import AnalyzeResponse, CodeRequest, ExportHTMLRequest, ZipAnalyzeResponse
 from ..services.cache import cache
 from ..services.code_assistant import (
     detect_language,
@@ -379,3 +381,26 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
         "skipped_files": skipped_files,
         "analysis_time_ms": round(elapsed_ms, 2),
     }
+
+
+# Initialize templates using absolute path relative to this file
+templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
+
+
+@router.post("/export-html", response_class=HTMLResponse)
+async def export_html(req: ExportHTMLRequest):
+    report_data_json = json.dumps(req.analysis)
+    code_data_json = json.dumps(req.code or "")
+
+    html_content = templates.env.get_template("report_template.html").render(
+        report_data_json=report_data_json,
+        code_data_json=code_data_json,
+    )
+
+    return HTMLResponse(
+        content=html_content,
+        headers={
+            "Content-Disposition": "attachment; filename=qyverix-analysis-report.html"
+        },
+    )
+
