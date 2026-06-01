@@ -432,6 +432,19 @@ Browse all open issues: [github.com/imDarshanGK/AI-dev-assistant/issues](https:/
 
 ---
 
+## ✅ Contribution Checklist
+
+Before submitting a pull request, please ensure:
+
+- Code builds successfully
+- No unnecessary files are included
+- Clear and meaningful commit messages
+- Changes are properly tested
+- Documentation is updated if needed
+- Follows project coding standards
+  
+---
+
 ## Roadmap
 
 - [x] Rule-based code explanation engine
@@ -476,14 +489,16 @@ Built for the open source community &nbsp;·&nbsp; GSSoC 2026
 
 We sincerely thank all contributors who have helped improve this project through code contributions, bug fixes, documentation, testing, and community support 💙
 
-- @GAURAV7820
+* @GAURAV7820
 
-- ## 🟢 Good First Issues
+---
+
+## 🟢 Good First Issues
 
 New contributors can start with these beginner-friendly issues:
 
-- Look for issues labeled `good first issue`
-- Check issues under documentation and small improvements
-- Start with README updates or minor fixes
+* Look for issues labeled `good first issue`
+* Check issues under documentation and small improvements
+* Start with README updates or minor fixes
 
 👉 Visit the Issues section and filter by "good first issue" to find suitable tasks.
