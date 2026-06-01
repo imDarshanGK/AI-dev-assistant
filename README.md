@@ -477,3 +477,13 @@ Built for the open source community &nbsp;·&nbsp; GSSoC 2026
 We sincerely thank all contributors who have helped improve this project through code contributions, bug fixes, documentation, testing, and community support 💙
 
 - @GAURAV7820
+
+- ## 🟢 Good First Issues
+
+New contributors can start with these beginner-friendly issues:
+
+- Look for issues labeled `good first issue`
+- Check issues under documentation and small improvements
+- Start with README updates or minor fixes
+
+👉 Visit the Issues section and filter by "good first issue" to find suitable tasks.
