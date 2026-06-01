@@ -206,6 +206,11 @@ async def health_check():
     }
 
 
+@app.get("/healthz", tags=["System"])
+async def healthz():
+    return {"status": "ok"}
+
+
 @app.get("/ping", tags=["System"])
 async def ping():
     return {"message": "pong"}
