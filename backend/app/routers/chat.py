@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
-from app.config import settings
-from app.schemas import ChatMessageRequest, ChatMessageResponse, ChatRequest, ChatResponse
-from app.services.code_assistant import chat_fallback_reply
-from app.services.llm_analysis import llm_analysis_client
+from ..config import settings
+from ..schemas import ChatMessageRequest, ChatMessageResponse, ChatRequest, ChatResponse
+from ..services.code_assistant import chat_fallback_reply
+from ..services.llm_analysis import llm_analysis_client
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 

@@ -1,0 +1,11 @@
+# All files — Darshan must review every PR
+* @imDarshanGK
+
+# Backend changes
+backend/ @imDarshanGK
+
+# Frontend changes  
+frontend/ @imDarshanGK
+
+# CI/CD — critical, must review
+.github/ @imDarshanGK
