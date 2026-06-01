@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" >
   <title>QyverixAI — AI Developer Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com" >
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
-    rel="stylesheet">
+    rel="stylesheet" >
   <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -18,7 +18,9 @@
     })();
   </script>
   <style>
-    /* DESIGN TOKENS */
+    /* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════════════ */
     :root {
       --bg: #0a0c10;
       --bg2: #0f1117;
@@ -57,7 +59,9 @@
       --shadow2: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    /* RESET & BASE */
+    /* ═══════════════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════════════ */
     *,
     *::before,
     *::after {
@@ -323,7 +327,7 @@
 ═══════════════════════════════════════════════════════════════ */
     .hero {
       text-align: center;
-      padding: 52px 0 36px;
+      padding: 64px 0 48px;
       animation: heroEnter 0.7s ease both;
     }
 
@@ -390,11 +394,11 @@
 
     .hero h1 {
       font-family: var(--font-disp);
-      font-size: clamp(2.6rem, 5.4vw, 4.4rem);
+      font-size: clamp(2.8rem, 6vw, 5rem);
       font-weight: 800;
-      letter-spacing: -0.05em;
-      line-height: 1.08;
-      margin-bottom: 16px;
+      letter-spacing: -0.04em;
+      line-height: 1.16;
+      margin-bottom: 20px;
     }
 
     .hero h1 em {
@@ -407,10 +411,10 @@
     }
 
     .hero-sub {
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       color: var(--text2);
-      max-width: 580px;
-      margin: 0 auto 30px;
+      max-width: 520px;
+      margin: 0 auto 36px;
       line-height: 1.7;
     }
 
@@ -462,23 +466,12 @@
    FEATURE PILLS ROW
 ═══════════════════════════════════════════════════════════════ */
     .features-row {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      display: flex;
       gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
       padding: 16px 0 48px;
       animation: fadeUp 0.6s 0.3s ease both;
-    }
-
-    @media(max-width: 1200px) {
-      .features-row {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-    }
-
-    @media(max-width: 720px) {
-      .features-row {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
     }
 
     @keyframes fadeUp {
@@ -497,13 +490,12 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 14px 16px;
+      padding: 12px 20px;
       border-radius: var(--r);
       background: var(--bg2);
       border: 1px solid var(--border);
       transition: all var(--transition);
       cursor: default;
-      min-height: 72px;
     }
 
     .feat-pill:hover {
@@ -522,7 +514,7 @@
       font-size: 15px;
     }
 
-    .feat-pill-info h2 {
+    .feat-pill-info h4 {
       font-size: 0.82rem;
       font-weight: 600;
       margin-bottom: 1px
@@ -538,13 +530,9 @@
 ═══════════════════════════════════════════════════════════════ */
     .workspace {
       display: grid;
-      /* Constrain right-hand results column to a comfortable width while
-         letting the editor take remaining space. Prevents large vertical
-         stretching when the right panel is empty. */
-      grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
-      gap: 18px;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
       margin-bottom: 16px;
-      align-items: start;
       animation: fadeUp 0.6s 0.4s ease both;
     }
 
@@ -560,7 +548,6 @@
       border-radius: var(--r);
       overflow: hidden;
       transition: border-color var(--transition);
-      min-width: 0;
     }
 
     .panel:focus-within {
@@ -586,6 +573,14 @@
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    .panel-title span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: blink 2s infinite;
     }
 
     .panel-actions {
@@ -1667,8 +1662,8 @@
 ═══════════════════════════════════════════════════════════════ */
     .bottom-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
       animation: fadeUp 0.6s 0.5s ease both;
     }
 
@@ -1998,7 +1993,7 @@
 </style>
 <link rel="icon" href="data:,">
 </head>
-<body id="top">
+<body>
   <div class="bg-orb bg-orb-1"></div>
   <div class="bg-orb bg-orb-2"></div>
 
@@ -2006,7 +2001,7 @@
 
     <!-- ── NAV ──────────────────────────────────────────────────── -->
     <nav>
-      <a href="#top" class="nav-logo">
+      <a href="#" class="nav-logo">
         <div class="logo-hex">Q</div>
         QyverixAI
         <span
@@ -2057,7 +2052,7 @@
         <div class="badge-dot"></div>
         <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
       </div>
-      <h1 data-i18n="hero_title">Debug. Understand.<br><em>Ship faster.</em></h1>
+      <h1 data-i18n="hero_title">Debug. Understand.<br ><em>Ship faster.</em></h1>
       <p class="hero-sub" data-i18n="hero_subtitle">
         Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
         suggestions — no account needed.
@@ -2080,7 +2075,7 @@
         <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path
-              d="M12 0C5.37 0 0 5.37 0 12c0 4.99 3.23 9.22 7.72 10.73.57.1.78-.25.78-.55v-2.1c-3.14.68-3.8-1.34-3.8-1.34-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.24 3.34.95.1-.75.4-1.24.72-1.53-2.5-.29-5.13-1.26-5.13-5.58 0-1.23.44-2.25 1.17-3.05-.12-.29-.5-1.44.11-3 0 0 .95-.3 3.11 1.16.9-.25 1.86-.38 2.82-.38s1.92.13 2.82.38c2.16-1.46 3.11-1.16 3.11-1.16.61 1.56.23 2.71.11 3 .73.8 1.17 1.82 1.17 3.05 0 4.33-2.63 5.29-5.14 5.58.41.35.77 1.03.77 2.08v3.07c0 .31.21.67.77.55C20.77 21.22 24 16.99 24 12c0-6.63-5.37-12-12-12z" />
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
           </svg>
           <span data-i18n="btn_star_github">Star on GitHub</span>
         </a>
@@ -2149,9 +2144,7 @@
       <!-- Editor Panel -->
       <div class="panel" style="grid-column:1">
         <div class="panel-header">
-            <div class="panel-title">
-              <span data-i18n="editor_title">Code Editor</span>
-            </div>
+          <div class="panel-title"></div>
           <div class="panel-actions">
             <button class="icon-btn" id="uploadBtn" type="button" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer" aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -2162,7 +2155,7 @@
               </svg>
             </button>
             <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
-              tabindex="-1">
+              tabindex="-1" >
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
@@ -2359,7 +2352,7 @@
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
-                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);">
+                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
             <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
           <p style="margin:6px 0 0;font-size:0.7rem;color:var(--text3);">Get a Sunday email with your weekly analysis stats.</p>
@@ -2371,7 +2364,9 @@
     <div id="toastContainer"></div>
 
     <script>
-      /* STATE & TRANSLATIONS */
+      /* ═══════════════════════════════════════════════════════════════
+         STATE & TRANSLATIONS
+      ═══════════════════════════════════════════════════════════════ */
       const TRANSLATIONS = {
         en: {
           lang_select_label: "Select language",
@@ -2387,7 +2382,7 @@
           nav_github: "GitHub",
           nav_api_docs: "API Docs",
           hero_badge: "Open Source · AI-Powered · Free",
-          hero_title: "Debug. Understand.<br><em>Ship faster.</em>",
+          hero_title: "Debug. Understand.<br ><em>Ship faster.</em>",
           hero_subtitle: "Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.",
           btn_start_analyzing: "Start Analyzing",
           btn_try_sample: "Try Sample Code",
@@ -2484,7 +2479,7 @@
           nav_github: "கிட்ஹப் (GitHub)",
           nav_api_docs: "ஏபிஐ ஆவணங்கள் (API Docs)",
           hero_badge: "திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்",
-          hero_title: "பிழையறி. புரிந்துகொள்.<br><em>வேகமாக அனுப்பு.</em>",
+          hero_title: "பிழையறி. புரிந்துகொள்.<br ><em>வேகமாக அனுப்பு.</em>",
           hero_subtitle: "உங்கள் குறியீட்டை ஒட்டி, உடனடி பிழை கண்டறிதல், எளிய ஆங்கில விளக்கங்கள் மற்றும் பயனுள்ள மேம்பாட்டு பரிந்துரைகளைப் பெறுங்கள் — கணக்கு தேவையில்லை.",
           btn_start_analyzing: "பகுப்பாய்வைத் தொடங்கு",
           btn_try_sample: "மாதிரிக் குறியீட்டை முயல்க",
@@ -2581,7 +2576,7 @@
           nav_github: "गिटहब (GitHub)",
           nav_api_docs: "एपीआई दस्तावेज़ (API Docs)",
           hero_badge: "ओपन सोर्स · एआई-संचालित · मुफ्त",
-          hero_title: "डीबग करें। समझें।<br><em>तेज़ी से शिप करें।</em>",
+          hero_title: "डीबग करें। समझें।<br ><em>तेज़ी से शिप करें।</em>",
           hero_subtitle: "अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।",
           btn_start_analyzing: "विश्लेषण शुरू करें",
           btn_try_sample: "सैंपल कोड आज़माएं",
@@ -2678,7 +2673,7 @@
           nav_github: "GitHub",
           nav_api_docs: "Docs API",
           hero_badge: "Open Source · Propulsé par l'IA · Gratuit",
-          hero_title: "Déboguez. Comprenez.<br><em>Lisez plus vite.</em>",
+          hero_title: "Déboguez. Comprenez.<br ><em>Lisez plus vite.</em>",
           hero_subtitle: "Collez votre code et obtenez une détection instantanée des bogues, des explications simples et des suggestions d'amélioration exploitables — aucun compte requis.",
           btn_start_analyzing: "Démarrer l'analyse",
           btn_try_sample: "Essayer l'exemple",
@@ -2771,8 +2766,12 @@
       let selectedMode = 'analyze';
       let selectedZipFile = null;
       let appLang = localStorage.getItem('qyx_lang') || 'en';
+      const LOCAL_API_BASE = 'http://localhost:8000';
+      const REMOTE_API_BASE = 'https://qyverixai.onrender.com';
 
-      /* DOM REFS */
+      /* ═══════════════════════════════════════════════════════════════
+         DOM REFS
+      ═══════════════════════════════════════════════════════════════ */
       const editor = document.getElementById('codeEditor');
       const lineNumbers = document.getElementById('lineNumbers');
       const charCount = document.getElementById('charCount');
@@ -2787,7 +2786,9 @@
       const engineInfo = document.getElementById('engineInfo');
       const timeInfo = document.getElementById('timeInfo');
 
-      /* THEME */
+      /* ═══════════════════════════════════════════════════════════════
+         THEME
+      ═══════════════════════════════════════════════════════════════ */
       // dark mode → moon, light mode → sun
       function setThemeIcon(theme) {
         const icon = document.getElementById('themeIcon');
@@ -2909,79 +2910,35 @@
         return /<\s*html|<\s*style|<\s*script|function\s+updateEditor\s*\(|\.stat-bar|\.hero\s*\{|\.workspace\s*\{/i.test(text);
       }
 
-      const DEFAULT_API_BASE = 'https://qyverixai.onrender.com';
+      function getApiBase() {
+        const configuredBase = ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || '').trim();
+        if (configuredBase) return configuredBase.replace(/\/$/, '');
+        return window.location.protocol === 'file:' ? REMOTE_API_BASE : LOCAL_API_BASE;
+      }
 
-      function getHostname(url) {
+      function getApiFallbackBase(base) {
+        const normalized = String(base || '').replace(/\/$/, '');
+        return /localhost:8000|127\.0\.0\.1:8000/i.test(normalized) ? REMOTE_API_BASE : null;
+      }
+
+      function persistApiBase(base) {
+        const normalized = String(base || '').replace(/\/$/, '');
+        if (!normalized) return;
+        localStorage.setItem('qyx_apiUrl', normalized);
+        if (apiUrlInput) apiUrlInput.value = normalized;
+      }
+
+      async function fetchWithApiFallback(base, path, options) {
+        const normalizedBase = String(base || '').replace(/\/$/, '');
         try {
-          return new URL(url).hostname;
-        } catch {
-          return '';
+          const response = await fetch(`${normalizedBase}${path}`, options);
+          return { response, baseUsed: normalizedBase, fallbackUsed: false };
+        } catch (err) {
+          const fallbackBase = getApiFallbackBase(normalizedBase);
+          if (!fallbackBase) throw err;
+          const response = await fetch(`${fallbackBase}${path}`, options);
+          return { response, baseUsed: fallbackBase, fallbackUsed: true };
         }
-      }
-
-      function isLocalHostName(hostname) {
-        return hostname === 'localhost' || hostname === '127.0.0.1';
-      }
-
-      function isLocalApiUrl(url) {
-        return isLocalHostName(getHostname(url));
-      }
-
-      function normalizeApiBase(url) {
-        return String(url || '').replace(/\/$/, '');
-      }
-
-      function getConfiguredApiBase() {
-        return normalizeApiBase(
-          (apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || DEFAULT_API_BASE
-        );
-      }
-
-      function getApiBaseCandidates() {
-        const lastWorking = sessionStorage.getItem('qyx_lastWorkingApiBase') || '';
-        const candidates = [
-          lastWorking,
-          'http://localhost:8000',
-          'http://127.0.0.1:8000',
-          getConfiguredApiBase(),
-          DEFAULT_API_BASE,
-        ];
-        return [...new Set(candidates.map(normalizeApiBase).filter(Boolean))];
-      }
-
-      async function fetchWithApiFallback(path, init = {}, { primaryTimeoutMs = 10000, fallbackTimeoutMs = 60000 } = {}) {
-        let lastError = null;
-
-        for (let i = 0; i < getApiBaseCandidates().length; i += 1) {
-          const base = getApiBaseCandidates()[i];
-          const timeoutMs = i === 0 ? primaryTimeoutMs : fallbackTimeoutMs;
-
-          try {
-            const response = await fetch(`${base}${path}`, {
-              ...init,
-              signal: AbortSignal.timeout(timeoutMs),
-            });
-
-            if (response.ok || ![429, 500, 502, 503, 504].includes(response.status)) {
-              sessionStorage.setItem('qyx_lastWorkingApiBase', base);
-              return { response, base };
-            }
-
-            lastError = new Error(`HTTP ${response.status}`);
-          } catch (err) {
-            lastError = err;
-            if (!isNetworkFetchFailure(err) && err?.name !== 'AbortError' && err?.name !== 'TimeoutError') {
-              throw err;
-            }
-          }
-        }
-
-        throw lastError || new Error('Unable to reach API');
-      }
-
-      function isNetworkFetchFailure(err) {
-        const message = String(err?.message || err || '');
-        return err?.name === 'TypeError' && /fetch/i.test(message);
       }
 
       function normalizeEditorOnLoad() {
@@ -3193,6 +3150,7 @@
         document.querySelectorAll('.lang-tab').forEach(t => {
           const isActive = t.dataset.lang === lang;
           t.classList.toggle('active', isActive);
+          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
 
         // 2. Check if the editor currently contains one of the samples
@@ -3262,17 +3220,16 @@
       ═══════════════════════════════════════════════════════════════ */
       async function pingApi({ notify = false } = {}) {
         if (!apiUrlInput || !apiStatusText) return;
+        const base = getApiBase();
         try {
-          const { response: r, base } = await fetchWithApiFallback('/health', { method: 'GET' }, { primaryTimeoutMs: 2000, fallbackTimeoutMs: 5000 });
+          const { response: r, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, '/health', { signal: AbortSignal.timeout(5000) });
+          if (fallbackUsed) persistApiBase(baseUsed);
           if (r.ok) {
-            apiUrlInput.value = base;
             apiDot?.classList.add('connected');
             apiStatusText.dataset.status = 'connected';
             delete apiStatusText.dataset.statusCode;
             syncApiStatusText();
-            if (notify) {
-              toast(getTranslation('toast_api_reachable'), 'success');
-            }
+            if (notify) { toast(getTranslation('toast_api_reachable'), 'success'); }
           } else {
             apiDot?.classList.remove('connected');
             apiStatusText.dataset.status = 'error';
@@ -3284,16 +3241,13 @@
           apiStatusText.dataset.status = 'unreachable';
           delete apiStatusText.dataset.statusCode;
           syncApiStatusText();
-          if (notify) {
-            toast(getTranslation('toast_api_unreachable'), 'error');
-          }
+          if (notify) { toast(getTranslation('toast_api_unreachable'), 'error'); }
         }
       }
-
       const pingBtn = document.getElementById('pingBtn');
       if (pingBtn) pingBtn.addEventListener('click', () => pingApi({ notify: true }));
 
-      // Auto-ping on load (quiet by default)
+      // Auto-ping on load
       setTimeout(pingApi, 800);
 
       /* ═══════════════════════════════════════════════════════════════
@@ -3304,6 +3258,8 @@
       async function doAnalyze() {
         const code = editor.value.trim();
         if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
+
+        const base = getApiBase();
         const endpointMap = {
           analyze: '/analyze/',
           explain: '/explanation/',
@@ -3321,10 +3277,12 @@
           if (selectedZipFile) {
             const formData = new FormData();
             formData.append('file', selectedZipFile);
-            const { response: res, base: resolvedBase } = await fetchWithApiFallback('/analyze/zip/', {
+            const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, '/analyze/zip/', {
               method: 'POST',
               body: formData,
-            }, { primaryTimeoutMs: 3000, fallbackTimeoutMs: 60000 });
+              signal: AbortSignal.timeout(60000),
+            });
+            if (fallbackUsed) persistApiBase(baseUsed);
             if (!res.ok) {
               const err = await res.json().catch(() => ({}));
               throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3334,7 +3292,6 @@
             currentResult = data;
             renderZipResults(data);
             addToHistory(`ZIP: ${selectedZipFile.name}`, data);
-            apiUrlInput.value = resolvedBase;
             apiDot?.classList.add('connected');
             if (apiStatusText) apiStatusText.textContent = 'Connected';
             document.getElementById('engineBar').style.display = 'flex';
@@ -3344,11 +3301,13 @@
             return;
           }
 
-          const { response: res, base: resolvedBase } = await fetchWithApiFallback(endpoint, {
+          const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code, language: selectedLang }),
-          }, { primaryTimeoutMs: 3000, fallbackTimeoutMs: 60000 });
+            signal: AbortSignal.timeout(30000),
+          });
+          if (fallbackUsed) persistApiBase(baseUsed);
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3371,7 +3330,6 @@
           currentResult = result;
           renderResults(result, code);
           addToHistory(code, result);
-          apiUrlInput.value = resolvedBase;
           apiDot?.classList.add('connected');
           if (apiStatusText) apiStatusText.textContent = getTranslation('api_status_connected');
           document.getElementById('engineBar').style.display = 'flex';
@@ -3381,15 +3339,7 @@
           resultActions.style.display = 'flex';
 
         } catch (err) {
-          if (isNetworkFetchFailure(err)) {
-            apiDot?.classList.remove('connected');
-            apiStatusText.dataset.status = 'unreachable';
-            delete apiStatusText.dataset.statusCode;
-            syncApiStatusText();
-            toast(getTranslation('toast_api_unreachable'), 'error');
-          } else {
-            toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
-          }
+          toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');
@@ -3533,34 +3483,25 @@
         document.getElementById('emptyExplain').style.display = 'none';
         const el = document.getElementById('explainResult');
         el.style.display = 'block';
-        document.getElementById('explainBadge').textContent = escHtml(exp.complexity);
-
-        const cleanComplexity = sanitizeClassToken(exp.complexity);
-        const cleanRisk = sanitizeClassToken((exp.complexity_risk || 'Simple').replace(/\s+/g, '-'));
-        const escapedLang = escHtml(exp.language);
-        const lineCountInt = parseInt(exp.line_count, 10) || 0;
-        const funcCountInt = parseInt(exp.function_count, 10) || 0;
-        const classCountInt = parseInt(exp.class_count, 10) || 0;
-        const cyclomaticComplexityInt = exp.cyclomatic_complexity != null ? parseInt(exp.cyclomatic_complexity, 10) : null;
-        const escapedRisk = escHtml(exp.complexity_risk || 'Simple');
+        document.getElementById('explainBadge').textContent = exp.complexity;
 
         el.innerHTML = `
-    <div class="explain-summary" tabindex="0">${renderMarkdown(exp.summary)}</div>
+    <div class="explain-summary" tabindex="0">${exp.summary}</div>
     <div class="explain-meta">
-      <div class="meta-chip complexity-${cleanComplexity}">
-        <div class="dot"></div>${escHtml(exp.complexity)}
+      <div class="meta-chip complexity-${exp.complexity}">
+        <div class="dot"></div>${exp.complexity}
       </div>
       <div class="meta-chip">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-        ${escapedLang}
+        ${exp.language}
       </div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', lineCountInt)}</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', funcCountInt)}</div>
-      ${classCountInt > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', classCountInt) + '</div>' : ''}
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${lineCountInt} lines</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${funcCountInt} fn${funcCountInt !== 1 ? 's' : ''}</div>
-      ${classCountInt > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + classCountInt + ' class' + (classCountInt !== 1 ? 'es' : '') + '</div>' : ''}
-      ${cyclomaticComplexityInt != null ? `<div class="meta-chip risk-${cleanRisk}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${cyclomaticComplexityInt} &middot; ${escapedRisk}</div>` : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', exp.line_count)}</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', exp.function_count)}</div>
+      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', exp.class_count) + '</div>' : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
+      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
+      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
     </div>
     <ul class="key-points">
       ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
@@ -3589,37 +3530,30 @@
         const statBar = `
     <div class="stat-bar">
       <div class="stat-chip error-chip">
-        <div class="stat-chip-num">${parseInt(dbg.error_count, 10) || 0}</div>
+        <div class="stat-chip-num">${dbg.error_count}</div>
         <div class="stat-chip-label">${getTranslation('debug_errors')}</div>
       </div>
       <div class="stat-chip warn-chip">
-        <div class="stat-chip-num">${parseInt(dbg.warning_count, 10) || 0}</div>
+        <div class="stat-chip-num">${dbg.warning_count}</div>
         <div class="stat-chip-label">${getTranslation('debug_warnings')}</div>
       </div>
       <div class="stat-chip info-chip">
-        <div class="stat-chip-num">${parseInt(dbg.info_count, 10) || 0}</div>
+        <div class="stat-chip-num">${dbg.info_count}</div>
         <div class="stat-chip-label">${getTranslation('debug_info')}</div>
       </div>
     </div>`;
 
-        const cards = dbg.issues.map((issue, i) => {
-          const cleanSeverity = sanitizeClassToken(issue.severity);
-          const escapedType = escHtml(issue.type);
-          const escapedDesc = escHtml(issue.description);
-          const escapedSuggestion = escHtml(issue.suggestion);
-          const escapedLine = issue.line ? escHtml(issue.line) : '';
-          return `
-    <div class="issue-card ${cleanSeverity}" style="animation-delay:${i * 0.05}s" tabindex="0">
+        const cards = dbg.issues.map((issue, i) => `
+    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
       <div class="issue-header">
-        <span class="issue-badge">${escHtml(issue.severity)}</span>
-        <span class="issue-type">${escapedType}</span>
-        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', escapedLine)}</span>` : ''}
+        <span class="issue-badge">${issue.severity}</span>
+        <span class="issue-type">${issue.type}</span>
+        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', issue.line)}</span>` : ''}
       </div>
-      <div class="issue-desc">${escapedDesc}</div>
+      <div class="issue-desc">${issue.description}</div>
       ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
-      <div class="issue-fix">${escapedSuggestion}</div>
-    </div>`;
-        }).join('');
+      <div class="issue-fix">${issue.suggestion}</div>
+    </div>`).join('');
 
         el.innerHTML = statBar + cards;
       }
@@ -3795,13 +3729,13 @@
             style="transition:stroke-dashoffset 1s ease" />
         </svg>
         <div class="score-ring-text">
-          <div class="score-num" style="color:${scoreColor}">${parseInt(sugg.overall_score, 10) || 0}</div>
-          <div class="score-grade">${escHtml(sugg.grade)}</div>
+          <div class="score-num" style="color:${scoreColor}">${sugg.overall_score}</div>
+          <div class="score-grade">${sugg.grade}</div>
         </div>
       </div>
       <div class="score-info">
         <h3>${getTranslation('suggest_quality_score')}</h3>
-        <p>${escHtml(sugg.next_step)}</p>
+        <p>${sugg.next_step}</p>
       </div>
     </div>`;
 
@@ -3845,7 +3779,7 @@
                           <span class="diff-label diff-label-after"><span class="diff-label-dot"></span>Fixed Code</span>
                         </div>
                         <button class="btn-copy-fix" id="${copyId}" aria-label="Copy fixed code">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                           Copy fixed
                         </button>
                       </div>
@@ -3856,18 +3790,13 @@
               }
             }
 
-            const cleanPriority = sanitizeClassToken(s.priority);
-            const escapedCat = escHtml(s.category);
-            const escapedPriority = escHtml(s.priority);
-            const escapedDesc = escHtml(s.description);
-
             return `
-      <div class="suggest-card priority-${cleanPriority}" style="animation-delay:${i * 0.05}s" tabindex="0">
+      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
         <div class="suggest-header">
-          <span class="suggest-cat">${escapedCat}</span>
-          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', escapedPriority)}</span>
+          <span class="suggest-cat">${s.category}</span>
+          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', s.priority)}</span>
         </div>
-        <div class="suggest-desc">${escapedDesc}</div>
+        <div class="suggest-desc">${s.description}</div>
         ${exampleHtml}
       </div>`;
           }).join('');
@@ -3981,11 +3910,6 @@
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
-      function normalizeSavedEntryId(id) {
-        const normalizedId = Number(id);
-        return Number.isNaN(normalizedId) ? null : normalizedId;
-      }
-
       document.getElementById('downloadJsonBtn').addEventListener('click', () => {
         if (!history || history.length === 0) {
           toast('No history to download', 'info');
@@ -4029,10 +3953,13 @@
         dlNode.remove();
         toast('Downloaded history.csv', 'success');
       });
+      function normalizeSavedEntryId(id) {
+        const normalizedId = Number(id);
+        return Number.isNaN(normalizedId) ? null : normalizedId;
+      }
 
       function restoreSavedEntry(entry) {
         if (!entry) return;
-
         editor.value = entry.code;
         if (entry.lang) {
           setLanguage(entry.lang.toLowerCase());
@@ -4162,14 +4089,10 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
          HELPERS
       ═══════════════════════════════════════════════════════════════ */
       function escHtml(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-      }
-      function sanitizeClassToken(token) {
-        return String(token || '').replace(/[^a-zA-Z0-9\-]/g, '');
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
       function renderMarkdown(s) {
-        const escaped = escHtml(s);
-        return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
           .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
       }
 
@@ -4289,7 +4212,9 @@ int main() {
 
       window.loadSample = loadSample;
 
-      /* INIT */
+      /* ═══════════════════════════════════════════════════════════════
+         INIT
+      ═══════════════════════════════════════════════════════════════ */
       // Wire up language selector
       const langSelect = document.getElementById('langSelect');
       if (langSelect) {
@@ -4315,26 +4240,25 @@ int main() {
           localStorage.setItem('qyx_apiUrl', apiUrlInput.value);
         });
         const savedUrl = localStorage.getItem('qyx_apiUrl');
-        if (savedUrl) {
-          apiUrlInput.value = savedUrl;
-        } else {
-          apiUrlInput.value = DEFAULT_API_BASE;
-        }
+        if (savedUrl) apiUrlInput.value = savedUrl;
       }
 
-      /* DIGEST SUBSCRIBE */
+      /* ═══════════════════════════════════════════════════════════════
+         DIGEST SUBSCRIBE
+      ═══════════════════════════════════════════════════════════════ */
       document.getElementById('digestForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('digestEmail').value.trim();
         const btn = document.getElementById('digestBtn');
         btn.disabled = true;
         btn.textContent = 'Subscribing…';
+        const base = getApiBase();
         try {
-          const { response: r } = await fetchWithApiFallback('/subscribe/', {
+          const r = await fetch(`${base}/subscribe/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }),
-          }, { primaryTimeoutMs: 10000, fallbackTimeoutMs: 60000 });
+          });
           const data = await r.json();
           if (r.ok) {
             toast(data.message, 'success');
