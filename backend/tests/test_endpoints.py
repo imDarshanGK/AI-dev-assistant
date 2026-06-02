@@ -5,12 +5,14 @@ Run: cd backend && pytest -v
 
 import json
 
+import os
+import sys
+
 import pytest
 from fastapi.testclient import TestClient
-import sys
-import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
 from app import main as app_main
 
 client = TestClient(app_main.app)

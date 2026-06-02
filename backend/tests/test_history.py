@@ -1,6 +1,10 @@
 """
 Tests for the /history/ endpoints.
 """
+import sys, os, tempfile, asyncio
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from app.services import database
 import sys
 import os
 import tempfile
@@ -17,6 +21,9 @@ _tmp.close()
 database.DB_PATH = _tmp.name
 
 asyncio.run(database.init_db())
+
+from fastapi.testclient import TestClient
+from app.main import app
 
 client = TestClient(app, raise_server_exceptions=True)
 
