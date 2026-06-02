@@ -47,6 +47,7 @@ def create_share(payload: ShareCreateRequest, db: Session = Depends(get_db)):
 
     return ShareRecord(
         id=record.token,
+        action=payload.action,
         code=record.code,
         result=json.loads(record.result_json),
         created_at=record.created_at.isoformat(),
@@ -110,12 +111,7 @@ def get_share(token: str, db: Session = Depends(get_db)):
                 status_code=status.HTTP_404_NOT_FOUND, detail="Shared result expired"
             )
 
-        return ShareRecord(
-            id=token_val,
-            code=code_val,
-            result=json.loads(result_json_val),
-            created_at=created_at.isoformat(),
-        )
+        return ShareRecord(id=token_val, action="share", code=code_val, result=json.loads(result_json_val), created_at=created_at.isoformat())
 
     # expire shares older than 7 days — normalize tzinfo if necessary
     from datetime import datetime, timezone, timedelta
@@ -131,6 +127,7 @@ def get_share(token: str, db: Session = Depends(get_db)):
 
     return ShareRecord(
         id=record.token,
+        action="share",
         code=record.code,
         result=json.loads(record.result_json),
         created_at=created_at.isoformat(),

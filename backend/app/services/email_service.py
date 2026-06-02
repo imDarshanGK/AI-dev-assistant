@@ -7,6 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 import smtplib
+from urllib.parse import urlencode
 
 from sqlalchemy.orm import Session
 
@@ -18,6 +19,13 @@ from ..models import QueryHistory, User
 
 def _generate_token() -> str:
     return secrets.token_urlsafe(32)
+
+
+def _build_unsubscribe_url(email: str, token: str) -> str:
+    """Build the one-click unsubscribe URL for digest emails."""
+    base = settings.digest_base_url.rstrip("/")
+    query = urlencode({"email": email, "token": token})
+    return f"{base}/subscribe/unsubscribe?{query}"
 
 
 def _parse_score(result_json: str) -> int | None:
@@ -242,10 +250,7 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
     if not settings.digest_enabled or not settings.smtp_host:
         return False
 
-    base = settings.digest_base_url.rstrip("/")
-    unsubscribe_url = (
-        f"{base}/unsubscribe/?email={stats['email']}&token={unsubscribe_token}"
-    )
+    unsubscribe_url = _build_unsubscribe_url(stats["email"], unsubscribe_token)
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = (
