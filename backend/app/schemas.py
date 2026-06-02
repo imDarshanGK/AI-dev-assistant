@@ -1,16 +1,13 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
+from pydantic import BaseModel, Field, field_validator, model_validator
 import json
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
-
 from .config import settings
-from .sanitize import sanitize_code_input
 from .schema_validators import (
     validate_chat_history,
-    validate_language_hint,
     validate_stored_action,
     validate_stored_code,
     validate_stored_result_json,
@@ -28,25 +25,7 @@ class CodeRequest(BaseModel):
             raise ValueError("code must not be empty")
         if len(v) > 50_000:
             raise ValueError("code exceeds 50,000 character limit")
-        # Strip null bytes and ANSI escape sequences before any processing
-        return sanitize_code_input(v)
-
-    @field_validator("language")
-    @classmethod
-    def sanitize_language(cls, v: str | None) -> str | None:
-        return validate_language_hint(v)
-
-
-class ExplanationResponse(BaseModel):
-    language: str
-    summary: str
-    key_points: list[str] | None = None
-    complexity: str | None = None
-    line_count: int | None = None
-    function_count: int | None = None
-    class_count: int | None = None
-    cyclomatic_complexity: int | None = None
-    complexity_risk: str | None = None
+        return v
 
 
 class Issue(BaseModel):
@@ -77,22 +56,6 @@ class Suggestion(BaseModel):
     code_context: str | None = None
     example: str | None = None
     priority: str
-
-
-class SuggestionsResponse(BaseModel):
-    suggestions: list[dict]
-    overall_score: int
-    grade: str
-    next_step: str | None = None
-
-
-class AnalyzeResponse(BaseModel):
-    provider: str
-    model: str | None = None
-    explanation: dict | ExplanationResponse | None = None
-    debugging: dict | DebuggingResponse | None = None
-    suggestions: dict | SuggestionsResponse | None = None
-    analysis_time_ms: float | None = None
 
 
 class ZipAnalyzeFileResult(BaseModel):
@@ -260,6 +223,23 @@ class FavoriteRecord(BaseModel):
 
 
 # ── Share ─────────────────────────────────────────────────────────────────────
+class LivenessResponse(BaseModel):
+    """Minimal liveness response — emitted only when the process can answer."""
+
+    status: str  # always "ok" when this response is returned
+
+
+class ReadinessResponse(BaseModel):
+    """Readiness response with a per-dependency breakdown.
+
+    ``status`` is ``"ok"`` only when every entry in ``checks`` has ``ok=True``.
+    Each ``checks`` entry contains at minimum ``ok`` (bool) and ``elapsed_ms``
+    (float), plus an optional ``error`` field when the check failed.
+    """
+
+    status: str
+    checks: dict[str, dict[str, Any]]
+
 class ShareCreateRequest(BaseModel):
     action: str = Field("share", min_length=3, max_length=50)
     code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
@@ -371,3 +351,30 @@ class ChatMessageResponse(BaseModel):
     model: str
     mode: str
     reply: str
+
+
+# ── Explanation / Debugging / Suggestions response models ───────────────────
+class ExplanationResponse(BaseModel):
+    language: str
+    summary: str
+    key_points: list[str]
+    complexity: str
+    line_count: int
+    function_count: int
+    class_count: int
+    cyclomatic_complexity: int
+    complexity_risk: str
+
+class SuggestionsResponse(BaseModel):
+    suggestions: list[Suggestion]
+    overall_score: int
+    grade: str
+    next_step: str
+
+class AnalyzeResponse(BaseModel):
+    provider: str
+    model: str
+    explanation: ExplanationResponse
+    debugging: DebuggingResponse
+    suggestions: SuggestionsResponse
+    analysis_time_ms: float | None = None
