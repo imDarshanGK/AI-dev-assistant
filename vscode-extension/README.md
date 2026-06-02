@@ -44,6 +44,15 @@ This extension contributes the following settings:
 
 ```bash
 cd vscode-extension
+npm install
+npm run compile
+```
+
+The compile step emits `extension.js`, which matches the package entrypoint declared in `package.json`.
+
+To build an installable VSIX package:
+
+```bash
 npm install -g @vscode/vsce
 vsce package
 code --install-extension qyverixai-vscode-*.vsix
