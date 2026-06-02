@@ -37,7 +37,9 @@
   }
 
   function safeCssToken(value, fallback) {
-    const token = String(value || '').trim().replace(/\s+/g, '-');
+    const token = String(value || '')
+      .trim()
+      .replace(/\s+/g, '-');
     return /^[a-z0-9_-]+$/i.test(token) ? token : fallback;
   }
 
@@ -54,14 +56,24 @@
       id,
       code: typeof entry.code === 'string' ? entry.code : '',
       result: entry.result ?? null,
-      lang: typeof entry.lang === 'string' ? entry.lang.slice(0, STORED_ENTRY_LIMITS.lang) : '?',
-      ts: typeof entry.ts === 'string' ? entry.ts.slice(0, STORED_ENTRY_LIMITS.ts) : '',
-      preview: typeof entry.preview === 'string' ? entry.preview.slice(0, STORED_ENTRY_LIMITS.preview) : '',
+      lang:
+        typeof entry.lang === 'string'
+          ? entry.lang.slice(0, STORED_ENTRY_LIMITS.lang)
+          : '?',
+      ts:
+        typeof entry.ts === 'string'
+          ? entry.ts.slice(0, STORED_ENTRY_LIMITS.ts)
+          : '',
+      preview:
+        typeof entry.preview === 'string'
+          ? entry.preview.slice(0, STORED_ENTRY_LIMITS.preview)
+          : '',
     };
   }
 
   function loadStoredHistory(storageKey, storage) {
-    const store = storage ?? (typeof localStorage !== 'undefined' ? localStorage : null);
+    const store =
+      storage ?? (typeof localStorage !== 'undefined' ? localStorage : null);
     if (!store) return [];
     try {
       const raw = JSON.parse(store.getItem(storageKey) || '[]');
@@ -73,7 +85,8 @@
   }
 
   function saveStoredHistory(storageKey, entries, storage) {
-    const store = storage ?? (typeof localStorage !== 'undefined' ? localStorage : null);
+    const store =
+      storage ?? (typeof localStorage !== 'undefined' ? localStorage : null);
     if (!store) return;
     store.setItem(storageKey, JSON.stringify(entries));
   }

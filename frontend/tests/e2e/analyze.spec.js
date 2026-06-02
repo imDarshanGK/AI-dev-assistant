@@ -16,6 +16,6 @@ test('uploads a sample file and renders analysis results', async ({ page }) => {
   const summary = page.locator('#explainResult .explain-summary');
   await expect(summary).toBeVisible();
   await expect(summary).toHaveText(
-    'A short Python snippet (3 lines) that performs a focused task. Good starting point for learners.'
+    'A short Python snippet (3 lines) that performs a focused task. Good starting point for learners.',
   );
 });

@@ -62,11 +62,15 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install Ruff
-        run: pip install ruff
+      - name: Install linting tools
+        run: |
+          pip install ruff black
 
       - name: Run Ruff lint
         run: ruff check backend/app --select E,F,W --ignore E501
+
+      - name: Run Black format check
+        run: black --check backend/app
 
   frontend-check:
     name: Frontend Check

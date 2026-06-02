@@ -102,7 +102,7 @@ describe('innerHTML assignment safety (unit simulation)', () => {
     const payload = "<script>alert('xss')</script>";
     const boxContent = `<div class="result-text">${SEC.escHtml(payload)}</div>`;
     assertPlainTextHtml(boxContent, 'outputBox simulation');
-    assert.equal(boxContent.includes("<script>alert"), false);
+    assert.equal(boxContent.includes('<script>alert'), false);
     assert.ok(boxContent.includes('&lt;script'));
   });
 

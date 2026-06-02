@@ -23,7 +23,7 @@ export const SCRIPT_TAG = "<script>alert('xss')</script>";
 
 export const XSS_PAYLOADS = [
   SCRIPT_TAG,
-  "<script>alert(String.fromCharCode(88,83,83))</script>",
+  '<script>alert(String.fromCharCode(88,83,83))</script>',
   '<img src=x onerror="alert(1)">',
   "<img src=x onerror=alert('xss')>",
   '<svg/onload=alert(1)>',

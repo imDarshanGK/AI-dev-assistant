@@ -9,12 +9,19 @@ const SEC = window.QyverixSecurity || {
       .replace(/'/g, '&#39;');
   },
   sanitizeClientCode(text) {
-    return String(text).replace(/\x00/g, '').replace(/\x1b\[[0-9;]*[A-Za-z]/g, '');
+    return String(text)
+      .replace(/\x00/g, '')
+      .replace(/\x1b\[[0-9;]*[A-Za-z]/g, '');
   },
 };
 const { escHtml, sanitizeClientCode } = SEC;
 
-const ALLOWED_MODES = new Set(['analyze', 'explanation', 'debugging', 'suggestions']);
+const ALLOWED_MODES = new Set([
+  'analyze',
+  'explanation',
+  'debugging',
+  'suggestions',
+]);
 function safeModeLabel(mode) {
   const key = String(mode || '').toLowerCase();
   return ALLOWED_MODES.has(key) ? key : 'analyze';
@@ -43,32 +50,47 @@ const themeToggle = document.getElementById('themeToggle');
 const API_URL_STORAGE_KEY = 'qyverix_api_url';
 
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-const savedTheme = localStorage.getItem('qyverix_theme') || (systemDark ? 'dark' : 'light');
+const savedTheme =
+  localStorage.getItem('qyverix_theme') || (systemDark ? 'dark' : 'light');
 document.documentElement.setAttribute('data-theme', savedTheme);
 
 themeToggle.addEventListener('click', () => {
-  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  const isLight =
+    document.documentElement.getAttribute('data-theme') === 'light';
+  document.documentElement.setAttribute(
+    'data-theme',
+    isLight ? 'dark' : 'light',
+  );
   localStorage.setItem('qyverix_theme', isLight ? 'dark' : 'light');
 
   const themeToggleBtn = document.getElementById('themeToggle');
   if (themeToggleBtn) {
-    themeToggleBtn.setAttribute('aria-label', isLight ? 'Toggle dark mode' : 'Toggle light mode');
+    themeToggleBtn.setAttribute(
+      'aria-label',
+      isLight ? 'Toggle dark mode' : 'Toggle light mode',
+    );
     themeToggleBtn.setAttribute('aria-pressed', isLight ? 'false' : 'true');
   }
 });
 
-const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+const initialTheme =
+  document.documentElement.getAttribute('data-theme') || 'dark';
 const themeToggleBtnInit = document.getElementById('themeToggle');
 if (themeToggleBtnInit) {
-  themeToggleBtnInit.setAttribute('aria-label', initialTheme === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
-  themeToggleBtnInit.setAttribute('aria-pressed', initialTheme === 'dark' ? 'false' : 'true');
+  themeToggleBtnInit.setAttribute(
+    'aria-label',
+    initialTheme === 'dark' ? 'Toggle light mode' : 'Toggle dark mode',
+  );
+  themeToggleBtnInit.setAttribute(
+    'aria-pressed',
+    initialTheme === 'dark' ? 'false' : 'true',
+  );
 }
 
 // ── Tabs ──
-document.querySelectorAll('.tab').forEach(tab => {
+document.querySelectorAll('.tab').forEach((tab) => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => {
+    document.querySelectorAll('.tab').forEach((t) => {
       t.classList.remove('active');
       t.setAttribute('aria-selected', 'false');
     });
@@ -97,7 +119,9 @@ codeInput.addEventListener('keydown', (e) => {
 });
 
 // ── File upload ──
-document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
+document
+  .getElementById('uploadBtn')
+  .addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -141,7 +165,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     code: codeInput.value.slice(0, 100),
     result: lastResult,
     mode: currentMode,
-    time: new Date().toLocaleString()
+    time: new Date().toLocaleString(),
   };
   favorites.unshift(entry);
   if (favorites.length > 20) favorites = favorites.slice(0, 20);
@@ -159,27 +183,23 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
 
 // ── Download History JSON ──
 document.getElementById('downloadJsonBtn').addEventListener('click', () => {
-
   if (history.length === 0) {
     showToast('No history to download');
     return;
   }
 
-  const blob = new Blob(
-    [JSON.stringify(history, null, 2)],
-    { type: 'application/json' }
-  );
+  const blob = new Blob([JSON.stringify(history, null, 2)], {
+    type: 'application/json',
+  });
 
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'analysis-history.json';
   a.click();
   URL.revokeObjectURL(a.href);
-
 });
 // ── Download History CSV ──
 document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-
   if (history.length === 0) {
     showToast('No history to download');
     return;
@@ -187,30 +207,21 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
 
   const headers = ['id', 'preview', 'mode', 'time'];
 
-  const rows = history.map(h =>
-    [
-      h.id,
-      `"${(h.preview || '').replace(/"/g, '""')}"`,
-      h.mode,
-      h.time
-    ].join(',')
+  const rows = history.map((h) =>
+    [h.id, `"${(h.preview || '').replace(/"/g, '""')}"`, h.mode, h.time].join(
+      ',',
+    ),
   );
 
-  const csvContent = [
-    headers.join(','),
-    ...rows
-  ].join('\n');
+  const csvContent = [headers.join(','), ...rows].join('\n');
 
-  const blob = new Blob(
-    [csvContent],
-    { type: 'text/csv' }
-  );
+  const blob = new Blob([csvContent], { type: 'text/csv' });
 
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'analysis-history.csv';
   a.click();
-URL.revokeObjectURL(a.href);
+  URL.revokeObjectURL(a.href);
 });
 
 // ── Run Button ──
@@ -227,7 +238,9 @@ async function checkConnection() {
   const currentApi = getApiUrl();
   const suggestedApi = normalizeApiUrl(getSuggestedApiUrl());
   try {
-    const resp = await fetch(`${currentApi}/health`, { signal: AbortSignal.timeout(3000) });
+    const resp = await fetch(`${currentApi}/health`, {
+      signal: AbortSignal.timeout(3000),
+    });
     if (!resp.ok) {
       statusDot.className = 'status-dot offline';
       setEngineBadge('unknown');
@@ -240,7 +253,9 @@ async function checkConnection() {
   } catch {
     if (suggestedApi && suggestedApi !== currentApi) {
       try {
-        const fallbackResp = await fetch(`${suggestedApi}/health`, { signal: AbortSignal.timeout(3000) });
+        const fallbackResp = await fetch(`${suggestedApi}/health`, {
+          signal: AbortSignal.timeout(3000),
+        });
         if (fallbackResp.ok) {
           const fallbackHealth = await fallbackResp.json().catch(() => ({}));
           apiUrlInput.value = suggestedApi;
@@ -333,13 +348,19 @@ function initializeApiUrl() {
 }
 
 function getApiUrl() {
-  return normalizeApiUrl(apiUrlInput.value) || normalizeApiUrl(getSuggestedApiUrl());
+  return (
+    normalizeApiUrl(apiUrlInput.value) || normalizeApiUrl(getSuggestedApiUrl())
+  );
 }
 
 function getUserFriendlyError(err, responseStatus) {
   const raw = (err && err.message ? String(err.message) : '').toLowerCase();
 
-  if (raw.includes('failed to fetch') || raw.includes('networkerror') || raw.includes('network request failed')) {
+  if (
+    raw.includes('failed to fetch') ||
+    raw.includes('networkerror') ||
+    raw.includes('network request failed')
+  ) {
     return `Could not reach the backend at ${getApiUrl()}. Check the API URL and that the server is running.`;
   }
 
@@ -347,7 +368,12 @@ function getUserFriendlyError(err, responseStatus) {
     return 'Unauthorized request. Check your API key or auth settings.';
   }
 
-  if (responseStatus === 402 || responseStatus === 429 || raw.includes('insufficient_quota') || raw.includes('quota')) {
+  if (
+    responseStatus === 402 ||
+    responseStatus === 429 ||
+    raw.includes('insufficient_quota') ||
+    raw.includes('quota')
+  ) {
     return 'Provider quota/billing limit reached. Switch to rule-based mode or update billing.';
   }
 
@@ -390,13 +416,18 @@ async function runAnalysis() {
     const resp = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ code }),
     });
     responseStatus = resp.status;
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
-      throw new Error(getUserFriendlyError({ message: err.detail || `HTTP ${resp.status}` }, responseStatus));
+      throw new Error(
+        getUserFriendlyError(
+          { message: err.detail || `HTTP ${resp.status}` },
+          responseStatus,
+        ),
+      );
     }
 
     const data = await resp.json();
@@ -429,7 +460,7 @@ function renderResult(data, mode) {
         <div class="result-text">
           <p><strong>Language:</strong> ${escHtml(ex.language || 'Unknown')}</p>
           <p style="margin-top:8px">${escHtml(ex.summary || '')}</p>
-          ${(ex.key_points || []).map(p => `<p>• ${escHtml(p)}</p>`).join('')}
+          ${(ex.key_points || []).map((p) => `<p>• ${escHtml(p)}</p>`).join('')}
         </div>
       </div>`;
       text += `Language: ${ex.language}\n${ex.summary}\n${(ex.key_points || []).join('\n')}\n\n`;
@@ -441,16 +472,25 @@ function renderResult(data, mode) {
       html += `<div class="result-section">
         <h4>Debugging</h4>
         <div class="result-text">
-          ${issues.length === 0
-            ? '<span class="result-tag tag-ok">✓ No issues found</span>'
-            : issues.map(i => `<div style="margin-bottom:10px">
+          ${
+            issues.length === 0
+              ? '<span class="result-tag tag-ok">✓ No issues found</span>'
+              : issues
+                  .map(
+                    (i) => `<div style="margin-bottom:10px">
                 <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
                 <p style="margin-top:4px">${escHtml(i.description || '')}</p>
                 ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${escHtml(i.suggestion)}</p>` : ''}
-              </div>`).join('')}
+              </div>`,
+                  )
+                  .join('')
+          }
         </div>
       </div>`;
-      text += issues.map(i => `${i.type}: ${i.description}\nFix: ${i.suggestion}`).join('\n') + '\n\n';
+      text +=
+        issues
+          .map((i) => `${i.type}: ${i.description}\nFix: ${i.suggestion}`)
+          .join('\n') + '\n\n';
     }
     if (data.suggestions) {
       const sg = data.suggestions;
@@ -459,13 +499,17 @@ function renderResult(data, mode) {
       html += `<div class="result-section">
         <h4>Improvements</h4>
         <div class="result-text">
-          ${cards.map(c => `<div style="margin-bottom:10px">
+          ${cards
+            .map(
+              (c) => `<div style="margin-bottom:10px">
             <span class="result-tag tag-info">${escHtml(c.category || 'Tip')}</span>
             <p style="margin-top:4px">${escHtml(c.description || '')}</p>
-          </div>`).join('')}
+          </div>`,
+            )
+            .join('')}
         </div>
       </div>`;
-      text += cards.map(c => `[${c.category}] ${c.description}`).join('\n');
+      text += cards.map((c) => `[${c.category}] ${c.description}`).join('\n');
     }
   } else if (mode === 'explanation') {
     html += `<div class="result-section">
@@ -478,7 +522,7 @@ function renderResult(data, mode) {
     </div>
     <div class="result-section">
       <h4>Key Points</h4>
-      <div class="result-text">${(data.key_points || []).map(p => `<p>• ${escHtml(p)}</p>`).join('')}</div>
+      <div class="result-text">${(data.key_points || []).map((p) => `<p>• ${escHtml(p)}</p>`).join('')}</div>
     </div>`;
     text = `Language: ${data.language}\n${data.summary}\n${(data.key_points || []).join('\n')}`;
   } else if (mode === 'debugging') {
@@ -486,34 +530,54 @@ function renderResult(data, mode) {
     html += `<div class="result-section">
       <h4>Issues Found (${issues.length})</h4>
       <div class="result-text">
-        ${issues.length === 0
-          ? '<span class="result-tag tag-ok">✓ No issues detected. Code looks clean!</span>'
-          : issues.map(i => `<div style="margin-bottom:14px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
+        ${
+          issues.length === 0
+            ? '<span class="result-tag tag-ok">✓ No issues detected. Code looks clean!</span>'
+            : issues
+                .map(
+                  (
+                    i,
+                  ) => `<div style="margin-bottom:14px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
               <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
               ${i.line ? `<span class="result-tag tag-info">Line ${i.line}</span>` : ''}
               <p style="margin-top:8px">${escHtml(i.description || '')}</p>
               ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${escHtml(i.suggestion)}</p>` : ''}
-            </div>`).join('')}
+            </div>`,
+                )
+                .join('')
+        }
       </div>
     </div>`;
-    text = issues.map(i => `[${i.type}] Line ${i.line}: ${i.description}\nFix: ${i.suggestion}`).join('\n');
+    text = issues
+      .map(
+        (i) =>
+          `[${i.type}] Line ${i.line}: ${i.description}\nFix: ${i.suggestion}`,
+      )
+      .join('\n');
   } else if (mode === 'suggestions') {
     const cards = data.suggestions || [];
     html += `<div class="result-section">
       <h4>Suggestions (${cards.length})</h4>
       <div class="result-text">
-        ${cards.map(c => `<div style="margin-bottom:12px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
+        ${cards
+          .map(
+            (
+              c,
+            ) => `<div style="margin-bottom:12px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
           <span class="result-tag tag-info">${escHtml(c.category || 'Tip')}</span>
           <p style="margin-top:8px">${escHtml(c.description || '')}</p>
           ${c.example ? `<pre style="margin-top:8px;font-size:12px;color:var(--text-3)">${escHtml(c.example)}</pre>` : ''}
-        </div>`).join('')}
+        </div>`,
+          )
+          .join('')}
       </div>
     </div>`;
-    text = cards.map(c => `[${c.category}] ${c.description}`).join('\n');
+    text = cards.map((c) => `[${c.category}] ${c.description}`).join('\n');
   }
 
   lastResult = text;
-  outputBox.innerHTML = html || '<p style="color:var(--text-3)">No structured output returned.</p>';
+  outputBox.innerHTML =
+    html || '<p style="color:var(--text-3)">No structured output returned.</p>';
 }
 
 function showLoading() {
@@ -546,9 +610,10 @@ function showError(msg) {
 function saveHistory(code, mode, result) {
   history.unshift({
     id: Date.now(),
-    preview: code.slice(0, 60).replace(/\n/g, ' ') + (code.length > 60 ? '...' : ''),
+    preview:
+      code.slice(0, 60).replace(/\n/g, ' ') + (code.length > 60 ? '...' : ''),
     mode,
-    time: new Date().toLocaleTimeString()
+    time: new Date().toLocaleTimeString(),
   });
   if (history.length > 50) history = history.slice(0, 50);
   localStorage.setItem('qyverix_history', JSON.stringify(history));
@@ -557,32 +622,43 @@ function saveHistory(code, mode, result) {
 
 function renderHistory() {
   if (history.length === 0) {
-    historyContainer.innerHTML = '<p class="history-empty">No history yet. Run your first analysis above.</p>';
+    historyContainer.innerHTML =
+      '<p class="history-empty">No history yet. Run your first analysis above.</p>';
     return;
   }
-  historyContainer.innerHTML = history.slice(0, 10).map(h => `
+  historyContainer.innerHTML = history
+    .slice(0, 10)
+    .map(
+      (h) => `
     <div class="history-item">
       <div>
         <div class="history-preview">${escHtml(h.preview)}</div>
         <div class="history-meta">${escHtml(safeModeLabel(h.mode))} · ${escHtml(h.time)}</div>
       </div>
     </div>
-  `).join('');
+  `,
+    )
+    .join('');
 }
 
 function renderFavorites() {
   if (favorites.length === 0) {
-    favContainer.innerHTML = '<p class="history-empty">No favorites saved yet.</p>';
+    favContainer.innerHTML =
+      '<p class="history-empty">No favorites saved yet.</p>';
     return;
   }
-  favContainer.innerHTML = favorites.map(f => `
+  favContainer.innerHTML = favorites
+    .map(
+      (f) => `
     <div class="history-item">
       <div>
         <div class="history-preview">${escHtml(f.code)}...</div>
         <div class="history-meta">${escHtml(safeModeLabel(f.mode))} · ${escHtml(f.time)}</div>
       </div>
     </div>
-  `).join('');
+  `,
+    )
+    .join('');
 }
 
 // ── Toast ──
