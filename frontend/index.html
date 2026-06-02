@@ -4101,117 +4101,40 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
          SAMPLE CODE LOADER
       ═══════════════════════════════════════════════════════════════ */
       const SAMPLES = {
-        python: `// Python Sample
-  import os
+  python: `...`,
 
-# [!] Hardcoded secret - security risk
-password = "supersecret123"
+  javascript: `// JavaScript Sample
 
-def calculate(a, b):
-    # [!] No type hints, potential ZeroDivisionError
-    result = a / b
-    return result
-
-def fetch_data(url):
-    import requests
-    # [!] No error handling for network call
-    response = requests.get(url)
-    return response.json()
-
-def process_items(items=[]):  # [!] Mutable default argument
-    results = ""
-    for item in items:
-        results += str(item)  # [!] String concat in loop
-    return results
-
-from os import *  # [!] Wildcard import
-
-x = eval("1 + 2")  # [!] Unsafe eval
-
-calculate(10, 0)`,
-        javascript: `// JavaScript Sample
-  var counter = 0;
+var counter = 0; // [!] Using var instead of let/const
+var currentUser = null;
 
 function loadUser(id) {
-  // [!] Promise not awaited
-  fetch('/api/users/' + id).then(r => r.json());
+  // [!] Unhandled promise
+  fetch('/api/users/' + id)
+    .then(response => response.json());
 
-  if (counter == "0") {  // [!] Loose equality
-    console.log("No users loaded");
-    document.getElementById("output").innerHTML = id;  // [!] XSS risk
+  if (counter == "0") { // [!] Loose equality
+    console.log("No users loaded"); // [!] Debug log left in
+
+    // [!] XSS risk
+    document.getElementById("output").innerHTML = id;
   }
 
-  var result = null;
-  return result;
+  counter++;
+
+  if (id == 42) { // [!] Loose equality
+    console.log("Loading special user");
+  }
+
+  return currentUser;
 }
 
 loadUser(42);`,
-        typescript: `// TypeScript Sample
-interface User {
-  id: number;
-  name: string;
-  email?: string;
-}
 
-function sendWelcomeEmail(user: User) {
-  // Anti-pattern: Non-null assertion operator (!) used dangerously
-  // If user.email is undefined, this will cause a runtime error in the compiled JS
-  console.log("Sending email to: " + user.email!.toLowerCase());
-}
-
-const newUser: User = { id: 1, name: "Alice" };
-sendWelcomeEmail(newUser);`,
-        java: `// Java Sample
-public class Main {
-    public static void main(String[] args) {
-        String name1 = new String("Vaibhav");
-        String name2 = new String("Vaibhav");
-
-        // Anti-pattern 1: Using == for string comparison instead of .equals()
-        if (name1 == name2) {
-            System.out.println("Names are the same");
-        } else {
-            System.out.println("Names are different (Reference comparison failed)");
-        }
-
-        // Anti-pattern 2: NullPointerException risk
-        String uninitializedString = null;
-        System.out.println(uninitializedString.length());
-    }
-}`,
-        cpp: `// C++ Sample
-#include <iostream>
-
-// Anti-pattern 1: using namespace std in global scope
-using namespace std;
-
-void processData() {
-    // Anti-pattern 2: Memory Leak
-    // Allocating memory on the heap but never freeing it with 'delete'
-    int* dataBuffer = new int[100];
-
-    dataBuffer[0] = 42;
-    cout << "Processing value: " << dataBuffer[0] << endl;
-
-    // Memory leak occurs here when the function exits
-    // because 'delete[] dataBuffer;' is missing.
-}
-
-int main() {
-    processData();
-    return 0;
-}`
-      };
-
-      function loadSample() {
-        const sample = SAMPLES[selectedLang] || SAMPLES.python;
-        editor.value = sample;
-        updateEditor();
-        document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
-        toast(getTranslation('toast_sample_loaded'), 'success');
-      }
-
-      window.loadSample = loadSample;
+  typescript: `...`,
+  java: `...`,
+  cpp: `...`
+};
 
       /* ═══════════════════════════════════════════════════════════════
          INIT
