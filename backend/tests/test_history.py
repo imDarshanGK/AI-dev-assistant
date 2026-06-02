@@ -5,6 +5,16 @@ import sys, os, tempfile, asyncio
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.services import database
+import sys
+import os
+import tempfile
+import asyncio
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from app.services import database
+from fastapi.testclient import TestClient
+from app.main import app
 
 _tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 _tmp.close()
