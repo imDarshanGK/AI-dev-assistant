@@ -183,7 +183,7 @@ endpoint_map = {
     "suggest": "/suggestions/",
 }
 
-api_url = f"{BASE_API_URL}{endpoint_map[args.mode]}"
+api_url = f"{args.api_url.rstrip('/')}{endpoint_map[args.mode]}"
 
 if args.command == "analyze":
     analyze_file(
