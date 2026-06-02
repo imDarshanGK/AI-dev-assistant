@@ -15,20 +15,7 @@ module.exports = defineConfig({
     ? [['list'], ['html', { open: 'never' }]]
     : [['list']],
   use: {
-    baseURL: BASE_URL,
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-    viewport: { width: 1440, height: 1080 },
-  },
-  webServer: {
-    command: 'python -m uvicorn app.main:app --host 127.0.0.1 --port 8000',
-    cwd: path.resolve(__dirname, '..', 'backend'),
-    url: `${BASE_URL}/health`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-    env: {
-      RATE_LIMIT_PER_MINUTE: '1000',
-    },
-  },
+  baseURL: 'http://localhost:3000',
+  headless: true,
+}
 });

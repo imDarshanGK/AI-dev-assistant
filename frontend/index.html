@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QyverixAI — AI Developer Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
@@ -2051,51 +2051,96 @@
     </nav>
 
     <!-- ── HERO ──────────────────────────────────────────────────── -->
-    <section class="hero">
-      <div class="hero-badge">
-        <div class="badge-dot"></div>
-        <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
-      </div>
-      <div class="panel-actions">
-        <button class="icon-btn" title="Upload file" aria-label="Upload file" style="cursor: pointer;" tabindex="0">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
-</button>
-<input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.txt" style="display: none;" tabindex="-1" />
-        <button class="icon-btn" id="clearBtn" title="Clear" aria-label="Clear code editor">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-      <h1 data-i18n="hero_title">Debug. Understand.<br /><em>Ship faster.</em></h1>
-      <h1 data-i18n="hero_title">Debug. Understand.<br><em>Ship faster.</em></h1>
-      <h1 data-i18n="hero_title">Debug. Understand.<br /><em>Ship faster.</em></h1>
-      <h1 data-i18n="hero_title">Debug. Understand.<br ><em>Ship faster.</em></h1>
-      <h1 data-i18n="hero_title">Debug. Understand.<br><em>Ship faster.</em></h1>
-      <p class="hero-sub" data-i18n="hero_subtitle">
-        Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
-        suggestions — no account needed.
-      </p>
-      <div class="hero-cta">
-        <button class="btn btn-primary"
-          onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polygon points="5,3 19,12 5,21" />
-          </svg>
-          <span data-i18n="btn_start_analyzing">Start Analyzing</span>
-        </button>
-        <button class="btn btn-secondary" onclick="loadSample()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="16,18 22,12 16,6" />
-            <polyline points="8,6 2,12 8,18" />
-          </svg>
-          <span data-i18n="btn_try_sample">Try Sample Code</span>
-        </button>
-        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path
-                d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 3a7 7 0 1 1-7 7 7 7 0 0 1 7-7zm-1 4h2v6h-2zm0 7h2v2h-2z" />
-          </svg>
-          <span data-i18n="btn_star_github">Star on GitHub</span>
-        </a>
-      </div>
-    </section>
+<section class="hero">
+
+  <!-- Main heading (fixes validator + SEO + accessibility) -->
+  <h1 class="hero-title">AI Dev Assistant</h1>
+
+  <!-- Badge -->
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
+  </div>
+
+  <!-- Actions -->
+  <div class="panel-actions">
+
+    <!-- Upload button -->
+    <button
+      type="button"
+      class="icon-btn"
+      title="Upload file"
+      aria-label="Upload file"
+      style="cursor:pointer"
+      onclick="document.getElementById('fileInput').click();">
+
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17,8 12,3 7,8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+
+    </button>
+
+    <!-- SINGLE file input (must NOT be inside button) -->
+    <input
+      type="file"
+      id="fileInput"
+      accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip"
+      style="display:none"
+      tabindex="-1">
+
+    <!-- Clear button -->
+    <button
+      type="button"
+      class="icon-btn"
+      id="clearBtn"
+      title="Clear"
+      aria-label="Clear editor">
+
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <polyline points="3,6 5,6 21,6"/>
+        <path d="M19 6l-1 14H6L5 6"/>
+        <path d="M10 11v6"/>
+        <path d="M14 11v6"/>
+      </svg>
+
+    </button>
+
+  </div>
+
+  <!-- CTA buttons -->
+  <div class="hero-cta">
+
+    <button
+      class="btn btn-primary"
+      onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
+
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5">
+        <polygon points="5,3 19,12 5,21"/>
+      </svg>
+
+      <span data-i18n="btn_start_analyzing">Start Analyzing</span>
+    </button>
+
+    <button class="btn btn-secondary" onclick="loadSample()">
+      <span data-i18n="btn_try_sample">Try Sample Code</span>
+    </button>
+
+    <a
+      href="https://github.com/imDarshanGK/AI-dev-assistant"
+      target="_blank"
+      class="btn btn-secondary">
+
+      Star on GitHub
+    </a>
+
+  </div>
+
+</section>
 
     <!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
     <div class="features-row">
@@ -2196,6 +2241,45 @@
           </div>
         </div>
 
+      <div class="panel" style="grid-column:1"></div>
+        <div class="panel-header">
+          <div class="panel-title"></div>
+         <div class="panel-actions">
+
+  <!-- Upload button -->
+  <button type="button"
+    class="icon-btn"
+    title="Upload file"
+    aria-label="Upload file"
+    onclick="document.getElementById('fileInput').click();">
+
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      aria-hidden="true">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17,8 12,3 7,8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+
+  </button>
+
+  
+
+  <!-- Copy button -->
+  <button type="button"
+    class="icon-btn"
+    id="copyBtn"
+    title="Copy code"
+    aria-label="Copy code">
+
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      aria-hidden="true">
+      <rect x="9" y="9" width="13" height="13" rx="2"/>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+
+  </button>
+
+</div>
         <!-- Language tabs -->
         <div class="lang-tabs" role="group" aria-label="Select Programming Language">
           <button class="lang-tab active" data-lang="python" data-i18n="lang_tab_python">Python</button>
