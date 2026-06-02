@@ -1,27 +1,24 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QyverixAI — AI Developer Assistant</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="icon" type="image/svg+xml" href="../assets/icon.svg" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <script>
-      (function () {
-        const systemDark = window.matchMedia(
-          '(prefers-color-scheme: dark)',
-        ).matches;
-        const savedTheme =
-          localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', savedTheme);
-      })();
-    </script>
-    <style>
-      /* ═══════════════════════════════════════════════════════════════
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QyverixAI — AI Developer Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script>
+    (function() {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+  <style>
+    /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS
 ═══════════════════════════════════════════════════════════════ */
       :root {
@@ -537,11 +534,11 @@
         font-size: 15px;
       }
 
-      .feat-pill-info h4 {
-        font-size: 0.82rem;
-        font-weight: 600;
-        margin-bottom: 1px;
-      }
+    .feat-pill-info .feat-pill-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 1px
+    }
 
       .feat-pill-info p {
         font-size: 0.74rem;
@@ -606,10 +603,24 @@
         animation: blink 2s infinite;
       }
 
-      .panel-actions {
-        display: flex;
-        gap: 6px;
-      }
+    .editor-panel-header {
+      justify-content: flex-end;
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      font-size: 12px;
+    }
 
       .icon-btn {
         width: 30px;
@@ -975,11 +986,11 @@
         font-weight: 700;
       }
 
-      .empty-state p {
-        color: var(--text2);
-        font-size: 0.85rem;
-        max-width: 240px;
-      }
+    .empty-state .empty-title {
+      font-family: var(--font-disp);
+      font-size: 1rem;
+      font-weight: 700
+    }
 
       /* ── Issue Cards ── */
       .issue-card {
@@ -1284,10 +1295,12 @@
         margin-bottom: 4px;
       }
 
-      .score-info p {
-        font-size: 0.83rem;
-        color: var(--text2);
-      }
+    .score-info .score-title {
+      font-family: var(--font-disp);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px
+    }
 
       .suggest-card {
         padding: 14px 16px;
@@ -1682,6 +1695,14 @@
         font-weight: 700;
         color: var(--green);
       }
+    }
+
+    .clean-state .clean-title {
+      font-family: var(--font-disp);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--green)
+    }
 
       .clean-state p {
         font-size: 0.85rem;
@@ -2009,506 +2030,122 @@
         color: var(--accent);
       }
 
-      /* responsive */
-      @media (max-width: 600px) {
-        .hero h1 {
-          font-size: 2.2rem;
-        }
-        nav {
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .nav-links .nav-link span {
-          display: none;
-        }
-        .hero {
-          padding: 50px 0 40px;
-        }
-        .hero-sub {
-          font-size: 0.98rem;
-        }
-        .features-row {
-          gap: 8px;
-          padding: 16px 0 40px;
-        }
-        .feat-pill {
-          padding: 10px 14px;
-          min-width: 140px;
-        }
-        .workspace {
-          gap: 14px;
-        }
-        .panel-header {
-          padding: 12px 14px;
-        }
-        .mode-row {
-          gap: 6px;
-          padding: 10px 14px;
-        }
-        .mode-btn {
-          padding: 8px 4px;
-          font-size: 0.74rem;
-        }
-        .analyze-row {
-          padding: 10px 14px;
-        }
-        .btn-analyze {
-          padding: 14px;
-        }
-        .result-content {
-          min-height: 280px;
-          max-height: 420px;
-          padding: 14px;
-        }
-        .bottom-grid {
-          gap: 14px;
-        }
-        .history-list,
-        .fav-list {
-          max-height: 200px;
-        }
-        .score-ring-wrap {
-          flex-direction: column;
-          text-align: center;
-          gap: 12px;
-        }
-        .stat-bar {
-          gap: 6px;
-        }
-        .stat-chip {
-          padding: 8px 10px;
-        }
-        .stat-chip-num {
-          font-size: 1.2rem;
-        }
-        #toastContainer {
-          bottom: 12px;
-          right: 12px;
-          left: 12px;
-        }
-        .toast {
-          min-width: unset;
-          width: 100%;
-        }
-        .hero-cta {
-          gap: 8px;
-        }
-        .btn {
-          padding: 11px 18px;
-          font-size: 0.85rem;
-        }
-      }
-      @media (max-width: 400px) {
-        .app {
-          padding: 0 14px 60px;
-        }
-        .hero h1 {
-          font-size: 1.9rem;
-        }
-        .feat-pill-info p {
-          display: none;
-        }
-        .lang-tab {
-          padding: 7px 10px;
-          font-size: 0.72rem;
-        }
-        .result-tab {
-          padding: 9px 12px;
-          font-size: 0.75rem;
-        }
-      }
-    </style>
-    <link rel="icon" href="data:," />
-  </head>
-  <body>
-    <div class="bg-orb bg-orb-1"></div>
-    <div class="bg-orb bg-orb-2"></div>
-
-    <div class="app">
-      <!-- ── NAV ──────────────────────────────────────────────────── -->
-      <nav>
-        <a href="#" class="nav-logo">
-          <div class="logo-hex">Q</div>
-          QyverixAI
-          <span
-            style="
-              font-size: 0.62rem;
-              font-weight: 700;
-              padding: 2px 8px;
-              border-radius: 99px;
-              background: rgba(91, 156, 246, 0.15);
-              color: var(--accent);
-              border: 1px solid rgba(91, 156, 246, 0.25);
-              letter-spacing: 0.04em;
-              margin-left: 4px;
-            "
-            >v3.0</span
-          >
+    <!-- ── HERO ──────────────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-badge">
+        <div class="badge-dot"></div>
+        <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
+      </div>
+      <h1 data-i18n="hero_title">Debug. Understand.<br><em>Ship faster.</em></h1>
+      <p class="hero-sub" data-i18n="hero_subtitle">
+        Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
+        suggestions — no account needed.
+      </p>
+      <div class="hero-cta">
+        <button class="btn btn-primary"
+          onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="5,3 19,12 5,21" />
+          </svg>
+          <span data-i18n="btn_start_analyzing">Start Analyzing</span>
+        </button>
+        <button class="btn btn-secondary" onclick="loadSample()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16,18 22,12 16,6" />
+            <polyline points="8,6 2,12 8,18" />
+          </svg>
+          <span data-i18n="btn_try_sample">Try Sample Code</span>
+        </button>
+        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path
+                d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 3a7 7 0 1 1-7 7 7 7 0 0 1 7-7zm-1 4h2v6h-2zm0 7h2v2h-2z" />
+          </svg>
+          <span data-i18n="btn_star_github">Star on GitHub</span>
         </a>
-        <div class="nav-links">
-          <select
-            id="langSelect"
-            class="lang-select"
-            aria-label="Select Language"
-            data-i18n-aria-label="lang_select_label"
-          >
-            <option value="en" data-i18n="lang_option_en">English</option>
-            <option value="ta" data-i18n="lang_option_ta">தமிழ் (Tamil)</option>
-            <option value="hi" data-i18n="lang_option_hi">
-              हिन्दी (Hindi)
-            </option>
-            <option value="fr" data-i18n="lang_option_fr">
-              Français (French)
-            </option>
-          </select>
-          <a
-            href="https://github.com/imDarshanGK/AI-dev-assistant"
-            target="_blank"
-            class="nav-link"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"
-              />
-            </svg>
-            <span data-i18n="nav_github">GitHub</span>
-          </a>
-          <a
-            href="https://qyverixai.onrender.com/docs"
-            target="_blank"
-            class="nav-link"
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-              />
-              <polyline points="14,2 14,8 20,8" />
-            </svg>
-            <span data-i18n="nav_api_docs">API Docs</span>
-          </a>
-          <button
-            class="theme-btn"
-            id="themeToggle"
-            title="Toggle theme"
-            data-i18n-title="btn_toggle_theme"
-            data-i18n-aria-label="btn_toggle_theme"
-            aria-label="Toggle dark mode"
-            aria-pressed="false"
-          >
-            <svg
-              id="themeIcon"
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="5" />
-              <line x1="12" y1="1" x2="12" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="23" />
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-              <line x1="1" y1="12" x2="3" y2="12" />
-              <line x1="21" y1="12" x2="23" y2="12" />
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-            </svg>
-          </button>
-        </div>
-      </nav>
+      </div>
+    </section>
 
-      <!-- ── HERO ──────────────────────────────────────────────────── -->
-      <section class="hero">
-        <div class="hero-badge">
-          <div class="badge-dot"></div>
-          <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
+    <!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
+    <div class="features-row">
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(34,212,123,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <p class="feat-pill-title" data-i18n="pill_patterns_title">40+ Bug Patterns</p>
+          <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
         </div>
-        <h1 data-i18n="hero_title">
-          Debug. Understand.<br /><em>Ship faster.</em>
-        </h1>
-        <p class="hero-sub" data-i18n="hero_subtitle">
-          Paste your code and get instant bug detection, plain-English
-          explanations, and actionable improvement suggestions — no account
-          needed.
-        </p>
-        <div class="hero-cta">
-          <button
-            class="btn btn-primary"
-            onclick="
-              document
-                .getElementById('workspace')
-                .scrollIntoView({ behavior: 'smooth' })
-            "
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-            >
-              <polygon points="5,3 19,12 5,21" />
-            </svg>
-            <span data-i18n="btn_start_analyzing">Start Analyzing</span>
-          </button>
-          <button class="btn btn-secondary" onclick="loadSample()">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <polyline points="16,18 22,12 16,6" />
-              <polyline points="8,6 2,12 8,18" />
-            </svg>
-            <span data-i18n="btn_try_sample">Try Sample Code</span>
-          </button>
-          <a
-            href="https://github.com/imDarshanGK/AI-dev-assistant"
-            target="_blank"
-            class="btn btn-secondary"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"
-              />
-            </svg>
-            <span data-i18n="btn_star_github">Star on GitHub</span>
-          </a>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(91,156,246,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <p class="feat-pill-title" data-i18n="mode_explain">Code Explanation</p>
+          <p data-i18n="pill_explain_desc">Plain English breakdowns</p>
         </div>
-      </section>
-
-      <!-- ── FEATURE PILLS ─────────────────────────────────────────── -->
-      <div class="features-row">
-        <div class="feat-pill">
-          <div
-            class="feat-pill-icon"
-            style="background: rgba(34, 212, 123, 0.12)"
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-          </div>
-          <div class="feat-pill-info">
-            <h2 data-i18n="pill_patterns_title">40+ Bug Patterns</h2>
-            <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
-          </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(124,58,237,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <p class="feat-pill-title" data-i18n="mode_improve">Smart Suggestions</p>
+          <p data-i18n="pill_improve_desc">Quality score + grade</p>
         </div>
-        <div class="feat-pill">
-          <div
-            class="feat-pill-icon"
-            style="background: rgba(91, 156, 246, 0.12)"
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-            </svg>
-          </div>
-          <div class="feat-pill-info">
-            <h2 data-i18n="mode_explain">Code Explanation</h2>
-            <p data-i18n="pill_explain_desc">Plain English breakdowns</p>
-          </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(245,146,62,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <p class="feat-pill-title" data-i18n="pill_theme_title">Dark / Light Mode</p>
+          <p data-i18n="pill_theme_desc">Persisted preference</p>
         </div>
-        <div class="feat-pill">
-          <div
-            class="feat-pill-icon"
-            style="background: rgba(124, 58, 237, 0.12)"
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
-            </svg>
-          </div>
-          <div class="feat-pill-info">
-            <h2 data-i18n="mode_improve">Smart Suggestions</h2>
-            <p data-i18n="pill_improve_desc">Quality score + grade</p>
-          </div>
-        </div>
-        <div class="feat-pill">
-          <div
-            class="feat-pill-icon"
-            style="background: rgba(245, 146, 62, 0.12)"
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          </div>
-          <div class="feat-pill-info">
-            <h2 data-i18n="pill_theme_title">Dark / Light Mode</h2>
-            <p data-i18n="pill_theme_desc">Persisted preference</p>
-          </div>
-        </div>
-        <div class="feat-pill">
-          <div
-            class="feat-pill-icon"
-            style="background: rgba(245, 200, 66, 0.12)"
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
-              />
-            </svg>
-          </div>
-          <div class="feat-pill-info">
-            <h2 data-i18n="pill_upload_title">File Upload</h2>
-            <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
-          </div>
+      </div>
+      <div class="feat-pill">
+        <div class="feat-pill-icon" style="background:rgba(245,200,66,0.12)"><svg width="15" height="15"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+          </svg></div>
+        <div class="feat-pill-info">
+          <p class="feat-pill-title" data-i18n="pill_upload_title">File Upload</p>
+          <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
         </div>
       </div>
 
-      <!-- ── WORKSPACE ─────────────────────────────────────────────── -->
-      <section id="workspace" class="workspace">
-        <!-- Editor Panel -->
-        <div class="panel" style="grid-column: 1">
-          <div class="panel-header">
-            <div class="panel-title"></div>
-            <div class="panel-actions">
-              <button
-                type="button"
-                class="icon-btn"
-                title="Upload file"
-                data-i18n-title="btn_upload"
-                data-i18n-aria-label="btn_upload"
-                style="cursor: pointer"
-                aria-label="Upload code file"
-                onclick="document.getElementById('fileInput').click()"
-              >
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  aria-hidden="true"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17,8 12,3 7,8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </button>
-              <input
-                type="file"
-                id="fileInput"
-                accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip"
-                style="display: none"
-                tabindex="-1"
-              />
-              <button
-                class="icon-btn"
-                id="clearBtn"
-                title="Clear"
-                data-i18n-title="btn_clear"
-                data-i18n-aria-label="btn_clear"
-                aria-label="Clear code editor"
-              >
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  aria-hidden="true"
-                >
-                  <polyline points="3,6 5,6 21,6" />
-                  <path d="M19 6l-1 14H6L5 6" />
-                  <path d="M10 11v6" />
-                  <path d="M14 11v6" />
-                </svg>
-              </button>
-              <button
-                class="icon-btn"
-                id="copyBtn"
-                title="Copy code"
-                data-i18n-title="btn_copy"
-                data-i18n-aria-label="btn_copy"
-                aria-label="Copy code to clipboard"
-              >
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  aria-hidden="true"
-                >
-                  <rect x="9" y="9" width="13" height="13" rx="2" />
-                  <path
-                    d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
+    <!-- ── WORKSPACE ─────────────────────────────────────────────── -->
+    <div id="workspace" class="workspace">
 
-          <!-- Language tabs -->
-          <div
-            class="lang-tabs"
-            role="group"
-            aria-label="Select Programming Language"
-          >
-            <button
-              class="lang-tab active"
-              data-lang="python"
-              data-i18n="lang_tab_python"
-            >
-              Python
+      <!-- Editor Panel -->
+      <div class="panel" style="grid-column:1">
+        <div class="panel-header editor-panel-header">
+          <div class="panel-actions">
+            <button type="button" class="icon-btn" id="uploadBtn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17,8 12,3 7,8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
             </button>
-            <button
-              class="lang-tab"
-              data-lang="javascript"
-              data-i18n="lang_tab_javascript"
-            >
-              JavaScript
+              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
+              tabindex="-1">
+            <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <polyline points="3,6 5,6 21,6" />
+                <path d="M19 6l-1 14H6L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
             </button>
             <button
               class="lang-tab"
@@ -2790,14 +2427,17 @@
             <span id="timeInfo"></span>
           </div>
         </div>
-      </section>
-
-      <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
-      <div class="bottom-grid">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title" data-i18n="history_title">
-              Query History
+        <div class="result-content">
+          <!-- Explain Pane -->
+          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
+            <div class="empty-state" id="emptyExplain">
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg></div>
+              <p class="empty-title" data-i18n="empty_explain_title">No analysis yet</p>
+              <p data-i18n="empty_explain_desc">Paste your code and click Analyze to see results</p>
             </div>
             <button
               class="btn-clear"
@@ -2823,32 +2463,67 @@
               Download CSV
             </button>
           </div>
-          <div class="history-list" id="historyList" aria-live="polite">
-            <div class="list-empty" data-i18n="empty_history">
-              No history yet. Run your first analysis.
+          <!-- Debug Pane -->
+          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel">
+            <div class="empty-state" id="emptyDebug">
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <path d="M8 2l1.5 1.5" />
+                  <path d="M14.5 3.5L16 2" />
+                  <path d="M9 7.5A3 3 0 0 1 12 5a3 3 0 0 1 3 2.5" />
+                  <path d="M6.5 9H4a1 1 0 0 0-1 1v1a8 8 0 0 0 16 0v-1a1 1 0 0 0-1-1h-2.5" />
+                  <line x1="12" y1="12" x2="12" y2="16" />
+                  <path d="M4.5 15H2" />
+                  <path d="M22 15h-2.5" />
+                  <path d="M4.5 19l-2 2" />
+                  <path d="M19.5 19l2 2" />
+                </svg></div>
+              <p class="empty-title" data-i18n="empty_debug_title">No bugs scanned</p>
+              <p data-i18n="empty_debug_desc">Run analysis to detect issues in your code</p>
+            </div>
+          </div>
+          <!-- Suggest Pane -->
+          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel">
+            <div class="empty-state" id="emptySuggest">
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+                </svg></div>
+              <p class="empty-title" data-i18n="empty_suggest_title">No suggestions yet</p>
+              <p data-i18n="empty_suggest_desc">Run analysis to get improvement ideas</p>
             </div>
           </div>
         </div>
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title" data-i18n="favorites_title">
-              Saved Favorites
-            </div>
-            <button
-              class="btn-clear"
-              id="clearFavsBtn"
-              aria-label="Clear saved favorites"
-              data-i18n-aria-label="btn_clear"
-              data-i18n="btn_clear"
-            >
-              Clear
-            </button>
-          </div>
-          <div class="fav-list" id="favList" aria-live="polite">
-            <div class="list-empty" data-i18n="empty_favorites">
-              No favorites saved yet.
-            </div>
-          </div>
+
+        <!-- Analysis time footer -->
+        <div id="engineBar"
+          style="padding:8px 18px;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);display:none;gap:16px">
+          <span id="engineInfo"></span>
+          <span id="timeInfo"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
+    <div class="bottom-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title" data-i18n="history_title">Query History</div>
+          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
+          <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
+          <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
+        </div>
+        <div class="history-list" id="historyList" aria-live="polite">
+          <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title" data-i18n="favorites_title">Saved Favorites</div>
+          <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
+        </div>
+        <div class="fav-list" id="favList" aria-live="polite">
+          <div class="list-empty" data-i18n="empty_favorites">No favorites saved yet.</div>
         </div>
       </div>
     </div>
@@ -2953,326 +2628,295 @@
       ═══════════════════════════════════════════════════════════════ */
       const TRANSLATIONS = {
         en: {
-          lang_select_label: 'Select language',
-          lang_option_en: 'English',
-          lang_option_ta: 'தமிழ் (Tamil)',
-          lang_option_hi: 'हिन्दी (Hindi)',
-          lang_option_fr: 'Français (French)',
-          lang_tab_python: 'Python',
-          lang_tab_javascript: 'JavaScript',
-          lang_tab_typescript: 'TypeScript',
-          lang_tab_java: 'Java',
-          lang_tab_cpp: 'C++',
-          nav_github: 'GitHub',
-          nav_api_docs: 'API Docs',
-          hero_badge: 'Open Source · AI-Powered · Free',
-          hero_title: 'Debug. Understand.<br ><em>Ship faster.</em>',
-          hero_subtitle:
-            'Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.',
-          btn_start_analyzing: 'Start Analyzing',
-          btn_try_sample: 'Try Sample Code',
-          btn_star_github: 'Star on GitHub',
-          pill_patterns_title: '40+ Bug Patterns',
-          pill_patterns_desc: 'Python, JS, TS, Java, C++',
-          mode_explain: 'Code Explanation',
-          pill_explain_desc: 'Plain English breakdowns',
-          mode_improve: 'Smart Suggestions',
-          pill_improve_desc: 'Quality score + grade',
-          pill_theme_title: 'Dark / Light Mode',
-          pill_theme_desc: 'Persisted preference',
-          pill_upload_title: 'File Upload',
-          pill_upload_desc: '.py .js .ts .java .cpp .kt .zip',
-          editor_title: 'Code Editor',
-          editor_placeholder:
-            "# Paste your code here or click 'Try Sample Code' above…",
-          char_count_initial: 'Paste or type code to begin',
-          char_count_format:
-            '{chars} chars · {lines} lines · {nonBlank} non-blank',
-          ctrl_enter_hint: 'Ctrl+Enter to analyze',
-          mode_full: 'Full',
-          mode_debug: 'Debug',
-          api_url_placeholder: 'https://qyverixai.onrender.com',
-          api_status_disconnected: 'Disconnected',
-          api_status_connected: 'Connected',
-          api_status_unreachable: 'Unreachable',
-          api_status_error: 'Error {status}',
-          btn_ping: 'Ping',
-          btn_analyze_code: 'Analyze Code',
-          desktop_hint: '(Ctrl+Enter)',
-          results_title: 'Analysis Results',
-          tab_explain: 'Explain',
-          tab_debug: 'Debug',
-          tab_improve: 'Improve',
-          empty_explain_title: 'No analysis yet',
-          empty_explain_desc:
-            'Paste your code and click Analyze to see results',
-          empty_debug_title: 'No bugs scanned',
-          empty_debug_desc: 'Run analysis to detect issues in your code',
-          empty_suggest_title: 'No suggestions yet',
-          empty_suggest_desc: 'Run analysis to get improvement ideas',
-          history_title: 'Query History',
-          favorites_title: 'Saved Favorites',
-          empty_history: 'No history yet. Run your first analysis.',
-          empty_favorites: 'No favorites saved yet.',
-          btn_clear: 'Clear',
-          footer_license: 'MIT License',
-          footer_built_for: 'Built for the open source community',
-          confirm_clear_history: 'Clear all history? This cannot be undone.',
-          confirm_clear_favs: 'Clear all favorites? This cannot be undone.',
-          toast_code_copied: 'Code copied!',
-          toast_api_reachable: 'API is reachable',
-          toast_api_unreachable: 'Cannot reach API. Check the URL.',
-          toast_please_paste: 'Please paste some code first.',
-          toast_saved_favorites: 'Saved to favorites',
-          toast_report_downloaded: 'Report downloaded',
-          toast_sample_loaded: 'Sample code loaded — click Analyze!',
-          toast_history_cleared: 'History cleared',
-          toast_favorites_cleared: 'Favorites cleared',
-          toast_loaded: 'Loaded {name}',
-          toast_dropped: 'Dropped {name}',
-          debug_clean_title: 'No issues detected!',
-          debug_clean_desc:
-            'Your code passed all 40+ pattern checks. Keep it up!',
-          debug_errors: 'Errors',
-          debug_warnings: 'Warnings',
-          debug_info: 'Info',
-          debug_line: 'Line {line}',
-          suggest_quality_score: 'Quality Score',
-          suggest_perfect_title: 'Perfect score!',
-          suggest_perfect_desc: 'No improvement suggestions found.',
-          suggest_priority: '{priority} priority',
-          btn_copy: 'Copy code',
-          btn_upload: 'Upload file',
-          btn_save_favorites: 'Save to favorites',
-          btn_download_results: 'Download results',
-          btn_toggle_theme: 'Toggle theme',
-          analyze_btn_title: 'Analyze Code (Ctrl+Enter)',
-          meta_lines: '{count} lines',
-          meta_functions: '{count} functions',
-          meta_classes: '{count} classes',
-          toast_analysis_failed: 'Analysis failed: {message}',
-          history_entry_label: 'Load history entry for {lang} at {time}',
-          favorite_entry_label: 'Load favorite entry for {lang} at {time}',
+          lang_select_label: "Select language",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "GitHub",
+          nav_api_docs: "API Docs",
+          hero_badge: "Open Source · AI-Powered · Free",
+          hero_title: "Debug. Understand.<br /><em>Ship faster.</em>",
+          hero_subtitle: "Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.",
+          btn_start_analyzing: "Start Analyzing",
+          btn_try_sample: "Try Sample Code",
+          btn_star_github: "Star on GitHub",
+          pill_patterns_title: "40+ Bug Patterns",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "Code Explanation",
+          pill_explain_desc: "Plain English breakdowns",
+          mode_improve: "Smart Suggestions",
+          pill_improve_desc: "Quality score + grade",
+          pill_theme_title: "Dark / Light Mode",
+          pill_theme_desc: "Persisted preference",
+          pill_upload_title: "File Upload",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          editor_title: "Code Editor",
+          editor_placeholder: "# Paste your code here or click 'Try Sample Code' above…",
+          char_count_initial: "Paste or type code to begin",
+          char_count_format: "{chars} chars · {lines} lines · {nonBlank} non-blank",
+          ctrl_enter_hint: "Ctrl+Enter to analyze",
+          mode_full: "Full",
+          mode_debug: "Debug",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "Disconnected",
+          api_status_connected: "Connected",
+          api_status_unreachable: "Unreachable",
+          api_status_error: "Error {status}",
+          btn_ping: "Ping",
+          btn_analyze_code: "Analyze Code",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "Analysis Results",
+          tab_explain: "Explain",
+          tab_debug: "Debug",
+          tab_improve: "Improve",
+          empty_explain_title: "No analysis yet",
+          empty_explain_desc: "Paste your code and click Analyze to see results",
+          empty_debug_title: "No bugs scanned",
+          empty_debug_desc: "Run analysis to detect issues in your code",
+          empty_suggest_title: "No suggestions yet",
+          empty_suggest_desc: "Run analysis to get improvement ideas",
+          history_title: "Query History",
+          favorites_title: "Saved Favorites",
+          empty_history: "No history yet. Run your first analysis.",
+          empty_favorites: "No favorites saved yet.",
+          btn_clear: "Clear",
+          footer_license: "MIT License",
+          footer_built_for: "Built for the open source community",
+          confirm_clear_history: "Clear all history? This cannot be undone.",
+          confirm_clear_favs: "Clear all favorites? This cannot be undone.",
+          toast_code_copied: "Code copied!",
+          toast_api_reachable: "API is reachable",
+          toast_api_unreachable: "Cannot reach API. Check the URL.",
+          toast_please_paste: "Please paste some code first.",
+          toast_saved_favorites: "Saved to favorites",
+          toast_report_downloaded: "Report downloaded",
+          toast_sample_loaded: "Sample code loaded — click Analyze!",
+          toast_history_cleared: "History cleared",
+          toast_favorites_cleared: "Favorites cleared",
+          toast_loaded: "Loaded {name}",
+          toast_dropped: "Dropped {name}",
+          debug_clean_title: "No issues detected!",
+          debug_clean_desc: "Your code passed all 40+ pattern checks. Keep it up!",
+          debug_errors: "Errors",
+          debug_warnings: "Warnings",
+          debug_info: "Info",
+          debug_line: "Line {line}",
+          suggest_quality_score: "Quality Score",
+          suggest_perfect_title: "Perfect score!",
+          suggest_perfect_desc: "No improvement suggestions found.",
+          suggest_priority: "{priority} priority",
+          btn_copy: "Copy code",
+          btn_upload: "Upload file",
+          btn_save_favorites: "Save to favorites",
+          btn_download_results: "Download results",
+          btn_toggle_theme: "Toggle theme",
+          analyze_btn_title: "Analyze Code (Ctrl+Enter)",
+          meta_lines: "{count} lines",
+          meta_functions: "{count} functions",
+          meta_classes: "{count} classes",
+          toast_analysis_failed: "Analysis failed: {message}",
+          history_entry_label: "Load history entry for {lang} at {time}",
+          favorite_entry_label: "Load favorite entry for {lang} at {time}"
         },
         ta: {
-          lang_select_label: 'மொழியைத் தேர்ந்தெடுக்கவும்',
-          lang_option_en: 'English',
-          lang_option_ta: 'தமிழ் (Tamil)',
-          lang_option_hi: 'हिन्दी (Hindi)',
-          lang_option_fr: 'Français (French)',
-          lang_tab_python: 'Python',
-          lang_tab_javascript: 'JavaScript',
-          lang_tab_typescript: 'TypeScript',
-          lang_tab_java: 'Java',
-          lang_tab_cpp: 'C++',
-          nav_github: 'கிட்ஹப் (GitHub)',
-          nav_api_docs: 'ஏபிஐ ஆவணங்கள் (API Docs)',
-          hero_badge: 'திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்',
-          hero_title: 'பிழையறி. புரிந்துகொள்.<br ><em>வேகமாக அனுப்பு.</em>',
-          hero_subtitle:
-            'உங்கள் குறியீட்டை ஒட்டி, உடனடி பிழை கண்டறிதல், எளிய ஆங்கில விளக்கங்கள் மற்றும் பயனுள்ள மேம்பாட்டு பரிந்துரைகளைப் பெறுங்கள் — கணக்கு தேவையில்லை.',
-          btn_start_analyzing: 'பகுப்பாய்வைத் தொடங்கு',
-          btn_try_sample: 'மாதிரிக் குறியீட்டை முயல்க',
-          btn_star_github: 'கிட்ஹப்பில் ஸ்டார் செய்க',
-          pill_patterns_title: '40+ பிழை வடிவங்கள்',
-          pill_patterns_desc: 'Python, JS, TS, Java, C++',
-          mode_explain: 'குறியீடு விளக்கம்',
-          pill_explain_desc: 'எளிய ஆங்கில விளக்கங்கள்',
-          mode_improve: 'ஸ்மார்ட் பரிந்துரைகள்',
-          pill_improve_desc: 'தரமான மதிப்பெண் + தரம்',
-          pill_theme_title: 'இருண்ட / ஒளி முறை',
-          pill_theme_desc: 'சேமிக்கப்பட்ட விருப்பம்',
-          pill_upload_title: 'கோப்பு பதிவேற்றம்',
-          pill_upload_desc: '.py .js .ts .java .cpp .kt .zip',
-          editor_title: 'குறியீட்டு எடிட்டர்',
-          editor_placeholder:
-            "# உங்கள் குறியீட்டை இங்கே ஒட்டவும் அல்லது மேலே உள்ள 'மாதிரிக் குறியீட்டை முயல்க' என்பதைக் கிளிக் செய்யவும்…",
-          char_count_initial:
-            'தொடங்குவதற்கு குறியீட்டை ஒட்டவும் அல்லது தட்டச்சு செய்யவும்',
-          char_count_format:
-            '{chars} எழுத்துக்கள் · {lines} வரிகள் · {nonBlank} வெற்று அல்லாத வரிகள்',
-          ctrl_enter_hint: 'பகுப்பாய்வு செய்ய Ctrl+Enter அழுத்தவும்',
-          mode_full: 'முழுமையான',
-          mode_debug: 'பிழைத்திருத்தம்',
-          api_url_placeholder: 'https://qyverixai.onrender.com',
-          api_status_disconnected: 'இணைப்பு துண்டிக்கப்பட்டது',
-          api_status_connected: 'இணைக்கப்பட்டது',
-          api_status_unreachable: 'அடைய முடியாதது',
-          api_status_error: 'பிழை {status}',
-          btn_ping: 'பிங்',
-          btn_analyze_code: 'குறியீட்டை பகுப்பாய்',
-          desktop_hint: '(Ctrl+Enter)',
-          results_title: 'பகுப்பாய்வு முடிவுகள்',
-          tab_explain: 'விளக்கு',
-          tab_debug: 'பிழைத்திருத்து',
-          tab_improve: 'மேம்படுத்து',
-          empty_explain_title: 'இன்னும் பகுப்பாய்வு இல்லை',
-          empty_explain_desc:
-            'விளைவுகளைக் காண குறியீட்டை ஒட்டி, பகுப்பாய் என்பதைக் கிளிக் செய்யவும்',
-          empty_debug_title: 'பிழைகள் எதுவும் கண்டறியப்படவில்லை',
-          empty_debug_desc:
-            'உங்கள் குறியீட்டில் உள்ள சிக்கல்களைக் கண்டறிய பகுப்பாய்வை இயக்கவும்',
-          empty_suggest_title: 'இன்னும் பரிந்துரைகள் இல்லை',
-          empty_suggest_desc: 'மேம்பாட்டு யோசனைகளைப் பெற பகுப்பாய்வை இயக்கவும்',
-          history_title: 'வினவல் வரலாறு',
-          favorites_title: 'சேமிக்கப்பட்ட பிடித்தவை',
-          empty_history:
-            'இன்னும் வரலாறு இல்லை. உங்கள் முதல் பகுப்பாய்வை இயக்கவும்.',
-          empty_favorites: 'இன்னும் பிடித்தவை எதுவும் சேமிக்கப்படவில்லை.',
-          btn_clear: 'அழி',
-          footer_license: 'எம்ஐடி உரிமம் (MIT License)',
-          footer_built_for: 'திறந்த மூல சமூகத்திற்காக உருவாக்கப்பட்டது',
-          confirm_clear_history:
-            'எல்லா வரலாற்றையும் அழிக்கவா? இதை மாற்ற முடியாது.',
-          confirm_clear_favs:
-            'பிடித்தவை அனைத்தையும் அழிக்கவா? இதை மாற்ற முடியாது.',
-          toast_code_copied: 'குறியீடு நகலெடுக்கப்பட்டது!',
-          toast_api_reachable: 'ஏபிஐ அணுகக்கூடியது',
-          toast_api_unreachable:
-            'ஏபிஐ-ஐ அணுக முடியவில்லை. முகவரியைச் சரிபார்க்கவும்.',
-          toast_please_paste: 'தயவுசெய்து முதலில் குறியீட்டை ஒட்டவும்.',
-          toast_saved_favorites: 'பிடித்தவற்றில் சேமிக்கப்பட்டது',
-          toast_report_downloaded: 'அறிக்கை பதிவிறக்கம் செய்யப்பட்டது',
-          toast_sample_loaded:
-            'மாதிரிக் குறியீடு ஏற்றப்பட்டது — பகுப்பாய் என்பதைக் கிளிக் செய்க!',
-          toast_history_cleared: 'வரலாறு அழிக்கப்பட்டது',
-          toast_favorites_cleared: 'பிடித்தவை அழிக்கப்பட்டன',
-          toast_loaded: '{name} ஏற்றப்பட்டது',
-          toast_dropped: '{name} விடப்பட்டது',
-          debug_clean_title: 'சிக்கல்கள் எதுவும் கண்டறியப்படவில்லை!',
-          debug_clean_desc:
-            'உங்கள் குறியீடு அனைத்து 40+ வடிவ சோதனைகளையும் கடந்துவிட்டது. தொடருங்கள்!',
-          debug_errors: 'பிழைகள்',
-          debug_warnings: 'எச்சரிக்கைகள்',
-          debug_info: 'தகவல்',
-          debug_line: 'வரி {line}',
-          suggest_quality_score: 'தர மதிப்பெண்',
-          suggest_perfect_title: 'சரியான மதிப்பெண்!',
-          suggest_perfect_desc: 'மேம்பாட்டு பரிந்துரைகள் எதுவும் இல்லை.',
-          suggest_priority: '{priority} முன்னுரிமை',
-          btn_copy: 'குறியீட்டை நகலெடு',
-          btn_upload: 'கோப்பைப் பதிவேற்று',
-          btn_save_favorites: 'பிடித்தவற்றில் சேமி',
-          btn_download_results: 'முடிவுகளைப் பதிவிறக்கு',
-          btn_toggle_theme: 'தீம் மாற்று',
-          analyze_btn_title: 'குறியீட்டை பகுப்பாய் (Ctrl+Enter)',
-          meta_lines: '{count} வரிகள்',
-          meta_functions: '{count} செயல்பாடுகள்',
-          meta_classes: '{count} வகுப்புகள்',
-          toast_analysis_failed: 'பகுப்பாய்வு தோல்வியடைந்தது: {message}',
-          history_entry_label:
-            '{lang} இல் {time} நேரத்தில் உள்ள வரலாறு பதிவை ஏற்று',
-          favorite_entry_label:
-            '{lang} இல் {time} நேரத்தில் உள்ள பிடித்த பதிவை ஏற்று',
+          lang_select_label: "மொழியைத் தேர்ந்தெடுக்கவும்",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "கிட்ஹப் (GitHub)",
+          nav_api_docs: "ஏபிஐ ஆவணங்கள் (API Docs)",
+          hero_badge: "திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்",
+          hero_title: "பிழையறி. புரிந்துகொள்.<br /><em>வேகமாக அனுப்பு.</em>",
+          hero_subtitle: "உங்கள் குறியீட்டை ஒட்டி, உடனடி பிழை கண்டறிதல், எளிய ஆங்கில விளக்கங்கள் மற்றும் பயனுள்ள மேம்பாட்டு பரிந்துரைகளைப் பெறுங்கள் — கணக்கு தேவையில்லை.",
+          btn_start_analyzing: "பகுப்பாய்வைத் தொடங்கு",
+          btn_try_sample: "மாதிரிக் குறியீட்டை முயல்க",
+          btn_star_github: "கிட்ஹப்பில் ஸ்டார் செய்க",
+          pill_patterns_title: "40+ பிழை வடிவங்கள்",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "குறியீடு விளக்கம்",
+          pill_explain_desc: "எளிய ஆங்கில விளக்கங்கள்",
+          mode_improve: "ஸ்மார்ட் பரிந்துரைகள்",
+          pill_improve_desc: "தரமான மதிப்பெண் + தரம்",
+          pill_theme_title: "இருண்ட / ஒளி முறை",
+          pill_theme_desc: "சேமிக்கப்பட்ட விருப்பம்",
+          pill_upload_title: "கோப்பு பதிவேற்றம்",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          editor_title: "குறியீட்டு எடிட்டர்",
+          editor_placeholder: "# உங்கள் குறியீட்டை இங்கே ஒட்டவும் அல்லது மேலே உள்ள 'மாதிரிக் குறியீட்டை முயல்க' என்பதைக் கிளிக் செய்யவும்…",
+          char_count_initial: "தொடங்குவதற்கு குறியீட்டை ஒட்டவும் அல்லது தட்டச்சு செய்யவும்",
+          char_count_format: "{chars} எழுத்துக்கள் · {lines} வரிகள் · {nonBlank} வெற்று அல்லாத வரிகள்",
+          ctrl_enter_hint: "பகுப்பாய்வு செய்ய Ctrl+Enter அழுத்தவும்",
+          mode_full: "முழுமையான",
+          mode_debug: "பிழைத்திருத்தம்",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "இணைப்பு துண்டிக்கப்பட்டது",
+          api_status_connected: "இணைக்கப்பட்டது",
+          api_status_unreachable: "அடைய முடியாதது",
+          api_status_error: "பிழை {status}",
+          btn_ping: "பிங்",
+          btn_analyze_code: "குறியீட்டை பகுப்பாய்",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "பகுப்பாய்வு முடிவுகள்",
+          tab_explain: "விளக்கு",
+          tab_debug: "பிழைத்திருத்து",
+          tab_improve: "மேம்படுத்து",
+          empty_explain_title: "இன்னும் பகுப்பாய்வு இல்லை",
+          empty_explain_desc: "விளைவுகளைக் காண குறியீட்டை ஒட்டி, பகுப்பாய் என்பதைக் கிளிக் செய்யவும்",
+          empty_debug_title: "பிழைகள் எதுவும் கண்டறியப்படவில்லை",
+          empty_debug_desc: "உங்கள் குறியீட்டில் உள்ள சிக்கல்களைக் கண்டறிய பகுப்பாய்வை இயக்கவும்",
+          empty_suggest_title: "இன்னும் பரிந்துரைகள் இல்லை",
+          empty_suggest_desc: "மேம்பாட்டு யோசனைகளைப் பெற பகுப்பாய்வை இயக்கவும்",
+          history_title: "வினவல் வரலாறு",
+          favorites_title: "சேமிக்கப்பட்ட பிடித்தவை",
+          empty_history: "இன்னும் வரலாறு இல்லை. உங்கள் முதல் பகுப்பாய்வை இயக்கவும்.",
+          empty_favorites: "இன்னும் பிடித்தவை எதுவும் சேமிக்கப்படவில்லை.",
+          btn_clear: "அழி",
+          footer_license: "எம்ஐடி உரிமம் (MIT License)",
+          footer_built_for: "திறந்த மூல சமூகத்திற்காக உருவாக்கப்பட்டது",
+          confirm_clear_history: "எல்லா வரலாற்றையும் அழிக்கவா? இதை மாற்ற முடியாது.",
+          confirm_clear_favs: "பிடித்தவை அனைத்தையும் அழிக்கவா? இதை மாற்ற முடியாது.",
+          toast_code_copied: "குறியீடு நகலெடுக்கப்பட்டது!",
+          toast_api_reachable: "ஏபிஐ அணுகக்கூடியது",
+          toast_api_unreachable: "ஏபிஐ-ஐ அணுக முடியவில்லை. முகவரியைச் சரிபார்க்கவும்.",
+          toast_please_paste: "தயவுசெய்து முதலில் குறியீட்டை ஒட்டவும்.",
+          toast_saved_favorites: "பிடித்தவற்றில் சேமிக்கப்பட்டது",
+          toast_report_downloaded: "அறிக்கை பதிவிறக்கம் செய்யப்பட்டது",
+          toast_sample_loaded: "மாதிரிக் குறியீடு ஏற்றப்பட்டது — பகுப்பாய் என்பதைக் கிளிக் செய்க!",
+          toast_history_cleared: "வரலாறு அழிக்கப்பட்டது",
+          toast_favorites_cleared: "பிடித்தவை அழிக்கப்பட்டன",
+          toast_loaded: "{name} ஏற்றப்பட்டது",
+          toast_dropped: "{name} விடப்பட்டது",
+          debug_clean_title: "சிக்கல்கள் எதுவும் கண்டறியப்படவில்லை!",
+          debug_clean_desc: "உங்கள் குறியீடு அனைத்து 40+ வடிவ சோதனைகளையும் கடந்துவிட்டது. தொடருங்கள்!",
+          debug_errors: "பிழைகள்",
+          debug_warnings: "எச்சரிக்கைகள்",
+          debug_info: "தகவல்",
+          debug_line: "வரி {line}",
+          suggest_quality_score: "தர மதிப்பெண்",
+          suggest_perfect_title: "சரியான மதிப்பெண்!",
+          suggest_perfect_desc: "மேம்பாட்டு பரிந்துரைகள் எதுவும் இல்லை.",
+          suggest_priority: "{priority} முன்னுரிமை",
+          btn_copy: "குறியீட்டை நகலெடு",
+          btn_upload: "கோப்பைப் பதிவேற்று",
+          btn_save_favorites: "பிடித்தவற்றில் சேமி",
+          btn_download_results: "முடிவுகளைப் பதிவிறக்கு",
+          btn_toggle_theme: "தீம் மாற்று",
+          analyze_btn_title: "குறியீட்டை பகுப்பாய் (Ctrl+Enter)",
+          meta_lines: "{count} வரிகள்",
+          meta_functions: "{count} செயல்பாடுகள்",
+          meta_classes: "{count} வகுப்புகள்",
+          toast_analysis_failed: "பகுப்பாய்வு தோல்வியடைந்தது: {message}",
+          history_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள வரலாறு பதிவை ஏற்று",
+          favorite_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள பிடித்த பதிவை ஏற்று"
         },
         hi: {
-          lang_select_label: 'भाषा चुनें',
-          lang_option_en: 'English',
-          lang_option_ta: 'தமிழ் (Tamil)',
-          lang_option_hi: 'हिन्दी (Hindi)',
-          lang_option_fr: 'Français (French)',
-          lang_tab_python: 'Python',
-          lang_tab_javascript: 'JavaScript',
-          lang_tab_typescript: 'TypeScript',
-          lang_tab_java: 'Java',
-          lang_tab_cpp: 'C++',
-          nav_github: 'गिटहब (GitHub)',
-          nav_api_docs: 'एपीआई दस्तावेज़ (API Docs)',
-          hero_badge: 'ओपन सोर्स · एआई-संचालित · मुफ्त',
-          hero_title: 'डीबग करें। समझें।<br ><em>तेज़ी से शिप करें।</em>',
-          hero_subtitle:
-            'अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।',
-          btn_start_analyzing: 'विश्लेषण शुरू करें',
-          btn_try_sample: 'सैंपल कोड आज़माएं',
-          btn_star_github: 'गिटहब पर स्टार करें',
-          pill_patterns_title: '40+ बग पैटर्न',
-          pill_patterns_desc: 'Python, JS, TS, Java, C++',
-          mode_explain: 'कोड का स्पष्टीकरण',
-          pill_explain_desc: 'सरल स्पष्टीकरण',
-          mode_improve: 'स्मार्ट सुझाव',
-          pill_improve_desc: 'क्वालिटी स्कोर + ग्रेड',
-          pill_theme_title: 'डार्क / लाइट मोड',
-          pill_theme_desc: 'सहेजी गई प्राथमिकता',
-          pill_upload_title: 'फ़ाइल अपलोड',
-          pill_upload_desc: '.py .js .ts .java .cpp .kt .zip',
-          editor_title: 'कोड एडिटर',
-          editor_placeholder:
-            "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
-          char_count_initial: 'शुरू करने के लिए कोड पेस्ट करें या टाइप करें',
-          char_count_format:
-            '{chars} वर्ण · {lines} पंक्तियाँ · {nonBlank} गैर-रिक्त',
-          ctrl_enter_hint: 'विश्लेषण करने के लिए Ctrl+Enter दबाएं',
-          mode_full: 'पूर्ण',
-          mode_debug: 'डीबग',
-          api_url_placeholder: 'https://qyverixai.onrender.com',
-          api_status_disconnected: 'डिस्कनेक्टेड',
-          api_status_connected: 'कनेक्टेड',
-          api_status_unreachable: 'पहुंच से बाहर',
-          api_status_error: 'त्रुटि {status}',
-          btn_ping: 'पिंग',
-          btn_analyze_code: 'कोड का विश्लेषण करें',
-          desktop_hint: '(Ctrl+Enter)',
-          results_title: 'विश्लेषण के परिणाम',
-          tab_explain: 'समझाएं',
-          tab_debug: 'डीबग',
-          tab_improve: 'सुधारें',
-          empty_explain_title: 'अभी तक कोई विश्लेषण नहीं',
-          empty_explain_desc:
-            'परिणाम देखने के लिए अपना कोड पेस्ट करें और विश्लेषण पर क्लिक करें',
-          empty_debug_title: 'कोई बग नहीं मिला',
-          empty_debug_desc:
-            'अपने कोड में समस्याओं का पता लगाने के लिए विश्लेषण चलाएं',
-          empty_suggest_title: 'अभी तक कोई सुझाव नहीं',
-          empty_suggest_desc:
-            'सुधार के विचार प्राप्त करने के लिए विश्लेषण चलाएं',
-          history_title: 'क्वेरी इतिहास',
-          favorites_title: 'सहेजे गए पसंदीदा',
-          empty_history: 'अभी तक कोई इतिहास नहीं है। अपना पहला विश्लेषण चलाएं।',
-          empty_favorites: 'अभी तक कोई पसंदीदा सहेजा नहीं गया है।',
-          btn_clear: 'साफ करें',
-          footer_license: 'एमआईटी लाइसेंस (MIT License)',
-          footer_built_for: 'ओपन सोर्स समुदाय के लिए निर्मित',
-          confirm_clear_history:
-            'इतिहास पूरी तरह साफ करें? इसे पूर्ववत नहीं किया जा सकता।',
-          confirm_clear_favs:
-            'सभी पसंदीदा साफ करें? इसे पूर्ववत नहीं किया जा सकता।',
-          toast_code_copied: 'कोड कॉपी किया गया!',
-          toast_api_reachable: 'एपीआई पहुंच योग्य है',
-          toast_api_unreachable:
-            'एपीआई तक नहीं पहुंचा जा सकता। यूआरएल की जांच करें।',
-          toast_please_paste: 'कृपया पहले कुछ कोड पेस्ट करें।',
-          toast_saved_favorites: 'पसंदीदा में सहेजा गया',
-          toast_report_downloaded: 'रिपोर्ट डाउनलोड हो गई',
-          toast_sample_loaded: 'सैंपल कोड लोड हो गया — विश्लेषण पर क्लिक करें!',
-          toast_history_cleared: 'इतिहास साफ कर दिया गया',
-          toast_favorites_cleared: 'पसंदीदा साफ कर दिए गए',
-          toast_loaded: '{name} लोड किया गया',
-          toast_dropped: '{name} ड्रॉप किया गया',
-          debug_clean_title: 'कोई समस्या नहीं मिली!',
-          debug_clean_desc:
-            'आपका कोड सभी 40+ पैटर्न जांचों में सफल रहा। इसे जारी रखें!',
-          debug_errors: 'त्रुटियाँ',
-          debug_warnings: 'चेतावनी',
-          debug_info: 'जानकारी',
-          debug_line: 'पंक्ति {line}',
-          suggest_quality_score: 'क्वालिटी स्कोर',
-          suggest_perfect_title: 'उत्कृष्ट स्कोर!',
-          suggest_perfect_desc: 'कोई सुधार सुझाव नहीं मिला।',
-          suggest_priority: '{priority} प्राथमिकता',
-          btn_copy: 'कोड कॉपी करें',
-          btn_upload: 'फ़ाइल अपलोड करें',
-          btn_save_favorites: 'पसंदीदा में सहेजें',
-          btn_download_results: 'परिणाम डाउनलोड करें',
-          btn_toggle_theme: 'थीम बदलें',
-          analyze_btn_title: 'कोड का विश्लेषण करें (Ctrl+Enter)',
-          meta_lines: '{count} पंक्तियाँ',
-          meta_functions: '{count} फ़ंक्शन',
-          meta_classes: '{count} क्लासें',
-          toast_analysis_failed: 'विश्लेषण विफल रहा: {message}',
-          history_entry_label:
-            '{time} पर {lang} के लिए इतिहास प्रविष्टि लोड करें',
-          favorite_entry_label:
-            '{time} पर {lang} के लिए पसंदीदा प्रविष्टि लोड करें',
+          lang_select_label: "भाषा चुनें",
+          lang_option_en: "English",
+          lang_option_ta: "தமிழ் (Tamil)",
+          lang_option_hi: "हिन्दी (Hindi)",
+          lang_option_fr: "Français (French)",
+          lang_tab_python: "Python",
+          lang_tab_javascript: "JavaScript",
+          lang_tab_typescript: "TypeScript",
+          lang_tab_java: "Java",
+          lang_tab_cpp: "C++",
+          nav_github: "गिटहब (GitHub)",
+          nav_api_docs: "एपीआई दस्तावेज़ (API Docs)",
+          hero_badge: "ओपन सोर्स · एआई-संचालित · मुफ्त",
+          hero_title: "डीबग करें। समझें।<br><em>तेज़ी से शिप करें।</em>",
+          hero_subtitle: "अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।",
+          btn_start_analyzing: "विश्लेषण शुरू करें",
+          btn_try_sample: "सैंपल कोड आज़माएं",
+          btn_star_github: "गिटहब पर स्टार करें",
+          pill_patterns_title: "40+ बग पैटर्न",
+          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          mode_explain: "कोड का स्पष्टीकरण",
+          pill_explain_desc: "सरल स्पष्टीकरण",
+          mode_improve: "स्मार्ट सुझाव",
+          pill_improve_desc: "क्वालिटी स्कोर + ग्रेड",
+          pill_theme_title: "डार्क / लाइट मोड",
+          pill_theme_desc: "सहेजी गई प्राथमिकता",
+          pill_upload_title: "फ़ाइल अपलोड",
+          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          editor_title: "कोड एडिटर",
+          editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
+          char_count_initial: "शुरू करने के लिए कोड पेस्ट करें या टाइप करें",
+          char_count_format: "{chars} वर्ण · {lines} पंक्तियाँ · {nonBlank} गैर-रिक्त",
+          ctrl_enter_hint: "विश्लेषण करने के लिए Ctrl+Enter दबाएं",
+          mode_full: "पूर्ण",
+          mode_debug: "डीबग",
+          api_url_placeholder: "https://qyverixai.onrender.com",
+          api_status_disconnected: "डिस्कनेक्टेड",
+          api_status_connected: "कनेक्टेड",
+          api_status_unreachable: "पहुंच से बाहर",
+          api_status_error: "त्रुटि {status}",
+          btn_ping: "पिंग",
+          btn_analyze_code: "कोड का विश्लेषण करें",
+          desktop_hint: "(Ctrl+Enter)",
+          results_title: "विश्लेषण के परिणाम",
+          tab_explain: "समझाएं",
+          tab_debug: "डीबग",
+          tab_improve: "सुधारें",
+          empty_explain_title: "अभी तक कोई विश्लेषण नहीं",
+          empty_explain_desc: "परिणाम देखने के लिए अपना कोड पेस्ट करें और विश्लेषण पर क्लिक करें",
+          empty_debug_title: "कोई बग नहीं मिला",
+          empty_debug_desc: "अपने कोड में समस्याओं का पता लगाने के लिए विश्लेषण चलाएं",
+          empty_suggest_title: "अभी तक कोई सुझाव नहीं",
+          empty_suggest_desc: "सुधार के विचार प्राप्त करने के लिए विश्लेषण चलाएं",
+          history_title: "क्वेरी इतिहास",
+          favorites_title: "सहेजे गए पसंदीदा",
+          empty_history: "अभी तक कोई इतिहास नहीं है। अपना पहला विश्लेषण चलाएं।",
+          empty_favorites: "अभी तक कोई पसंदीदा सहेजा नहीं गया है।",
+          btn_clear: "साफ करें",
+          footer_license: "एमआईटी लाइसेंस (MIT License)",
+          footer_built_for: "ओपन सोर्स समुदाय के लिए निर्मित",
+          confirm_clear_history: "इतिहास पूरी तरह साफ करें? इसे पूर्ववत नहीं किया जा सकता।",
+          confirm_clear_favs: "सभी पसंदीदा साफ करें? इसे पूर्ववत नहीं किया जा सकता।",
+          toast_code_copied: "कोड कॉपी किया गया!",
+          toast_api_reachable: "एपीआई पहुंच योग्य है",
+          toast_api_unreachable: "एपीआई तक नहीं पहुंचा जा सकता। यूआरएल की जांच करें।",
+          toast_please_paste: "कृपया पहले कुछ कोड पेस्ट करें।",
+          toast_saved_favorites: "पसंदीदा में सहेजा गया",
+          toast_report_downloaded: "रिपोर्ट डाउनलोड हो गई",
+          toast_sample_loaded: "सैंपल कोड लोड हो गया — विश्लेषण पर क्लिक करें!",
+          toast_history_cleared: "इतिहास साफ कर दिया गया",
+          toast_favorites_cleared: "पसंदीदा साफ कर दिए गए",
+          toast_loaded: "{name} लोड किया गया",
+          toast_dropped: "{name} ड्रॉप किया गया",
+          debug_clean_title: "कोई समस्या नहीं मिली!",
+          debug_clean_desc: "आपका कोड सभी 40+ पैटर्न जांचों में सफल रहा। इसे जारी रखें!",
+          debug_errors: "त्रुटियाँ",
+          debug_warnings: "चेतावनी",
+          debug_info: "जानकारी",
+          debug_line: "पंक्ति {line}",
+          suggest_quality_score: "क्वालिटी स्कोर",
+          suggest_perfect_title: "उत्कृष्ट स्कोर!",
+          suggest_perfect_desc: "कोई सुधार सुझाव नहीं मिला।",
+          suggest_priority: "{priority} प्राथमिकता",
+          btn_copy: "कोड कॉपी करें",
+          btn_upload: "फ़ाइल अपलोड करें",
+          btn_save_favorites: "पसंदीदा में सहेजें",
+          btn_download_results: "परिणाम डाउनलोड करें",
+          btn_toggle_theme: "थीम बदलें",
+          analyze_btn_title: "कोड का विश्लेषण करें (Ctrl+Enter)",
+          meta_lines: "{count} पंक्तियाँ",
+          meta_functions: "{count} फ़ंक्शन",
+          meta_classes: "{count} क्लासें",
+          toast_analysis_failed: "विश्लेषण विफल रहा: {message}",
+          history_entry_label: "{time} पर {lang} के लिए इतिहास प्रविष्टि लोड करें",
+          favorite_entry_label: "{time} पर {lang} के लिए पसंदीदा प्रविष्टि लोड करें"
         },
         fr: {
           lang_select_label: 'Choisir la langue',
@@ -3288,9 +2932,8 @@
           nav_github: 'GitHub',
           nav_api_docs: 'Docs API',
           hero_badge: "Open Source · Propulsé par l'IA · Gratuit",
-          hero_title: 'Déboguez. Comprenez.<br ><em>Lisez plus vite.</em>',
-          hero_subtitle:
-            "Collez votre code et obtenez une détection instantanée des bogues, des explications simples et des suggestions d'amélioration exploitables — aucun compte requis.",
+          hero_title: "Déboguez. Comprenez.<br /><em>Lisez plus vite.</em>",
+          hero_subtitle: "Collez votre code et obtenez une détection instantanée des bogues, des explications simples et des suggestions d'amélioration exploitables — aucun compte requis.",
           btn_start_analyzing: "Démarrer l'analyse",
           btn_try_sample: "Essayer l'exemple",
           btn_star_github: 'Star sur GitHub',
@@ -3390,11 +3033,12 @@
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
       let selectedLang = 'python';
+      const LOCAL_API_BASE = 'http://localhost:8000';
+      const REMOTE_API_BASE = 'https://qyverixai.onrender.com';
+
       let selectedMode = 'analyze';
       let selectedZipFile = null;
       let appLang = localStorage.getItem('qyx_lang') || 'en';
-      const LOCAL_API_BASE = 'http://localhost:8000';
-      const REMOTE_API_BASE = 'https://qyverixai.onrender.com';
 
       /* ═══════════════════════════════════════════════════════════════
          DOM REFS
@@ -3937,7 +3581,9 @@
               body: formData,
               signal: AbortSignal.timeout(60000),
             });
-            if (fallbackUsed) persistApiBase(baseUsed);
+            if (fallbackUsed) {
+              persistApiBase(baseUsed);
+            }
             if (!res.ok) {
               const err = await res.json().catch(() => ({}));
               throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3968,7 +3614,9 @@
             body: JSON.stringify({ code, language: selectedLang }),
             signal: AbortSignal.timeout(30000),
           });
-          if (fallbackUsed) persistApiBase(baseUsed);
+          if (fallbackUsed) {
+            persistApiBase(baseUsed);
+          }
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.detail || `HTTP ${res.status}`);
@@ -4155,7 +3803,7 @@
           </div>
         </div>
         <div class="score-info">
-          <h3>Project Health</h3>
+          <p class="score-title">Project Health</p>
           <p>${escHtml(project.summary)}</p>
         </div>
       </div>
@@ -4242,7 +3890,7 @@
           el.innerHTML = `
       <div class="clean-state">
         <div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
-        <h3>${getTranslation('debug_clean_title')}</h3>
+        <p class="clean-title">${getTranslation('debug_clean_title')}</p>
         <p>${getTranslation('debug_clean_desc')}</p>
       </div>`;
           return;
@@ -4497,79 +4145,45 @@
         </div>
       </div>
       <div class="score-info">
-        <h3>${getTranslation('suggest_quality_score')}</h3>
+        <p class="score-title">${getTranslation('suggest_quality_score')}</p>
         <p>${sugg.next_step}</p>
       </div>
     </div>`;
 
-        const cards =
-          sugg.suggestions.length === 0
-            ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>${getTranslation('suggest_perfect_title')}</h3><p>${getTranslation('suggest_perfect_desc')}</p></div>`
-            : sugg.suggestions
-                .map((s, i) => {
-                  let exampleHtml = '';
-                  if (s.example) {
-                    const copyId = `copy-fix-${i}`;
-                    const rawLines = s.example.split('\n');
+        const cards = sugg.suggestions.length === 0
+          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><p class="clean-title">${getTranslation('suggest_perfect_title')}</p><p>${getTranslation('suggest_perfect_desc')}</p></div>`
+          : sugg.suggestions.map((s, i) => {
 
-                    // Case 1: example has unified diff markers (- / +)
-                    const hasMarkers = rawLines.some(
-                      (l) => /^[\-\+]/.test(l) && l.length > 1,
-                    );
-                    if (hasMarkers) {
-                      const originalText = rawLines
-                        .filter((l) => !l.startsWith('+'))
-                        .map((l) => l.replace(/^-\s?/, ''))
-                        .join('\n');
-                      const fixedText = rawLines
-                        .filter((l) => !l.startsWith('-'))
-                        .map((l) => l.replace(/^\+\s?/, ''))
-                        .join('\n');
-                      exampleHtml = buildDiffHtml(
-                        originalText,
-                        fixedText,
-                        copyId,
-                      );
+            let exampleHtml = '';
+            if (s.example) {
+              const copyId  = `copy-fix-${i}`;
+              const rawLines = s.example.split('\n');
 
-                      // Case 2: two blocks separated by a blank line (before \n\n after)
-                    } else {
-                      const blankIdx = rawLines.findIndex(
-                        (l) => l.trim() === '',
-                      );
-                      if (blankIdx > 0 && blankIdx < rawLines.length - 1) {
-                        const originalText = rawLines
-                          .slice(0, blankIdx)
-                          .join('\n');
-                        const fixedText = rawLines
-                          .slice(blankIdx + 1)
-                          .join('\n');
-                        exampleHtml = buildDiffHtml(
-                          originalText,
-                          fixedText,
-                          copyId,
-                        );
+              // Case 1: example has unified diff markers (- / +)
+              const hasMarkers = rawLines.some(l => /^[\-\+]/.test(l) && l.length > 1);
+              if (hasMarkers) {
+                const originalText = rawLines.filter(l => !l.startsWith('+')).map(l => l.replace(/^-\s?/, '')).join('\n');
+                const fixedText    = rawLines.filter(l => !l.startsWith('-')).map(l => l.replace(/^\+\s?/, '')).join('\n');
+                exampleHtml = buildDiffHtml(originalText, fixedText, copyId);
 
-                        // Case 3 (most common from API): single fixed-code block
-                        // → find matching region in editor as "Before", diff against example as "After"
-                      } else {
-                        const originalSnippet = findOriginalSnippet(
-                          editor.value,
-                          s.example,
-                        );
-                        if (originalSnippet) {
-                          exampleHtml = buildDiffHtml(
-                            originalSnippet,
-                            s.example,
-                            copyId,
-                          );
-                        } else {
-                          // No match – show fixed code as green "Fixed Code" block
-                          const lines = rawLines.map((text, idx) => ({
-                            type: 'added',
-                            text,
-                            num: idx + 1,
-                          }));
-                          exampleHtml = `
+              // Case 2: two blocks separated by a blank line (before \n\n after)
+              } else {
+                const blankIdx = rawLines.findIndex(l => l.trim() === '');
+                if (blankIdx > 0 && blankIdx < rawLines.length - 1) {
+                  const originalText = rawLines.slice(0, blankIdx).join('\n');
+                  const fixedText    = rawLines.slice(blankIdx + 1).join('\n');
+                  exampleHtml = buildDiffHtml(originalText, fixedText, copyId);
+
+                // Case 3 (most common from API): single fixed-code block
+                // → find matching region in editor as "Before", diff against example as "After"
+                } else {
+                  const originalSnippet = findOriginalSnippet(editor.value, s.example);
+                  if (originalSnippet) {
+                    exampleHtml = buildDiffHtml(originalSnippet, s.example, copyId);
+                  } else {
+                    // No match – show fixed code as green "Fixed Code" block
+                    const lines = rawLines.map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+                    exampleHtml = `
                     <div class="diff-wrapper">
                       <div class="diff-header">
                         <div class="diff-header-labels">
