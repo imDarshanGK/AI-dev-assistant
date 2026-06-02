@@ -109,6 +109,18 @@ Before opening a PR, confirm:
 
 ---
 
+## Large Files Policy
+To keep the repository lightweight and CI efficient, files larger than 5MB are not allowed in pull requests.
+If you need to include large assets:
+
+- Use Git LFS when appropriate.
+- Host large files externally and provide links.
+- Request maintainer approval for exceptions.
+
+Pull requests containing oversized files will fail automated CI checks.
+
+---
+
 ## Code of Conduct
 
 Be respectful, inclusive, and constructive. We're here to learn and build together.

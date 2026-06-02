@@ -1,0 +1,40 @@
+name: File Size Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-large-files:
+    name: Check Large Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check file sizes
+        run: |
+          MAX_SIZE_MB=5
+          MAX_SIZE=$((MAX_SIZE_MB * 1024 * 1024))
+
+          FILES=$(git diff --diff-filter=AM --name-only origin/${{ github.base_ref }}...HEAD)
+
+          FAILED=0
+
+          for file in $FILES; do
+            if [ -f "$file" ]; then
+              SIZE=$(stat -c%s "$file")
+
+              if [ "$SIZE" -gt "$MAX_SIZE" ]; then
+                echo "::error file=$file::File exceeds ${MAX_SIZE_MB}MB limit. Please use external storage or Git LFS."
+                FAILED=1
+              fi
+            fi
+          done
+
+          exit $FAILED
+
+  
