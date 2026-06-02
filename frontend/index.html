@@ -3553,10 +3553,36 @@
       </div>
       <div class="issue-desc">${issue.description}</div>
       ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
-      <div class="issue-fix">${issue.suggestion}</div>
+      ${issue.suggestion ? `
+      <div class="issue-fix-container" style="display:flex; justify-content:space-between; align-items:flex-start; gap: 8px;">
+        <div class="issue-fix" style="flex:1;">${issue.suggestion}</div>
+        <button class="btn-copy-fix" id="copy-debug-fix-${i}" aria-label="Copy suggestion" style="margin-top:0; white-space:nowrap; flex-shrink:0;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+      </div>` : ''}
     </div>`).join('');
 
         el.innerHTML = statBar + cards;
+
+        // Wire up "Copy suggestion" buttons after DOM insertion
+        dbg.issues.forEach((issue, i) => {
+          if (!issue.suggestion) return;
+          const btn = document.getElementById(`copy-debug-fix-${i}`);
+          if (!btn) return;
+
+          btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(issue.suggestion).then(() => {
+              btn.textContent = '\u2713 Copied!';
+              btn.style.background = 'rgba(34,212,123,0.25)';
+              toast('Suggestion copied', 'success');
+              setTimeout(() => {
+                btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
+                btn.style.background = '';
+              }, 2000);
+            }).catch(() => toast('Copy failed', 'error'));
+          });
+        });
       }
 
       /* ═══════════════════════════════════════════════════════════════
