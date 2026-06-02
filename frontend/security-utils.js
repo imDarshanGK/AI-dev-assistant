@@ -3,9 +3,9 @@
  * Loaded by index.html; tested via frontend/tests/*.test.mjs
  */
 (function (global) {
-  const ALLOWED_PRIORITIES = new Set(['high', 'medium', 'low']);
-  const ALLOWED_SEVERITIES = new Set(['error', 'warning', 'info']);
-  const STORED_ENTRY_LIMITS = { lang: 64, ts: 64, preview: 120 };
+
+
+
 
   const FAV_HEART_SVG =
     '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +

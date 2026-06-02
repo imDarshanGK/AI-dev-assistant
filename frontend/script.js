@@ -14,7 +14,7 @@ const SEC = window.QyverixSecurity || {
 };
 const { escHtml, sanitizeClientCode } = SEC;
 
-const ALLOWED_MODES = new Set(['analyze', 'explanation', 'debugging', 'suggestions']);
+
 function safeModeLabel(mode) {
   const key = String(mode || '').toLowerCase();
   return ALLOWED_MODES.has(key) ? key : 'analyze';
@@ -22,8 +22,8 @@ function safeModeLabel(mode) {
 
 // ── State ──
 let currentMode = 'analyze';
-let history = JSON.parse(localStorage.getItem('qyverix_history') || '[]');
-let favorites = JSON.parse(localStorage.getItem('qyverix_favorites') || '[]');
+let history = JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY) || '[]');
+let favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES) || '[]');
 let lastResult = '';
 
 // ── DOM refs ──
@@ -40,16 +40,16 @@ const fileInput = document.getElementById('fileInput');
 const historyContainer = document.getElementById('historyContainer');
 const favContainer = document.getElementById('favContainer');
 const themeToggle = document.getElementById('themeToggle');
-const API_URL_STORAGE_KEY = 'qyverix_api_url';
+
 
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-const savedTheme = localStorage.getItem('qyverix_theme') || (systemDark ? 'dark' : 'light');
+const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || (systemDark ? 'dark' : 'light');
 document.documentElement.setAttribute('data-theme', savedTheme);
 
 themeToggle.addEventListener('click', () => {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
-  localStorage.setItem('qyverix_theme', isLight ? 'dark' : 'light');
+  localStorage.setItem(STORAGE_KEYS.THEME, isLight ? 'dark' : 'light');
 
   const themeToggleBtn = document.getElementById('themeToggle');
   if (themeToggleBtn) {
@@ -145,7 +145,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
   };
   favorites.unshift(entry);
   if (favorites.length > 20) favorites = favorites.slice(0, 20);
-  localStorage.setItem('qyverix_favorites', JSON.stringify(favorites));
+  localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favorites));
   renderFavorites();
   showToast('Saved to favorites ♡');
 });
@@ -153,7 +153,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
 // ── Clear history ──
 document.getElementById('clearHistoryBtn').addEventListener('click', () => {
   history = [];
-  localStorage.setItem('qyverix_history', JSON.stringify(history));
+  localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
   renderHistory();
 });
 
@@ -244,7 +244,7 @@ async function checkConnection() {
         if (fallbackResp.ok) {
           const fallbackHealth = await fallbackResp.json().catch(() => ({}));
           apiUrlInput.value = suggestedApi;
-          localStorage.setItem(API_URL_STORAGE_KEY, suggestedApi);
+          localStorage.setItem(STORAGE_KEYS.API_URL, suggestedApi);
           updateDocsLink();
           statusDot.className = 'status-dot online';
           setEngineBadge(fallbackHealth.llm_enabled ? 'llm' : 'rule');
@@ -311,7 +311,7 @@ function setEngineBadge(mode) {
 }
 
 function initializeApiUrl() {
-  const saved = normalizeApiUrl(localStorage.getItem(API_URL_STORAGE_KEY));
+  const saved = normalizeApiUrl(localStorage.getItem(STORAGE_KEYS.API_URL));
   const current = normalizeApiUrl(apiUrlInput.value);
   const suggested = normalizeApiUrl(getSuggestedApiUrl());
   const pageHost = window.location.hostname;
@@ -328,7 +328,7 @@ function initializeApiUrl() {
   }
 
   apiUrlInput.value = chosen;
-  localStorage.setItem(API_URL_STORAGE_KEY, chosen);
+  localStorage.setItem(STORAGE_KEYS.API_URL, chosen);
   updateDocsLink();
 }
 
@@ -364,7 +364,7 @@ function getUserFriendlyError(err, responseStatus) {
 
 initializeApiUrl();
 apiUrlInput.addEventListener('change', () => {
-  localStorage.setItem(API_URL_STORAGE_KEY, getApiUrl());
+  localStorage.setItem(STORAGE_KEYS.API_URL, getApiUrl());
   updateDocsLink();
   checkConnection();
 });
@@ -551,7 +551,7 @@ function saveHistory(code, mode, result) {
     time: new Date().toLocaleTimeString()
   });
   if (history.length > 50) history = history.slice(0, 50);
-  localStorage.setItem('qyverix_history', JSON.stringify(history));
+  localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
   renderHistory();
 }
 
