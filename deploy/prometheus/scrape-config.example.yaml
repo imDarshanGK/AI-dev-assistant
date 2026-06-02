@@ -1,0 +1,19 @@
+# Example Prometheus scrape configuration for QyverixAI.
+#
+# Drop this job into your existing prometheus.yml's `scrape_configs:` list.
+# If you run Prometheus inside Kubernetes, prefer a ServiceMonitor CRD
+# (Prometheus Operator) instead of static targets.
+
+scrape_configs:
+  - job_name: qyverixai
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    static_configs:
+      - targets:
+          # Replace with your service hostname / port.
+          - qyverixai.default.svc.cluster.local:80
+    # Uncomment if you set METRICS_AUTH_TOKEN on the application.
+    # authorization:
+    #   type: Bearer
+    #   credentials: "REPLACE_WITH_METRICS_AUTH_TOKEN"
