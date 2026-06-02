@@ -5,6 +5,8 @@ import asyncio
 import json
 import time
 import zipfile
+from app.limiter import limiter
+from fastapi import Request
 from io import BytesIO
 from pathlib import PurePosixPath
 
@@ -159,7 +161,8 @@ def _add_skipped(skipped_files: list[str], reason: str) -> None:
     summary="Stream analysis results section by section (SSE)",
     response_class=StreamingResponse,
 )
-async def analyze_stream(req: CodeRequest):
+@limiter.limit("10/minute")
+async def analyze_stream(request: Request, req: CodeRequest):
     return StreamingResponse(
         _stream_analysis(req.code, req.language),
         media_type="text/event-stream",
@@ -172,7 +175,9 @@ async def analyze_stream(req: CodeRequest):
     summary="Stream analysis results section by section (SSE) — issue #128 spec",
     response_class=StreamingResponse,
 )
+@limiter.limit("10/minute")
 async def analyze_stream_get(
+    request: Request,
     code: str = Query(..., min_length=1, max_length=50000, description="Source code to analyze"),
     language: str | None = Query(None, description="Optional language hint"),
 ):
@@ -190,7 +195,8 @@ async def analyze_stream_get(
     response_model=AnalyzeResponse,
     summary="Run full analysis (explain + debug + suggest)",
 )
-async def analyze(req: CodeRequest, response: Response):
+@limiter.limit("10/minute")
+async def analyze(request: Request, req: CodeRequest, response: Response):
     cache_input = f"{req.language or 'auto'}\n{req.code}"
     cached_payload = cache.get("analyze:v1", cache_input)
 
@@ -211,6 +217,7 @@ async def analyze(req: CodeRequest, response: Response):
     response_model=ZipAnalyzeResponse,
     summary="Run full analysis for source files in a ZIP",
 )
+@limiter.limit("5/minute")
 async def analyze_zip(request: Request, file: UploadFile = File(...)):
     """Analyze up to 20 source files from an uploaded ZIP archive."""
 
