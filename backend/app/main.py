@@ -141,16 +141,12 @@ app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"]
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
-app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'])
 app.include_router(share.router)
 app.include_router(auth.router)
 app.include_router(user_data.router)
 app.include_router(history.router,     prefix="/history",     tags=["History"])
-app.include_router(auth.router)
 app.include_router(chat.router)
-app.include_router(share.router)
-app.include_router(user_data.router)
-app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────

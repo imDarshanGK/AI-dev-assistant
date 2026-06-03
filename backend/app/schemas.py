@@ -309,11 +309,10 @@ class ShareCreateRequest(BaseModel):
         return values
 
     @model_validator(mode="after")
-    @classmethod
-    def ensure_result_present(cls, model: "ShareCreateRequest") -> "ShareCreateRequest":
-        if model.result is None:
+    def ensure_result_present(self) -> "ShareCreateRequest":
+        if self.result is None:
             raise ValueError("result or result_json is required")
-        return model
+        return self
 
 
 class ShareRecord(BaseModel):
@@ -326,34 +325,6 @@ class ShareRecord(BaseModel):
 
 
 
-class HistoryCreateRequest(BaseModel):
-    action: str
-    code: str
-    result_json: str
-
-
-class HistoryRecord(BaseModel):
-    id: int
-    action: str
-    code: str
-    result_json: str
-    created_at: str
-
-
-class FavoriteCreateRequest(BaseModel):
-    title: str
-    action: str
-    code: str
-    result_json: str
-
-
-class FavoriteRecord(BaseModel):
-    id: int
-    title: str
-    action: str
-    code: str
-    result_json: str
-    created_at: str
 # ── Chat ──────────────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=4_000)
