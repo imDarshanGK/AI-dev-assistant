@@ -35,8 +35,11 @@ from .observability import (
     initialise_app_info,
     prometheus_metrics_middleware,
 )
+from .logging_config import configure_logging
 
 from .schemas import HealthResponse
+
+logger = logging.getLogger(__name__)
 
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
@@ -68,14 +71,15 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    configure_logging()
     await database.init_db()
-    print("🚀 QyverixAI backend starting…")
+    logger.info("🚀 QyverixAI backend starting…")
     # Static info gauge so dashboards can pin version / provider labels.
     initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
     start_scheduler()
     yield
     stop_scheduler()
-    logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
+    logger.info("🛑 QyverixAI backend shutting down…")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────

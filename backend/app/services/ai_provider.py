@@ -12,7 +12,7 @@ import time
 from urllib.parse import urlparse
 import httpx
 
-logger = logging.getLogger("ai_provider")
+logger = logging.getLogger(__name__)
 
 LLM_ENABLED  = os.getenv("LLM_ENABLED", "false").lower() == "true"
 LLM_API_KEY  = os.getenv("LLM_API_KEY", "")
