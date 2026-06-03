@@ -459,3 +459,5 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
 
     except zipfile.BadZipFile:
         raise HTTPException(status_code=400, detail="Invalid ZIP archive")
+        
+        
