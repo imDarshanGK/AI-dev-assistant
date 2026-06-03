@@ -46,7 +46,14 @@ jobs:
           RATE_LIMIT_PER_MINUTE: 300
         run: |
           cd backend
-          pytest -v --tb=short
+          pytest --cov=app --cov-report=xml --cov-report=term-missing -v --tb=short
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          directory: ./backend
+          fail_ci_if_error: false
+          verbose: false
 
   lint:
     name: Lint
