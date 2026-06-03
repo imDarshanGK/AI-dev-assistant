@@ -1,0 +1,20 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "DarshanGK",
+    "QyverixAI",
+    "GSSoC",
+    "FastAPI",
+    "pytest",
+    "frontend",
+    "backend",
+    "Ruff",
+    "OpenAI"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    ".git",
+    ".pytest_cache"
+  ]
+}
