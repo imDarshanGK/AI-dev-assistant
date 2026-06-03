@@ -2420,13 +2420,13 @@
         </div>
 
         <div style="max-width:360px;">
-          <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
+          <p data-i18n="footer_weekly_digest" style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
-            <input type="email" id="digestEmail" placeholder="your@email.com" required
+            <input type="email" id="digestEmail" data-i18n-placeholder="footer_email_placeholder" placeholder="your@email.com" required
                    style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
-            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
+            <button type="submit" id="digestBtn" data-i18n="footer_subscribe" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
-          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
+          <p data-i18n="footer_digest_desc" style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
       </div>
     </footer>
@@ -2534,7 +2534,11 @@
           meta_classes: "{count} classes",
           toast_analysis_failed: "Analysis failed: {message}",
           history_entry_label: "Load history entry for {lang} at {time}",
-          favorite_entry_label: "Load favorite entry for {lang} at {time}"
+          favorite_entry_label: "Load favorite entry for {lang} at {time}",
+          footer_weekly_digest: "Weekly Digest",
+          footer_email_placeholder: "your@email.com",
+          footer_subscribe: "Subscribe",
+          footer_digest_desc: "Get a Sunday email with your weekly analysis stats.",
         },
         ta: {
           lang_select_label: "மொழியைத் தேர்ந்தெடுக்கவும்",
@@ -2631,7 +2635,11 @@
           meta_classes: "{count} வகுப்புகள்",
           toast_analysis_failed: "பகுப்பாய்வு தோல்வியடைந்தது: {message}",
           history_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள வரலாறு பதிவை ஏற்று",
-          favorite_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள பிடித்த பதிவை ஏற்று"
+          favorite_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள பிடித்த பதிவை ஏற்று",
+          footer_weekly_digest: "வாராந்திர சுருக்கம்",
+          footer_email_placeholder: "your@email.com",
+          footer_subscribe: "சந்தாதாரராகுங்கள்",
+          footer_digest_desc: "உங்கள் வாராந்திர பகுப்பாய்வு புள்ளிவிவரங்களுடன் ஞாயிற்றுக்கிழமை மின்னஞ்சலைப் பெறுங்கள்.",
         },
         hi: {
           lang_select_label: "भाषा चुनें",
@@ -2728,7 +2736,11 @@
           meta_classes: "{count} क्लासें",
           toast_analysis_failed: "विश्लेषण विफल रहा: {message}",
           history_entry_label: "{time} पर {lang} के लिए इतिहास प्रविष्टि लोड करें",
-          favorite_entry_label: "{time} पर {lang} के लिए पसंदीदा प्रविष्टि लोड करें"
+          favorite_entry_label: "{time} पर {lang} के लिए पसंदीदा प्रविष्टि लोड करें",
+          footer_weekly_digest: "साप्ताहिक सारांश",
+          footer_email_placeholder: "your@email.com",
+          footer_subscribe: "सदस्यता लें",
+          footer_digest_desc: "अपने साप्ताहिक विश्लेषण आँकड़ों के साथ रविवार का ईमेल प्राप्त करें।",
         },
         fr: {
           lang_select_label: "Choisir la langue",
@@ -2825,7 +2837,11 @@
           meta_classes: "{count} classes",
           toast_analysis_failed: "Échec de l'analyse : {message}",
           history_entry_label: "Charger l'entrée d'historique pour {lang} à {time}",
-          favorite_entry_label: "Charger le favori pour {lang} à {time}"
+          favorite_entry_label: "Charger le favori pour {lang} à {time}",
+          footer_weekly_digest: "Résumé hebdomadaire",
+          footer_email_placeholder: "your@email.com",
+          footer_subscribe: "S'abonner",
+          footer_digest_desc: "Recevez un e-mail dominical avec vos statistiques d'analyse hebdomadaires.",
         }
       };
 
