@@ -188,7 +188,7 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
   a.href = URL.createObjectURL(blob);
   a.download = 'analysis-history.csv';
   a.click();
-URL.revokeObjectURL(a.href);
+  URL.revokeObjectURL(a.href);
 });
 
 // ── Run Button ──
@@ -314,30 +314,39 @@ function getApiUrl() {
   return normalizeApiUrl(apiUrlInput.value) || normalizeApiUrl(getSuggestedApiUrl());
 }
 
+// ── Improved Error Handler ──
 function getUserFriendlyError(err, responseStatus) {
   const raw = (err && err.message ? String(err.message) : '').toLowerCase();
 
+  if (err && (err.name === 'AbortError' || err.name === 'TimeoutError')) {
+    return `⏱ Request timed out. The backend at ${getApiUrl()} took too long to respond.\n\nTry again or check if the server is overloaded.`;
+  }
+
   if (raw.includes('failed to fetch') || raw.includes('networkerror') || raw.includes('network request failed')) {
-    return `Could not reach the backend at ${getApiUrl()}. Check the API URL and that the server is running.`;
+    return `🔌 Network error: Could not reach the backend.\n\nPossible reasons:\n• Backend server is not running\n• Incorrect API URL: ${getApiUrl()}\n• CORS is blocking the request\n• No internet connection`;
   }
 
   if (responseStatus === 401) {
-    return 'Unauthorized request. Check your API key or auth settings.';
+    return '🔐 Unauthorized request. Check your API key or authentication settings.';
   }
 
   if (responseStatus === 402 || responseStatus === 429 || raw.includes('insufficient_quota') || raw.includes('quota')) {
-    return 'Provider quota/billing limit reached. Switch to rule-based mode or update billing.';
+    return '💳 Provider quota or billing limit reached. Switch to rule-based mode or update your billing settings.';
   }
 
   if (responseStatus >= 500) {
-    return 'Server error while analyzing code. Try again in a moment.';
+    return `🖥 Server error (${responseStatus}): The backend encountered an internal error. Try again in a moment.`;
+  }
+
+  if (responseStatus === 404) {
+    return `🔍 Endpoint not found (404). The API URL may be incorrect: ${getApiUrl()}`;
   }
 
   if (err && err.message) {
     return err.message;
   }
 
-  return 'Could not reach the backend. Make sure it is running.';
+  return '❓ Could not reach the backend. Make sure it is running and the API URL is correct.';
 }
 
 initializeApiUrl();
@@ -382,7 +391,28 @@ async function runAnalysis() {
     saveHistory(code, currentMode, data);
     statusDot.className = 'status-dot online';
   } catch (err) {
-    showError(getUserFriendlyError(err, 0));
+    let debugInfo = '';
+
+    if (err.name === 'AbortError' || err.name === 'TimeoutError') {
+      debugInfo = `⏱ Request timed out. The backend at ${getApiUrl()} took too long to respond.\n\nTry again or check if the server is overloaded.`;
+    } else if (err.message && err.message.toLowerCase().includes('failed to fetch')) {
+      debugInfo = `🔌 Network error: Could not reach the backend.\n\nPossible reasons:\n• Backend server is not running\n• Incorrect API URL: ${getApiUrl()}\n• CORS is blocking the request\n• No internet connection`;
+    } else {
+      debugInfo = getUserFriendlyError(err, 0);
+    }
+
+    showError(debugInfo);
+
+    // Log full debug details to browser console for developers
+    console.error('[Analysis Error]', {
+      message: err.message,
+      name: err.name,
+      apiUrl: getApiUrl(),
+      mode: currentMode,
+      timestamp: new Date().toISOString(),
+      stack: err.stack
+    });
+
     statusDot.className = 'status-dot offline';
     setEngineBadge('unknown');
   } finally {
@@ -510,12 +540,22 @@ function resetOutput() {
   </div>`;
 }
 
+// ── Improved showError with meaningful debugging info ──
 function showError(msg) {
+  const formattedMsg = msg.replace(/\n/g, '<br>').replace(/•/g, '&bull;');
   outputBox.innerHTML = `<div class="result-section">
-    <h4>Error</h4>
+    <h4>⚠ Analysis Failed</h4>
     <div class="result-text">
-      <span class="result-tag tag-error">✕ ${msg}</span>
-      <p style="margin-top:12px;color:var(--text-2)">Check that the backend is running at: <code>${getApiUrl()}</code></p>
+      <span class="result-tag tag-error">✕ Error Details</span>
+      <p style="margin-top:12px;color:var(--text-2);line-height:1.8">${formattedMsg}</p>
+      <div style="margin-top:14px;padding:10px 14px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border);font-size:12px;color:var(--text-3)">
+        <p><strong>API URL:</strong> <code>${getApiUrl()}</code></p>
+        <p style="margin-top:4px"><strong>Mode:</strong> <code>${currentMode}</code></p>
+        <p style="margin-top:4px"><strong>Time:</strong> <code>${new Date().toLocaleTimeString()}</code></p>
+      </div>
+      <p style="margin-top:12px;color:var(--text-3);font-size:12px">
+        💡 Open browser DevTools (F12) → Console tab for full error details.
+      </p>
     </div>
   </div>`;
 }
