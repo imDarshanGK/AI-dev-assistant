@@ -1,7 +1,8 @@
 from pathlib import Path
+import logging
 import magic
 
-from app.utils.upload_config import (
+from .upload_config import (
     ALLOWED_EXTENSIONS,
     ALLOWED_MIME_TYPES,
     BLOCKED_EXTENSIONS,
@@ -49,7 +50,8 @@ def detect_mime_type(file_content: bytes) -> str:
 
 def validate_mime_type(ext:str, filecontent:bytes) -> None:
     detected_mime = detect_mime_type(filecontent)
-    print(f"Detected MIME Type: {detected_mime}")
+    logger = logging.getLogger(__name__)
+    logger.debug("Detected MIME Type: %s", detected_mime)
     if detected_mime not in ALLOWED_MIME_TYPES[ext]:
         raise ValueError(
             f"{UPLOAD_ERROR_MESSAGES['invalid_mime']}"

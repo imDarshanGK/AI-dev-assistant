@@ -127,6 +127,9 @@ The app can still run without external AI providers when `LLM_ENABLED=false`.
 | API root | http://localhost:8000/ |
 | Interactive docs | http://localhost:8000/docs |
 | Health check | http://localhost:8000/health |
+| Signup | http://localhost:8000/auth/signup |
+| Login | http://localhost:8000/auth/login |
+| Current user | http://localhost:8000/auth/me |
 
 ### 3 - Open the frontend
 
@@ -265,7 +268,8 @@ AI-dev-assistant/
 │   │   │   ├── analyze.py            # POST /analyze/
 │   │   │   ├── debugging.py          # POST /debugging/
 │   │   │   ├── explanation.py        # POST /explanation/
-│   │   │   └── suggestions.py        # POST /suggestions/
+│   │   │   ├── suggestions.py        # POST /suggestions/
+│   │   │   └── auth.py               # /auth/signup, /auth/login, /auth/me
 │   │   └── services/
 │   │       ├── code_assistant.py     # Rule-based engine — 40+ patterns, 5 languages
 │   │       └── ai_provider.py        # Optional LLM abstraction layer
@@ -336,6 +340,61 @@ Stop containers:
 ```bash
 docker compose down
 ```
+
+---
+
+## Observability
+
+QyverixAI exposes operational endpoints designed for container orchestration and Prometheus scraping.
+
+### Health probes
+
+| Endpoint | Purpose | Behaviour |
+|---|---|---|
+| `GET /healthz/live` | Liveness probe | Returns `200` while the process can answer HTTP. Does **not** check external dependencies — Kubernetes restarts the container on failure, so this must never depend on recoverable backends. |
+| `GET /healthz/ready` | Readiness probe | Returns `200` only when every dependency check (currently: database) passes. Returns `503` with a per-check breakdown otherwise. Kubernetes removes the pod from service load balancers on failure but does **not** restart it. |
+| `GET /health` | Legacy combined check | Retained for backward compatibility with anything already pointing at it. |
+
+Example response from `/healthz/ready` when degraded:
+
+```json
+{
+  "status": "degraded",
+  "checks": {
+    "database": {
+      "ok": false,
+      "elapsed_ms": 2003.41,
+      "error": "OperationalError: connection refused"
+    }
+  }
+}
+```
+
+A ready-to-copy Kubernetes manifest with probes wired up lives at [`deploy/k8s/deployment.example.yaml`](deploy/k8s/deployment.example.yaml).
+
+### Prometheus metrics
+
+`GET /metrics` exposes the Prometheus exposition format. Metric families:
+
+| Metric | Type | Labels | Description |
+|---|---|---|---|
+| `qyverixai_http_requests_total` | Counter | `method`, `endpoint`, `status_code` | Total requests processed. |
+| `qyverixai_http_request_duration_seconds` | Histogram | `method`, `endpoint` | Request latency. Buckets: 5ms → 30s. |
+| `qyverixai_http_requests_in_progress` | Gauge | `method`, `endpoint` | Concurrent in-flight requests. |
+| `qyverixai_http_request_exceptions_total` | Counter | `method`, `endpoint`, `exception_type` | Unhandled exceptions raised during request handling. |
+| `qyverixai_app_info` | Gauge | `version`, `ai_provider` | Static identity, always `1`. |
+
+The `endpoint` label is the matched **route template** (e.g. `/share/{share_id}`), not the raw URL — this keeps label cardinality bounded as IDs flow through the system. The `/metrics` endpoint itself is excluded from observation to prevent a scrape feedback loop.
+
+A drop-in Prometheus scrape config is provided at [`deploy/prometheus/scrape-config.example.yaml`](deploy/prometheus/scrape-config.example.yaml).
+
+#### Configuration
+
+| Variable | Default | Description |
+|---|---|---|
+| `METRICS_ENABLED` | `true` | Set to `false` to disable `/metrics` and skip the middleware entirely. |
+| `METRICS_AUTH_TOKEN` | — | Optional bearer token. When set, scrapers must send `Authorization: Bearer <token>`. |
+| `PROMETHEUS_MULTIPROC_DIR` | — | Set when running `uvicorn --workers N > 1` so scrapes aggregate across workers. The directory must exist and be writable. |
 
 ---
 
