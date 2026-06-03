@@ -429,6 +429,7 @@
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
       padding: 12px 24px;
       border-radius: var(--r2);
@@ -439,6 +440,13 @@
       text-decoration: none;
       transition: all var(--transition);
       white-space: nowrap;
+    }
+
+    .btn svg {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .btn-primary {
@@ -562,6 +570,7 @@
       padding: 14px 18px;
       border-bottom: 1px solid var(--border);
       background: var(--bg3);
+      min-height: 48px;
     }
 
     .panel-title {
@@ -573,7 +582,9 @@
       color: var(--text2);
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
+      margin: 0;
     }
 
     .panel-title span {
@@ -621,6 +632,8 @@
       border-bottom: 1px solid var(--border);
       overflow-x: auto;
       scrollbar-width: none;
+      padding-top: 8px;
+      margin-top: 4px;
     }
 
     .lang-tab {
