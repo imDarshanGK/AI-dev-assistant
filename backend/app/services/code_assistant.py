@@ -427,6 +427,14 @@ BUG_PATTERNS: list[BugPattern] = [
         "error",
         ["JavaScript", "TypeScript"],
     ),
+    BugPattern(
+        "Literal Identity Comparison",
+        r"\b\w+\s+is\s+(not\s+)?(['\"].*['\"]|\d+)",
+        "Using 'is' or 'is not' to compare literals checks object identity instead of value equality.",
+        "Use '==' or '!=' comparison operators instead of 'is'/'is not' for strings and numbers.",
+        "warning",
+        ["Python"],
+    ),
     # ── JavaScript / TypeScript ──
     BugPattern(
         "Var Usage",

@@ -751,3 +751,13 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+
+def test_debug_detects_literal_identity():
+    """Test that the engine catches identity comparison with a literal string or number."""
+    trigger_code = "if user_role is 'admin':\n    pass"
+    r = client.post("/debugging/", json={"code": trigger_code, "language": "python"})
+    assert r.status_code == 200
+    
+    # Extract the issue types returned by the API
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "Literal Identity Comparison" in types
