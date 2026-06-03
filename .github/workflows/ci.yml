@@ -3,19 +3,22 @@ name: CI
 on:
   push:
     branches: [main, develop]
+
   pull_request:
     branches: [main]
 
 jobs:
   test:
-    name: Test (Python ${{ matrix.python-version }})
+    name: test (${{ matrix.python-version }})
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         python-version: ["3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -23,12 +26,24 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
+      - name: Ensure libmagic is installed
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1 libmagic-dev
+
       - name: Install dependencies
         run: |
           cd backend
           pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Verify python-magic import
+        run: |
+          cd backend
+          python -c "import magic; print(magic.__file__)"
+
+      - name: Run backend tests
+        env:
+          RATE_LIMIT_PER_MINUTE: 300
         run: |
           cd backend
           pytest -v --tb=short
@@ -36,11 +51,32 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install ruff
-      - run: ruff check backend/app --select E,F,W --ignore E501
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff lint
+        run: ruff check backend/app --select E,F,W --ignore E501
+
+  frontend-check:
+    name: Frontend Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate frontend files exist
+        run: |
+          test -f frontend/index.html
+          echo "Frontend files verified"

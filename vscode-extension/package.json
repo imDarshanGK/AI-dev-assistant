@@ -1,0 +1,89 @@
+{
+  "name": "qyverixai-vscode",
+  "displayName": "QyverixAI Code Assistant",
+  "description": "Analyze, debug, and explain code directly from VS Code using the QyverixAI API",
+  "version": "0.1.0",
+  "publisher": "qyverixai",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/imDarshanGK/AI-dev-assistant.git"
+  },
+  "engines": {
+    "vscode": "^1.82.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "qyverixai",
+    "code analysis",
+    "debugging",
+    "code explanation",
+    "ai"
+  ],
+  "activationEvents": [
+    "onCommand:qyverixai.analyze",
+    "onCommand:qyverixai.debug",
+    "onCommand:qyverixai.explain"
+  ],
+  "main": "./extension.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/vscode": "1.82.0",
+    "typescript": "^5.4.5"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "qyverixai.analyze",
+        "title": "QyverixAI: Analyze Current File"
+      },
+      {
+        "command": "qyverixai.debug",
+        "title": "QyverixAI: Debug Current File"
+      },
+      {
+        "command": "qyverixai.explain",
+        "title": "QyverixAI: Explain Current File"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "qyverixai.analyze",
+          "group": "1_modification"
+        },
+        {
+          "command": "qyverixai.debug",
+          "group": "1_modification"
+        },
+        {
+          "command": "qyverixai.explain",
+          "group": "1_modification"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "QyverixAI",
+      "properties": {
+        "qyverixai.apiUrl": {
+          "type": "string",
+          "default": "https://qyverixai.onrender.com",
+          "description": "Base URL of the QyverixAI API (e.g. https://qyverixai.onrender.com or http://localhost:8000)"
+        },
+        "qyverixai.timeout": {
+          "type": "number",
+          "default": 30,
+          "description": "Request timeout in seconds"
+        }
+      }
+    }
+  }
+}

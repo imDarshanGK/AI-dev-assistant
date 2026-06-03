@@ -120,7 +120,6 @@ body {
   gap: 4rem;
   align-items: center;
   padding: 6rem 4rem 5rem;
-  overflow: hidden;
   min-height: calc(100vh - 52px);
 }
 .hero-grid-bg {
@@ -160,13 +159,14 @@ body {
   font-family: var(--font-serif);
   font-size: clamp(2.8rem, 5vw, 4.5rem);
   font-weight: 400;
-  line-height: 1.1;
+  line-height: 1.18;
   letter-spacing: -0.02em;
   margin-bottom: 1.5rem;
 }
 .hero-title em {
   font-style: italic;
   color: var(--text-2);
+  display: inline-block;
 }
 .hero-sub {
   font-size: 15px;
@@ -599,4 +599,15 @@ body {
   .hero { padding: 3rem 1.5rem; }
   .features, .app-section { padding: 2rem 1rem; }
   .section-label { padding: 0 1rem; }
+}
+@media (max-width: 480px) {
+  .code-editor {
+    min-height: 200px;
+  }
+  .editor-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
+  }
 }
