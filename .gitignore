@@ -48,3 +48,9 @@ vscode-extension/extension.js
 *.db
 assistant.db
 backend/assistant.db
+
+# Playwright Test Artifacts
+test-results/
+playwright-report/
+.playwright-cache/
+.last-run.json
