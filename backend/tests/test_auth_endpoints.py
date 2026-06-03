@@ -1,5 +1,6 @@
 """Integration tests for auth routes"""
 
+import code
 import os
 import sys
 
@@ -111,3 +112,59 @@ def test_me_rejects_missing_and_invalid_token(client):
     )
     assert invalid_token_response.status_code == 401
     assert "invalid token" in invalid_token_response.json()["detail"].lower()
+# ── Type Check Anti-pattern Tests ──
+
+def test_type_check_antipattern_detected(client):
+    """Should flag type() == used for type checking"""
+    code = """
+def process(x):
+    if type(x) == int:
+        return x * 2
+    if type(x) == str:
+        return x.upper()
+"""
+    response = client.post("/debugging/", json={
+        "code": code,
+        "language": "python"
+    })
+
+    assert response.status_code == 200
+    data = response.json()
+    issue_types = [i["type"] for i in data["issues"]]
+    assert "Type Check Anti-pattern" in issue_types
+
+
+def test_type_check_antipattern_has_correct_severity(client):
+    """Severity should be warning"""
+    code = """
+def check(val):
+    if type(val) == list:
+        return True
+"""
+    response = client.post("/debugging/", json={
+        "code": code,
+        "language": "python"
+    })
+
+    data = response.json()
+    for issue in data["issues"]:
+        if issue["type"] == "Type Check Anti-pattern":
+            assert issue["severity"] == "warning"
+
+def test_isinstance_not_flagged(client):
+    """isinstance() should NOT be flagged — it's the correct approach"""
+    code = """
+def check(val):
+    if isinstance(val, int):
+        return True
+    if isinstance(val, str):
+        return val.upper()
+"""
+    response = client.post("/debugging/", json={
+        "code": code,
+        "language": "python"
+    })
+
+    data = response.json()
+    issue_types = [i["type"] for i in data["issues"]]
+    assert "Type Check Anti-pattern" not in issue_types

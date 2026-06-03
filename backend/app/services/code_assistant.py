@@ -388,6 +388,14 @@ BUG_PATTERNS: list[BugPattern] = [
         ["Python"],
     ),
     BugPattern(
+        "Type Check Anti-pattern",
+        r"\btype\s*\(\w+\)\s*==",
+        "Using type() for type checking is fragile — breaks with subclasses.",
+        "Use isinstance(obj, ClassName) for proper type checking.",
+        "warning",
+        ["Python"],
+    ),
+    BugPattern(
         "Typeof Equality Issue",
         r'typeof\s+\w+\s*==\s*["\']',
         "Using == in typeof checks may cause coercion issues.",
