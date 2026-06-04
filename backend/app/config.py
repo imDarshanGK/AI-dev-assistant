@@ -56,6 +56,8 @@ class Settings:
     redis_url: str | None = os.getenv("REDIS_URL")
     sentry_dsn: str | None = os.getenv("SENTRY_DSN")
     sentry_traces_sample_rate: float = _float_env("SENTRY_TRACES_SAMPLE_RATE", 0.0)
+    sentry_environment: str = os.getenv("SENTRY_ENVIRONMENT", os.getenv("ENVIRONMENT", "production"))
+    sentry_profiles_sample_rate: float = _float_env("SENTRY_PROFILES_SAMPLE_RATE", 0.0)
     enable_docs: bool = _bool_env("ENABLE_DOCS", False)
     public_root_info: bool = _bool_env("PUBLIC_ROOT_INFO", False)
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./assistant.db")

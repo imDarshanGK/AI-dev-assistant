@@ -31,6 +31,7 @@ from .routers import health as health_router
 from .routers import metrics as metrics_router
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
+from .services.error_tracking import init_error_tracking
 from .observability import (
     initialise_app_info,
     prometheus_metrics_middleware,
@@ -68,6 +69,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    init_error_tracking()
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
     # Static info gauge so dashboards can pin version / provider labels.
@@ -236,6 +238,11 @@ if os.path.isdir(_frontend):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logging.exception("Unhandled error")
+    try:
+        import sentry_sdk
+        sentry_sdk.capture_exception(exc)
+    except ImportError:
+         pass
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error. Please try again."},
