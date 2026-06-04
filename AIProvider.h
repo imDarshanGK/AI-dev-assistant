@@ -1,9 +1,14 @@
 #pragma once
 #include <string>
 
+struct AIResponse {
+    std::string text;
+    std::string provider;
+};
+
 class AIProvider {
 public:
-    virtual std::string generateResponse(const std::string& prompt) = 0;
-    virtual std::string getName() = 0;
+    virtual AIResponse generateResponse(const std::string& prompt) = 0;
+    virtual std::string getName() const = 0;
     virtual ~AIProvider() {}
 };
