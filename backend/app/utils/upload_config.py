@@ -47,10 +47,6 @@ ALLOWED_MIME_TYPES = {
         "application/x-cplusplus",
         "text/plain",
         "application/octet-stream",
-        "text/x-csrc",
-        "application/x-cplusplus",
-        "text/plain",
-        "application/octet-stream",
     ],
 
     ".txt": [
