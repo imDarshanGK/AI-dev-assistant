@@ -24,10 +24,14 @@ class LLMAnalysisClient:
         return bool(settings.llm_enabled and self.api_key)
 
     async def _chat_completion(
-        self, messages: list[dict], temperature: float = 0.2
+        self, messages: list[dict], temperature: float = 0.2, system_prompt: str | None = None
     ) -> str:
         if not self.enabled:
             raise LLMAnalysisError("llm_disabled")
+
+        # If a system prompt is provided and messages don't already have one, prepend it
+        if system_prompt and (not messages or messages[0].get("role") != "system"):
+            messages = [{"role": "system", "content": system_prompt}] + messages
 
         payload = {
             "model": self.model,

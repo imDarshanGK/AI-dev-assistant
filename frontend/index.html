@@ -3417,7 +3417,7 @@
           const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, language: selectedLang }),
+            body: JSON.stringify({ code, language: selectedLang, ai_language: appLang }),
             signal: AbortSignal.timeout(30000),
           });
           if (fallbackUsed) {
