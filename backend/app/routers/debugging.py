@@ -25,4 +25,5 @@ async def debug(req: CodeRequest):
         "error_count": errors,
         "warning_count": warnings,
         "info_count": infos,
+        "code": req.code,
     }

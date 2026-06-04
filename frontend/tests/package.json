@@ -1,0 +1,8 @@
+{
+  "name": "qyverix-frontend-security-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test security-utils.test.mjs render-security.test.mjs"
+  }
+}
