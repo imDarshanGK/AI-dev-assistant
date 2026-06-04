@@ -13,22 +13,31 @@ import os
 from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
+
 from .routers import (
     analyze,
+    auth,
+    chat,
     debugging,
     explanation,
     history,
     share,
-    suggestions,
     subscribe,
+    suggestions,
     upload_file,
-    auth,
+    user_data,
 )
+from .routers import health as health_router
+from .routers import metrics as metrics_router
+from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
-from .database import Base, engine
+from .observability import (
+    initialise_app_info,
+    prometheus_metrics_middleware,
+)
 
 from .schemas import HealthResponse
-from .services import database
+
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
@@ -60,8 +69,9 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
-    logging.getLogger(__name__).info("🚀 QyverixAI backend starting…")
-    Base.metadata.create_all(bind=engine)
+    print("🚀 QyverixAI backend starting…")
+    # Static info gauge so dashboards can pin version / provider labels.
+    initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
     start_scheduler()
     yield
     stop_scheduler()
@@ -89,6 +99,14 @@ app.add_middleware(
 )
 
 
+# Prometheus instrumentation — installed early so it observes every other
+# middleware's response (including rate-limited 429s and the global error
+# handler's 500s). The middleware self-disables per-request when
+# METRICS_ENABLED is false, so installing it unconditionally costs nothing
+# operationally and lets operators flip the flag without a restart.
+app.middleware("http")(prometheus_metrics_middleware)
+
+
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start = time.perf_counter()
@@ -96,13 +114,7 @@ async def add_process_time_header(request: Request, call_next):
     remaining = RATE_LIMIT
 
     # Apply rate limiting to analysis endpoints only
-    if request.url.path in (
-        "/explanation/",
-        "/debugging/",
-        "/suggestions/",
-        "/analyze/",
-        "/analyze/zip/",
-    ):
+    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
         remaining = check_rate_limit(ip)
         if remaining < 0:
             elapsed = (time.perf_counter() - start) * 1000
@@ -138,14 +150,21 @@ async def add_cache_header(request: Request, call_next):
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
-app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
+app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
-app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
-app.include_router(share.router)
-app.include_router(auth.router)
 app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(auth.router)
+app.include_router(chat.router)
+app.include_router(share.router)
+app.include_router(user_data.router)
+app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+
+
+# Operational endpoints: /healthz/live, /healthz/ready, /metrics
+app.include_router(health_router.router)
+app.include_router(metrics_router.router)
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
@@ -163,6 +182,12 @@ async def root():
             "/debugging/",
             "/suggestions/",
             "/analyze/",
+            "/subscribe/",
+            "/share/",
+            "/auth/",
+            "/chat/",
+            "/user/",
+            "/analyze/zip/",
             "/analyze/zip/",
             "/subscribe/",
             "/share/",
@@ -185,9 +210,12 @@ async def health_check():
             "/debugging/",
             "/suggestions/",
             "/analyze/",
-            "/analyze/zip/",
             "/subscribe/",
             "/share/",
+            "/auth/",
+            "/chat/",
+            "/user/",
+            "/analyze/zip/",
             "/history/",
         ],
     }
