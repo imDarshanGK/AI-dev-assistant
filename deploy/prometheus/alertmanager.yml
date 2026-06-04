@@ -1,0 +1,62 @@
+global:
+  resolve_timeout: 5m
+  # REPLACE THIS URL with your actual Slack webhook
+  slack_api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/HERE'
+
+route:
+  group_by: ['alertname', 'severity']
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 4h
+  receiver: 'slack-alerts'
+  
+  routes:
+  - match:
+      severity: critical
+    receiver: 'slack-critical'
+    repeat_interval: 1h
+    
+  - match:
+      severity: warning
+    receiver: 'slack-warnings'
+    repeat_interval: 8h
+
+receivers:
+- name: 'slack-alerts'
+  slack_configs:
+  - channel: '#alerts'
+    title: '{{ .GroupLabels.severity | toUpper }}: {{ .CommonAnnotations.summary }}'
+    text: |
+      *Alert:* {{ .CommonAnnotations.summary }}
+      *Description:* {{ .CommonAnnotations.description }}
+      *Severity:* {{ .Labels.severity }}
+      *Time:* {{ .StartsAt }}
+      *Action:* {{ .CommonAnnotations.action }}
+
+- name: 'slack-critical'
+  slack_configs:
+  - channel: '#critical-alerts'
+    title: '🚨 CRITICAL: {{ .CommonAnnotations.summary }}'
+    text: |
+      *CRITICAL ALERT*
+      > {{ .CommonAnnotations.description }}
+      
+      *Action Required:* {{ .CommonAnnotations.action }}
+      *Time:* {{ .StartsAt }}
+      
+      @channel Immediate attention needed!
+
+- name: 'slack-warnings'
+  slack_configs:
+  - channel: '#warning-alerts'
+    title: '⚠️ {{ .CommonAnnotations.summary }}'
+    text: |
+      {{ .CommonAnnotations.description }}
+      Action: {{ .CommonAnnotations.action }}
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['service']
