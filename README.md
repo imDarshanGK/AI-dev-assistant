@@ -485,6 +485,24 @@ Read the full workflow, code standards, and pattern guide in [CONTRIBUTING.md](C
 
 Browse all open issues: [github.com/imDarshanGK/AI-dev-assistant/issues](https://github.com/imDarshanGK/AI-dev-assistant/issues)
 
+### How to Claim an Issue
+
+1. Browse the open issues list.
+2. Pick a `good first issue` that matches your skills.
+3. Comment on the issue:
+   "I would like to work on this issue."
+4. Wait for a maintainer to assign the issue.
+5. Fork the repository and create your changes.
+6. Submit a Pull Request referencing the issue number.
+
+### Recommended Starter Issues
+
+- #652 - Add good-first-issue meta list in README
+- #644 - Add onboarding issue templates for GSSoC contributors
+- #640 - Add explicit license header file for assets
+
+> New contributors are encouraged to start with beginner-friendly issues before attempting medium or hard tasks.
+
 ---
 
 ## Roadmap
