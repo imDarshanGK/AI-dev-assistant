@@ -11,13 +11,13 @@ A VS Code extension that connects your editor to the QyverixAI API for code anal
 
 ## Features
 
-- **🧪 Analyze Current File** (`qyverixai.analyze`)
+- ** Analyze Current File** (`qyverixai.analyze`)
   - Reviews the file and returns a detailed analysis with improvement suggestions.
   - Shows inline diagnostics for issues and weaknesses.
-- **🐛 Debug Current File** (`qyverixai.debug`)
+- ** Debug Current File** (`qyverixai.debug`)
   - Scans for errors, bug patterns, and common pitfalls.
   - Highlights problematic lines directly in the editor.
-- **📖 Explain Current File** (`qyverixai.explain`)
+- ** Explain Current File** (`qyverixai.explain`)
   - Provides a plain-English summary of what the code does.
   - Describes structure, intent, and important areas of the file.
 
