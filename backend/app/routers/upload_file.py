@@ -17,7 +17,7 @@ router = APIRouter(
 @router.get('/')
 def index_upload():
     return {
-        "max_file_size_MB": f"{ max_file_size / (1024 * 1024):.2f} MB",
+        "max_file_size_MB": f"{max_file_size / (1024 * 1024):.2f} MB",
         "blocked_extensions": BLOCKED_EXTENSIONS,
         "allowed_extensions": ALLOWED_EXTENSIONS,
         "allowed_mime_types": ALLOWED_MIME_TYPES
