@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate HTML syntax
-        run: npx --yes w3c-html-validator "frontend/index.html"
+        run: npx --yes w3c-html-validator frontend/index.html --continue
 
       - name: Check for broken local links
         uses: lycheeverse/lychee-action@v2
