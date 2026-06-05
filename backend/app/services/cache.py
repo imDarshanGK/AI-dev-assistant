@@ -31,8 +31,8 @@ class AppCache:
         return self._backend
 
     def _make_key(self, namespace: str, code: str) -> str:
-        digest = hashlib.md5(code.encode("utf-8")).hexdigest()
-        return f"ai-assistant:{namespace}:{digest}"
+        digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
+        return f"ai-assistant:v2:{namespace}:{digest}"
 
     def get(self, namespace: str, code: str) -> dict | None:
         if not settings.cache_enabled:
@@ -68,7 +68,9 @@ class AppCache:
         key = self._make_key(namespace, code)
         if self._redis_client is not None:
             try:
-                self._redis_client.setex(key, settings.cache_ttl_seconds, json.dumps(payload))
+                self._redis_client.setex(
+                    key, settings.cache_ttl_seconds, json.dumps(payload)
+                )
                 return
             except Exception as exc:
                 logger.warning("redis_set_failed key=%s detail=%s", key, str(exc))
