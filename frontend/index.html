@@ -7,6 +7,7 @@
   <title>QyverixAI — AI Developer Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+  <link rel="alternate icon" type="image/x-icon" href="public/favicon.ico">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
@@ -649,7 +650,73 @@
     /* ── Code Editor ── */
     .editor-wrap {
       position: relative;
-      display: flex
+      display: flex;
+      transition: border-color var(--transition);
+    }
+
+    /* ── Drag-and-Drop Overlay ── */
+    .drop-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(10, 12, 16, 0.82);
+      backdrop-filter: blur(6px);
+      border-radius: 0;
+      border: 2px dashed var(--accent);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+
+    [data-theme="light"] .drop-overlay {
+      background: rgba(244, 246, 251, 0.88);
+    }
+
+    .drop-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .drop-overlay-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(91, 156, 246, 0.15);
+      border: 1px solid rgba(91, 156, 246, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      animation: dropIconBob 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes dropIconBob {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-6px); }
+    }
+
+    .drop-overlay-text {
+      font-family: var(--font-disp);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.01em;
+    }
+
+    .drop-overlay-sub {
+      font-size: 0.75rem;
+      color: var(--text3);
+      font-family: var(--font-ui);
+    }
+
+    .editor-wrap.drag-over {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
     }
 
     .line-numbers {
@@ -2187,7 +2254,19 @@
           <button class="lang-tab" data-lang="cpp" data-i18n="lang_tab_cpp">C++</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
-        <div class="editor-wrap">
+        <div class="editor-wrap" id="editorWrap">
+          <!-- Drag-and-drop overlay -->
+          <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
+            <div class="drop-overlay-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="16,16 12,12 8,16"/>
+                <line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+            </div>
+            <div class="drop-overlay-text">Drop your file here</div>
+            <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
+          </div>
           <div class="line-numbers" id="lineNumbers">1</div>
           <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
         </div>
@@ -3082,10 +3161,45 @@
         e.target.value = '';
       });
 
-      /* Drag and drop */
+      /* ── Drag and Drop (visual drop zone on editor) ── */
+      const editorWrap  = document.getElementById('editorWrap');
+      const dropOverlay = document.getElementById('dropOverlay');
+      let dragCounter = 0; // track nested dragenter/dragleave events
+
+      // Prevent default browser file-open on body
       document.body.addEventListener('dragover', e => e.preventDefault());
-      document.body.addEventListener('drop', e => {
+      document.body.addEventListener('drop',     e => e.preventDefault());
+
+      editorWrap.addEventListener('dragenter', e => {
         e.preventDefault();
+        dragCounter++;
+        if (dragCounter === 1) {
+          editorWrap.classList.add('drag-over');
+          dropOverlay.classList.add('visible');
+          dropOverlay.setAttribute('aria-hidden', 'false');
+        }
+      });
+
+      editorWrap.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      });
+
+      editorWrap.addEventListener('dragleave', e => {
+        dragCounter--;
+        if (dragCounter === 0) {
+          editorWrap.classList.remove('drag-over');
+          dropOverlay.classList.remove('visible');
+          dropOverlay.setAttribute('aria-hidden', 'true');
+        }
+      });
+
+      editorWrap.addEventListener('drop', e => {
+        e.preventDefault();
+        dragCounter = 0;
+        editorWrap.classList.remove('drag-over');
+        dropOverlay.classList.remove('visible');
+        dropOverlay.setAttribute('aria-hidden', 'true');
         const file = e.dataTransfer.files[0];
         if (!file) return;
         handleUploadedFile(file);
