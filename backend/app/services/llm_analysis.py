@@ -1,11 +1,31 @@
 import logging
 import json
+import re
 
 import httpx
 
 from ..config import settings
 
 logger = logging.getLogger("ai_assistant.api")
+
+
+def sanitize_input(user_input: str, max_length: int = 10000) -> str:
+    if not isinstance(user_input, str):
+        raise ValueError("Input must be a string")
+
+    injection_patterns = [
+        r"ignore (previous|above|all) instructions",
+        r"you are now",
+        r"forget everything",
+        r"reveal (system|your) prompt",
+        r"act as",
+    ]
+
+    for pattern in injection_patterns:
+        if re.search(pattern, user_input, re.IGNORECASE):
+            raise ValueError("Potentially malicious input detected")
+
+    return user_input[:max_length]
 
 
 class LLMAnalysisError(Exception):
@@ -84,7 +104,10 @@ class LLMAnalysisClient:
                     {"role": "system", "content": prompt},
                     {
                         "role": "user",
-                        "content": f"Language guess: {language_guess}\\n\\nCode:\\n{code}",
+                        "content": (
+                            f"Language guess: {sanitize_input(language_guess, 100)}"
+                            f"\n\nCode:\n{sanitize_input(code)}"
+                        ),
                     },
                 ],
                 temperature=0.2,
@@ -113,7 +136,10 @@ class LLMAnalysisClient:
                     {"role": "system", "content": prompt},
                     {
                         "role": "user",
-                        "content": f"Language guess: {language_guess}\\n\\nCode:\\n{code}",
+                        "content": (
+                            f"Language guess: {sanitize_input(language_guess, 100)}"
+                            f"\n\nCode:\n{sanitize_input(code)}"
+                        ),
                     },
                 ],
                 temperature=0.1,
@@ -132,14 +158,18 @@ class LLMAnalysisClient:
         )
 
         history_text = "\n".join(history[-8:]) if history else ""
-        code_text = code or ""
+        code_text = sanitize_input(code) if code else ""
 
         return await self._chat_completion(
             [
                 {"role": "system", "content": prompt},
                 {
                     "role": "user",
-                    "content": f"Chat history:\n{history_text}\n\nCode:\n{code_text}\n\nQuestion:\n{message}",
+                    "content": (
+                        f"Chat history:\n{history_text}"
+                        f"\n\nCode:\n{code_text}"
+                        f"\n\nQuestion:\n{sanitize_input(message)}"
+                    ),
                 },
             ],
             temperature=0.2,
