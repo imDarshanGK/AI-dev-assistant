@@ -139,7 +139,7 @@ _DECISION_RE = re.compile(
 )
 
 def detect_language(code: str) -> str:
-    
+
     """
     Detects the programming language of the given source code.
 
@@ -168,7 +168,7 @@ def detect_language(code: str) -> str:
 
 # ── Complexity Estimation ──────────────────────────────────────────────────────
 def estimate_complexity(code: str) -> str:
-    
+
     """
     Estimates the complexity level of the given source code.
 
