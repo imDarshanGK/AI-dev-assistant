@@ -2256,7 +2256,7 @@
         <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap" id="editorWrap">
           <!-- Drag-and-drop overlay -->
-          <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
+          <div class="drop-overlay" id="dropOverlay" aria-hidden="true" role="button" tabindex="0" aria-label="Drop zone — drag and drop a file here, or press Enter to open file picker" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('fileInput').click();}">
             <div class="drop-overlay-icon">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <polyline points="16,16 12,12 8,16"/>
@@ -2268,7 +2268,7 @@
             <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
           </div>
           <div class="line-numbers" id="lineNumbers">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code input area — paste or type your code here for analysis" style="width:100%"></textarea>
         </div>
 
         <div class="editor-footer">
@@ -2292,14 +2292,14 @@
 
         <!-- Result action buttons (hidden until results) -->
         <div id="resultActions" class="result-actions" style="display:none">
-          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
-          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
+          <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save to favorites">★</button>
+          <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download results">⬇</button>
         </div>
 
       </div>
 
       <!-- Results Panel -->
-      <div class="panel" style="grid-column:2">
+      <div class="panel" style="grid-column:2" aria-live="polite" aria-label="Analysis results panel">
         <div class="panel-header">
           <div class="panel-title" data-i18n="results_title">Analysis Results</div>
           <div class="panel-actions"></div>
