@@ -4,7 +4,7 @@ from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
-
+from sqlalchemy import Boolean
 
 class User(Base):
     __tablename__ = "users"
@@ -77,4 +77,31 @@ class SharedSnippet(Base):
     result_json: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
+    )
+
+class Webhook(Base):
+    __tablename__ = "webhooks"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    url: Mapped[str] = mapped_column(
+        String(500)
+    )
+
+    secret: Mapped[str] = mapped_column(
+        String(128)
+    )
+
+    enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=lambda: datetime.now(UTC)
     )

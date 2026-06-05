@@ -5,6 +5,8 @@ import asyncio
 import json
 import time
 import zipfile
+import asyncio
+from ..services.webhook_service import notify_webhooks
 from io import BytesIO
 from pathlib import PurePosixPath
 
@@ -199,6 +201,15 @@ async def analyze(req: CodeRequest, response: Response):
         return cached_payload
 
     payload = full_analysis(req.code, req.language)
+
+    asyncio.create_task(
+        notify_webhooks(
+            {
+                "event": "analysis.completed",
+                "data": payload,
+            }
+        )
+    )
 
     cache.set("analyze:v1", cache_input, payload)
 

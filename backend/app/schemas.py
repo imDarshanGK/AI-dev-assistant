@@ -1,7 +1,7 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator, HttpUrl
 import json
 from typing import Any
 
@@ -27,6 +27,14 @@ class CodeRequest(BaseModel):
             raise ValueError("code exceeds 50,000 character limit")
         return v
 
+class WebhookCreate(BaseModel):
+    url: HttpUrl
+    secret: str
+
+class WebhookRecord(BaseModel):
+    id: int
+    url: str
+    enabled: bool
 
 class Issue(BaseModel):
     type: str
