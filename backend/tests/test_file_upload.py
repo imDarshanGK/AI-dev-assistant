@@ -180,3 +180,27 @@ def test_large_file():
     )
 
     assert response.status_code == 413
+
+
+# =========================================================
+# TEST EXECUTABLE SIGNATURE INSPECTION
+# =========================================================
+
+def test_executable_signature_disguised_as_python():
+
+    response = client.post(
+        "/upload/validate",
+        files={
+            "file": (
+                "fake.py",
+                BytesIO(b"MZFakeExecutableContent"),
+                "text/x-python"
+            )
+        }
+    )
+
+    assert response.status_code == 415
+
+    data = response.json()
+
+    assert "Executable files are not allowed" in data["detail"]
