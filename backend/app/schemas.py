@@ -378,3 +378,47 @@ class AnalyzeResponse(BaseModel):
     debugging: DebuggingResponse
     suggestions: SuggestionsResponse
     analysis_time_ms: float | None = None
+
+# ── Batch Analysis ────────────────────────────────────────────────────────────
+
+class BatchItem(BaseModel):
+    """A single code snippet submitted as part of a batch request."""
+    code: str = Field(..., min_length=1, max_length=50_000)
+    language: str | None = None
+
+    @field_validator("code")
+    @classmethod
+    def validate_code(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("code must not be empty")
+        return v
+
+
+class BatchAnalyzeRequest(BaseModel):
+    """Request body for the batch analysis endpoint."""
+    items: list[BatchItem] = Field(
+        ...,
+        min_length=1,
+        max_length=10,
+        description="1–10 code snippets to analyze",
+    )
+    parallelism: int = Field(default=4, ge=1, le=10)
+
+
+class BatchItemResult(BaseModel):
+    """Result for a single item within a batch."""
+    index: int
+    success: bool
+    result: dict[str, Any] | None = None
+    error: str | None = None
+    analysis_time_ms: float
+
+
+class BatchAnalyzeResponse(BaseModel):
+    """Aggregated response from the batch analysis endpoint."""
+    total: int
+    succeeded: int
+    failed: int
+    results: list[BatchItemResult]
+    total_time_ms: float

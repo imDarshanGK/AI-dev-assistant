@@ -751,3 +751,107 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+# ── Batch Analysis ─────────────────────────────────────────────────────────────
+
+def test_batch_analyze_success():
+    r = client.post("/analyze/batch/", json={
+        "items": [
+            {"code": "x = 1 / 0", "language": "python"},
+            {"code": "console.log('hi')", "language": "javascript"},
+        ],
+        "parallelism": 2,
+    })
+    assert r.status_code == 200
+    data = r.json()
+    assert data["total"] == 2
+    assert data["succeeded"] == 2
+    assert data["failed"] == 0
+    assert len(data["results"]) == 2
+
+
+def test_batch_analyze_results_have_correct_shape():
+    r = client.post("/analyze/batch/", json={
+        "items": [{"code": "def foo(): pass", "language": "python"}]
+    })
+    assert r.status_code == 200
+    item = r.json()["results"][0]
+    assert item["index"] == 0
+    assert item["success"] is True
+    assert item["analysis_time_ms"] >= 0
+    assert item["result"]["explanation"]["language"] == "Python"
+
+
+def test_batch_analyze_limit_exceeded():
+    items = [{"code": "x = 1", "language": "python"}] * 11
+    r = client.post("/analyze/batch/", json={"items": items})
+    assert r.status_code == 422
+
+
+def test_batch_analyze_empty_items_rejected():
+    r = client.post("/analyze/batch/", json={"items": []})
+    assert r.status_code == 422
+
+
+def test_batch_analyze_mixed_languages():
+    r = client.post("/analyze/batch/", json={
+        "items": [
+            {"code": "String s = null; s.length();", "language": "java"},
+            {"code": "let x: any = 5;", "language": "typescript"},
+            {"code": "#include<bits/stdc++.h>\nusing namespace std;", "language": "cpp"},
+        ],
+        "parallelism": 3,
+    })
+    assert r.status_code == 200
+    assert r.json()["total"] == 3
+
+
+def test_batch_analyze_auto_detect_language():
+    r = client.post("/analyze/batch/", json={
+        "items": [{"code": "def hello():\n    print('hi')"}]  # no language field
+    })
+    assert r.status_code == 200
+    assert r.json()["results"][0]["result"]["explanation"]["language"] == "Python"
+
+
+def test_batch_analyze_preserves_item_order():
+    r = client.post("/analyze/batch/", json={
+        "items": [
+            {"code": "x = 1", "language": "python"},
+            {"code": "let y = 2;", "language": "javascript"},
+            {"code": "int z = 3;", "language": "java"},
+        ],
+        "parallelism": 3,
+    })
+    assert r.status_code == 200
+    indices = [item["index"] for item in r.json()["results"]]
+    assert indices == [0, 1, 2]
+
+
+def test_batch_analyze_ten_items_at_limit():
+    items = [{"code": "x = 1", "language": "python"}] * 10
+    r = client.post("/analyze/batch/", json={"items": items, "parallelism": 4})
+    assert r.status_code == 200
+    assert r.json()["total"] == 10
+
+
+def test_batch_analyze_invalid_parallelism_rejected():
+    r = client.post("/analyze/batch/", json={
+        "items": [{"code": "x = 1", "language": "python"}],
+        "parallelism": 0,
+    })
+    assert r.status_code == 422
+
+
+def test_batch_analyze_empty_code_rejected():
+    r = client.post("/analyze/batch/", json={
+        "items": [{"code": "   ", "language": "python"}]
+    })
+    assert r.status_code == 422
+
+
+def test_batch_analyze_single_item():
+    r = client.post("/analyze/batch/", json={
+        "items": [{"code": "var x = 1;", "language": "javascript"}]
+    })
+    assert r.status_code == 200
+    assert r.json()["total"] == 1
