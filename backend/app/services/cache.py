@@ -33,8 +33,8 @@ class AppCache:
         return self._backend
 
     def _make_key(self, namespace: str, code: str) -> str:
-        digest = hashlib.md5(code.encode("utf-8")).hexdigest()
-        return f"ai-assistant:{namespace}:{digest}"
+        digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
+        return f"ai-assistant:v2:{namespace}:{digest}"
 
     # 🔥 FIXED HERE
     def get(self, namespace: str, code: str) -> Optional[Dict]:
