@@ -4379,10 +4379,17 @@ int main() {
             toast(data.message, 'success');
             document.getElementById('digestEmail').value = '';
           } else {
-            toast(data.detail || 'Subscription failed', 'error');
+            toast(
+            data.detail ||
+            'Subscription failed. Please verify your email address and try again.',
+            'error'
+          );
           }
         } catch {
-          toast('Could not reach the server.', 'error');
+         toast(
+           'Unable to connect to the server. Please check your internet connection and try again.',
+           'error'
+         );
         } finally {
           btn.disabled = false;
           btn.textContent = 'Subscribe';
