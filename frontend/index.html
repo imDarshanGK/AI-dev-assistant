@@ -737,7 +737,44 @@
       height: 100%;
       }
 
+    .editor-inner {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #lintOverlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      pointer-events: none;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-all;
+      overflow: hidden;
+      box-sizing: border-box;
+      color: transparent;
+      z-index: 2;
+    }
+
+    .lint-error-line {
+      display: block;
+      border-bottom: 2px solid var(--red);
+      background: rgba(242, 87, 87, 0.08);
+    }
+
+    .lint-warning-line {
+      display: block;
+      border-bottom: 2px solid var(--yellow);
+      background: rgba(245, 200, 66, 0.07);
+    }
+
     #codeEditor {
+      position: relative;
+      z-index: 3;
       width: 100%;
       min-height: 300px;
       max-height: 500px;
@@ -2274,7 +2311,10 @@
             <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
           </div>
           <div class="line-numbers" id="lineNumbers">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
+          <div class="editor-inner">
+            <div id="lintOverlay" aria-hidden="true"></div>
+            <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
+          </div>
         </div>
 
         <div class="editor-footer">
@@ -3035,9 +3075,11 @@
       editor.addEventListener('input', () => {
         selectedZipFile = null;
         updateEditor();
+        scheduleLint();
       });
       editor.addEventListener('scroll', () => {
         lineNumbers.scrollTop = editor.scrollTop;
+        document.getElementById('lintOverlay').scrollTop = editor.scrollTop;
       });
 
       // Tab key support
@@ -4334,6 +4376,61 @@ int main() {
       }
 
       window.loadSample = loadSample;
+
+      /* ═══════════════════════════════════════════════════════════════
+         REAL-TIME LINT
+      ═══════════════════════════════════════════════════════════════ */
+      let _lintTimer = null;
+      let _lintAbort = null;
+
+      function scheduleLint() {
+        clearTimeout(_lintTimer);
+        _lintTimer = setTimeout(runLint, 500);
+      }
+
+      async function runLint() {
+        const code = editor.value;
+        if (!code.trim()) { clearLintOverlay(); return; }
+
+        if (_lintAbort) _lintAbort.abort();
+        _lintAbort = new AbortController();
+
+        try {
+          const base = getApiBase();
+          const res = await fetch(`${base}/debugging/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language: selectedLang }),
+            signal: _lintAbort.signal,
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+          applyLintOverlay(code, data.issues || []);
+        } catch (e) {
+          if (e.name !== 'AbortError') clearLintOverlay();
+        }
+      }
+
+      function applyLintOverlay(code, issues) {
+        const overlay = document.getElementById('lintOverlay');
+        const errorLines = new Set(issues.filter(i => i.severity === 'error').map(i => i.line));
+        const warnLines  = new Set(issues.filter(i => i.severity === 'warning').map(i => i.line));
+
+        const lines = code.split('\n');
+        overlay.innerHTML = lines.map((line, idx) => {
+          const lineNum = idx + 1;
+          const safe = escHtml(line) || ' ';
+          if (errorLines.has(lineNum))   return `<span class="lint-error-line">${safe}</span>`;
+          if (warnLines.has(lineNum))    return `<span class="lint-warning-line">${safe}</span>`;
+          return `<span>${safe}</span>`;
+        }).join('\n');
+
+        overlay.scrollTop = editor.scrollTop;
+      }
+
+      function clearLintOverlay() {
+        document.getElementById('lintOverlay').innerHTML = '';
+      }
 
       /* ═══════════════════════════════════════════════════════════════
          INIT
