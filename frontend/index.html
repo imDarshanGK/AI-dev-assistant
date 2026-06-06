@@ -7,6 +7,7 @@
   <title>QyverixAI — AI Developer Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+  <link rel="alternate icon" type="image/x-icon" href="public/favicon.ico">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
@@ -649,7 +650,73 @@
     /* ── Code Editor ── */
     .editor-wrap {
       position: relative;
-      display: flex
+      display: flex;
+      transition: border-color var(--transition);
+    }
+
+    /* ── Drag-and-Drop Overlay ── */
+    .drop-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(10, 12, 16, 0.82);
+      backdrop-filter: blur(6px);
+      border-radius: 0;
+      border: 2px dashed var(--accent);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+
+    [data-theme="light"] .drop-overlay {
+      background: rgba(244, 246, 251, 0.88);
+    }
+
+    .drop-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .drop-overlay-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(91, 156, 246, 0.15);
+      border: 1px solid rgba(91, 156, 246, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      animation: dropIconBob 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes dropIconBob {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-6px); }
+    }
+
+    .drop-overlay-text {
+      font-family: var(--font-disp);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.01em;
+    }
+
+    .drop-overlay-sub {
+      font-size: 0.75rem;
+      color: var(--text3);
+      font-family: var(--font-ui);
+    }
+
+    .editor-wrap.drag-over {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
     }
 
     .line-numbers {
@@ -663,12 +730,18 @@
       text-align: right;
       background: var(--bg3);
       border-right: 1px solid var(--border);
-    }
+      overflow: hidden;
+      pointer-events: none;
+      min-height: 300px;
+      max-height: 500px;
+      height: 100%;
+      }
 
     #codeEditor {
       width: 100%;
       min-height: 300px;
       max-height: 500px;
+      overflow-y: auto;
       padding: 16px;
       font-family: var(--font-mono);
       font-size: 13px;
@@ -2157,7 +2230,7 @@
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
             </button>
-              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
+            <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
               tabindex="-1">
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -2180,14 +2253,26 @@
 
         <!-- Language tabs -->
         <div class="lang-tabs" role="group" aria-label="Select Programming Language">
-          <button class="lang-tab active" data-lang="python" data-i18n="lang_tab_python">Python</button>
-          <button class="lang-tab" data-lang="javascript" data-i18n="lang_tab_javascript">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript" data-i18n="lang_tab_typescript">TypeScript</button>
-          <button class="lang-tab" data-lang="java" data-i18n="lang_tab_java">Java</button>
-          <button class="lang-tab" data-lang="cpp" data-i18n="lang_tab_cpp">C++</button>
+          <button class="lang-tab active" data-lang="python" aria-pressed="true" data-i18n="lang_tab_python">Python</button>
+          <button class="lang-tab" data-lang="javascript" aria-pressed="false" data-i18n="lang_tab_javascript">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript" aria-pressed="false" data-i18n="lang_tab_typescript">TypeScript</button>
+          <button class="lang-tab" data-lang="java" aria-pressed="false" data-i18n="lang_tab_java">Java</button>
+          <button class="lang-tab" data-lang="cpp" aria-pressed="false" data-i18n="lang_tab_cpp">C++</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
-        <div class="editor-wrap">
+        <div class="editor-wrap" id="editorWrap">
+          <!-- Drag-and-drop overlay -->
+          <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
+            <div class="drop-overlay-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="16,16 12,12 8,16"/>
+                <line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+            </div>
+            <div class="drop-overlay-text">Drop your file here</div>
+            <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
+          </div>
           <div class="line-numbers" id="lineNumbers">1</div>
           <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
         </div>
@@ -2227,17 +2312,17 @@
         </div>
 
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
-          <button id="tab-explain" class="result-tab active" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
+          <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
             <span data-i18n="tab_explain">Explain</span>
             <span class="tab-badge" id="explainBadge"></span>
           </button>
-          <button id="tab-debug" class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
+          <button class="result-tab" id="tab-debug" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/></svg>
             <span data-i18n="tab_debug">Debug</span>
             <span class="tab-badge" id="debugBadge"></span>
           </button>
-          <button id="tab-suggest" class="result-tab" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
+          <button class="result-tab" id="tab-suggest" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
             <span data-i18n="tab_improve">Improve</span>
             <span class="tab-badge" id="suggestBadge"></span>
@@ -2245,7 +2330,7 @@
         </div>
         <div class="result-content">
           <!-- Explain Pane -->
-          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
+          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-labelledby="tab-explain">
             <div class="empty-state" id="emptyExplain">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2258,7 +2343,7 @@
             <div id="explainResult" style="display:none"></div>
           </div>
           <!-- Debug Pane -->
-          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel">
+          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-labelledby="tab-debug">
             <div class="empty-state" id="emptyDebug">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2278,7 +2363,7 @@
             <div id="debugResult" style="display:none"></div>
           </div>
           <!-- Suggest Pane -->
-          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel">
+          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-labelledby="tab-suggest">
             <div class="empty-state" id="emptySuggest">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2881,7 +2966,9 @@
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
           : '1';
-      }
+          // Fix: sync line numbers height exactly to editor height
+          lineNumbers.style.height = editor.offsetHeight + 'px';
+          }
 
       function syncApiStatusText() {
         if (!apiStatusText) return;
@@ -3082,10 +3169,45 @@
         e.target.value = '';
       });
 
-      /* Drag and drop */
+      /* ── Drag and Drop (visual drop zone on editor) ── */
+      const editorWrap  = document.getElementById('editorWrap');
+      const dropOverlay = document.getElementById('dropOverlay');
+      let dragCounter = 0; // track nested dragenter/dragleave events
+
+      // Prevent default browser file-open on body
       document.body.addEventListener('dragover', e => e.preventDefault());
-      document.body.addEventListener('drop', e => {
+      document.body.addEventListener('drop',     e => e.preventDefault());
+
+      editorWrap.addEventListener('dragenter', e => {
         e.preventDefault();
+        dragCounter++;
+        if (dragCounter === 1) {
+          editorWrap.classList.add('drag-over');
+          dropOverlay.classList.add('visible');
+          dropOverlay.setAttribute('aria-hidden', 'false');
+        }
+      });
+
+      editorWrap.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      });
+
+      editorWrap.addEventListener('dragleave', e => {
+        dragCounter--;
+        if (dragCounter === 0) {
+          editorWrap.classList.remove('drag-over');
+          dropOverlay.classList.remove('visible');
+          dropOverlay.setAttribute('aria-hidden', 'true');
+        }
+      });
+
+      editorWrap.addEventListener('drop', e => {
+        e.preventDefault();
+        dragCounter = 0;
+        editorWrap.classList.remove('drag-over');
+        dropOverlay.classList.remove('visible');
+        dropOverlay.setAttribute('aria-hidden', 'true');
         const file = e.dataTransfer.files[0];
         if (!file) return;
         handleUploadedFile(file);
@@ -3143,7 +3265,7 @@
         document.querySelectorAll('.lang-tab').forEach(t => {
           const isActive = t.dataset.lang === lang;
           t.classList.toggle('active', isActive);
-          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+          t.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
 
         // 2. Check if the editor currently contains one of the samples
@@ -4101,7 +4223,7 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
          SAMPLE CODE LOADER
       ═══════════════════════════════════════════════════════════════ */
       const SAMPLES = {
-        python: `// Python Sample
+        python: `# Python Sample
   import os
 
 # [!] Hardcoded secret - security risk
