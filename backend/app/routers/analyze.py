@@ -1,3 +1,9 @@
+from fastapi import APIRouter, HTTPException
+from app.schemas import CodeRequest, AnalyzeResponse
+from app.services.code_assistant import explain_code, debug_code, suggest_improvements
+from app.services.ai_provider import get_provider_info
+import logging
+from app.services.cache import cache
 """Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
 from __future__ import annotations
 
@@ -252,6 +258,31 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
         )
 
     try:
+        provider_info = get_provider_info()
+        cached = cache.get("analysis", request.code)
+
+        if cached:
+            return AnalyzeResponse(**cached)
+        explanation = explain_code(request.code, request.language)
+        debugging = debug_code(request.code, request.language)
+        suggestions = suggest_improvements(request.code, request.language)
+
+        payload = {
+            "provider": provider_info["provider"],
+            "model": provider_info["model"],
+            "explanation": explanation.model_dump(),
+            "debugging": debugging.model_dump(),
+            "suggestions": suggestions.model_dump(),
+        }
+
+        cache.set("analysis", request.code, payload)
+        return AnalyzeResponse(**payload)
+
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.error(f"Analyze failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Analysis failed. Please try again.")
         archive = zipfile.ZipFile(buffer)
     except zipfile.BadZipFile as exc:
         raise HTTPException(
