@@ -5,12 +5,14 @@ Compatible with OpenAI, Groq, Together AI, Ollama.
 """
 
 from __future__ import annotations
+from app.services.ai_cache_proxy import get_cached, set_cached,clear_all, cache_stats
 import os
 import asyncio
 import logging
 import time
 from urllib.parse import urlparse
 import httpx
+from fastapi import APIRouter
 
 logger = logging.getLogger("ai_provider")
 
@@ -54,6 +56,9 @@ async def call_llm(system: str, user: str) -> str | None:
         "temperature": 0.2,
         "max_tokens": 1024,
     }
+    cached = get_cached(payload)
+    if cached is not None:
+        return cached
 
     for attempt in range(LLM_MAX_RETRIES + 1):
         start_time = time.time()
@@ -75,7 +80,10 @@ async def call_llm(system: str, user: str) -> str | None:
                         "latency_ms": latency_ms,
                     }
                 )
-                return data["choices"][0]["message"]["content"].strip()
+                result = data["choices"][0]["message"]["content"].strip()
+                set_cached(payload, result)  # ✅ ADD THIS LINE — store before returning
+                return result                
+               
 
         except httpx.HTTPStatusError as e:
             latency_ms = int((time.time() - start_time) * 1000)
@@ -148,3 +156,18 @@ async def call_llm(system: str, user: str) -> str | None:
 
 def is_enabled() -> bool:
     return LLM_ENABLED and bool(LLM_API_KEY)
+
+
+
+dev_cache_router = APIRouter(prefix="/dev/cache", tags=["Dev"])
+
+@dev_cache_router.get("/stats")
+def get_cache_stats():
+    """Return current cache statistics (dev only)."""
+    return cache_stats()
+
+@dev_cache_router.delete("/clear")
+def clear_cache():
+    """Delete all cache entries (dev only)."""
+    removed = clear_all()
+    return {"cleared": removed}

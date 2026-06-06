@@ -48,3 +48,5 @@ vscode-extension/extension.js
 *.db
 assistant.db
 backend/assistant.db
+# AI provider dev cache
+.ai_cache/
