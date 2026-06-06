@@ -1,5 +1,7 @@
 """Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
 from __future__ import annotations
+from ..services.vulnerability_db import correlate_vulnerabilities
+from typing import Any
 
 import asyncio
 import json
@@ -198,7 +200,10 @@ async def analyze(req: CodeRequest, response: Response):
         response.headers["X-Cache"] = "HIT"
         return cached_payload
 
-    payload = full_analysis(req.code, req.language)
+    payload: dict[str, Any] = full_analysis(req.code, req.language)
+
+    deps: list[str] = payload.get("suggestions", {}).get("dependencies", [])
+    payload["vulnerabilities"] = correlate_vulnerabilities(deps) if deps else []
 
     cache.set("analyze:v1", cache_input, payload)
 
@@ -330,10 +335,13 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                 )
                 continue
 
-            analysis = full_analysis(
+            analysis: dict[str, Any] = full_analysis(
                 code,
                 SOURCE_EXTENSIONS[ext],
             )
+
+            deps: list[str] = analysis.get("suggestions", {}).get("dependencies", [])
+            analysis["vulnerabilities"] = correlate_vulnerabilities(deps) if deps else []
 
             language = analysis["explanation"]["language"]
 
