@@ -1986,6 +1986,42 @@
       margin-bottom: 8px;
     }
 
+    .footer-digest { max-width: 320px; }
+
+    .footer-digest-title {
+      margin: 0 0 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .footer-digest-desc {
+      font-size: 0.8rem;
+      color: var(--text2);
+      margin-bottom: 10px;
+    }
+
+    .footer-digest-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--r2);
+      color: var(--text);
+      text-decoration: none;
+      transition: border-color var(--transition), color var(--transition);
+    }
+
+    .footer-digest-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     /* ═══════════════════════════════════════════════════════════════
    RESULT ACTIONS BAR
 ═══════════════════════════════════════════════════════════════ */
@@ -2061,6 +2097,373 @@
   .lang-tab{padding:7px 10px;font-size:0.72rem}
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   WEEKLY DIGEST SECTION
+═══════════════════════════════════════════════════════════════ */
+.digest-section {
+  position: relative;
+  margin: 16px 0 0;
+  animation: fadeUp 0.6s 0.55s ease both;
+}
+
+.digest-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.digest-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+
+.digest-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.digest-header-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(34, 212, 123, 0.1);
+  border: 1px solid rgba(34, 212, 123, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.digest-heading {
+  font-family: var(--font-disp);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+.digest-free-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: rgba(34, 212, 123, 0.1);
+  border: 1px solid rgba(34, 212, 123, 0.2);
+  color: var(--green);
+}
+
+.digest-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.digest-left {
+  padding: 24px;
+  border-right: 1px solid var(--border);
+}
+
+.digest-title {
+  font-family: var(--font-disp);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.digest-desc {
+  font-size: 0.83rem;
+  color: var(--text2);
+  line-height: 1.65;
+  margin-bottom: 20px;
+}
+
+.digest-benefits {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.digest-benefits li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+.digest-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  background: rgba(34, 212, 123, 0.1);
+  border: 1px solid rgba(34, 212, 123, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+}
+
+.digest-right {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.digest-form-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
+
+.digest-input-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.digest-email-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 10px 13px;
+  border: 1px solid var(--border2);
+  border-radius: var(--r2);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.83rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.digest-email-input:focus { border-color: var(--accent); }
+.digest-email-input::placeholder { color: var(--text3); }
+
+.digest-submit-btn {
+  padding: 10px 18px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  border: none;
+  border-radius: var(--r2);
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition: all var(--transition);
+}
+
+.digest-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(91, 156, 246, 0.35);
+}
+
+.digest-submit-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Spinner inside submit button */
+@keyframes digestSpin { to { transform: rotate(360deg); } }
+
+.digest-btn-spinner {
+  display: none;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: digestSpin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+.digest-submit-btn[aria-busy="true"] .digest-btn-spinner { display: inline-block; }
+.digest-submit-btn[aria-busy="true"] .digest-btn-text   { opacity: 0.75; }
+
+/* Inline error message */
+.digest-error-msg {
+  display: none;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 9px 12px;
+  margin-top: 8px;
+  border-radius: var(--r2);
+  border: 1px solid rgba(242, 87, 87, 0.3);
+  background: rgba(242, 87, 87, 0.08);
+  font-size: 0.78rem;
+  color: var(--red);
+  line-height: 1.5;
+}
+
+.digest-error-msg.visible { display: flex; }
+
+/* Red border on input when invalid */
+.digest-email-input.input-error { border-color: var(--red); }
+
+/* Billing note below form */
+.digest-billing-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 0.7rem;
+  color: var(--text3);
+}
+
+.digest-success-msg {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  border-radius: var(--r2);
+  border: 1px solid rgba(34, 212, 123, 0.25);
+  background: rgba(34, 212, 123, 0.07);
+  font-size: 0.82rem;
+  color: var(--green);
+  animation: paneIn 0.25s ease both;
+}
+
+.digest-success-msg.visible { display: flex; }
+
+.digest-hint {
+  margin-top: 10px;
+  font-size: 0.72rem;
+  color: var(--text3);
+  line-height: 1.6;
+}
+
+.digest-hint a {
+  color: var(--text3);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--transition);
+}
+
+.digest-hint a:hover { color: var(--accent); }
+
+.digest-manage-row {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.digest-manage-row p {
+  font-size: 0.72rem;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
+
+.digest-manage-btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+.digest-manage-sep {
+  color: var(--text3);
+  font-size: 0.9rem;
+  line-height: 1;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.btn-manage {
+  padding: 5px 12px;
+  border-radius: var(--r2);
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-manage:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(91, 156, 246, 0.06);
+}
+
+.btn-manage.danger:hover {
+  border-color: var(--red);
+  color: var(--red);
+  background: rgba(242, 87, 87, 0.06);
+}
+
+.digest-footer-row {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--text3);
+}
+
+.digest-footer-row a {
+  color: var(--text3);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--transition);
+}
+
+.digest-footer-row a:hover { color: var(--accent); }
+
+/* Ring fades in then out via opacity only — GPU-composited, no paint cost */
+@keyframes digestCardHighlight {
+  0%   { opacity: 1; }
+  60%  { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+
+/* Pseudo-element carries the fixed ring; only opacity is animated */
+.digest-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r);
+  border: 2px solid rgba(91, 156, 246, 0.65);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.digest-highlight::after {
+  animation: digestCardHighlight 2.4s ease forwards;
+}
+
+@media(max-width:720px) {
+  .digest-body { grid-template-columns: 1fr; }
+  .digest-left { border-right: none; border-bottom: 1px solid var(--border); }
+}
+
+@media(max-width:600px) {
+  .digest-section { margin: 12px 0 0; }
+  .digest-card-header { padding: 12px 16px; }
+  .digest-left, .digest-right { padding: 18px 16px; }
+}
 </style>
 <link rel="icon" href="data:,">
 </head>
@@ -2098,6 +2501,15 @@
             <polyline points="14,2 14,8 20,8" />
           </svg>
           <span data-i18n="nav_api_docs">API Docs</span>
+        </a>
+        <a href="#digest" id="navDigestLink" class="nav-link"
+           aria-label="Subscribe to Weekly Digest"
+           data-i18n-aria-label="nav_digest_aria">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <span data-i18n="nav_digest">Digest</span>
         </a>
         <button class="theme-btn" id="themeToggle" title="Toggle theme" data-i18n-title="btn_toggle_theme" data-i18n-aria-label="btn_toggle_theme" aria-label="Toggle dark mode"
           aria-pressed="false">
@@ -2403,6 +2815,121 @@
       </div>
     </div>
 
+    <!-- ── WEEKLY DIGEST ─────────────────────────────────────── -->
+<section class="digest-section" id="digest" aria-labelledby="digestHeading">
+  <div class="digest-card">
+
+    <div class="digest-card-header">
+      <div class="digest-header-left">
+        <div class="digest-header-icon" aria-hidden="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <span class="digest-heading" id="digestHeading" data-i18n="digest_heading">Weekly Digest</span>
+      </div>
+      <span class="digest-free-badge" data-i18n="digest_free_badge" title="Always free. No payment required." data-i18n-title="digest_free_badge_tooltip">Free</span>
+    </div>
+
+    <div class="digest-body">
+      <div class="digest-left">
+        <p class="digest-title" data-i18n="digest_title">Stay in the loop, every Sunday.</p>
+        <p class="digest-desc" data-i18n="digest_desc">Get a personalised summary of your weekly code analyses, including bug trends, quality scores, and top improvement suggestions, delivered straight to your inbox once a week.</p>
+        <ul class="digest-benefits" role="list">
+          <li>
+            <span class="digest-check" aria-hidden="true">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg>
+            </span>
+            <span data-i18n="digest_benefit_1">Free weekly email updates</span>
+          </li>
+          <li>
+            <span class="digest-check" aria-hidden="true">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg>
+            </span>
+            <span data-i18n="digest_benefit_2">Delivered every Sunday morning</span>
+          </li>
+          <li>
+            <span class="digest-check" aria-hidden="true">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg>
+            </span>
+            <span data-i18n="digest_benefit_3">Personalised analysis insights</span>
+          </li>
+          <li>
+            <span class="digest-check" aria-hidden="true">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg>
+            </span>
+            <span data-i18n="digest_benefit_4">Manage or unsubscribe anytime</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="digest-right">
+        <div>
+          <p class="digest-form-label" data-i18n="digest_form_label">Subscribe</p>
+          <form id="digestForm" novalidate>
+            <div class="digest-input-row">
+              <input
+                type="email"
+                id="digestEmail"
+                class="digest-email-input"
+                placeholder="your@email.com"
+                required
+                autocomplete="email"
+                aria-label="Email address for Weekly Digest"
+                aria-describedby="digestHint digestSuccess digestError"
+                aria-invalid="false"
+                data-i18n-placeholder="digest_email_placeholder"
+                data-i18n-aria-label="digest_email_aria"
+              >
+              <button
+                type="submit"
+                id="digestBtn"
+                class="digest-submit-btn"
+                aria-busy="false"
+              >
+                <span class="digest-btn-spinner" aria-hidden="true"></span>
+                <span class="digest-btn-text" data-i18n="digest_btn">Subscribe</span>
+              </button>
+            </div>
+          </form>
+
+          <div class="digest-error-msg" id="digestError" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+          <div
+            class="digest-success-msg"
+            id="digestSuccess"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <polyline points="20,6 9,17 4,12"/>
+            </svg>
+            <span data-i18n="digest_success">You're in! First digest arrives next Sunday.</span>
+          </div>
+
+          <p class="digest-billing-note" aria-label="Billing information">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span data-i18n="digest_billing_note">Always free · No credit card needed</span>
+          </p>
+
+          <p class="digest-hint" id="digestHint" data-i18n="digest_hint">One email per week. No spam.<br>Questions? <a href="mailto:support@qyverixai.com">Contact support</a> · <a href="https://github.com/imDarshanGK/AI-dev-assistant/discussions" target="_blank" rel="noopener noreferrer" data-i18n="digest_faq_link">View FAQ</a>.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="digest-footer-row">
+      <span data-i18n="digest_privacy">Your email is never shared. Read our <a href="#privacy">privacy policy</a>.</span>
+      <span data-i18n="digest_powered">Powered by QyverixAI</span>
+    </div>
+
+  </div>
+</section>
+
   </div><!-- /app -->
 
 
@@ -2419,14 +2946,15 @@
           <p style="margin-top:8px;font-size:0.75rem" data-i18n="footer_built_for">Built for the open source community</p>
         </div>
 
-        <div style="max-width:360px;">
-          <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
-          <form id="digestForm" style="display:flex;gap:6px;">
-            <input type="email" id="digestEmail" placeholder="your@email.com" required
-                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
-            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
-          </form>
-          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
+        <div class="footer-digest">
+          <p class="footer-digest-title" data-i18n="footer_digest_title">Weekly Digest</p>
+          <p class="footer-digest-desc" data-i18n="footer_digest_desc">Get your weekly code analysis summary every Sunday</p>
+          <a href="#digest" id="footerSubscribeBtn" class="footer-digest-btn"
+             aria-label="Scroll to the Weekly Digest subscription form"
+             data-i18n-aria-label="footer_digest_btn_aria">
+            <span data-i18n="footer_subscribe_btn">Subscribe free</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+          </a>
         </div>
       </div>
     </footer>
@@ -2534,7 +3062,36 @@
           meta_classes: "{count} classes",
           toast_analysis_failed: "Analysis failed: {message}",
           history_entry_label: "Load history entry for {lang} at {time}",
-          favorite_entry_label: "Load favorite entry for {lang} at {time}"
+          favorite_entry_label: "Load favorite entry for {lang} at {time}",
+          nav_digest: "Digest",
+          nav_digest_aria: "Subscribe to Weekly Digest",
+          digest_heading: "Weekly Digest",
+          digest_free_badge: "Free",
+          digest_title: "Stay in the loop, every Sunday.",
+          digest_desc: "Get a personalised summary of your weekly code analyses, including bug trends, quality scores, and top improvement suggestions, delivered straight to your inbox once a week.",
+          digest_benefit_1: "Free weekly email updates",
+          digest_benefit_2: "Delivered every Sunday morning",
+          digest_benefit_3: "Personalised analysis insights",
+          digest_benefit_4: "Manage or unsubscribe anytime",
+          digest_form_label: "Subscribe",
+          digest_email_placeholder: "your@email.com",
+          digest_email_aria: "Email address for Weekly Digest",
+          digest_btn: "Subscribe",
+          digest_success: "You're in! First digest arrives next Sunday.",
+          digest_hint: "One email per week. No spam.<br>Questions? <a href=\"mailto:support@qyverixai.com\">Contact support</a>.",
+          digest_privacy: "Your email is never shared. Read our <a href=\"#privacy\">privacy policy</a>.",
+          digest_powered: "Powered by QyverixAI",
+          footer_digest_title: "Weekly Digest",
+          footer_digest_desc: "Get your weekly code analysis summary every Sunday.",
+          footer_subscribe_btn: "Subscribe free",
+          footer_digest_btn_aria: "Scroll to the Weekly Digest subscription form",
+          digest_free_badge_tooltip: "Always free. No payment required.",
+          digest_billing_note: "Always free · No credit card needed",
+          digest_faq_link: "View FAQ",
+          digest_error_empty: "Please enter your email address.",
+          digest_error_invalid: "Please enter a valid email address (e.g. you@example.com).",
+          digest_error_server: "Subscription failed. Please try again.",
+          digest_error_network: "Could not reach the server. Check your connection and try again."
         },
         ta: {
           lang_select_label: "மொழியைத் தேர்ந்தெடுக்கவும்",
@@ -2631,7 +3188,36 @@
           meta_classes: "{count} வகுப்புகள்",
           toast_analysis_failed: "பகுப்பாய்வு தோல்வியடைந்தது: {message}",
           history_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள வரலாறு பதிவை ஏற்று",
-          favorite_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள பிடித்த பதிவை ஏற்று"
+          favorite_entry_label: "{lang} இல் {time} நேரத்தில் உள்ள பிடித்த பதிவை ஏற்று",
+          nav_digest: "டைஜஸ்ட்",
+          nav_digest_aria: "வாராந்திர சுருக்கத்தில் சந்தா செலுத்துங்கள்",
+          digest_heading: "வாராந்திர சுருக்கம்",
+          digest_free_badge: "இலவசம்",
+          digest_title: "ஒவ்வொரு ஞாயிற்றுக்கிழமையும் புதுப்பித்திருங்கள்.",
+          digest_desc: "உங்கள் வாராந்திர குறியீடு பகுப்பாய்வுகளின் தனிப்பயனாக்கப்பட்ட சுருக்கத்தைப் பெறுங்கள், பிழை போக்குகள், தர மதிப்பெண்கள் மற்றும் சிறந்த மேம்பாட்டு பரிந்துரைகள் உட்பட, வாரம் ஒருமுறை உங்கள் மின்னஞ்சலுக்கு நேரடியாக வழங்கப்படும்.",
+          digest_benefit_1: "இலவச வாராந்திர மின்னஞ்சல் புதுப்பிப்புகள்",
+          digest_benefit_2: "ஒவ்வொரு ஞாயிற்றுக்கிழமை காலையில் வழங்கப்படும்",
+          digest_benefit_3: "தனிப்பயனாக்கப்பட்ட பகுப்பாய்வு நுண்ணறிவுகள்",
+          digest_benefit_4: "எந்த நேரத்திலும் நிர்வகிக்கவோ அல்லது குழுவிலக்கவோ",
+          digest_form_label: "சந்தா செலுத்தவும்",
+          digest_email_placeholder: "your@email.com",
+          digest_email_aria: "வாராந்திர சுருக்கத்திற்கான மின்னஞ்சல் முகவரி",
+          digest_btn: "சந்தா செலுத்து",
+          digest_success: "நீங்கள் இணைந்துவிட்டீர்கள்! முதல் சுருக்கம் அடுத்த ஞாயிற்றுக்கிழமை வரும்.",
+          digest_hint: "வாரம் ஒரு மின்னஞ்சல். ஸ்பேம் இல்லை.<br>கேள்விகளா? <a href=\"mailto:support@qyverixai.com\">ஆதரவைத் தொடர்பு கொள்ளுங்கள்</a>.",
+          digest_privacy: "உங்கள் மின்னஞ்சல் ஒருபோதும் பகிரப்படாது. எங்கள் <a href=\"#privacy\">தனியுரிமைக் கொள்கையை</a> படியுங்கள்.",
+          digest_powered: "QyverixAI ஆல் இயக்கப்படுகிறது",
+          footer_digest_title: "வாராந்திர சுருக்கம்",
+          footer_digest_desc: "ஒவ்வொரு ஞாயிற்றுக்கிழமையும் உங்கள் வாராந்திர குறியீடு பகுப்பாய்வு சுருக்கத்தைப் பெறுங்கள்.",
+          footer_subscribe_btn: "இலவசமாக சந்தா செலுத்துங்கள்",
+          footer_digest_btn_aria: "வாராந்திர சுருக்க படிவத்திற்கு செல்லவும்",
+          digest_free_badge_tooltip: "எப்போதும் இலவசம். கட்டணம் தேவையில்லை.",
+          digest_billing_note: "எப்போதும் இலவசம் · கிரெடிட் கார்டு தேவையில்லை",
+          digest_faq_link: "அடிக்கடி கேட்கப்படும் கேள்விகள்",
+          digest_error_empty: "உங்கள் மின்னஞ்சல் முகவரியை உள்ளிடவும்.",
+          digest_error_invalid: "சரியான மின்னஞ்சல் முகவரியை உள்ளிடவும் (எ.கா. நீங்கள்@உதாரணம்.com).",
+          digest_error_server: "சந்தா செலுத்துவதில் தோல்வி. மீண்டும் முயலவும்.",
+          digest_error_network: "சேவையகத்தை அணுக முடியவில்லை. உங்கள் இணைப்பை சரிபார்த்து மீண்டும் முயலவும்."
         },
         hi: {
           lang_select_label: "भाषा चुनें",
@@ -2728,7 +3314,36 @@
           meta_classes: "{count} क्लासें",
           toast_analysis_failed: "विश्लेषण विफल रहा: {message}",
           history_entry_label: "{time} पर {lang} के लिए इतिहास प्रविष्टि लोड करें",
-          favorite_entry_label: "{time} पर {lang} के लिए पसंदीदा प्रविष्टि लोड करें"
+          favorite_entry_label: "{time} पर {lang} के लिए पसंदीदा प्रविष्टि लोड करें",
+          nav_digest: "डाइजेस्ट",
+          nav_digest_aria: "साप्ताहिक डाइजेस्ट की सदस्यता लें",
+          digest_heading: "साप्ताहिक डाइजेस्ट",
+          digest_free_badge: "निःशुल्क",
+          digest_title: "हर रविवार, लूप में रहें.",
+          digest_desc: "अपने साप्ताहिक कोड विश्लेषणों का एक व्यक्तिगत सारांश प्राप्त करें, जिसमें बग ट्रेंड, गुणवत्ता स्कोर और शीर्ष सुधार सुझाव शामिल हैं, सप्ताह में एक बार सीधे आपके इनबॉक्स में।",
+          digest_benefit_1: "मुफ़्त साप्ताहिक ईमेल अपडेट",
+          digest_benefit_2: "हर रविवार सुबह डिलीवर",
+          digest_benefit_3: "व्यक्तिगत विश्लेषण अंतर्दृष्टि",
+          digest_benefit_4: "कभी भी प्रबंधित करें या सदस्यता रद्द करें",
+          digest_form_label: "सदस्यता लें",
+          digest_email_placeholder: "your@email.com",
+          digest_email_aria: "साप्ताहिक डाइजेस्ट के लिए ईमेल पता",
+          digest_btn: "सदस्यता लें",
+          digest_success: "आप शामिल हो गए हैं! पहला डाइजेस्ट अगले रविवार आएगा.",
+          digest_hint: "प्रति सप्ताह एक ईमेल। कोई स्पैम नहीं।<br>प्रश्न? <a href=\"mailto:support@qyverixai.com\">सहायता से संपर्क करें</a>.",
+          digest_privacy: "आपका ईमेल कभी साझा नहीं किया जाता। हमारी <a href=\"#privacy\">गोपनीयता नीति</a> पढ़ें.",
+          digest_powered: "QyverixAI द्वारा संचालित",
+          footer_digest_title: "साप्ताहिक डाइजेस्ट",
+          footer_digest_desc: "हर रविवार अपना साप्ताहिक कोड विश्लेषण सारांश पाएं.",
+          footer_subscribe_btn: "निःशुल्क सदस्यता लें",
+          footer_digest_btn_aria: "साप्ताहिक डाइजेस्ट सदस्यता फॉर्म पर जाएं",
+          digest_free_badge_tooltip: "हमेशा मुफ्त। कोई भुगतान आवश्यक नहीं।",
+          digest_billing_note: "हमेशा मुफ्त · क्रेडिट कार्ड की जरूरत नहीं",
+          digest_faq_link: "अक्सर पूछे जाने वाले प्रश्न देखें",
+          digest_error_empty: "कृपया अपना ईमेल पता दर्ज करें।",
+          digest_error_invalid: "कृपया एक वैध ईमेल पता दर्ज करें (जैसे आप@उदाहरण.com)।",
+          digest_error_server: "सदस्यता विफल रही। कृपया पुनः प्रयास करें।",
+          digest_error_network: "सर्वर तक नहीं पहुंच सका। अपना कनेक्शन जांचें और पुनः प्रयास करें।"
         },
         fr: {
           lang_select_label: "Choisir la langue",
@@ -2825,7 +3440,36 @@
           meta_classes: "{count} classes",
           toast_analysis_failed: "Échec de l'analyse : {message}",
           history_entry_label: "Charger l'entrée d'historique pour {lang} à {time}",
-          favorite_entry_label: "Charger le favori pour {lang} à {time}"
+          favorite_entry_label: "Charger le favori pour {lang} à {time}",
+          nav_digest: "Digest",
+          nav_digest_aria: "S'abonner au Digest hebdomadaire",
+          digest_heading: "Digest hebdomadaire",
+          digest_free_badge: "Gratuit",
+          digest_title: "Restez informé, chaque dimanche.",
+          digest_desc: "Recevez un résumé personnalisé de vos analyses de code hebdomadaires, incluant les tendances de bogues, les scores de qualité et les meilleures suggestions d'amélioration, directement dans votre boîte de réception une fois par semaine.",
+          digest_benefit_1: "Mises à jour gratuites par email chaque semaine",
+          digest_benefit_2: "Livré chaque dimanche matin",
+          digest_benefit_3: "Analyses personnalisées",
+          digest_benefit_4: "Gérez ou désabonnez-vous à tout moment",
+          digest_form_label: "S'abonner",
+          digest_email_placeholder: "votre@email.com",
+          digest_email_aria: "Adresse email pour le Digest hebdomadaire",
+          digest_btn: "S'abonner",
+          digest_success: "Vous êtes inscrit ! Premier digest dimanche prochain.",
+          digest_hint: "Un email par semaine. Pas de spam.<br>Questions ? <a href=\"mailto:support@qyverixai.com\">Contacter le support</a>.",
+          digest_privacy: "Votre email n'est jamais partagé. Lisez notre <a href=\"#privacy\">politique de confidentialité</a>.",
+          digest_powered: "Propulsé par QyverixAI",
+          footer_digest_title: "Digest hebdomadaire",
+          footer_digest_desc: "Recevez votre résumé hebdomadaire d'analyse de code chaque dimanche.",
+          footer_subscribe_btn: "S'abonner gratuitement",
+          footer_digest_btn_aria: "Aller au formulaire d'abonnement au Digest hebdomadaire",
+          digest_free_badge_tooltip: "Toujours gratuit. Aucun paiement requis.",
+          digest_billing_note: "Toujours gratuit · Aucune carte bancaire requise",
+          digest_faq_link: "Voir la FAQ",
+          digest_error_empty: "Veuillez saisir votre adresse email.",
+          digest_error_invalid: "Veuillez saisir une adresse email valide (ex. vous@exemple.com).",
+          digest_error_server: "L'abonnement a échoué. Veuillez réessayer.",
+          digest_error_network: "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez."
         }
       };
 
@@ -4361,33 +5005,109 @@ int main() {
       /* ═══════════════════════════════════════════════════════════════
          DIGEST SUBSCRIBE
       ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('digestForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('digestEmail').value.trim();
-        const btn = document.getElementById('digestBtn');
-        btn.disabled = true;
-        btn.textContent = 'Subscribing…';
-        const base = getApiBase();
-        try {
-          const r = await fetch(`${base}/subscribe/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email }),
-          });
-          const data = await r.json();
-          if (r.ok) {
-            toast(data.message, 'success');
-            document.getElementById('digestEmail').value = '';
-          } else {
-            toast(data.detail || 'Subscription failed', 'error');
-          }
-        } catch {
-          toast('Could not reach the server.', 'error');
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Subscribe';
+      /* ── FOOTER SUBSCRIBE CTA ── */
+      (function () {
+        function scrollToDigest(e) {
+          e.preventDefault();
+          const section    = document.getElementById('digest');
+          const emailInput = document.getElementById('digestEmail');
+          if (!section || !emailInput) return;
+
+          section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+          setTimeout(() => {
+            emailInput.focus({ preventScroll: true });
+            section.classList.add('digest-highlight');
+            section.addEventListener(
+              'animationend',
+              () => section.classList.remove('digest-highlight'),
+              { once: true }
+            );
+          }, 650);
         }
-      });
+
+        ['footerSubscribeBtn', 'navDigestLink'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('click', scrollToDigest);
+        });
+      }());
+
+      /* ── DIGEST SUBSCRIBE ── */
+      (function () {
+        const form      = document.getElementById('digestForm');
+        const emailEl   = document.getElementById('digestEmail');
+        const btn       = document.getElementById('digestBtn');
+        const errorEl   = document.getElementById('digestError');
+        const successEl = document.getElementById('digestSuccess');
+
+        function showError(msg) {
+          if (errorEl)  { errorEl.textContent = msg; errorEl.classList.add('visible'); }
+          if (emailEl)  { emailEl.classList.add('input-error'); emailEl.setAttribute('aria-invalid', 'true'); }
+        }
+
+        function clearError() {
+          if (errorEl)  { errorEl.textContent = ''; errorEl.classList.remove('visible'); }
+          if (emailEl)  { emailEl.classList.remove('input-error'); emailEl.setAttribute('aria-invalid', 'false'); }
+        }
+
+        function setLoading(on) {
+          if (!btn) return;
+          btn.disabled = on;
+          btn.setAttribute('aria-busy', on ? 'true' : 'false');
+        }
+
+        if (emailEl) emailEl.addEventListener('input', clearError);
+
+        if (!form) return;
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          clearError();
+
+          const email = emailEl ? emailEl.value.trim() : '';
+
+          // Client-side validation
+          if (!email) {
+            showError(getTranslation('digest_error_empty'));
+            if (emailEl) emailEl.focus();
+            return;
+          }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showError(getTranslation('digest_error_invalid'));
+            if (emailEl) emailEl.focus();
+            return;
+          }
+
+          setLoading(true);
+          try {
+            const r    = await fetch(`${getApiBase()}/subscribe/`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email }),
+            });
+            const data = await r.json();
+
+            if (r.ok) {
+              toast(data.message || getTranslation('digest_success'), 'success');
+              if (emailEl)   emailEl.value = '';
+              if (successEl) successEl.classList.add('visible');
+              // Keep button disabled — subscription confirmed, no re-submit needed
+            } else {
+              const msg = data.detail || getTranslation('digest_error_server');
+              showError(msg);
+              toast(msg, 'error');
+              setLoading(false);
+            }
+          } catch {
+            const msg = getTranslation('digest_error_network');
+            showError(msg);
+            toast(msg, 'error');
+            setLoading(false);
+          } finally {
+            btn.setAttribute('aria-busy', 'false');
+          }
+        });
+      }());
     </script>
 </body>
 
