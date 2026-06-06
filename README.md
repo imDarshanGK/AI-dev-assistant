@@ -475,13 +475,8 @@ Read the full workflow, code standards, and pattern guide in [CONTRIBUTING.md](C
 
 | Task | Label |
 |---|---|
-| Add a new bug detection pattern for any language | `easy` |
-| Add test cases for edge cases | `easy` |
-| Improve explanation key points for a specific language | `easy` |
-| Add ARIA labels and keyboard navigation to frontend | `medium` |
-| Add support for a new file type in file upload | `medium` |
-| Build AST-based deep analysis for Python | `hard` |
-| Add VS Code extension | `hard` |
+| Add gamification/badge system for contributor milestones
+ https://github.com/imDarshanGK/AI-dev-assistant/issues/681| `easy` |
 
 Browse all open issues: [github.com/imDarshanGK/AI-dev-assistant/issues](https://github.com/imDarshanGK/AI-dev-assistant/issues)
 
