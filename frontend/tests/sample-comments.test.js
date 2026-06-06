@@ -1,16 +1,10 @@
-import assert from 'assert';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-// Fix __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const indexHtml = fs.readFileSync(
-  path.resolve(__dirname, '..', 'index.html'),
-  'utf8'
-);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const indexHtml = fs.readFileSync(path.resolve(__dirname, '..', 'index.html'), 'utf8');
 
 const expectedHeaders = {
   python: '# Python Sample',
