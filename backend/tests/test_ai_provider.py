@@ -12,7 +12,8 @@ Tests cover:
 No real API calls are made — fully offline using unittest.mock.
 Run: cd backend && pytest tests/test_ai_provider.py -v
 """
-
+import shutil
+from pathlib import Path
 import importlib
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -105,7 +106,26 @@ def ollama_env():
         "LLM_TIMEOUT_SECONDS": "60",
     }
 
-
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """Wipe the dev cache and disable it so cached responses never interfere."""
+    # Clear any leftover cache files
+    for d in [Path(".test_ai_cache"), Path(".ai_cache")]:
+        if d.exists():
+            shutil.rmtree(d)
+    
+    # Disable the cache entirely for ai_provider tests
+    from app.services import ai_cache_proxy
+    original_enabled = ai_cache_proxy._ENABLED
+    ai_cache_proxy._ENABLED = False   # ← force cache OFF for every test
+    
+    yield
+    
+    # Restore and clean up after test
+    ai_cache_proxy._ENABLED = original_enabled
+    for d in [Path(".test_ai_cache"), Path(".ai_cache")]:
+        if d.exists():
+            shutil.rmtree(d)
 class TestIsEnabled:
 
     def test_true_when_enabled_and_key_present(self, enabled_env):

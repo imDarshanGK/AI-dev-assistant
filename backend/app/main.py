@@ -165,6 +165,10 @@ app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)
+if os.getenv("ENVIRONMENT", "development") != "production":
+    from .services.ai_provider import dev_cache_router
+    app.include_router(dev_cache_router, tags=["Dev"])
+
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
