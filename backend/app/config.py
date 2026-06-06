@@ -1,5 +1,6 @@
 import os
 
+from dataclasses import dataclass
 from dotenv import find_dotenv, load_dotenv
 
 # Load .env from current directory or parent directories if present.
@@ -82,4 +83,52 @@ class Settings:
     )
 
 
+@dataclass
+class ProviderConfig:
+    """Configuration for a single LLM provider."""
+    api_key: str
+    base_url: str
+    model: str
+    priority: int = 1
+
+def _load_providers() -> list[ProviderConfig]:
+    """Load ordered LLM providers from environment variables.
+
+    Supports legacy LLM_API_KEY (becomes provider 1) and numbered
+    LLM_PROVIDER_N_* vars. Deduplicates by api_key.
+    """
+    providers = []
+
+    legacy_key = os.getenv("LLM_API_KEY")
+    if legacy_key:
+        providers.append(ProviderConfig(
+            api_key=legacy_key,
+            base_url=os.getenv("LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/"),
+            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+            priority=1,
+        ))
+
+    i = 1
+    while True:
+        key = os.getenv(f"LLM_PROVIDER_{i}_API_KEY")
+        if not key:
+            break
+        providers.append(ProviderConfig(
+            api_key=key,
+            base_url=os.getenv(f"LLM_PROVIDER_{i}_BASE_URL", "https://api.openai.com/v1").rstrip("/"),
+            model=os.getenv(f"LLM_PROVIDER_{i}_MODEL", "gpt-4o-mini"),
+            priority=i,
+        ))
+        i += 1
+
+    seen = set()
+    unique = []
+    for p in sorted(providers, key=lambda x: x.priority):
+        if p.api_key not in seen:
+            seen.add(p.api_key)
+            unique.append(p)
+    return unique
+
+
 settings = Settings()
+settings.llm_providers = _load_providers()
