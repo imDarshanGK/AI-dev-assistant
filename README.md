@@ -512,7 +512,25 @@ Browse all open issues: [github.com/imDarshanGK/AI-dev-assistant/issues](https:/
 MIT © [Darshan G K](https://github.com/imDarshanGK)
 
 ---
+## Contributors
 
+Thanks to all the amazing contributors who have helped improve QyverixAI.
+
+<a href="https://github.com/imDarshanGK/AI-dev-assistant/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=imDarshanGK/AI-dev-assistant" />
+</a>
+
+### Want to Contribute?
+
+1. Fork the repository
+2. Pick an issue
+3. Create a branch
+4. Submit a Pull Request
+5. Get reviewed and merged
+
+Every contribution, no matter how small, is appreciated.
+
+---
 <div align="center">
 
 <br/>
