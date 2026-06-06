@@ -22,6 +22,7 @@ function safeModeLabel(mode) {
 
 // ── State ──
 let currentMode = 'analyze';
+let isAnalyzing = false;
 let history = JSON.parse(localStorage.getItem('qyverix_history') || '[]');
 let favorites = JSON.parse(localStorage.getItem('qyverix_favorites') || '[]');
 let lastResult = '';
@@ -92,6 +93,9 @@ codeInput.addEventListener('keydown', (e) => {
   }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault();
+    if (isAnalyzing) {
+        return;
+    }
     runAnalysis();
   }
 });
@@ -372,11 +376,18 @@ checkConnection();
 
 // ── Main Analysis ──
 async function runAnalysis() {
+
+  if (isAnalyzing) {
+    return;
+  }
+
   const code = sanitizeClientCode(codeInput.value.trim());
   if (!code) {
     showError('Please paste some code first.');
     return;
   }
+
+  isAnalyzing = true;
 
   runBtn.disabled = true;
   runBtn.classList.add('loading');
@@ -408,6 +419,7 @@ async function runAnalysis() {
     statusDot.className = 'status-dot offline';
     setEngineBadge('unknown');
   } finally {
+    isAnalyzing = false;
     runBtn.disabled = false;
     runBtn.classList.remove('loading');
     runLabel.textContent = '▶ Analyze Code';
