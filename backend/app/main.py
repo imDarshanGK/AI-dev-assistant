@@ -35,7 +35,7 @@ from .observability import (
     initialise_app_info,
     prometheus_metrics_middleware,
 )
-
+from .config.integrations import validate_integrations
 from .schemas import HealthResponse
 
 
@@ -70,6 +70,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 async def lifespan(app: FastAPI):
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
+    validate_integrations()
     # Static info gauge so dashboards can pin version / provider labels.
     initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
     start_scheduler()
