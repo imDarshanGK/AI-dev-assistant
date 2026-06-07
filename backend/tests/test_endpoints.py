@@ -237,6 +237,27 @@ def test_explanation_too_long():
     r = client.post("/explanation/", json={"code": "x" * 60000})
     assert r.status_code == 422
 
+def test_explanation_go_language():
+    code = """
+    package main
+
+    import "fmt"
+
+    func main() {
+        fmt.Println("Hello Go")
+        x := 10
+        go func() {
+            fmt.Println(x)
+        }()
+    }
+    """
+
+    r = client.post("/explanation/", json={"code": code, "language": "go"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["language"] == "Go"
+    assert "summary" in d
+    assert isinstance(d["key_points"], list)
 
 def test_explanation_typescript():
     r = client.post("/explanation/", json={"code": TS_CODE, "language": "typescript"})

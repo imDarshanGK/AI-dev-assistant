@@ -84,6 +84,10 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"data\s+class\s+\w+",
         r":\s*\w+\s*\?",
     ],
+        "Go": [
+        r"\bfunc\s+\w+\s*\(", r"\bpackage\s+\w+", r"\bimport\s+\"",
+        r"fmt\.Print", r"\bgo\s+func\b", r":=",                       
+    ],
 }
 
 
