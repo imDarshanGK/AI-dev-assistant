@@ -22,7 +22,7 @@ from ..services.code_assistant import (
     run_explanation,
     run_suggestions,
 )
-from app.sanitize import sanitize_code_input, sanitize_language_hint
+from ..sanitize import sanitize_code_input, sanitize_language_hint
 router = APIRouter()
 
 _SSE_HEADERS = {
