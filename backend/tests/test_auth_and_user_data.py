@@ -2,7 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import sys, os
+import sys
+import os
 
 # Setup path to include the backend directory
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -97,7 +98,7 @@ def test_auth_and_user_data_flow():
     # 9. Clear history
     r = client.delete("/user/history", headers=headers)
     assert r.status_code == 200
-    
+
     r = client.get("/user/history", headers=headers)
     assert r.status_code == 200
     assert len(r.json()) == 0
