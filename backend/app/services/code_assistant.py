@@ -268,6 +268,173 @@ class BugPattern:
 
 BUG_PATTERNS: list[BugPattern] = [
     # ── Python ──
+
+    BugPattern("ZeroDivisionError", r"\w+\s*/\s*\w+",
+               "Potential division by zero — divisor may be 0 at runtime.",
+               "Guard the divisor: `if divisor == 0: return None` or raise ValueError.",
+               "error", ["Python"]),
+
+    BugPattern("Bare Except", r"except\s*:",
+               "`except:` catches ALL exceptions including SystemExit and KeyboardInterrupt.",
+               "Use `except Exception as e:` to avoid swallowing system signals.",
+               "warning", ["Python"]),
+
+    BugPattern("Eval Usage", r"\beval\s*\(",
+               "`eval()` executes arbitrary code — severe security risk.",
+               "Replace with `ast.literal_eval()` for safe expression evaluation.",
+               "error", ["Python", "JavaScript"]),
+
+    BugPattern("Exec Usage", r"\bexec\s*\(",
+               "`exec()` runs arbitrary code strings — critical security vulnerability.",
+               "Refactor logic to avoid dynamic code execution entirely.",
+               "error", ["Python"]),
+
+    BugPattern("Mutable Default Arg", r"def\s+\w+\s*\([^)]*=\s*(\[\]|\{\}|\(\))",
+               "Mutable default argument shared across all calls — classic Python gotcha.",
+               "Use `None` as default and assign inside the function body.",
+               "warning", ["Python"]),
+
+    BugPattern("Hardcoded Secret", r"(password|secret|api_key|token|passwd)\s*=\s*['\"][^'\"]{4,}['\"]",
+               "Hardcoded credential found in source code.",
+               "Use `os.getenv('KEY')` or a secrets manager. Never commit secrets.",
+               "error"),
+
+    BugPattern("Print Debugging", r"\bprint\s*\(.*debug|TODO|FIXME|HACK",
+               "Debug print statement left in production code.",
+               "Use the `logging` module with appropriate log levels instead.",
+               "info", ["Python"]),
+
+    BugPattern("Wildcard Import", r"from\s+\w+\s+import\s+\*",
+               "`import *` pollutes the namespace and hides dependencies.",
+               "Explicitly import only what you need.",
+               "warning", ["Python"]),
+
+    BugPattern("Global Variable", r"^\s*global\s+\w+",
+               "Global variables make code harder to test and reason about.",
+               "Pass the value as a parameter or use a class to encapsulate state.",
+               "info", ["Python"]),
+
+    BugPattern("Unused Variable", r"^\s*(_[a-z]\w*)\s*=\s*.+",
+               "Variable assigned but potentially never used (prefixed convention).",
+               "Remove the assignment or prefix with `_` to signal it's intentional.",
+               "info", ["Python"]),
+
+    BugPattern("No Type Hints", r"def\s+\w+\s*\([^)]*\)\s*:",
+               "Function has no type annotations — reduces IDE support and readability.",
+               "Add type hints: `def func(x: int, y: str) -> bool:`",
+               "info", ["Python"]),
+
+    BugPattern("String Concatenation in Loop", r"(for|while).+\n.+\+=\s*['\"]",
+               "String concatenation inside a loop is O(n²) — very slow for large inputs.",
+               "Collect strings in a list and use `''.join(parts)` at the end.",
+               "warning", ["Python"]),
+
+    BugPattern("Missing __init__", r"class\s+\w+[^:]*:\n(?!\s+def __init__)",
+               "Class defined without `__init__` — may cause AttributeError on attribute access.",
+               "Add `def __init__(self):` to initialize instance state.",
+               "info", ["Python"]),
+
+    BugPattern("Comparison to None", r"==\s*None|!=\s*None",
+               "Using `==` / `!=` to compare with None is not idiomatic.",
+               "Use `is None` or `is not None` for identity comparison.",
+               "info", ["Python"]),
+
+    BugPattern("Assert in Production", r"^\s*assert\s+",
+               "`assert` statements are stripped when Python runs with `-O` flag.",
+               "Use explicit `if not condition: raise ValueError(...)` instead.",
+               "warning", ["Python"]),
+
+    BugPattern(
+        "Shadowing Built-ins",
+        r"def\s+(list|dict|id)\s*\(",
+        "Shadowing Python built-in names can cause unexpected behaviour.",
+        "Rename the function to avoid shadowing built-in functions.",
+        "warning",
+        ["Python"]
+    ),
+
+    BugPattern(
+        "F-string Without Variable",
+        r'f"(?!.*\{).*"|f\'(?!.*\{).*\'' ,
+        "Using an f-string without variable interpolation is unnecessary.",
+        "Remove the f-prefix if no interpolation is needed.",
+        "info",
+        ["Python"]
+    ),
+
+    BugPattern(
+        "Empty Except With Pass",
+        r"except\s*:\s*pass",
+        "Silently swallowing exceptions hides bugs and makes debugging difficult.",
+        "Log the exception at minimum instead of using an empty except block.",
+        "error",
+        ["Python"]
+    ),
+
+    BugPattern(
+        "Open File Without Context Manager",
+        r"(?<!with\s)open\s*\(",
+        "Opening files without a context manager may leave files unclosed.",
+        "Use `with open(...) as f:` to ensure the file is always closed.",
+        "warning",
+        ["Python"]
+    ),
+
+    BugPattern(
+        "Bare Return In Non-Void Function",
+        r"return\s*$",
+        "Using a bare return may lead to inconsistent return types in functions.",
+        "Return a consistent type or explicitly use `return None`.",
+        "info",
+        ["Python"]
+    ),
+
+    BugPattern(
+        "Typeof Equality Issue",
+        r'typeof\s+\w+\s*==\s*["\']',
+        "Using == in typeof checks may cause coercion issues.",
+        "Use === instead of == for type comparisons.",
+        "warning",
+        ["JavaScript", "TypeScript"]
+    ),
+
+    BugPattern(
+        "setTimeout String Usage",
+        r'setTimeout\s*\(\s*["\']|setInterval\s*\(\s*["\']',
+        "Passing strings to setTimeout/setInterval behaves like eval().",
+        "Pass a function reference instead of a string.",
+        "warning",
+        ["JavaScript", "TypeScript"]
+    ),
+
+    BugPattern(
+        "Async Await Without Try Catch",
+        r"await\s+\w+\(",
+        "Await used without visible error handling.",
+        "Wrap async code inside try/catch blocks.",
+        "info",
+        ["JavaScript", "TypeScript"]
+    ),
+
+    BugPattern(
+        "Unsafe Window Location Assignment",
+        r"window\.location\s*=",
+        "Direct window.location assignment may allow open redirects.",
+        "Validate URLs before redirecting users.",
+        "warning",
+        ["JavaScript", "TypeScript"]
+    ),
+
+    BugPattern(
+        "Prototype Pollution Risk",
+        r'__proto__|\["__proto__"\]',
+        "Prototype pollution vulnerability risk detected.",
+        "Avoid modifying __proto__; use Object.create(null).",
+        "error",
+        ["JavaScript", "TypeScript"]
+    ),
+
+    # ── JavaScript / TypeScript ──
     BugPattern(
         "ZeroDivisionError",
         r"\w+\s*/\s*\w+",
@@ -426,7 +593,7 @@ BUG_PATTERNS: list[BugPattern] = [
         "Avoid modifying __proto__; use Object.create(null).",
         "error",
         ["JavaScript", "TypeScript"],
-    ),
+    )
     # ── JavaScript / TypeScript ──
     BugPattern(
         "Var Usage",
