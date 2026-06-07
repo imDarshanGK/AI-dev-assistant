@@ -13,6 +13,7 @@ from .schema_validators import (
     validate_stored_result_json,
 )
 
+
 class CodeRequest(BaseModel):
     code: str
     language: str | None = None

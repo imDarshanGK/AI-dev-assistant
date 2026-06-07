@@ -22,6 +22,14 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Run Prettier check
+        working-directory: frontend
+        run: npx prettier --check .
+
       - name: Validate HTML syntax
         run: |
           npx --yes w3c-html-validator frontend/index.html || (

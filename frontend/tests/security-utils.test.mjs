@@ -43,7 +43,7 @@ describe('escHtml', () => {
 
 describe('sanitizeClientCode', () => {
   it('strips null bytes and ANSI sequences', () => {
-    const dirty = "a\x00b\x1b[31mc\x1b[0m";
+    const dirty = 'a\x00b\x1b[31mc\x1b[0m';
     const clean = SEC.sanitizeClientCode(dirty);
     assert.equal(clean.includes('\x00'), false);
     assert.equal(clean.includes('\x1b'), false);
@@ -53,7 +53,11 @@ describe('sanitizeClientCode', () => {
   for (const payload of XSS_PAYLOADS) {
     it(`preserves code text for analysis: ${payload.slice(0, 30)}`, () => {
       const clean = SEC.sanitizeClientCode(payload);
-      assert.ok(clean.includes('alert') || clean.includes('script') || clean.includes('svg'));
+      assert.ok(
+        clean.includes('alert') ||
+          clean.includes('script') ||
+          clean.includes('svg'),
+      );
     });
   }
 });
@@ -63,7 +67,10 @@ describe('safePriorityClass / safeSeverityClass / safeCssToken', () => {
     assert.equal(SEC.safePriorityClass('high'), 'high');
     assert.equal(SEC.safePriorityClass('HIGH'), 'high');
     assert.equal(SEC.safePriorityClass('${alert(1)}'), 'medium');
-    assert.equal(SEC.safePriorityClass('high" onmouseover="alert(1)'), 'medium');
+    assert.equal(
+      SEC.safePriorityClass('high" onmouseover="alert(1)'),
+      'medium',
+    );
   });
 
   it('allowlists severity values', () => {
@@ -107,7 +114,10 @@ describe('stored history normalization', () => {
     };
     storage.setItem(
       'qyx_history',
-      JSON.stringify([STORED_HISTORY_ATTACK, { id: 42, code: 'x=1', preview: 'x=1', lang: 'Py', ts: 't' }]),
+      JSON.stringify([
+        STORED_HISTORY_ATTACK,
+        { id: 42, code: 'x=1', preview: 'x=1', lang: 'Py', ts: 't' },
+      ]),
     );
     const list = SEC.loadStoredHistory('qyx_history', storage);
     assert.equal(list.length, 1);
@@ -160,7 +170,9 @@ describe('buildIssueCardHtml / buildSuggestCardHtml', () => {
       description: '<img src=x onerror=alert(1)>',
     });
     assertPlainTextHtml(html, 'issue card');
-    assert.ok(html.includes('issue-card info') || html.includes('issue-card error'));
+    assert.ok(
+      html.includes('issue-card info') || html.includes('issue-card error'),
+    );
     assert.ok(!html.includes('onmouseover='));
   });
 
@@ -170,7 +182,9 @@ describe('buildIssueCardHtml / buildSuggestCardHtml', () => {
       description: '${alert(1)}',
     });
     assertPlainTextHtml(html, 'suggest card');
-    assert.ok(html.includes('priority-medium') || html.includes('priority-high'));
+    assert.ok(
+      html.includes('priority-medium') || html.includes('priority-high'),
+    );
     assert.ok(!html.includes('<script>'));
   });
 });
