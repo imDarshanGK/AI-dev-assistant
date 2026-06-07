@@ -4462,7 +4462,7 @@
       function restoreSavedEntry(entry) {
         if (!entry) return;
 
-        editor.value = sanitizeClientCode(entry.code);
+        editor.value = entry.code;
         if (entry.lang) {
           setLanguage(entry.lang.toLowerCase());
         }
