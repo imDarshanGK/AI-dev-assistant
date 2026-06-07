@@ -222,6 +222,24 @@ class FavoriteRecord(BaseModel):
     created_at: str
 
 
+# ── User Data Import / Export ───────────────────────────────────────────────
+class UserDataExportResponse(BaseModel):
+    history: list[HistoryRecord]
+    favorites: list[FavoriteRecord]
+
+
+class UserDataImportRequest(BaseModel):
+    history: list[HistoryCreateRequest] = Field(default_factory=list)
+    favorites: list[FavoriteCreateRequest] = Field(default_factory=list)
+
+
+class UserDataImportResponse(BaseModel):
+    status: str
+    imported_history_count: int
+    imported_favorites_count: int
+
+
+
 # ── Share ─────────────────────────────────────────────────────────────────────
 class LivenessResponse(BaseModel):
     """Minimal liveness response — emitted only when the process can answer."""
