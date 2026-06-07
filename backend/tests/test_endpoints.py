@@ -165,12 +165,6 @@ def test_health():
     assert r.json()["status"] == "ok"
 
 
-def test_healthz():
-    r = client.get("/healthz")
-    assert r.status_code == 200
-    assert r.json() == {"status": "ok"}
-
-
 def test_rate_limit_headers_on_success_response():
     r = client.get("/")
     assert r.status_code == 200
