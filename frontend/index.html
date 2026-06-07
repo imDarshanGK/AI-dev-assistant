@@ -2836,7 +2836,15 @@
       };
 
       const MAX_HISTORY = 50;
-      let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+
+      let history = [];
+
+      try {
+        history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+      } catch (error) {
+        console.error('Failed to load history from localStorage:', error);
+        history = [];
+      }
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
       let selectedLang = 'python';
@@ -4050,7 +4058,7 @@
 
       document.getElementById('downloadCsvBtn').addEventListener('click', () => {
         if (!history || history.length === 0) {
-          toast('No history to download', 'info');
+          toast('No history to download', 'info');git checkout -b fix-history-persistence
           return;
         }
 
