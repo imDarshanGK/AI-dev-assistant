@@ -1,3 +1,6 @@
+import os
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 """
 QyverixAI — Backend API
 FastAPI application with advanced middleware, rate limiting, and full analysis engine.
@@ -13,7 +16,8 @@ import os
 from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
-
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 from .routers import (
     analyze,
     auth,
