@@ -14,6 +14,10 @@ from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
 
+from .services.scheduler import start_scheduler, stop_scheduler
+from .schemas import HealthResponse
+from .services import database
+from .database import Base, engine
 from .routers import (
     analyze,
     auth,
@@ -154,6 +158,9 @@ app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"]
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
+app.include_router(user_data.router,   prefix="",             tags=["User Data"])
+app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'])
+app.include_router(share.router)
 app.include_router(history.router,     prefix="/history",     tags=["History"])
 app.include_router(auth.router)
 app.include_router(chat.router)
