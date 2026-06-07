@@ -30,9 +30,14 @@ from .routers import (
     upload_file,
     user_data,
 )
+from .routers import health as health_router
+from .routers import metrics as metrics_router
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
-from .database import Base, engine
+from .observability import (
+    initialise_app_info,
+    prometheus_metrics_middleware,
+)
 
 from .schemas import HealthResponse
 
@@ -42,8 +47,8 @@ from .schemas import HealthResponse
 async def lifespan(app: FastAPI):
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
-    logging.getLogger(__name__).info("🚀 QyverixAI backend starting…")
-    Base.metadata.create_all(bind=engine)
+    # Static info gauge so dashboards can pin version / provider labels.
+    initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
     start_scheduler()
     yield
     stop_scheduler()
@@ -79,6 +84,14 @@ app.add_middleware(
 )
 
 
+# Prometheus instrumentation — installed early so it observes every other
+# middleware's response (including rate-limited 429s and the global error
+# handler's 500s). The middleware self-disables per-request when
+# METRICS_ENABLED is false, so installing it unconditionally costs nothing
+# operationally and lets operators flip the flag without a restart.
+app.middleware("http")(prometheus_metrics_middleware)
+
+
 @app.middleware("http")
 async def add_cache_header(request: Request, call_next):
     response = await call_next(request)
@@ -101,6 +114,11 @@ app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+
+
+# Operational endpoints: /healthz/live, /healthz/ready, /metrics
+app.include_router(health_router.router)
+app.include_router(metrics_router.router)
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
@@ -152,9 +170,6 @@ async def health_check():
             "/chat/",
             "/user/",
             "/analyze/zip/",
-            "/analyze/zip/",
-            "/subscribe/",
-            "/share/",
             "/history/",
         ],
     }

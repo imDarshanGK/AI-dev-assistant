@@ -1,7 +1,7 @@
 """Tests for the code assistant service helpers."""
 
 from __future__ import annotations
-
+from app.services.code_assistant import chat_fallback_reply
 import os
 import sys
 
@@ -9,8 +9,6 @@ CURRENT_DIR = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
-
-from app.services.code_assistant import chat_fallback_reply
 
 
 def test_chat_fallback_reply_without_code_returns_retry_prompt() -> None:
