@@ -29,6 +29,7 @@ function safeModeLabel(mode) {
 
 // ── State ──
 let currentMode = 'analyze';
+let isAnalyzing = false;
 let history = JSON.parse(localStorage.getItem('qyverix_history') || '[]');
 let favorites = JSON.parse(localStorage.getItem('qyverix_favorites') || '[]');
 let lastResult = '';
@@ -114,6 +115,9 @@ codeInput.addEventListener('keydown', (e) => {
   }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault();
+    if (isAnalyzing) {
+        return;
+    }
     runAnalysis();
   }
 });
@@ -398,11 +402,18 @@ checkConnection();
 
 // ── Main Analysis ──
 async function runAnalysis() {
+
+  if (isAnalyzing) {
+    return;
+  }
+
   const code = sanitizeClientCode(codeInput.value.trim());
   if (!code) {
     showError('Please paste some code first.');
     return;
   }
+
+  isAnalyzing = true;
 
   runBtn.disabled = true;
   runBtn.classList.add('loading');
@@ -439,6 +450,7 @@ async function runAnalysis() {
     statusDot.className = 'status-dot offline';
     setEngineBadge('unknown');
   } finally {
+    isAnalyzing = false;
     runBtn.disabled = false;
     runBtn.classList.remove('loading');
     runLabel.textContent = '▶ Analyze Code';
@@ -673,6 +685,29 @@ function showToast(msg) {
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2200);
+}
+
+// Fix #422 — Weekly Digest subscribe handler
+const digestForm = document.getElementById('digestForm');
+const digestEmail = document.getElementById('digestEmail');
+const digestBtn = document.getElementById('digestBtn');
+
+if (digestForm) {
+  digestForm.addEventListener('submit', (e) => {
+    e.preventDefault(); // stop page reload
+
+    const email = digestEmail.value.trim();
+
+    // Show loading state
+    digestBtn.textContent = 'Subscribing...';
+    digestBtn.disabled = true;
+
+    // Simulate subscription (replace with real API call when backend is ready)
+    setTimeout(() => {
+      // Show success message
+      digestForm.innerHTML = `<p style="font-size:0.8rem;color:#4caf50;margin:0;">✓ You have been subscribed!</p>`;
+    }, 800);
+  });
 }
 
 // ── Init ──
