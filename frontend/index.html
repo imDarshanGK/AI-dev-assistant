@@ -4401,7 +4401,7 @@
     function restoreSavedEntry(entry) {
       if (!entry) return;
 
-      editor.value = sanitizeClientCode(entry.code);
+      editor.value = entry.code;
       if (entry.lang) {
         setLanguage(entry.lang.toLowerCase());
       }
@@ -4421,7 +4421,7 @@
         selectedMode = 'analyze';
       }
 
-      renderResults(result, entry.code);
+      renderResults(entry.result, entry.code);
       document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
     }
 
