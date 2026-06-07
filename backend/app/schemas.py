@@ -8,6 +8,7 @@ from typing import Any
 from .config import settings
 from .schema_validators import (
     validate_chat_history,
+    validate_language_hint,
     validate_stored_action,
     validate_stored_code,
     validate_stored_result_json,
@@ -378,3 +379,108 @@ class AnalyzeResponse(BaseModel):
     debugging: DebuggingResponse
     suggestions: SuggestionsResponse
     analysis_time_ms: float | None = None
+
+
+# ── AI code completion / suggestion engine ──────────────────────────────────
+# Powers POST /api/suggestions. Field names follow this project's snake_case
+# JSON convention (as used by every other endpoint); camelCase aliases are
+# accepted on the request so editor clients can post `cursorPosition` etc.
+class CursorPosition(BaseModel):
+    """Zero-based caret position inside the submitted buffer."""
+
+    line: int = Field(..., ge=0)
+    column: int = Field(..., ge=0)
+
+
+class CompletionContext(BaseModel):
+    """Optional surrounding context that sharpens suggestion relevance."""
+
+    model_config = {"populate_by_name": True}
+
+    file_path: str | None = Field(default=None, alias="filePath", max_length=512)
+    selection: str | None = Field(
+        default=None, max_length=settings.max_code_chars
+    )
+    surrounding_code: str | None = Field(
+        default=None, alias="surroundingCode", max_length=settings.max_code_chars
+    )
+    # Free-text description of what the developer is trying to do.
+    intent: str | None = Field(default=None, max_length=500)
+
+    @field_validator("selection", "surrounding_code")
+    @classmethod
+    def sanitize_code_fields(cls, v: str | None) -> str | None:
+        return None if v is None else validate_stored_code(v)
+
+    @field_validator("file_path", "intent")
+    @classmethod
+    def sanitize_text_fields(cls, v: str | None) -> str | None:
+        return None if v is None else validate_stored_action(v)
+
+
+class CodeCompletionRequest(BaseModel):
+    """Request body for POST /api/suggestions."""
+
+    model_config = {"populate_by_name": True}
+
+    code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
+    language: str | None = None
+    cursor_position: CursorPosition | None = Field(
+        default=None, alias="cursorPosition"
+    )
+    context: CompletionContext | None = None
+
+    @field_validator("code")
+    @classmethod
+    def validate_code(cls, v: str) -> str:
+        v = validate_stored_code(v).strip()
+        if not v:
+            raise ValueError("code must not be empty")
+        return v
+
+    @field_validator("language")
+    @classmethod
+    def sanitize_language(cls, v: str | None) -> str | None:
+        return validate_language_hint(v)
+
+
+class ApplyEditRange(BaseModel):
+    """Inclusive-start, exclusive-end edit range, zero-based."""
+
+    start_line: int = Field(..., ge=0)
+    start_column: int = Field(..., ge=0)
+    end_line: int = Field(..., ge=0)
+    end_column: int = Field(..., ge=0)
+
+
+class ApplyEdit(BaseModel):
+    """A concrete edit a client can apply to realise a suggestion."""
+
+    range: ApplyEditRange | None = None
+    new_text: str
+
+
+class CodeSuggestion(BaseModel):
+    """A single completion candidate or improvement recommendation."""
+
+    id: str
+    type: str  # "completion" | "improvement"
+    title: str
+    detail: str | None = None
+    apply_edit: ApplyEdit | None = None
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+
+
+class CompletionUsage(BaseModel):
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    model: str | None = None
+
+
+class CodeCompletionResponse(BaseModel):
+    suggestions: list[CodeSuggestion]
+    provider: str
+    model: str
+    # "live-llm" when an AI provider answered, "rule-based-fallback" otherwise.
+    mode: str
+    usage: CompletionUsage | None = None

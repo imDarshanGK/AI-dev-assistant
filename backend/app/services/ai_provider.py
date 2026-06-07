@@ -35,8 +35,12 @@ def _get_provider_name(base_url: str) -> str:
         return "ollama"
     return "unknown"
 
-async def call_llm(system: str, user: str) -> str | None:
-    """Return LLM text response or None if disabled/error."""
+async def call_llm(system: str, user: str, temperature: float = 0.2) -> str | None:
+    """Return LLM text response or None if disabled/error.
+
+    ``temperature`` defaults to 0.2 to preserve existing callers; the
+    suggestion engine passes a configurable value tuned for completions.
+    """
     if not LLM_ENABLED or not LLM_API_KEY:
         return None
 
@@ -51,7 +55,7 @@ async def call_llm(system: str, user: str) -> str | None:
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ],
-        "temperature": 0.2,
+        "temperature": temperature,
         "max_tokens": 1024,
     }
 
