@@ -611,6 +611,29 @@ function showToast(msg) {
   setTimeout(() => t.remove(), 2200);
 }
 
+// Fix #422 — Weekly Digest subscribe handler
+const digestForm = document.getElementById('digestForm');
+const digestEmail = document.getElementById('digestEmail');
+const digestBtn = document.getElementById('digestBtn');
+
+if (digestForm) {
+  digestForm.addEventListener('submit', (e) => {
+    e.preventDefault(); // stop page reload
+
+    const email = digestEmail.value.trim();
+
+    // Show loading state
+    digestBtn.textContent = 'Subscribing...';
+    digestBtn.disabled = true;
+
+    // Simulate subscription (replace with real API call when backend is ready)
+    setTimeout(() => {
+      // Show success message
+      digestForm.innerHTML = `<p style="font-size:0.8rem;color:#4caf50;margin:0;">✓ You have been subscribed!</p>`;
+    }, 800);
+  });
+}
+
 // ── Init ──
 renderHistory();
 renderFavorites();
