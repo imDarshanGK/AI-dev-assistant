@@ -1168,6 +1168,35 @@ def run_explanation(code: str, language: str) -> dict:
         f and re.search(rf"\b{f}\s*\(", code.replace(f"def {f}", "")) for f in funcs
     )
 
+    # --- Language-Specific Insights ---
+    lang_insights = []
+    if language == "Python":
+        if re.search(r"\[.+for.+in.+\]|\{.+for.+in.+\}", code):
+            lang_insights.append("Uses comprehensions for concise collection processing.")
+        if re.search(r"^\s*@\w+", code, re.MULTILINE):
+            lang_insights.append("Uses decorators to wrap or modify behavior.")
+        if re.search(r"\byield\b", code):
+            lang_insights.append("Contains generators (`yield`) for lazy evaluation.")
+        if re.search(r"\basync\s+def\b|\bawait\b", code):
+            lang_insights.append("Uses asynchronous I/O (`async/await`) for concurrent execution.")
+    elif language in ("JavaScript", "TypeScript"):
+        if re.search(r"\bnew\s+Promise\b|\.then\(|\.catch\(", code):
+            lang_insights.append("Uses Promises for asynchronous operations.")
+        if re.search(r"\basync\b|\bawait\b", code):
+            lang_insights.append("Uses modern `async/await` syntax for asynchronous code.")
+        if re.search(r"document\.|window\.", code):
+            lang_insights.append("Interacts directly with the browser DOM or Window API.")
+    elif language == "Java":
+        if re.search(r"@[A-Z]\w+", code):
+            lang_insights.append("Uses annotations for metadata or compiler instructions.")
+        if re.search(r"\.stream\(", code):
+            lang_insights.append("Uses Java Streams for functional-style data processing.")
+    elif language == "C++":
+        if re.search(r"\bnew\b|\bdelete\b|\bnew\[\]\b|\bdelete\[\]\b", code):
+            lang_insights.append("Performs manual dynamic memory management.")
+        if re.search(r"template\s*<", code):
+            lang_insights.append("Uses templates for generic programming.")
+
     key_points = [
         f"Written in **{language}** — {len(non_blank)} non-blank lines of code.",
     ]
@@ -1191,6 +1220,8 @@ def run_explanation(code: str, language: str) -> dict:
         key_points.append(
             "⚠ Recursive call detected — ensure a proper base case exists."
         )
+
+    key_points.extend(lang_insights)
 
     # Summary by complexity
     summaries = {
