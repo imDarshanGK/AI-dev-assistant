@@ -31,6 +31,7 @@ from .routers import health as health_router
 from .routers import metrics as metrics_router
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
+from .middleware import error_classification_middleware
 from .observability import (
     initialise_app_info,
     prometheus_metrics_middleware,
@@ -105,6 +106,7 @@ app.add_middleware(
 # METRICS_ENABLED is false, so installing it unconditionally costs nothing
 # operationally and lets operators flip the flag without a restart.
 app.middleware("http")(prometheus_metrics_middleware)
+app.middleware("http")(error_classification_middleware)
 
 
 @app.middleware("http")
