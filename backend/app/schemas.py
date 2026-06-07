@@ -274,11 +274,10 @@ class ShareCreateRequest(BaseModel):
         return values
 
     @model_validator(mode="after")
-    @classmethod
-    def ensure_result_present(cls, model: "ShareCreateRequest") -> "ShareCreateRequest":
-        if model.result is None:
+    def ensure_result_present(self) -> "ShareCreateRequest":
+        if self.result is None:
             raise ValueError("result or result_json is required")
-        return model
+        return self
 
 
 class ShareRecord(BaseModel):
