@@ -21,6 +21,7 @@ LLM_MODEL    = os.getenv("LLM_MODEL", "gpt-4o-mini")
 LLM_TIMEOUT  = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
 LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))
 LLM_RETRY_BACKOFF = float(os.getenv("LLM_RETRY_BACKOFF", "1.0"))
+LLM_VERBOSE = os.getenv("LLM_VERBOSE", "false").lower() == "true"
 
 def _get_provider_name(base_url: str) -> str:
     parsed = urlparse(base_url)
@@ -55,6 +56,18 @@ async def call_llm(system: str, user: str) -> str | None:
         "max_tokens": 1024,
     }
 
+    if LLM_VERBOSE:
+        logger.debug(
+            "LLM request payload",
+            extra={
+                "provider": provider_name,
+                "model": LLM_MODEL,
+                "message_count": len(payload["messages"]),
+                "system_prompt_length": len(system),
+                "user_prompt_length": len(user),
+            },
+        )
+
     for attempt in range(LLM_MAX_RETRIES + 1):
         start_time = time.time()
         try:
@@ -75,7 +88,18 @@ async def call_llm(system: str, user: str) -> str | None:
                         "latency_ms": latency_ms,
                     }
                 )
-                return data["choices"][0]["message"]["content"].strip()
+                result = data["choices"][0]["message"]["content"].strip()
+                if LLM_VERBOSE:
+                    logger.debug(
+                        "LLM response received",
+                        extra={
+                            "provider": provider_name,
+                            "latency_ms": latency_ms,
+                            "response_length": len(result),
+                            "finish_reason": data["choices"][0].get("finish_reason", "unknown"),
+                        },
+                    )
+                return result
 
         except httpx.HTTPStatusError as e:
             latency_ms = int((time.time() - start_time) * 1000)
@@ -91,7 +115,6 @@ async def call_llm(system: str, user: str) -> str | None:
                     }
                 )
             else:
-                # 4xx error (not 429), don't retry
                 logger.error(
                     f"LLM client error ({status_code})",
                     extra={
@@ -116,6 +139,7 @@ async def call_llm(system: str, user: str) -> str | None:
                     "failure_type": failure_type,
                 }
             )
+
         except Exception as e:
             latency_ms = int((time.time() - start_time) * 1000)
             logger.error(
