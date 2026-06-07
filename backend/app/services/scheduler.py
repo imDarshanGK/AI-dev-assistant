@@ -8,12 +8,72 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from ..config import settings
 from ..database import SessionLocal
-from ..models import DigestSubscription
+from ..models import DigestSubscription, AnalysisSchedule
 from .email_service import compute_subscriber_stats, send_digest
+from .ai_provider import run_analysis_pipeline # Assuming this exists to run the analysis
 
 log = logging.getLogger(__name__)
 scheduler = BackgroundScheduler(daemon=True)
-JOB_ID = "weekly_digest"
+DIGEST_JOB_ID = "weekly_digest"
+
+# --- Analysis Scheduling ---
+
+def _run_scheduled_analysis(schedule_id: int) -> None:
+    """Execute a scheduled analysis job."""
+    db = SessionLocal()
+    try:
+        schedule = db.query(AnalysisSchedule).get(schedule_id)
+        if not schedule or not schedule.is_active:
+            return
+
+        log.info("Running scheduled analysis for %s (type: %s)", schedule.target_repo, schedule.analysis_type)
+        
+        # This is a hypothetical call based on the project structure.
+        # It needs to trigger the actual analysis logic.
+        result = run_analysis_pipeline(
+            db, 
+            schedule.user_id, 
+            schedule.target_repo, 
+            schedule.analysis_type
+        )
+        
+        schedule.last_run_at = datetime.now(UTC)
+        db.commit()
+        log.info("Scheduled analysis %d completed", schedule_id)
+    except Exception:
+        log.exception("Error in scheduled analysis job %d", schedule_id)
+    finally:
+        db.close()
+
+
+def add_analysis_schedule(schedule_id: int, cron_expr: str) -> None:
+    """Add or update a scheduled analysis job in the scheduler."""
+    # Split cron expression into parts: minute, hour, day, month, day_of_week
+    parts = cron_expr.split()
+    if len(parts) != 5:
+        raise ValueError("Invalid cron expression")
+
+    scheduler.add_job(
+        _run_scheduled_analysis,
+        trigger="cron",
+        minute=parts[0],
+        hour=parts[1],
+        day=parts[2],
+        month=parts[3],
+        day_of_week=parts[4],
+        args=[schedule_id],
+        id=f"analysis_{schedule_id}",
+        replace_existing=True,
+    )
+    log.info("Added analysis schedule %d with cron '%s'", schedule_id, cron_expr)
+
+
+def remove_analysis_schedule(schedule_id: int) -> None:
+    """Remove a scheduled analysis job."""
+    job_id = f"analysis_{schedule_id}"
+    if scheduler.get_job(job_id):
+        scheduler.remove_job(job_id)
+        log.info("Removed analysis schedule %d", schedule_id)
 
 
 def _send_weekly_digests() -> None:

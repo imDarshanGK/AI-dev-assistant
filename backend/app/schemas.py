@@ -160,6 +160,32 @@ class HealthResponse(BaseModel):
     endpoints: list[str] | None = None
 
 
+class AnalysisScheduleCreate(BaseModel):
+    cron_expression: str
+    analysis_type: str
+    target_repo: str
+
+    @field_validator("cron_expression")
+    @classmethod
+    def validate_cron(cls, v: str) -> str:
+        # Simple cron validation
+        parts = v.split()
+        if len(parts) != 5:
+            raise ValueError("Cron expression must have 5 parts")
+        return v
+
+
+class AnalysisScheduleResponse(BaseModel):
+    id: int
+    user_id: int
+    cron_expression: str
+    analysis_type: str
+    target_repo: str
+    is_active: bool
+    created_at: datetime
+    last_run_at: datetime | None = None
+
+
 # ── History ───────────────────────────────────────────────────────────────────
 class HistoryCreateRequest(BaseModel):
     action: str = Field(..., min_length=3, max_length=50)

@@ -78,3 +78,19 @@ class SharedSnippet(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
     )
+
+class AnalysisSchedule(Base):
+    __tablename__ = "analysis_schedules"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    cron_expression: Mapped[str] = mapped_column(String(100))
+    analysis_type: Mapped[str] = mapped_column(String(50)) # e.g., "code_quality", "security"
+    target_repo: Mapped[str] = mapped_column(String(200))
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(UTC)
+    )
+    last_run_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    user = relationship("User")
