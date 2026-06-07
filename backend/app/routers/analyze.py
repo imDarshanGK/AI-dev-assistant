@@ -202,8 +202,13 @@ async def analyze(req: CodeRequest, response: Response):
 
     payload: dict[str, Any] = full_analysis(req.code, req.language)
 
-    deps: list[str] = payload.get("suggestions", {}).get("dependencies", [])
-    payload["vulnerabilities"] = correlate_vulnerabilities(deps) if deps else []
+    deps = payload.get("suggestions", {}).get("dependencies", [])
+    if deps:
+        payload["vulnerabilities"] = await asyncio.to_thread(
+            correlate_vulnerabilities, deps
+        )
+    else:
+        payload["vulnerabilities"] = []
 
     cache.set("analyze:v1", cache_input, payload)
 
@@ -340,8 +345,13 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                 SOURCE_EXTENSIONS[ext],
             )
 
-            deps: list[str] = analysis.get("suggestions", {}).get("dependencies", [])
-            analysis["vulnerabilities"] = correlate_vulnerabilities(deps) if deps else []
+            deps = analysis.get("suggestions", {}).get("dependencies", [])
+            if deps:
+                analysis["vulnerabilities"] = await asyncio.to_thread(
+                    correlate_vulnerabilities, deps
+                )
+            else:
+                analysis["vulnerabilities"] = []
 
             language = analysis["explanation"]["language"]
 
@@ -353,6 +363,24 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                     "analysis": analysis,
                 }
             )
+
+    
+    all_deps = list({
+        dep
+        for item in results
+        for dep in item["analysis"].get("suggestions", {}).get("dependencies", [])
+    })
+    
+    if all_deps:
+        all_vulns = await asyncio.to_thread(correlate_vulnerabilities, all_deps)
+    else:
+        all_vulns = []
+    
+    for item in results:
+        file_deps = item["analysis"].get("suggestions", {}).get("dependencies", [])
+        item["analysis"]["vulnerabilities"] = [
+            v for v in all_vulns if v["package"] in file_deps
+        ]
 
     if not results:
         raise HTTPException(

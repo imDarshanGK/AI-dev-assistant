@@ -879,20 +879,31 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 # ── Dependency Extractor ───────────────────────────────────────────────────────
 _DEP_PATTERNS: dict[str, str] = {
     "Python":     r"^\s*(?:import|from)\s+([\w]+)",
-    "JavaScript": r'require\s*\(\s*["\']([^"\'./][^"\']*)["\']',
-    "TypeScript": r'(?:import|from)\s+["\']([^"\'./][^"\']*)["\']',
+    "JavaScript": r'(?:require\s*\(\s*["\']([^"\'./][^"\']*)["\']|(?:import\s+[^"\']*\s+from|export\s+[^"\']*\s+from)\s+["\']([^"\'./][^"\']*)["\'])',
+    "TypeScript": r'(?:import\s+[^"\']*\s+from|export\s+[^"\']*\s+from|import)\s+["\']([^"\'./][^"\']*)["\']',
     "Java":       r"import\s+([\w]+)\.",
     "PHP":        r'require(?:_once)?\s*\(\s*["\']([^"\'./][^"\']*)["\']',
     "Rust":       r'extern\s+crate\s+([\w]+)|use\s+([\w]+)::',
 }
 
-_STDLIB: set[str] = {
-    "os", "sys", "re", "json", "time", "math", "abc", "io",
-    "logging", "pathlib", "typing", "collections", "itertools",
-    "functools", "hashlib", "threading", "asyncio", "dataclasses",
-    "unittest", "contextlib", "copy", "enum", "warnings",
-    "fs", "path", "http", "https", "url", "crypto", "events",
-    "java", "javax", "sun", "std",
+_STDLIB_BY_LANG: dict[str, set[str]] = {
+    "python": {
+        "os", "sys", "re", "json", "time", "math", "abc", "io",
+        "logging", "pathlib", "typing", "collections", "itertools",
+        "functools", "hashlib", "threading", "asyncio", "dataclasses",
+        "unittest", "contextlib", "copy", "enum", "warnings",
+        "http", "https", "url", "crypto",  # only if applicable
+    },
+    "javascript": {
+        "fs", "path", "http", "https", "url", "crypto", "events",
+        "os", "util", "stream", "buffer", "child_process", "net",
+    },
+    "java": {
+        "java", "javax", "sun",
+    },
+    "rust": {
+        "std",
+    },
 }
 
 
