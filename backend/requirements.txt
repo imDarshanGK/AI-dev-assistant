@@ -1,15 +1,28 @@
-aiosqlite>=0.20.0
-fastapi>=0.115.0
-uvicorn[standard]>=0.30.0
-pydantic>=2.7.0
-sqlalchemy>=2.0.0
-pyjwt>=2.0.0
-python-dotenv>=1.0.0
-httpx>=0.27.0
-python-multipart>=0.0.9
-pytest>=8.0.0
-pytest-asyncio>=0.23.0
-apscheduler>=3.10.0
-python-magic-bin>=0.4.14; platform_system == "Windows"
-python-magic>=0.4.27; platform_system != "Windows"
-prometheus-client>=0.20.0
+# Core backend
+aiosqlite==0.22.1
+fastapi==0.136.3
+uvicorn[standard]==0.49.0
+pydantic==2.13.4
+sqlalchemy==2.0.50
+
+# Authentication & configuration
+pyjwt==2.13.0
+python-dotenv==1.2.2
+
+# HTTP & file uploads
+httpx==0.28.1
+python-multipart==0.0.32
+
+# Scheduling
+apscheduler==3.11.2
+
+# File type validation
+python-magic-bin==0.4.14; platform_system == "Windows"
+python-magic==0.4.27; platform_system != "Windows"
+
+# Observability & metrics
+prometheus-client==0.25.0
+
+# Testing
+pytest==9.0.3
+pytest-asyncio==1.4.0

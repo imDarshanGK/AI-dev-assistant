@@ -34,10 +34,10 @@
 
 QyverixAI is a code analysis workspace. Paste any code and get three things back instantly:
 
-| | What you get |
-|---|---|
-| **Explain** | Language detection, plain-English summary, complexity estimate, function and class inventory |
-| **Debug** | 40+ pattern checks across 5 languages with exact line numbers, code snippets, and fix suggestions |
+|             | What you get                                                                                               |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| **Explain** | Language detection, plain-English summary, complexity estimate, function and class inventory               |
+| **Debug**   | 40+ pattern checks across 5 languages with exact line numbers, code snippets, and fix suggestions          |
 | **Improve** | Documentation gaps, error handling, testing, type safety - plus a 0–100 quality score and letter grade A–F |
 
 No account required. No API key needed. Works fully offline. Fully open source.
@@ -53,32 +53,32 @@ No account required. No API key needed. Works fully offline. Fully open source.
 
 ## Features
 
-| Feature | Detail |
-|---|---|
-| **40+ Bug Patterns** | ZeroDivisionError, bare except, hardcoded secrets, eval(), memory leaks, XSS, NullPointerException, and more |
-| **5 Languages** | Python, JavaScript, TypeScript, Java, C++ |
-| **Full Analysis Endpoint** | One call - explain + debug + improve combined, with timing metrics |
-| **Quality Score** | 0–100 score with letter grade A–F and prioritised suggestions |
-| **File Upload** | Drag-drop or upload `.py` `.js` `.ts` `.java` `.cpp` |
-| **Dark / Light Mode** | Persisted across sessions |
-| **Query History** | Last 50 analyses saved locally |
-| **Saved Favorites** | Bookmark and reload any analysis |
-| **Share Links** | Generate a short-lived URL for any analysis and send it to teammates |
-| **Download Results** | Export full report as `.txt` |
-| **LLM-Ready** | Plug in OpenAI, Groq, Ollama, or any OpenAI-compatible provider via env vars |
-| **Rate Limiting** | 30 requests/minute per IP - configurable |
-| **Swagger Docs** | Interactive API docs at `/docs` |
-| **Gzip Compression** | Automatic response compression |
+| Feature                    | Detail                                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **40+ Bug Patterns**       | ZeroDivisionError, bare except, hardcoded secrets, eval(), memory leaks, XSS, NullPointerException, and more |
+| **5 Languages**            | Python, JavaScript, TypeScript, Java, C++                                                                    |
+| **Full Analysis Endpoint** | One call - explain + debug + improve combined, with timing metrics                                           |
+| **Quality Score**          | 0–100 score with letter grade A–F and prioritised suggestions                                                |
+| **File Upload**            | Drag-drop or upload `.py` `.js` `.ts` `.java` `.cpp`                                                         |
+| **Dark / Light Mode**      | Persisted across sessions                                                                                    |
+| **Query History**          | Last 50 analyses saved locally                                                                               |
+| **Saved Favorites**        | Bookmark and reload any analysis                                                                             |
+| **Share Links**            | Generate a short-lived URL for any analysis and send it to teammates                                         |
+| **Download Results**       | Export full report as `.txt`                                                                                 |
+| **LLM-Ready**              | Plug in OpenAI, Groq, Ollama, or any OpenAI-compatible provider via env vars                                 |
+| **Rate Limiting**          | 30 requests/minute per IP - configurable                                                                     |
+| **Swagger Docs**           | Interactive API docs at `/docs`                                                                              |
+| **Gzip Compression**       | Automatic response compression                                                                               |
 
 ### Languages and patterns
 
-| Language | Patterns detected |
-|---|---|
-| **Python** | ZeroDivisionError, bare except, eval/exec, mutable defaults, hardcoded secrets, wildcard imports, global variables, missing type hints, string concat in loops, assert in production, comparison to None |
-| **JavaScript** | var usage, loose equality `==`, console.log, callback hell, innerHTML XSS, unhandled promises |
-| **TypeScript** | `any` type, non-null assertion `!`, unhandled promises, missing env var validation |
-| **Java** | NullPointerException risk, raw generics, broad catch, String `==` comparison, System.exit |
-| **C++** | Memory leaks, unsafe gets/scanf, `using namespace std`, signed/unsigned mismatch |
+| Language       | Patterns detected                                                                                                                                                                                        |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Python**     | ZeroDivisionError, bare except, eval/exec, mutable defaults, hardcoded secrets, wildcard imports, global variables, missing type hints, string concat in loops, assert in production, comparison to None |
+| **JavaScript** | var usage, loose equality `==`, console.log, callback hell, innerHTML XSS, unhandled promises                                                                                                            |
+| **TypeScript** | `any` type, non-null assertion `!`, unhandled promises, missing env var validation                                                                                                                       |
+| **Java**       | NullPointerException risk, raw generics, broad catch, String `==` comparison, System.exit                                                                                                                |
+| **C++**        | Memory leaks, unsafe gets/scanf, `using namespace std`, signed/unsigned mismatch                                                                                                                         |
 
 ---
 
@@ -102,8 +102,16 @@ cd AI-dev-assistant
 ```bash
 cd backend
 pip install -r requirements.txt
+
+macOS Setup Note:
+
+  python-magic requires the libmagic system package on macOS.
+  Install it before starting the backend:
+    brew install libmagic
+
 uvicorn app.main:app --reload
 ```
+
 ### Environment Setup
 
 Copy `.env.example` to `.env`
@@ -115,6 +123,7 @@ cp .env.example .env
 Update the environment variable values if needed before running the app.
 
 Important variables:
+
 - `JWT_SECRET`
 - `DATABASE_URL`
 - `RATE_LIMIT_PER_MINUTE`
@@ -122,14 +131,14 @@ Important variables:
 
 The app can still run without external AI providers when `LLM_ENABLED=false`.
 
-| Endpoint | URL |
-|---|---|
-| API root | http://localhost:8000/ |
-| Interactive docs | http://localhost:8000/docs |
-| Health check | http://localhost:8000/health |
-| Signup | http://localhost:8000/auth/signup |
-| Login | http://localhost:8000/auth/login |
-| Current user | http://localhost:8000/auth/me |
+| Endpoint         | URL                               |
+| ---------------- | --------------------------------- |
+| API root         | http://localhost:8000/            |
+| Interactive docs | http://localhost:8000/docs        |
+| Health check     | http://localhost:8000/health      |
+| Signup           | http://localhost:8000/auth/signup |
+| Login            | http://localhost:8000/auth/login  |
+| Current user     | http://localhost:8000/auth/me     |
 
 ### 3 - Open the frontend
 
@@ -147,6 +156,7 @@ Set the API URL field to `http://localhost:8000`, click **Ping** to confirm the 
 All endpoints accept `POST` with `Content-Type: application/json`.
 
 **Request body**
+
 ```json
 { "code": "your code here", "language": "python" }
 ```
@@ -234,7 +244,7 @@ All three analyses in one response with timing.
   "provider": "rule-based",
   "model": "qyverix-engine-v3",
   "explanation": { "...": "..." },
-  "debugging":   { "...": "..." },
+  "debugging": { "...": "..." },
   "suggestions": { "...": "..." },
   "analysis_time_ms": 1.84
 }
@@ -321,6 +331,7 @@ Tests run automatically on every push and pull request via GitHub Actions across
 docker build -t qyverixai .
 docker run -p 8000:8000 qyverixai
 ```
+
 ### Docker Compose
 
 Run the complete local development environment:
@@ -349,11 +360,11 @@ QyverixAI exposes operational endpoints designed for container orchestration and
 
 ### Health probes
 
-| Endpoint | Purpose | Behaviour |
-|---|---|---|
-| `GET /healthz/live` | Liveness probe | Returns `200` while the process can answer HTTP. Does **not** check external dependencies — Kubernetes restarts the container on failure, so this must never depend on recoverable backends. |
-| `GET /healthz/ready` | Readiness probe | Returns `200` only when every dependency check (currently: database) passes. Returns `503` with a per-check breakdown otherwise. Kubernetes removes the pod from service load balancers on failure but does **not** restart it. |
-| `GET /health` | Legacy combined check | Retained for backward compatibility with anything already pointing at it. |
+| Endpoint             | Purpose               | Behaviour                                                                                                                                                                                                                       |
+| -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /healthz/live`  | Liveness probe        | Returns `200` while the process can answer HTTP. Does **not** check external dependencies — Kubernetes restarts the container on failure, so this must never depend on recoverable backends.                                    |
+| `GET /healthz/ready` | Readiness probe       | Returns `200` only when every dependency check (currently: database) passes. Returns `503` with a per-check breakdown otherwise. Kubernetes removes the pod from service load balancers on failure but does **not** restart it. |
+| `GET /health`        | Legacy combined check | Retained for backward compatibility with anything already pointing at it.                                                                                                                                                       |
 
 Example response from `/healthz/ready` when degraded:
 
@@ -376,13 +387,13 @@ A ready-to-copy Kubernetes manifest with probes wired up lives at [`deploy/k8s/d
 
 `GET /metrics` exposes the Prometheus exposition format. Metric families:
 
-| Metric | Type | Labels | Description |
-|---|---|---|---|
-| `qyverixai_http_requests_total` | Counter | `method`, `endpoint`, `status_code` | Total requests processed. |
-| `qyverixai_http_request_duration_seconds` | Histogram | `method`, `endpoint` | Request latency. Buckets: 5ms → 30s. |
-| `qyverixai_http_requests_in_progress` | Gauge | `method`, `endpoint` | Concurrent in-flight requests. |
-| `qyverixai_http_request_exceptions_total` | Counter | `method`, `endpoint`, `exception_type` | Unhandled exceptions raised during request handling. |
-| `qyverixai_app_info` | Gauge | `version`, `ai_provider` | Static identity, always `1`. |
+| Metric                                    | Type      | Labels                                 | Description                                          |
+| ----------------------------------------- | --------- | -------------------------------------- | ---------------------------------------------------- |
+| `qyverixai_http_requests_total`           | Counter   | `method`, `endpoint`, `status_code`    | Total requests processed.                            |
+| `qyverixai_http_request_duration_seconds` | Histogram | `method`, `endpoint`                   | Request latency. Buckets: 5ms → 30s.                 |
+| `qyverixai_http_requests_in_progress`     | Gauge     | `method`, `endpoint`                   | Concurrent in-flight requests.                       |
+| `qyverixai_http_request_exceptions_total` | Counter   | `method`, `endpoint`, `exception_type` | Unhandled exceptions raised during request handling. |
+| `qyverixai_app_info`                      | Gauge     | `version`, `ai_provider`               | Static identity, always `1`.                         |
 
 The `endpoint` label is the matched **route template** (e.g. `/share/{share_id}`), not the raw URL — this keeps label cardinality bounded as IDs flow through the system. The `/metrics` endpoint itself is excluded from observation to prevent a scrape feedback loop.
 
@@ -390,11 +401,11 @@ A drop-in Prometheus scrape config is provided at [`deploy/prometheus/scrape-con
 
 #### Configuration
 
-| Variable | Default | Description |
-|---|---|---|
-| `METRICS_ENABLED` | `true` | Set to `false` to disable `/metrics` and skip the middleware entirely. |
-| `METRICS_AUTH_TOKEN` | — | Optional bearer token. When set, scrapers must send `Authorization: Bearer <token>`. |
-| `PROMETHEUS_MULTIPROC_DIR` | — | Set when running `uvicorn --workers N > 1` so scrapes aggregate across workers. The directory must exist and be writable. |
+| Variable                   | Default | Description                                                                                                               |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `METRICS_ENABLED`          | `true`  | Set to `false` to disable `/metrics` and skip the middleware entirely.                                                    |
+| `METRICS_AUTH_TOKEN`       | —       | Optional bearer token. When set, scrapers must send `Authorization: Bearer <token>`.                                      |
+| `PROMETHEUS_MULTIPROC_DIR` | —       | Set when running `uvicorn --workers N > 1` so scrapes aggregate across workers. The directory must exist and be writable. |
 
 ---
 
@@ -415,7 +426,9 @@ Compatible with **OpenAI**, **Groq** (free tier), **Together AI**, **Ollama** (l
 > Never commit API keys. Use environment variables or your host's secrets manager.
 
 ### Provider Reliability
+
 The backend includes built-in resilience for LLM requests:
+
 - **Exponential Backoff**: Automatic retries on timeouts and connection failures.
 - **Rate Limit Handling**: Pauses and retries on HTTP 429 Rate Limit responses.
 - **Graceful Fallback**: Preserves offline/rule-based features seamlessly if the LLM provider becomes fully unavailable.
@@ -424,14 +437,14 @@ The backend includes built-in resilience for LLM requests:
 
 ## Configuration Reference
 
-| Variable | Default | Description |
-|---|---|---|
-| `RATE_LIMIT_PER_MINUTE` | `30` | Max requests per IP per minute |
-| `LLM_ENABLED` | `false` | Enable LLM provider |
-| `LLM_API_KEY` | — | API key for your LLM provider |
-| `LLM_BASE_URL` | `https://api.openai.com/v1` | LLM base URL |
-| `LLM_MODEL` | `gpt-4o-mini` | Model name |
-| `LLM_TIMEOUT_SECONDS` | `30` | Request timeout in seconds |
+| Variable                | Default                     | Description                    |
+| ----------------------- | --------------------------- | ------------------------------ |
+| `RATE_LIMIT_PER_MINUTE` | `30`                        | Max requests per IP per minute |
+| `LLM_ENABLED`           | `false`                     | Enable LLM provider            |
+| `LLM_API_KEY`           | —                           | API key for your LLM provider  |
+| `LLM_BASE_URL`          | `https://api.openai.com/v1` | LLM base URL                   |
+| `LLM_MODEL`             | `gpt-4o-mini`               | Model name                     |
+| `LLM_TIMEOUT_SECONDS`   | `30`                        | Request timeout in seconds     |
 
 Copy `.env.example` to `.env` and fill in values as needed.
 
@@ -439,14 +452,14 @@ Copy `.env.example` to `.env` and fill in values as needed.
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Backend | FastAPI 0.115+, Pydantic v2, Python 3.12 |
-| Frontend | HTML5, CSS3, Vanilla JS - no build step, zero dependencies |
-| Testing | Pytest, FastAPI TestClient |
-| Linting | Ruff |
-| Deployment | Docker, Render |
-| CI | GitHub Actions - Python 3.11 + 3.12 matrix |
+| Layer      | Technology                                                 |
+| ---------- | ---------------------------------------------------------- |
+| Backend    | FastAPI 0.115+, Pydantic v2, Python 3.12                   |
+| Frontend   | HTML5, CSS3, Vanilla JS - no build step, zero dependencies |
+| Testing    | Pytest, FastAPI TestClient                                 |
+| Linting    | Ruff                                                       |
+| Deployment | Docker, Render                                             |
+| CI         | GitHub Actions - Python 3.11 + 3.12 matrix                 |
 
 ---
 
@@ -473,15 +486,15 @@ Read the full workflow, code standards, and pattern guide in [CONTRIBUTING.md](C
 
 ### Good first issues for GSSoC contributors
 
-| Task | Label |
-|---|---|
-| Add a new bug detection pattern for any language | `easy` |
-| Add test cases for edge cases | `easy` |
-| Improve explanation key points for a specific language | `easy` |
-| Add ARIA labels and keyboard navigation to frontend | `medium` |
-| Add support for a new file type in file upload | `medium` |
-| Build AST-based deep analysis for Python | `hard` |
-| Add VS Code extension | `hard` |
+| Task                                                   | Label    |
+| ------------------------------------------------------ | -------- |
+| Add a new bug detection pattern for any language       | `easy`   |
+| Add test cases for edge cases                          | `easy`   |
+| Improve explanation key points for a specific language | `easy`   |
+| Add ARIA labels and keyboard navigation to frontend    | `medium` |
+| Add support for a new file type in file upload         | `medium` |
+| Build AST-based deep analysis for Python               | `hard`   |
+| Add VS Code extension                                  | `hard`   |
 
 Browse all open issues: [github.com/imDarshanGK/AI-dev-assistant/issues](https://github.com/imDarshanGK/AI-dev-assistant/issues)
 
