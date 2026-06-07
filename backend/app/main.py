@@ -10,8 +10,15 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 import time
 import os
+from .config import settings
 from collections import defaultdict
 import logging
+logging.basicConfig(
+    level=getattr(logging, settings.log_level, logging.WARNING),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+
+logger = logging.getLogger(__name__)
 from contextlib import asynccontextmanager
 
 from .routers import (
@@ -69,13 +76,13 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
-    print("🚀 QyverixAI backend starting…")
+    logger.info("🚀 QyverixAI backend starting…")
     # Static info gauge so dashboards can pin version / provider labels.
     initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
     start_scheduler()
     yield
     stop_scheduler()
-    logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
+    logger.info("🛑 QyverixAI backend shutting down…")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -235,7 +242,7 @@ if os.path.isdir(_frontend):
 # ── Global error handler ──────────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logging.exception("Unhandled error")
+    logger.exception("Unhandled error")
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error. Please try again."},
