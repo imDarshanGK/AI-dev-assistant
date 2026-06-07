@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 
 from dotenv import find_dotenv, load_dotenv
@@ -69,6 +70,11 @@ class Settings:
     llm_timeout_seconds: int = _int_env("LLM_TIMEOUT_SECONDS", 30)
     llm_max_retries: int = _int_env("LLM_MAX_RETRIES", 3)
     llm_retry_backoff: float = _float_env("LLM_RETRY_BACKOFF", 1.0)
+
+    # ── Share endpoint abuse protection ────────────────────────
+    share_rate_limit_requests: int = _int_env("SHARE_RATE_LIMIT_REQUESTS", 10)
+    share_rate_limit_window_seconds: int = _int_env("SHARE_RATE_LIMIT_WINDOW_SECONDS", 3600)
+    share_max_code_chars: int = _int_env("SHARE_MAX_CODE_CHARS", 10000)
 
     # ── Email / Digest ──────────────────────────────────────────
     smtp_host: str = os.getenv("SMTP_HOST", "")
