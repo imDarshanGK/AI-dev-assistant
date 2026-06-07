@@ -41,8 +41,10 @@ from .schemas import HealthResponse
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
+DEMO_RATE_LIMIT = int(os.getenv("DEMO_RATE_LIMIT_PER_MINUTE", "5"))
 RATE_LIMIT_WINDOW_SECONDS = 60
 _request_counts: dict[str, list[float]] = defaultdict(list)
+_demo_request_counts: dict[str, list[float]] = defaultdict(list)
 
 
 def check_rate_limit(ip: str) -> int:
@@ -57,10 +59,23 @@ def check_rate_limit(ip: str) -> int:
     return RATE_LIMIT - len(_request_counts[ip])
 
 
-def rate_limit_headers(remaining: int) -> dict[str, str]:
+def check_demo_rate_limit(ip: str) -> int:
+    """Record a demo-user request and return remaining quota in the current window."""
+    now = time.time()
+    _demo_request_counts[ip] = [
+        t for t in _demo_request_counts[ip] if now - t < RATE_LIMIT_WINDOW_SECONDS
+    ]
+    if len(_demo_request_counts[ip]) >= DEMO_RATE_LIMIT:
+        return -1
+    _demo_request_counts[ip].append(now)
+    return DEMO_RATE_LIMIT - len(_demo_request_counts[ip])
+
+
+def rate_limit_headers(remaining: int, *, is_demo: bool = False) -> dict[str, str]:
     """Build rate limit headers for API responses."""
+    limit = DEMO_RATE_LIMIT if is_demo else RATE_LIMIT
     return {
-        "X-RateLimit-Limit": str(RATE_LIMIT),
+        "X-RateLimit-Limit": str(limit),
         "X-RateLimit-Remaining": str(max(remaining, 0)),
     }
 
@@ -111,28 +126,30 @@ app.middleware("http")(prometheus_metrics_middleware)
 async def add_process_time_header(request: Request, call_next):
     start = time.perf_counter()
     ip = request.client.host if request.client else "unknown"
-    remaining = RATE_LIMIT
+    is_demo = request.headers.get("X-Demo-User", "").lower() == "true"
+    limit = DEMO_RATE_LIMIT if is_demo else RATE_LIMIT
+    remaining = limit
 
     # Apply rate limiting to analysis endpoints only
     if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
-        remaining = check_rate_limit(ip)
+        remaining = check_demo_rate_limit(ip) if is_demo else check_rate_limit(ip)
         if remaining < 0:
             elapsed = (time.perf_counter() - start) * 1000
-            headers = rate_limit_headers(0)
+            headers = rate_limit_headers(0, is_demo=is_demo)
             headers["Retry-After"] = str(RATE_LIMIT_WINDOW_SECONDS)
             headers["X-Process-Time-Ms"] = f"{elapsed:.2f}"
             headers["X-QyverixAI-Version"] = "3.0.0"
             return JSONResponse(
                 status_code=429,
                 content={
-                    "detail": f"Rate limit exceeded. Max {RATE_LIMIT} requests/minute."
+                    "detail": f"Rate limit exceeded. Max {limit} requests/minute."
                 },
                 headers=headers,
             )
 
     response = await call_next(request)
     elapsed = (time.perf_counter() - start) * 1000
-    response.headers.update(rate_limit_headers(remaining))
+    response.headers.update(rate_limit_headers(remaining, is_demo=is_demo))
     response.headers["X-Process-Time-Ms"] = f"{elapsed:.2f}"
     response.headers["X-QyverixAI-Version"] = "3.0.0"
     return response

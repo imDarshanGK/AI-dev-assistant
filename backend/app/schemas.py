@@ -112,6 +112,7 @@ class SignupRequest(BaseModel):
 
     email: str = Field(..., min_length=5, max_length=320)
     password: str = Field(..., min_length=8, max_length=128)
+    is_demo: bool = False
 
 
 class LoginRequest(BaseModel):
@@ -151,6 +152,7 @@ class UserProfileResponse(BaseModel):
 
     user_id: int
     email: str
+    is_demo: bool
 
 
 class HealthResponse(BaseModel):

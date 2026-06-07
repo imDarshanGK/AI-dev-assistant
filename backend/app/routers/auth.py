@@ -28,6 +28,7 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     user = User(
         email=payload.email.lower().strip(),
         password_hash=hash_password(payload.password),
+        is_demo=payload.is_demo,
     )
     db.add(user)
     db.commit()
@@ -53,4 +54,8 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserProfileResponse)
 def me(current_user: User = Depends(get_current_user)):
-    return UserProfileResponse(user_id=current_user.id, email=current_user.email)
+    return UserProfileResponse(
+        user_id=current_user.id,
+        email=current_user.email,
+        is_demo=current_user.is_demo,
+    )
