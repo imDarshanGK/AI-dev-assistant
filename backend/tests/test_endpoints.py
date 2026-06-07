@@ -752,7 +752,7 @@ def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
 
-# check detection for os.system() and os.popen() shell injection vulnerabilities  ───────────────────────
+# Tests for os.system() and os.popen() shell injection detection
 
 def test_debug_detects_os_system_shell_injection():
     r = client.post("/debugging/", json={

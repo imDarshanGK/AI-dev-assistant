@@ -302,18 +302,18 @@ BUG_PATTERNS: list[BugPattern] = [
     ),
     BugPattern(
         "OS System Shell Injection",
-        r"os\.system\s*\(",
-        "`os.system()` executes shell commands directly and is vulnerable "
-        "to command injection when user-controlled input is involved.",
+        r"\bos\.system\s*\(",
+        "`os.system()` executes shell commands directly and can be vulnerable "
+        "to command injection. Review for injection risk when input is user-controlled.",
         "Use `subprocess.run()` with a list of arguments and `shell=False` instead.",
         "error",
         ["Python"],
     ),
     BugPattern(
         "OS Popen Shell Injection",
-        r"os\.popen\s*\(",
-        "`os.popen()` opens a pipe to a shell command and is vulnerable "
-        "to command injection when user-controlled input is involved.",
+        r"\bos\.popen\s*\(",
+        "`os.popen()` opens a pipe to a shell command and can be vulnerable "
+        "to command injection. Review for injection risk when input is user-controlled.",
         "Use `subprocess.run()` with `capture_output=True` and `shell=False` instead.",
         "error",
         ["Python"],
