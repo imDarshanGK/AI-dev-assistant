@@ -11,13 +11,33 @@ from fastapi.staticfiles import StaticFiles
 import time
 import os
 from collections import defaultdict
+import logging
 from contextlib import asynccontextmanager
 
-
-from .routers import explanation, debugging, suggestions, analyze, subscribe, share
+from .routers import (
+    analyze,
+    auth,
+    chat,
+    debugging,
+    explanation,
+    history,
+    share,
+    subscribe,
+    suggestions,
+    upload_file,
+    user_data,
+)
+from .routers import health as health_router
+from .routers import metrics as metrics_router
+from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
+from .observability import (
+    initialise_app_info,
+    prometheus_metrics_middleware,
+)
 
 from .schemas import HealthResponse
+
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
@@ -48,11 +68,14 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await database.init_db()
     print("🚀 QyverixAI backend starting…")
+    # Static info gauge so dashboards can pin version / provider labels.
+    initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
     start_scheduler()
     yield
     stop_scheduler()
-    print("🛑 QyverixAI backend shutting down…")
+    logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -76,6 +99,14 @@ app.add_middleware(
 )
 
 
+# Prometheus instrumentation — installed early so it observes every other
+# middleware's response (including rate-limited 429s and the global error
+# handler's 500s). The middleware self-disables per-request when
+# METRICS_ENABLED is false, so installing it unconditionally costs nothing
+# operationally and lets operators flip the flag without a restart.
+app.middleware("http")(prometheus_metrics_middleware)
+
+
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start = time.perf_counter()
@@ -83,12 +114,7 @@ async def add_process_time_header(request: Request, call_next):
     remaining = RATE_LIMIT
 
     # Apply rate limiting to analysis endpoints only
-    if request.url.path in (
-        "/explanation/",
-        "/debugging/",
-        "/suggestions/",
-        "/analyze/",
-    ):
+    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
         remaining = check_rate_limit(ip)
         if remaining < 0:
             elapsed = (time.perf_counter() - start) * 1000
@@ -124,11 +150,21 @@ async def add_cache_header(request: Request, call_next):
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
-app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
+app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
-app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
+app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
+app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
+app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(auth.router)
+app.include_router(chat.router)
 app.include_router(share.router)
+app.include_router(user_data.router)
+app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+
+
+# Operational endpoints: /healthz/live, /healthz/ready, /metrics
+app.include_router(health_router.router)
+app.include_router(metrics_router.router)
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
@@ -139,11 +175,23 @@ async def root():
         "version": "3.0.0",
         "message": "QyverixAI API is running.",
         "endpoints": [
+            "/auth/signup",
+            "/auth/login",
+            "/auth/me",
             "/explanation/",
             "/debugging/",
             "/suggestions/",
             "/analyze/",
+            "/subscribe/",
             "/share/",
+            "/auth/",
+            "/chat/",
+            "/user/",
+            "/analyze/zip/",
+            "/analyze/zip/",
+            "/subscribe/",
+            "/share/",
+            "/history/",
         ],
     }
 
@@ -155,11 +203,20 @@ async def health_check():
         "version": "3.0.0",
         "message": "QyverixAI is healthy",
         "endpoints": [
+            "/auth/signup",
+            "/auth/login",
+            "/auth/me",
             "/explanation/",
             "/debugging/",
             "/suggestions/",
             "/analyze/",
+            "/subscribe/",
             "/share/",
+            "/auth/",
+            "/chat/",
+            "/user/",
+            "/analyze/zip/",
+            "/history/",
         ],
     }
 
@@ -178,6 +235,7 @@ if os.path.isdir(_frontend):
 # ── Global error handler ──────────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logging.exception("Unhandled error")
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error. Please try again."},

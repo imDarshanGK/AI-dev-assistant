@@ -42,7 +42,8 @@ logs/
 
 # Node (if frontend tooling added later)
 node_modules/
- 
+vscode-extension/extension.js
+
 # Database files
 *.db
 assistant.db

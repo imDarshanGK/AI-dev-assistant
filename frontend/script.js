@@ -1,5 +1,28 @@
+/** Use security-utils.js when present (production index.html loads it first). */
+const SEC = window.QyverixSecurity || {
+  escHtml(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+  sanitizeClientCode(text) {
+    return String(text).replace(/\x00/g, '').replace(/\x1b\[[0-9;]*[A-Za-z]/g, '');
+  },
+};
+const { escHtml, sanitizeClientCode } = SEC;
+
+const ALLOWED_MODES = new Set(['analyze', 'explanation', 'debugging', 'suggestions']);
+function safeModeLabel(mode) {
+  const key = String(mode || '').toLowerCase();
+  return ALLOWED_MODES.has(key) ? key : 'analyze';
+}
+
 // ── State ──
 let currentMode = 'analyze';
+let isAnalyzing = false;
 let history = JSON.parse(localStorage.getItem('qyverix_history') || '[]');
 let favorites = JSON.parse(localStorage.getItem('qyverix_favorites') || '[]');
 let lastResult = '';
@@ -20,9 +43,9 @@ const favContainer = document.getElementById('favContainer');
 const themeToggle = document.getElementById('themeToggle');
 const API_URL_STORAGE_KEY = 'qyverix_api_url';
 
-// ── Theme ──
-const savedTheme = localStorage.getItem('qyverix_theme') || 'dark';
-if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const savedTheme = localStorage.getItem('qyverix_theme') || (systemDark ? 'dark' : 'light');
+document.documentElement.setAttribute('data-theme', savedTheme);
 
 themeToggle.addEventListener('click', () => {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
@@ -70,6 +93,9 @@ codeInput.addEventListener('keydown', (e) => {
   }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault();
+    if (isAnalyzing) {
+        return;
+    }
     runAnalysis();
   }
 });
@@ -81,7 +107,7 @@ fileInput.addEventListener('change', (e) => {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (ev) => {
-    codeInput.value = ev.target.result;
+    codeInput.value = sanitizeClientCode(ev.target.result);
     codeInput.dispatchEvent(new Event('input'));
   };
   reader.readAsText(file);
@@ -133,6 +159,62 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
   history = [];
   localStorage.setItem('qyverix_history', JSON.stringify(history));
   renderHistory();
+});
+
+// ── Download History JSON ──
+document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+
+  if (history.length === 0) {
+    showToast('No history to download');
+    return;
+  }
+
+  const blob = new Blob(
+    [JSON.stringify(history, null, 2)],
+    { type: 'application/json' }
+  );
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'analysis-history.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+});
+// ── Download History CSV ──
+document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+
+  if (history.length === 0) {
+    showToast('No history to download');
+    return;
+  }
+
+  const headers = ['id', 'preview', 'mode', 'time'];
+
+  const rows = history.map(h =>
+    [
+      h.id,
+      `"${(h.preview || '').replace(/"/g, '""')}"`,
+      h.mode,
+      h.time
+    ].join(',')
+  );
+
+  const csvContent = [
+    headers.join(','),
+    ...rows
+  ].join('\n');
+
+  const blob = new Blob(
+    [csvContent],
+    { type: 'text/csv' }
+  );
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'analysis-history.csv';
+  a.click();
+URL.revokeObjectURL(a.href);
 });
 
 // ── Run Button ──
@@ -294,11 +376,18 @@ checkConnection();
 
 // ── Main Analysis ──
 async function runAnalysis() {
-  const code = codeInput.value.trim();
+
+  if (isAnalyzing) {
+    return;
+  }
+
+  const code = sanitizeClientCode(codeInput.value.trim());
   if (!code) {
     showError('Please paste some code first.');
     return;
   }
+
+  isAnalyzing = true;
 
   runBtn.disabled = true;
   runBtn.classList.add('loading');
@@ -330,6 +419,7 @@ async function runAnalysis() {
     statusDot.className = 'status-dot offline';
     setEngineBadge('unknown');
   } finally {
+    isAnalyzing = false;
     runBtn.disabled = false;
     runBtn.classList.remove('loading');
     runLabel.textContent = '▶ Analyze Code';
@@ -349,9 +439,9 @@ function renderResult(data, mode) {
       html += `<div class="result-section">
         <h4>Explanation</h4>
         <div class="result-text">
-          <p><strong>Language:</strong> ${ex.language || 'Unknown'}</p>
-          <p style="margin-top:8px">${ex.summary || ''}</p>
-          ${(ex.key_points || []).map(p => `<p>• ${p}</p>`).join('')}
+          <p><strong>Language:</strong> ${escHtml(ex.language || 'Unknown')}</p>
+          <p style="margin-top:8px">${escHtml(ex.summary || '')}</p>
+          ${(ex.key_points || []).map(p => `<p>• ${escHtml(p)}</p>`).join('')}
         </div>
       </div>`;
       text += `Language: ${ex.language}\n${ex.summary}\n${(ex.key_points || []).join('\n')}\n\n`;
@@ -366,9 +456,9 @@ function renderResult(data, mode) {
           ${issues.length === 0
             ? '<span class="result-tag tag-ok">✓ No issues found</span>'
             : issues.map(i => `<div style="margin-bottom:10px">
-                <span class="result-tag tag-error">${i.type || 'Issue'}</span>
-                <p style="margin-top:4px">${i.description || ''}</p>
-                ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${i.suggestion}</p>` : ''}
+                <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
+                <p style="margin-top:4px">${escHtml(i.description || '')}</p>
+                ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${escHtml(i.suggestion)}</p>` : ''}
               </div>`).join('')}
         </div>
       </div>`;
@@ -382,8 +472,8 @@ function renderResult(data, mode) {
         <h4>Improvements</h4>
         <div class="result-text">
           ${cards.map(c => `<div style="margin-bottom:10px">
-            <span class="result-tag tag-info">${c.category || 'Tip'}</span>
-            <p style="margin-top:4px">${c.description || ''}</p>
+            <span class="result-tag tag-info">${escHtml(c.category || 'Tip')}</span>
+            <p style="margin-top:4px">${escHtml(c.description || '')}</p>
           </div>`).join('')}
         </div>
       </div>`;
@@ -392,15 +482,15 @@ function renderResult(data, mode) {
   } else if (mode === 'explanation') {
     html += `<div class="result-section">
       <h4>Language</h4>
-      <div class="result-text">${data.language || 'Auto-detected'}</div>
+      <div class="result-text">${escHtml(data.language || 'Auto-detected')}</div>
     </div>
     <div class="result-section">
       <h4>Summary</h4>
-      <div class="result-text">${data.summary || ''}</div>
+      <div class="result-text">${escHtml(data.summary || '')}</div>
     </div>
     <div class="result-section">
       <h4>Key Points</h4>
-      <div class="result-text">${(data.key_points || []).map(p => `<p>• ${p}</p>`).join('')}</div>
+      <div class="result-text">${(data.key_points || []).map(p => `<p>• ${escHtml(p)}</p>`).join('')}</div>
     </div>`;
     text = `Language: ${data.language}\n${data.summary}\n${(data.key_points || []).join('\n')}`;
   } else if (mode === 'debugging') {
@@ -411,10 +501,10 @@ function renderResult(data, mode) {
         ${issues.length === 0
           ? '<span class="result-tag tag-ok">✓ No issues detected. Code looks clean!</span>'
           : issues.map(i => `<div style="margin-bottom:14px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
-              <span class="result-tag tag-error">${i.type || 'Issue'}</span>
+              <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
               ${i.line ? `<span class="result-tag tag-info">Line ${i.line}</span>` : ''}
-              <p style="margin-top:8px">${i.description || ''}</p>
-              ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${i.suggestion}</p>` : ''}
+              <p style="margin-top:8px">${escHtml(i.description || '')}</p>
+              ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${escHtml(i.suggestion)}</p>` : ''}
             </div>`).join('')}
       </div>
     </div>`;
@@ -425,9 +515,9 @@ function renderResult(data, mode) {
       <h4>Suggestions (${cards.length})</h4>
       <div class="result-text">
         ${cards.map(c => `<div style="margin-bottom:12px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
-          <span class="result-tag tag-info">${c.category || 'Tip'}</span>
-          <p style="margin-top:8px">${c.description || ''}</p>
-          ${c.example ? `<pre style="margin-top:8px;font-size:12px;color:var(--text-3)">${c.example}</pre>` : ''}
+          <span class="result-tag tag-info">${escHtml(c.category || 'Tip')}</span>
+          <p style="margin-top:8px">${escHtml(c.description || '')}</p>
+          ${c.example ? `<pre style="margin-top:8px;font-size:12px;color:var(--text-3)">${escHtml(c.example)}</pre>` : ''}
         </div>`).join('')}
       </div>
     </div>`;
@@ -486,7 +576,7 @@ function renderHistory() {
     <div class="history-item">
       <div>
         <div class="history-preview">${escHtml(h.preview)}</div>
-        <div class="history-meta">${h.mode} · ${h.time}</div>
+        <div class="history-meta">${escHtml(safeModeLabel(h.mode))} · ${escHtml(h.time)}</div>
       </div>
     </div>
   `).join('');
@@ -501,14 +591,10 @@ function renderFavorites() {
     <div class="history-item">
       <div>
         <div class="history-preview">${escHtml(f.code)}...</div>
-        <div class="history-meta">${f.mode} · ${f.time}</div>
+        <div class="history-meta">${escHtml(safeModeLabel(f.mode))} · ${escHtml(f.time)}</div>
       </div>
     </div>
   `).join('');
-}
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ── Toast ──
@@ -523,6 +609,29 @@ function showToast(msg) {
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2200);
+}
+
+// Fix #422 — Weekly Digest subscribe handler
+const digestForm = document.getElementById('digestForm');
+const digestEmail = document.getElementById('digestEmail');
+const digestBtn = document.getElementById('digestBtn');
+
+if (digestForm) {
+  digestForm.addEventListener('submit', (e) => {
+    e.preventDefault(); // stop page reload
+
+    const email = digestEmail.value.trim();
+
+    // Show loading state
+    digestBtn.textContent = 'Subscribing...';
+    digestBtn.disabled = true;
+
+    // Simulate subscription (replace with real API call when backend is ready)
+    setTimeout(() => {
+      // Show success message
+      digestForm.innerHTML = `<p style="font-size:0.8rem;color:#4caf50;margin:0;">✓ You have been subscribed!</p>`;
+    }, 800);
+  });
 }
 
 // ── Init ──
