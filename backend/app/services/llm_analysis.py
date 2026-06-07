@@ -75,7 +75,8 @@ class LLMAnalysisClient:
 
         prompt = (
             "You are an expert code explainer. Return only concise plain text with no markdown. "
-            "Explain what this code does, key risk areas, and one improvement in beginner-friendly style."
+            "Explain what this code does, key risk areas, and one improvement in beginner-friendly style. "
+            "If the code contains syntax errors or is incomplete, explain what it is attempting to do rather than just stating that the code is wrong."
         )
 
         try:
@@ -104,7 +105,8 @@ class LLMAnalysisClient:
             '"complexity":{"time":string,"space":string},'
             '"optimized_version":string'
             "}. "
-            "Keep suggestions practical and include recursion/loop insights when present."
+            "Keep suggestions practical and include recursion/loop insights when present. "
+            "If the code contains syntax errors or is incomplete, still explain what the code is attempting to do in the explanation section rather than just stating that the code is wrong."
         )
 
         try:
@@ -127,7 +129,25 @@ class LLMAnalysisClient:
         self, message: str, code: str | None, history: list[str], level: str
     ) -> str:
         prompt = (
-            "You are QyverixAI coding assistant in chat mode. "
+            "You are an expert software engineer, programming tutor, and code reviewer.\n"
+            "Your primary responsibility is to help users understand code, even when the code is incomplete, invalid, or contains syntax errors.\n\n"
+            "Rules:\n"
+            "1. Never stop analysis simply because syntax errors exist.\n"
+            "2. Before discussing errors, determine the most likely intent of the code and explain what the developer is trying to achieve.\n"
+            "3. If the code is syntactically invalid:\n"
+            "   * Explain the intended functionality.\n"
+            "   * Describe the logic flow.\n"
+            "   * Identify syntax errors.\n"
+            "   * Explain why each error occurs.\n"
+            "   * Provide a corrected version when possible.\n"
+            "4. Do not respond with only generic statements like 'The code is invalid' or 'Syntax error detected'.\n"
+            "5. Always structure responses in this order:\n"
+            "   A. Intended Purpose\n"
+            "   B. Logic Breakdown\n"
+            "   C. Errors Found\n"
+            "   D. Suggested Fix\n"
+            "6. For incomplete snippets, make reasonable assumptions and explain those assumptions.\n\n"
+            "Always prioritize understanding developer intent over simply reporting syntax errors.\n"
             f"Explain at {level} level, be clear and concrete, and avoid generic text."
         )
 
@@ -147,3 +167,4 @@ class LLMAnalysisClient:
 
 
 llm_analysis_client = LLMAnalysisClient()
+
