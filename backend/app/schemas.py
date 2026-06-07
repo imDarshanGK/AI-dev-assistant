@@ -149,15 +149,14 @@ class UserProfileResponse(BaseModel):
         email: The user's email address.
     """
 
-    user_id: int
-    email: str
+    from datetime import datetime
+    from typing import Any, List, Literal, Optional
 
 
-class HealthResponse(BaseModel):
-    status: str
-    version: str
-    message: str
-    endpoints: list[str] | None = None
+    class HealthResponse(BaseModel):
+    ...
+        message: str
+        endpoints: list[str] | None = None
 
 
 class AnalysisScheduleCreate(BaseModel):
@@ -168,22 +167,22 @@ class AnalysisScheduleCreate(BaseModel):
     @field_validator("cron_expression")
     @classmethod
     def validate_cron(cls, v: str) -> str:
-        # Simple cron validation
         parts = v.split()
         if len(parts) != 5:
             raise ValueError("Cron expression must have 5 parts")
         return v
 
 
-class AnalysisScheduleResponse(BaseModel):
-    id: int
-    user_id: int
-    cron_expression: str
-    analysis_type: str
-    target_repo: str
-    is_active: bool
-    created_at: datetime
-    last_run_at: datetime | None = None
+    class AnalysisScheduleResponse(BaseModel):
+        id: int
+        user_id: int
+        cron_expression: str
+        analysis_type: str
+        target_repo: str
+        is_active: bool
+        created_at: datetime
+        last_run_at: datetime | None = None
+
 
 
 # ── History ───────────────────────────────────────────────────────────────────

@@ -91,6 +91,5 @@ class AnalysisSchedule(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
     )
-    last_run_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    user = relationship("User")
+    user = relationship("User")  # type: ignore
