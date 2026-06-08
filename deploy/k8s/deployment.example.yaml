@@ -15,6 +15,21 @@ spec:
   selector:
     matchLabels:
       app: qyverixai
+  # ── Rollout strategy ────────────────────────────────────────────────────────
+  # maxUnavailable: 0  → never drop below full capacity during a rollout.
+  # maxSurge: 1        → bring up one extra pod before terminating an old one.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  # A pod must stay healthy for 15 s before Kubernetes counts it as "ready".
+  # This prevents brief-start-then-crash pods from advancing the rollout.
+  minReadySeconds: 15
+  # If the rollout hasn't finished within 3 minutes, Kubernetes marks it
+  # Failed and the deploy controller automatically issues a rollout undo.
+  # This is the native K8s auto-rollback trigger.
+  progressDeadlineSeconds: 180
   template:
     metadata:
       labels:

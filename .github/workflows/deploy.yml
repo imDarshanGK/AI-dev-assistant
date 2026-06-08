@@ -1,0 +1,244 @@
+name: Deploy with Automated Rollback
+
+# Triggers after CI passes on main (or manually for testing).
+on:
+  workflow_run:
+    workflows: ["CI"]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Docker image tag to deploy (default: sha of HEAD)"
+        required: false
+        default: ""
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DEPLOYMENT_NAME: qyverixai
+  K8S_NAMESPACE: default
+  # How long (seconds) to poll /healthz/ready after rollout reports success
+  HEALTH_CHECK_TIMEOUT: 60
+  # URL of the service's health endpoint — override via repository variable
+  SERVICE_HEALTH_URL: ${{ vars.SERVICE_HEALTH_URL || 'http://localhost:8000' }}
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Guard: only proceed when the triggering CI run succeeded.
+  # When the workflow is triggered manually this check is skipped.
+  # ─────────────────────────────────────────────────────────────────────────
+  guard:
+    name: Guard — CI must pass
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: CI status
+        run: |
+          echo "Triggering event: ${{ github.event_name }}"
+          echo "CI conclusion: ${{ github.event.workflow_run.conclusion || 'N/A (manual trigger)' }}"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Build the Docker image and push it to GHCR with two tags:
+  #   • ghcr.io/<owner>/<repo>:latest
+  #   • ghcr.io/<owner>/<repo>:sha-<short-sha>   ← pinned, used for rollback
+  # ─────────────────────────────────────────────────────────────────────────
+  build-and-push:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    needs: guard
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+      full_image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Deploy to Kubernetes, wait for rollout, run a health-check gate.
+  # On any failure: undo the rollout and annotate the GitHub Step Summary.
+  # ─────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy & Health-Gate
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Kubernetes auth ─────────────────────────────────────────────────
+      - name: Configure kubectl
+        env:
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
+        run: |
+          mkdir -p "$HOME/.kube"
+          echo "$KUBECONFIG_B64" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+
+      # ── Record the PREVIOUS image for rollback annotations ──────────────
+      - name: Snapshot previous revision
+        id: snapshot
+        run: |
+          PREV_IMAGE=$(kubectl get deployment/${{ env.DEPLOYMENT_NAME }} \
+            -n ${{ env.K8S_NAMESPACE }} \
+            -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "unknown")
+          PREV_REVISION=$(kubectl rollout history deployment/${{ env.DEPLOYMENT_NAME }} \
+            -n ${{ env.K8S_NAMESPACE }} \
+            --no-headers 2>/dev/null | tail -1 | awk '{print $1}' || echo "unknown")
+          echo "prev_image=$PREV_IMAGE"     >> "$GITHUB_OUTPUT"
+          echo "prev_revision=$PREV_REVISION" >> "$GITHUB_OUTPUT"
+          echo "Previous image : $PREV_IMAGE (revision $PREV_REVISION)"
+
+      # ── Apply new image ──────────────────────────────────────────────────
+      - name: Update deployment image
+        run: |
+          kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
+            ${{ env.DEPLOYMENT_NAME }}=${{ needs.build-and-push.outputs.full_image }} \
+            -n ${{ env.K8S_NAMESPACE }}
+          kubectl annotate deployment/${{ env.DEPLOYMENT_NAME }} \
+            kubernetes.io/change-cause="GitHub Actions deploy: ${{ github.sha }} by ${{ github.actor }}" \
+            --overwrite \
+            -n ${{ env.K8S_NAMESPACE }}
+
+      # ── Wait for rollout to complete (K8s progressDeadlineSeconds backs this up) ──
+      - name: Wait for rollout
+        id: rollout
+        run: |
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} \
+            -n ${{ env.K8S_NAMESPACE }} \
+            --timeout=3m
+        continue-on-error: true
+
+      # ── Active health-check gate ─────────────────────────────────────────
+      - name: Health-check gate
+        id: healthcheck
+        if: steps.rollout.outcome == 'success'
+        run: |
+          URL="${{ env.SERVICE_HEALTH_URL }}/healthz/ready"
+          TIMEOUT=${{ env.HEALTH_CHECK_TIMEOUT }}
+          ELAPSED=0
+          echo "Polling $URL for up to ${TIMEOUT}s …"
+          while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
+            HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "$URL" 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Health check passed (HTTP $HTTP_CODE) after ${ELAPSED}s"
+              exit 0
+            fi
+            echo "  HTTP $HTTP_CODE — retrying in 5s (${ELAPSED}s elapsed)"
+            sleep 5
+            ELAPSED=$((ELAPSED + 5))
+          done
+          echo "❌ Health check timed out after ${TIMEOUT}s"
+          exit 1
+        continue-on-error: true
+
+      # ── ROLLBACK: triggered when rollout OR health-check failed ──────────
+      - name: Auto-rollback
+        id: rollback
+        if: >
+          steps.rollout.outcome == 'failure' ||
+          steps.healthcheck.outcome == 'failure'
+        run: |
+          echo "🔄 Initiating automatic rollback …"
+          REASON="unknown"
+          if [ "${{ steps.rollout.outcome }}" = "failure" ]; then
+            REASON="Rollout timed-out or failed (kubectl rollout status)"
+          else
+            REASON="Health-check gate failed (/healthz/ready did not return 200 within ${{ env.HEALTH_CHECK_TIMEOUT }}s)"
+          fi
+
+          kubectl rollout undo deployment/${{ env.DEPLOYMENT_NAME }} \
+            -n ${{ env.K8S_NAMESPACE }}
+          echo "Rollback issued — waiting for undo to complete …"
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} \
+            -n ${{ env.K8S_NAMESPACE }} \
+            --timeout=3m
+
+          # Annotate rollback event
+          kubectl annotate deployment/${{ env.DEPLOYMENT_NAME }} \
+            kubernetes.io/change-cause="ROLLBACK triggered by GitHub Actions (sha: ${{ github.sha }}): $REASON" \
+            --overwrite \
+            -n ${{ env.K8S_NAMESPACE }}
+
+          # Write a rich GitHub Step Summary
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## ⚠️ Automated Rollback Triggered
+
+          | Field | Value |
+          |---|---|
+          | **Failed commit** | \`${{ github.sha }}\` |
+          | **Failed image** | \`${{ needs.build-and-push.outputs.full_image }}\` |
+          | **Reverted to** | \`${{ steps.snapshot.outputs.prev_image }}\` (revision \`${{ steps.snapshot.outputs.prev_revision }}\`) |
+          | **Reason** | $REASON |
+          | **Triggered by** | ${{ github.actor }} |
+          | **Workflow run** | [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+
+          ### Next Steps
+          1. Check pod logs: \`kubectl logs -l app=${{ env.DEPLOYMENT_NAME }} --tail=100\`
+          2. Inspect events: \`kubectl describe deployment/${{ env.DEPLOYMENT_NAME }}\`
+          3. Fix the issue and push a new commit to \`main\`.
+          EOF
+
+          echo "rolled_back=true" >> "$GITHUB_OUTPUT"
+
+      # ── Fail the workflow if a rollback was needed ───────────────────────
+      - name: Fail on rollback
+        if: steps.rollback.outputs.rolled_back == 'true'
+        run: |
+          echo "Deployment rolled back. Marking workflow as failed."
+          exit 1
+
+      # ── Success summary ──────────────────────────────────────────────────
+      - name: Deployment summary
+        if: >
+          steps.rollout.outcome == 'success' &&
+          steps.healthcheck.outcome == 'success'
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## ✅ Deployment Successful
+
+          | Field | Value |
+          |---|---|
+          | **Commit** | \`${{ github.sha }}\` |
+          | **Image** | \`${{ needs.build-and-push.outputs.full_image }}\` |
+          | **Deployed by** | ${{ github.actor }} |
+          | **Health check** | Passed |
+          EOF

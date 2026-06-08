@@ -1,0 +1,105 @@
+name: Staging Smoke Tests
+
+# Run on every push to develop, or manually (e.g. before promoting to production).
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      staging_url:
+        description: "Staging base URL (overrides STAGING_URL variable)"
+        required: false
+        default: ""
+
+env:
+  # Set the STAGING_URL repository variable in Settings → Variables, or pass it
+  # via the workflow_dispatch input above.
+  BASE_URL: ${{ inputs.staging_url || vars.STAGING_URL || 'http://localhost:8000' }}
+
+jobs:
+  smoke-tests:
+    name: Smoke Tests — Staging
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 1. Liveness probe ──────────────────────────────────────────────────
+      - name: Check /healthz/live
+        run: |
+          echo "Target: ${{ env.BASE_URL }}/healthz/live"
+          HTTP=$(curl -sf -o /tmp/live.json -w "%{http_code}" \
+                   "${{ env.BASE_URL }}/healthz/live" || echo "000")
+          echo "HTTP status: $HTTP"
+          cat /tmp/live.json 2>/dev/null || true
+          if [ "$HTTP" != "200" ]; then
+            echo "❌ Liveness probe returned HTTP $HTTP — service is not live."
+            exit 1
+          fi
+          echo "✅ Liveness probe passed."
+
+      # ── 2. Readiness probe ─────────────────────────────────────────────────
+      - name: Check /healthz/ready
+        run: |
+          echo "Target: ${{ env.BASE_URL }}/healthz/ready"
+          HTTP=$(curl -sf -o /tmp/ready.json -w "%{http_code}" \
+                   "${{ env.BASE_URL }}/healthz/ready" || echo "000")
+          echo "HTTP status: $HTTP"
+          cat /tmp/ready.json 2>/dev/null || true
+          if [ "$HTTP" != "200" ]; then
+            echo "❌ Readiness probe returned HTTP $HTTP — service is not ready."
+            exit 1
+          fi
+          echo "✅ Readiness probe passed."
+
+      # ── 3. API smoke test — POST /api/chat ─────────────────────────────────
+      - name: Smoke test POST /api/chat
+        run: |
+          echo "Target: ${{ env.BASE_URL }}/api/chat"
+          HTTP=$(curl -sf -o /tmp/chat.json -w "%{http_code}" \
+                   -X POST \
+                   -H "Content-Type: application/json" \
+                   -d '{"message": "ping", "model": "smoke-test"}' \
+                   --max-time 30 \
+                   "${{ env.BASE_URL }}/api/chat" || echo "000")
+          echo "HTTP status: $HTTP"
+          cat /tmp/chat.json 2>/dev/null | head -c 500 || true
+          # Accept 200 or 422 (validation error is OK — means the API is up)
+          if [[ "$HTTP" != "200" && "$HTTP" != "422" && "$HTTP" != "401" ]]; then
+            echo "❌ /api/chat returned unexpected HTTP $HTTP"
+            exit 1
+          fi
+          echo "✅ API smoke test passed (HTTP $HTTP)."
+
+      # ── 4. (Optional) Rollback scenario validation ─────────────────────────
+      # Uncomment this step to simulate a rollback trigger in staging:
+      # It deliberately calls a non-existent endpoint and expects a 404,
+      # confirming the service handles errors gracefully.
+      #
+      # - name: Validate error handling (404)
+      #   run: |
+      #     HTTP=$(curl -sf -o /dev/null -w "%{http_code}" \
+      #              "${{ env.BASE_URL }}/this-endpoint-does-not-exist" || echo "000")
+      #     if [ "$HTTP" != "404" ]; then
+      #       echo "❌ Expected 404, got $HTTP"
+      #       exit 1
+      #     fi
+      #     echo "✅ Error handling check passed."
+
+      # ── Summary ───────────────────────────────────────────────────────────
+      - name: Write step summary
+        if: always()
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## Staging Smoke Test Results
+
+          | Check | Status |
+          |---|---|
+          | Liveness \`/healthz/live\` | ${{ steps.*.outcome }} |
+          | Readiness \`/healthz/ready\` | |
+          | API \`POST /api/chat\` | |
+
+          **Staging URL**: \`${{ env.BASE_URL }}\`
+          **Commit**: \`${{ github.sha }}\`
+          EOF

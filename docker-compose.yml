@@ -11,6 +11,17 @@ services:
     volumes:
       - ./backend:/app/backend
     command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+    # Poll /healthz/ready so Docker Compose (and the frontend service) know
+    # when the backend is truly ready to serve traffic.
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    # Stop retrying after 3 consecutive failures — makes the failure visible
+    # rather than spinning in a crash-restart loop.
+    restart: on-failure:3
     depends_on:
       - db
 
@@ -21,8 +32,11 @@ services:
       - "3000:80"
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
+    # Only start once the backend health check passes.
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    restart: on-failure:3
 
   db:
     image: postgres:16
