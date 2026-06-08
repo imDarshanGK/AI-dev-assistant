@@ -11,6 +11,7 @@ import logging
 import time
 from urllib.parse import urlparse
 import httpx
+from typing import Optional, List, Dict
 
 logger = logging.getLogger("ai_provider")
 

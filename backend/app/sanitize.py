@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Optional, List, Dict
 
 # Match ANSI CSI escape sequences (colours, cursor moves, etc.)
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")

@@ -1,5 +1,5 @@
 from app.services.code_assistant import debug_code
-
+from typing import List
 
 def issue_types(code: str) -> List[str]:
     return [issue.type for issue in debug_code(code, language="Python").issues]

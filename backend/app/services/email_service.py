@@ -10,7 +10,7 @@ import smtplib
 from urllib.parse import urlencode
 
 from sqlalchemy.orm import Session
-
+from typing import Optional, List, Dict
 from ..config import settings
 from ..models import QueryHistory, User
 

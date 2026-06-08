@@ -1,8 +1,7 @@
 import os
-
+from typing import Optional, List, Dict
 from dotenv import find_dotenv, load_dotenv
-from typing import Optional
-
+from typing import Optional, List, Dict
 # Load .env from current directory or parent directories if present.
 load_dotenv(find_dotenv(filename=".env", usecwd=True), override=False)
 

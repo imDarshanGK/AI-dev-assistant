@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import ast
-
+from typing import Optional, List, Dict
 _PYTHON_BUILTINS = frozenset({
     "abs", "all", "any", "ascii", "bin", "bool", "breakpoint", "bytearray",
     "bytes", "callable", "chr", "classmethod", "compile", "complex",

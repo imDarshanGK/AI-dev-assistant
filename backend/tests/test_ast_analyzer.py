@@ -2,7 +2,7 @@
 
 from app.services.ast_analyzer import analyze_python_ast, analyze
 
-
+from typing import List
 def _types(code: str) -> List[str]:
     return [i["type"] for i in analyze_python_ast(code)]
 

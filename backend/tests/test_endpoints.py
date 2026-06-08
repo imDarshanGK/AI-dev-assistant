@@ -4,6 +4,7 @@ Run: cd backend && pytest -v
 """
 
 import json
+from typing import List
 
 import pytest
 from fastapi.testclient import TestClient
@@ -694,7 +695,7 @@ def test_single_line_code():
 
 
 # ── SSE Streaming ─────────────────────────────────────────────────────────────
-def _parse_sse_events(text: str) -> List[Dtr]:
+def _parse_sse_events(text: str) -> List[dict]:
     events = []
     for line in text.splitlines():
         if line.startswith("data: "):

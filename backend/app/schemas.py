@@ -1,6 +1,7 @@
 """Pydantic request / response models for QyverixAI."""
 
 import json
+import re
 from typing import Any, Optional, List, Dict, Union
 
 from .config import settings
@@ -273,7 +274,11 @@ class ChatMessageRequest(BaseModel):
     history: List[str] = Field(default_factory=list)
     level: str = "beginner"
 
-
+    @field_validator("level", mode="before")
+    def sanitize_level(cls, value):
+        if value is None:
+          return value
+        return "".join(c for c in value if 32 <= ord(c) <= 126)
 class ChatMessageResponse(BaseModel):
     provider: str
     model: str
