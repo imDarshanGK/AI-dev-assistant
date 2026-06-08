@@ -67,6 +67,7 @@ No account required. No API key needed. Works fully offline. Fully open source.
 | **Download Results** | Export full report as `.txt` |
 | **LLM-Ready** | Plug in OpenAI, Groq, Ollama, or any OpenAI-compatible provider via env vars |
 | **Rate Limiting** | 30 requests/minute per IP - configurable |
+| **Usage Quotas** | Track estimated AI usage costs and enforce per-user or per-team quotas |
 | **Swagger Docs** | Interactive API docs at `/docs` |
 | **Gzip Compression** | Automatic response compression |
 
@@ -249,6 +250,21 @@ Create a share link for a saved analysis, then load it back by ID for seven days
 `POST /share/` accepts `{ "code": "...", "result": { ... } }` and returns `{ "id": "short_id" }`.
 
 `GET /share/{id}` returns the saved `{ code, result, created_at }` payload or `404` if the share is missing or expired.
+
+---
+
+### Usage and Quotas
+
+Authenticated users can track estimated provider usage and configure quotas:
+
+| Endpoint | Detail |
+|---|---|
+| `GET /usage/summary` | Request, token, cost, and alert summary for the authenticated user or `team_id` |
+| `GET /usage/costs` | Estimated cost breakdown grouped by provider and model |
+| `POST /quotas` | Create or update user, team, or global quota limits |
+| `GET /quotas` | Return the applicable quota configuration |
+
+When a configured quota would be exceeded, `/analyze/` returns `429` before running the analysis.
 
 ---
 
