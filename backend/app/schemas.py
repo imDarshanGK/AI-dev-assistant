@@ -1,9 +1,9 @@
 """Pydantic request / response models for QyverixAI."""
-
+from .sanitize import sanitize_code_input, sanitize_language_hint
 import json
 import re
 from typing import Any, Optional, List, Dict, Union
-
+from pydantic import BaseModel, Field, field_validator, model_validator
 from .config import settings
 from .schema_validators import (
     validate_chat_history,
@@ -31,7 +31,7 @@ class CodeRequest(BaseModel):
     @field_validator("language")
     @classmethod
     def sanitize_language(cls, v: Optional[str]) -> Optional[str]:
-        return validate_language_hint(v)
+       return sanitize_language_hint(v)
 
 
 # ── Explanation ────────────────────────────────────────────────
@@ -284,3 +284,12 @@ class ChatMessageResponse(BaseModel):
     model: str
     mode: str
     reply: str
+class LivenessResponse(BaseModel):
+    status: str
+
+
+from typing import Dict, Any  # (already imported above, so no need if present)
+
+class ReadinessResponse(BaseModel):
+    status: str
+    checks: Dict[str, Dict[str, Any]]
