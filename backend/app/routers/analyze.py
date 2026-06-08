@@ -1,44 +1,16 @@
-
 import ast
 import logging
-
-"""Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
-from __future__ import annotations
-
-import asyncio
-import json
-
 import time
 import zipfile
 from io import BytesIO
-
 from typing import Any, Dict, List
-
-from pathlib import PurePosixPath
-
-from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
-from fastapi.responses import StreamingResponse
-
-from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
-from ..services.cache import cache
-from ..services.code_assistant import (
-    detect_language,
-    full_analysis,
-    run_bug_detection,
-    run_explanation,
-    run_suggestions,
-)
-
-
 from app.models.analyze import AnalyzeResponse, CodeRequest, ZipAnalyzerResponse
 from app.utils.cache import cache
 from app.utils.detector import UnreachableCodeDetector
 from app.utils.engine import full_analysis
 from fastapi import APIRouter, File, HTTPException, Response, UploadFile
-
 router = APIRouter(tags=["Analysis"])
 logger = logging.getLogger("uvicorn.error")
-
 SOURCE_EXTENSIONS = {
     ".py": "python",
     ".js": "javascript",
@@ -48,137 +20,9 @@ SOURCE_EXTENSIONS = {
     ".c": "c",
     ".go": "go",
     ".rs": "rust",
-
     ".rb": "ruby",
     ".php": "php",
 }
-
-
-    ".kt": "kotlin",
-    ".kts": "kotlin",
-    ".txt": None,
-}
-
-
-async def _stream_analysis(code: str, language_hint: str | None):
-    """Async generator that yields SSE chunks for each analysis section."""
-    t0 = time.perf_counter()
-    language = detect_language(code, language_hint)
-
-    # Explanation
-    explanation = run_explanation(code, language)
-    yield f"data: {json.dumps({'type': 'explanation', 'data': explanation})}\n\n"
-    await asyncio.sleep(0)
-
-    # Debugging
-    raw_issues = run_bug_detection(code, language)
-
-    errors = [i for i in raw_issues if i["severity"] == "error"]
-    warnings = [i for i in raw_issues if i["severity"] == "warning"]
-    infos = [i for i in raw_issues if i["severity"] == "info"]
-
-    debugging = {
-        "issues": raw_issues,
-        "summary": (
-            f"Found {len(raw_issues)} issue(s): "
-            f"{len(errors)} error(s), "
-            f"{len(warnings)} warning(s), "
-            f"{len(infos)} info."
-            if raw_issues
-            else "✅ No issues detected!"
-        ),
-        "clean": len(raw_issues) == 0,
-        "error_count": len(errors),
-        "warning_count": len(warnings),
-        "info_count": len(infos),
-    }
-
-    yield f"data: {json.dumps({'type': 'debugging', 'data': debugging})}\n\n"
-    await asyncio.sleep(0)
-
-    # Suggestions
-    suggestions = run_suggestions(code, language)
-    yield f"data: {json.dumps({'type': 'suggestions', 'data': suggestions})}\n\n"
-    await asyncio.sleep(0)
-
-    elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
-    done_payload = {
-        "type": "done",
-        "provider": "rule-based",
-        "model": "qyverix-engine-v3",
-        "analysis_time_ms": elapsed_ms,
-    }
-    yield f"data: {json.dumps(done_payload)}\n\n"
-
-
-def _project_grade(score: int) -> str:
-    if score >= 90:
-        return "A"
-    if score >= 75:
-        return "B"
-    if score >= 60:
-        return "C"
-    if score >= 40:
-        return "D"
-    return "F"
-
-
-def _safe_zip_name(name: str) -> str:
-    return name.replace("\\", "/").lstrip("/")
-
-
-def _is_safe_member(name: str) -> bool:
-    path = PurePosixPath(name.replace("\\", "/"))
-    has_drive = bool(path.parts and path.parts[0].endswith(":"))
-    return (
-        not path.is_absolute()
-        and ".." not in path.parts
-        and not has_drive
-    )
-
-
-def _is_ignored_member(name: str) -> bool:
-    path = PurePosixPath(_safe_zip_name(name))
-    return any(part.lower() in IGNORED_DIRS for part in path.parts)
-
-
-def _add_skipped(skipped_files: list[str], reason: str) -> None:
-    if len(skipped_files) < MAX_SKIPPED_FILES:
-        skipped_files.append(reason)
-
-
-@router.post(
-    "/stream",
-    summary="Stream analysis results section by section (SSE)",
-    response_class=StreamingResponse,
-)
-async def analyze_stream(req: CodeRequest):
-    return StreamingResponse(
-        _stream_analysis(req.code, req.language),
-        media_type="text/event-stream",
-        headers=_SSE_HEADERS,
-    )
-
-
-@router.get(
-    "/stream",
-    summary="Stream analysis results section by section (SSE) — issue #128 spec",
-    response_class=StreamingResponse,
-)
-async def analyze_stream_get(
-    code: str = Query(..., min_length=1, max_length=50000, description="Source code to analyze"),
-    language: str | None = Query(None, description="Optional language hint"),
-):
-    if not code.strip():
-        raise HTTPException(status_code=400, detail="code must not be empty or whitespace")
-    return StreamingResponse(
-        _stream_analysis(code.strip(), language),
-        media_type="text/event-stream",
-        headers=_SSE_HEADERS,
-    )
-
-
-
 @router.post(
     "/",
     response_model=AnalyzeResponse,
@@ -223,26 +67,13 @@ async def analyze(req: CodeRequest, response: Response):
     cache.set("analyze:v1", cache_input, payload)
     response.headers["X-Cache"] = "MISS"
     return payload
-
-
 @router.post(
     "/zip/",
     response_model=ZipAnalyzerResponse,
     summary="Run full analysis for source files in a ZIP",
 )
-async def analyze_zip(request: Request, file: UploadFile = File(...)):
+async def analyze_zip(file: UploadFile = File(...)):
     """Analyze up to 20 source files from an uploaded ZIP archive."""
-
-    # 1. Fast check via Content-Length header to reject large uploads early
-    # Limit upload size to 10MB (compressed) to prevent OOM/DoS
-    MAX_UPLOAD_SIZE = 10 * 1024 * 1024
-    content_length = request.headers.get("content-length")
-    if content_length and int(content_length) > MAX_UPLOAD_SIZE:
-        raise HTTPException(
-            status_code=413,
-            detail=f"ZIP file too large (max {MAX_UPLOAD_SIZE // (1024 * 1024)}MB)",
-        )
-
     filename = file.filename or ""
 
     if not filename.lower().endswith(".zip"):
@@ -251,28 +82,11 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
             detail="Only .zip uploads are supported",
         )
 
-
     uploaded = await file.read()
-
-    # 2. Secure chunked read to prevent memory exhaustion from missing headers
-    buffer = BytesIO()
-    total_read = 0
-    while chunk := await file.read(64 * 1024):  # 64KB chunks
-        total_read += len(chunk)
-        if total_read > MAX_UPLOAD_SIZE:
-            raise HTTPException(
-                status_code=413,
-                detail=f"ZIP file exceeds size limit during upload (max {MAX_UPLOAD_SIZE // (1024 * 1024)}MB)",
-            )
-        buffer.write(chunk)
-
-    uploaded = buffer.getvalue()
-
     if not uploaded:
         raise HTTPException(status_code=400, detail="Empty file uploaded")
 
     try:
-
         with zipfile.ZipFile(BytesIO(uploaded)) as z:
             namelist = [
                 f
@@ -284,58 +98,6 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                 raise HTTPException(
                     status_code=400,
                     detail="ZIP file does not contain readable source files",
-
-        archive = zipfile.ZipFile(buffer)
-    except zipfile.BadZipFile as exc:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid ZIP file",
-        ) from exc
-
-    t0 = time.perf_counter()
-
-    results: list[dict] = []
-    skipped_files: list[str] = []
-    total_size = 0
-
-    with archive:
-        members = [
-            info for info in archive.infolist()
-            if not info.is_dir()
-        ]
-
-        if not members:
-            raise HTTPException(
-                status_code=400,
-                detail="ZIP file does not contain any files",
-            )
-
-        for info in members:
-            safe_name = _safe_zip_name(info.filename)
-            ext = PurePosixPath(safe_name).suffix.lower()
-
-            if _is_ignored_member(info.filename):
-                continue
-
-            if not _is_safe_member(info.filename):
-                _add_skipped(
-                    skipped_files,
-                    f"{safe_name} (unsafe path)",
-                )
-                continue
-
-            if ext not in SOURCE_EXTENSIONS:
-                _add_skipped(
-                    skipped_files,
-                    f"{safe_name} (unsupported file type)",
-                )
-                continue
-
-            if len(results) >= MAX_ZIP_FILES:
-                _add_skipped(
-                    skipped_files,
-                    f"{safe_name} (file limit reached)",
-
                 )
 
             if len(namelist) > 20:
@@ -459,4 +221,35 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
 
     except zipfile.BadZipFile:
         raise HTTPException(status_code=400, detail="Invalid ZIP archive")
+class UnreachableCodeDetector(ast.NodeVisitor):
+    def __init__(self):
+        self.unreachable_nodes = []
+
+    def visit_FunctionDef(self, node: ast.FunctionDef):
+        has_returned = False
+        for child in node.body:
+            if has_returned:
+                self.unreachable_nodes.append(child)
+            if isinstance(child, (ast.Return, ast.Raise, ast.Break, ast.Continue)):
+                has_returned = True
+        self.generic_visit(node)
+
+def analyze_unreachable_code(code_content: str) -> list:
+    """
+    Static analysis function to detect dead or unreachable Python code.
+    """
+    try:
+        tree = ast.parse(code_content)
+        detector = UnreachableCodeDetector()
+        detector.visit(tree)
         
+        return [
+            {
+                "line": node.lineno,
+                "message": f"Unreachable code detected: {type(node).__name__} after a control flow statement."
+            }
+            for node in detector.unreachable_nodes
+        ]
+    except SyntaxError as e:
+        return [{"line": e.lineno, "message": f"Syntax error: {e.msg}"}]
+    
