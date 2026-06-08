@@ -2394,8 +2394,26 @@
           <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
           <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
+        <div class="history-controls-row" style="display:flex; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 0.72rem; align-items:center; flex-wrap:wrap;">
+          <span style="color:var(--text3);">Sort:</span>
+          <select id="historySortSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+            <option value="timestamp">Date</option>
+            <option value="score">Quality Score</option>
+            <option value="issue_count">Bugs Scanned</option>
+          </select>
+          <span style="color:var(--text3); margin-left: 8px;">Order:</span>
+          <select id="historyOrderSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+            <option value="desc">Desc</option>
+            <option value="asc">Asc</option>
+          </select>
+        </div>
         <div class="history-list" id="historyList" aria-live="polite">
           <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
+        </div>
+        <div class="history-pagination-row" id="historyPagination" style="display:flex; justify-content:space-between; align-items:center; padding:8px 16px; border-top:1px solid var(--border); font-size:0.75rem;">
+          <button id="btnPrevHistory" class="btn-clear" style="padding:4px 10px; font-size:0.7rem;" disabled>&laquo; Prev</button>
+          <span id="historyPageNum" style="color:var(--text2); font-weight:600;">Page 1</span>
+          <button id="btnNextHistory" class="btn-clear" style="padding:4px 10px; font-size:0.7rem;" disabled>Next &raquo;</button>
         </div>
       </div>
       <div class="panel">
@@ -2941,7 +2959,7 @@
         syncApiStatusText();
 
         updateEditor();
-        renderHistory();
+        fetchHistory();
         renderFavorites();
         if (currentResult) {
           renderResults(currentResult, editor.value);
@@ -3993,11 +4011,19 @@
       }
 
       /* ═══════════════════════════════════════════════════════════════
-         HISTORY
+         HISTORY (Paginated & Sorted)
       ═══════════════════════════════════════════════════════════════ */
-      function addToHistory(code, result) {
-        const lang = result.explanation?.language || result.debugging?.language||result.suggestions?.language||selectedLang;
-        const entry = {
+      let historyOffset = 0;
+      const historyLimit = 10;
+      let historyTotal = 0;
+      let historySortBy = 'timestamp';
+      let historyOrder = 'desc';
+
+      async function addToHistory(code, result) {
+        const lang = result.explanation?.language || result.debugging?.language || result.suggestions?.language || selectedLang;
+        
+        // 1. Always save locally as a fallback
+        const localEntry = {
           id: Date.now(),
           code,
           result,
@@ -4005,40 +4031,187 @@
           ts: new Date().toLocaleTimeString(),
           preview: code.slice(0, 60).replace(/\n/g, ' '),
         };
-        history.unshift(entry);
-        if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-        localStorage.setItem('qyx_history', JSON.stringify(history));
+        let localHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+        localHistory.unshift(localEntry);
+        if (localHistory.length > MAX_HISTORY) localHistory = localHistory.slice(0, MAX_HISTORY);
+        localStorage.setItem('qyx_history', JSON.stringify(localHistory));
+
+        // 2. Save to backend if connected
+        const apiBase = getApiBase();
+        try {
+          const score = result.suggestions?.overall_score || null;
+          const issue_count = result.debugging?.issues?.length || 0;
+          await fetch(`${apiBase}/history/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code,
+              language: lang,
+              score,
+              issue_count,
+              result_json: JSON.stringify(result)
+            })
+          });
+          historyOffset = 0;
+          await fetchHistory();
+        } catch (err) {
+          loadLocalHistory();
+        }
+      }
+
+      async function fetchHistory() {
+        const apiBase = getApiBase();
+        try {
+          const res = await fetch(`${apiBase}/history/?limit=${historyLimit}&offset=${historyOffset}&sort_by=${historySortBy}&order=${historyOrder}`);
+          if (res.ok) {
+            const data = await res.json();
+            history = data.items;
+            historyTotal = data.meta.total;
+            renderHistory();
+            updatePaginationUI();
+            return;
+          }
+        } catch (err) {
+          // Fallback to local storage on fetch error
+        }
+        loadLocalHistory();
+      }
+
+      function loadLocalHistory() {
+        let localHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+        
+        // Sort local history
+        localHistory.sort((a, b) => {
+          let valA, valB;
+          if (historySortBy === 'score') {
+            valA = a.result?.suggestions?.overall_score || 0;
+            valB = b.result?.suggestions?.overall_score || 0;
+          } else if (historySortBy === 'issue_count') {
+            valA = a.result?.debugging?.issues?.length || 0;
+            valB = b.result?.debugging?.issues?.length || 0;
+          } else {
+            valA = a.id || 0;
+            valB = b.id || 0;
+          }
+          
+          if (valA < valB) return historyOrder === 'asc' ? -1 : 1;
+          if (valA > valB) return historyOrder === 'asc' ? 1 : -1;
+          return b.id - a.id; // stable tie-breaker
+        });
+
+        historyTotal = localHistory.length;
+        history = localHistory.slice(historyOffset, historyOffset + historyLimit);
+        
         renderHistory();
+        updatePaginationUI();
       }
 
       function renderHistory() {
-        if (!history.length) {
-          historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
+        const listContainer = document.getElementById('historyList');
+        if (!listContainer) return;
+
+        if (!history || !history.length) {
+          listContainer.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
-        historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
-      <span class="history-lang">${h.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(h.preview)}…</span>
-      <span class="history-meta">${h.ts}</span>
-    </div>`).join('');
+
+        listContainer.innerHTML = history.map(h => {
+          const lang = h.language || h.lang || '?';
+          const preview = h.code_preview || h.preview || '';
+          
+          let displayTime = h.timestamp || h.ts || '';
+          if (displayTime.includes('T') || displayTime.includes('-')) {
+            try {
+              displayTime = new Date(displayTime).toLocaleString();
+            } catch (e) {}
+          }
+
+          const label = getTranslation('history_entry_label')
+            .replace('{lang}', lang)
+            .replace('{time}', displayTime);
+
+          return `
+            <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${label}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+              <span class="history-lang">${lang}</span>
+              <span class="history-thumb">${escHtml(preview)}…</span>
+              <span class="history-meta">${displayTime}</span>
+            </div>`;
+        }).join('');
       }
 
-      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      function updatePaginationUI() {
+        const btnPrev = document.getElementById('btnPrevHistory');
+        const btnNext = document.getElementById('btnNextHistory');
+        const pageNum = document.getElementById('historyPageNum');
+        if (!btnPrev || !btnNext || !pageNum) return;
+
+        const currentPage = Math.floor(historyOffset / historyLimit) + 1;
+        const totalPages = Math.max(Math.ceil(historyTotal / historyLimit), 1);
+        pageNum.textContent = `Page ${currentPage} of ${totalPages}`;
+
+        btnPrev.disabled = historyOffset <= 0;
+        btnNext.disabled = historyOffset + historyLimit >= historyTotal;
+      }
+
+      document.getElementById('btnPrevHistory')?.addEventListener('click', () => {
+        if (historyOffset > 0) {
+          historyOffset = Math.max(0, historyOffset - historyLimit);
+          fetchHistory();
+        }
+      });
+
+      document.getElementById('btnNextHistory')?.addEventListener('click', () => {
+        if (historyOffset + historyLimit < historyTotal) {
+          historyOffset += historyLimit;
+          fetchHistory();
+        }
+      });
+
+      document.getElementById('historySortSelect')?.addEventListener('change', e => {
+        historySortBy = e.target.value;
+        historyOffset = 0;
+        fetchHistory();
+      });
+
+      document.getElementById('historyOrderSelect')?.addEventListener('change', e => {
+        historyOrder = e.target.value;
+        historyOffset = 0;
+        fetchHistory();
+      });
+
+      document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
 
-        history = [];
+        const apiBase = getApiBase();
+        try {
+          await fetch(`${apiBase}/history/`, { method: 'DELETE' });
+        } catch (err) {}
+
         localStorage.removeItem('qyx_history');
-        renderHistory();
+        historyOffset = 0;
+        await fetchHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
-      document.getElementById('downloadJsonBtn').addEventListener('click', () => {
-        if (!history || history.length === 0) {
+      async function getHistoryForDownload() {
+        const apiBase = getApiBase();
+        try {
+          const res = await fetch(`${apiBase}/history/?limit=1000`);
+          if (res.ok) {
+            const data = await res.json();
+            return data.items;
+          }
+        } catch (e) {}
+        return JSON.parse(localStorage.getItem('qyx_history') || '[]');
+      }
+
+      document.getElementById('downloadJsonBtn').addEventListener('click', async () => {
+        const downloadItems = await getHistoryForDownload();
+        if (!downloadItems || downloadItems.length === 0) {
           toast('No history to download', 'info');
           return;
         }
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(downloadItems, null, 2));
         const dlNode = document.createElement('a');
         dlNode.setAttribute("href", dataStr);
         dlNode.setAttribute("download", "history.json");
@@ -4048,17 +4221,18 @@
         toast('Downloaded history.json', 'success');
       });
 
-      document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-        if (!history || history.length === 0) {
+      document.getElementById('downloadCsvBtn').addEventListener('click', async () => {
+        const downloadItems = await getHistoryForDownload();
+        if (!downloadItems || downloadItems.length === 0) {
           toast('No history to download', 'info');
           return;
         }
 
-        const headers = Object.keys(history[0]);
+        const headers = Object.keys(downloadItems[0]);
         const csvRows = [];
         csvRows.push(headers.join(','));
 
-        for (const row of history) {
+        for (const row of downloadItems) {
           const values = headers.map(header => {
             let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
             val = val.replace(/"/g, '""');
@@ -4076,6 +4250,7 @@
         dlNode.remove();
         toast('Downloaded history.csv', 'success');
       });
+
       function normalizeSavedEntryId(id) {
         const normalizedId = Number(id);
         return Number.isNaN(normalizedId) ? null : normalizedId;
@@ -4093,9 +4268,27 @@
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
 
-      function loadEntry(id) {
+      async function loadEntry(id) {
         const normalizedId = normalizeSavedEntryId(id);
         if (normalizedId === null) return;
+
+        const apiBase = getApiBase();
+        try {
+          const res = await fetch(`${apiBase}/history/${normalizedId}`);
+          if (res.ok) {
+            const entry = await res.json();
+            const hydrated = {
+              code: entry.code || '',
+              lang: entry.language || 'python',
+              result: entry.result_json ? JSON.parse(entry.result_json) : null
+            };
+            restoreSavedEntry(hydrated);
+            return;
+          }
+        } catch (err) {}
+
+        // Fallback to local
+        const history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
         const entry = history.find(h => h.id === normalizedId);
         restoreSavedEntry(entry);
       }
@@ -4354,7 +4547,7 @@ int main() {
       setAppLanguage(appLang);
       syncApiStatusText();
 
-      renderHistory();
+      fetchHistory();
       renderFavorites();
 
       // Save API URL
