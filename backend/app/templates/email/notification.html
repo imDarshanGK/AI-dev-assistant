@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} — QyverixAI{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<p>{{ message }}</p>
+
+{% if quality_score is not none or files_analyzed is not none or top_issue %}
+<table class="metric-cards" role="presentation" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    {% if quality_score is not none %}
+    <td class="metric-card">
+      <div class="metric-card-inner">
+        <span class="metric-value">{{ quality_score }}</span>
+        <span class="metric-label">Quality Score</span>
+      </div>
+    </td>
+    {% endif %}
+    {% if files_analyzed is not none %}
+    <td class="metric-card">
+      <div class="metric-card-inner">
+        <span class="metric-value">{{ files_analyzed }}</span>
+        <span class="metric-label">Files Analyzed</span>
+      </div>
+    </td>
+    {% endif %}
+    {% if top_issue %}
+    <td class="metric-card">
+      <div class="metric-card-inner">
+        <span class="metric-value" style="font-size:15px;line-height:1.3;">{{ top_issue }}</span>
+        <span class="metric-label">Top Issue Found</span>
+      </div>
+    </td>
+    {% endif %}
+  </tr>
+</table>
+{% endif %}
+
+<p>
+  {% if report_url and report_label %}
+  <a class="btn-primary" href="{{ report_url }}">{{ report_label }}</a>
+  {% elif cta_url and cta_label %}
+  <a class="btn-primary" href="{{ cta_url }}">{{ cta_label }}</a>
+  {% endif %}
+  {% if issues_url %}
+  <a class="btn-secondary" href="{{ issues_url }}">See All Issues</a>
+  {% endif %}
+</p>
+{% endblock %}

@@ -14,11 +14,13 @@ from collections import defaultdict
 import logging
 from contextlib import asynccontextmanager
 
+from .config import settings
 from .routers import (
     analyze,
     auth,
     chat,
     debugging,
+    dev,
     explanation,
     history,
     share,
@@ -160,6 +162,10 @@ app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+
+if not settings.is_production:
+    app.include_router(dev.router)
+    app.include_router(dev.preview_router)
 
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics

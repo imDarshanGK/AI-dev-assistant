@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to QyverixAI{% endblock %}
+
+{% block content %}
+<h1>Welcome to QyverixAI</h1>
+<p>
+  Your account{% if recipient_name %} ({{ recipient_name }}){% endif %} is ready.
+  Paste any code and get instant bug detection, plain-English explanations,
+  and a quality score — no setup needed.
+</p>
+<p>
+  <a class="btn-primary" href="{{ app_url }}">Analyze your first file</a>
+</p>
+
+<h2>Get started in 3 steps</h2>
+<div class="onboarding-step">
+  <strong>Step 1: Paste Code</strong>
+  <span>Drop a file or paste a snippet into the editor — Python, JS, TS, Java, or C++.</span>
+</div>
+<div class="onboarding-step">
+  <strong>Step 2: Run Analysis</strong>
+  <span>Click Analyze to get explanations, bug detection, and a quality score in seconds.</span>
+</div>
+<div class="onboarding-step">
+  <strong>Step 3: Fix Issues</strong>
+  <span>Follow line-specific suggestions to improve security, docs, and code quality.</span>
+</div>
+
+<h2>What to expect</h2>
+<div class="section-box">
+  <ul style="margin:0;padding-left:18px;">
+    <li><strong style="color:#fff;">Weekly Digest</strong> — a summary of your analyses, scores, and trends.</li>
+    <li><strong style="color:#fff;">Quality Reports</strong> — letter-grade scores with prioritized fix suggestions.</li>
+    <li><strong style="color:#fff;">Security Notifications</strong> — alerts for sensitive patterns and critical issues.</li>
+  </ul>
+</div>
+{% endblock %}

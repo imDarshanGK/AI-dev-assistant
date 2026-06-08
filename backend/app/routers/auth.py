@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import logging
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -11,12 +13,26 @@ from ..security import (
     hash_password,
     verify_password,
 )
+from ..services import email_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
+def _send_welcome_email_task(email: str) -> None:
+    try:
+        email_service.send_welcome_email(email)
+    except Exception:
+        logger.exception("Failed to send welcome email to %s", email)
+
+
 @router.post("/signup", response_model=AuthResponse)
-def signup(payload: SignupRequest, db: Session = Depends(get_db)):
+def signup(
+    payload: SignupRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     existing = db.execute(
         select(User).where(User.email == payload.email.lower().strip())
     ).scalar_one_or_none()
@@ -34,6 +50,7 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     db.refresh(user)
 
     token = create_access_token(user.id)
+    background_tasks.add_task(_send_welcome_email_task, user.email)
     return AuthResponse(access_token=token, user_id=user.id, email=user.email)
 
 
