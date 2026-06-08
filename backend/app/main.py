@@ -31,10 +31,13 @@ from .routers import health as health_router
 from .routers import metrics as metrics_router
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
+<<<<<<< HEAD
 from .observability import (
     initialise_app_info,
     prometheus_metrics_middleware,
 )
+=======
+>>>>>>> b4b90c0 (Fix CI errors in main.py)
 
 from .schemas import HealthResponse
 
@@ -66,15 +69,12 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
+# ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
-    
-    logging.getLogger(__name__).info("🚀 QyverixAI backend starting…")
-    Base.metadata.create_all(bind=engine)
 
-    # Static info gauge so dashboards can pin version / provider labels.
-    initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
+    logging.getLogger(__name__).info("🚀 QyverixAI backend starting…")
 
     start_scheduler()
     yield
