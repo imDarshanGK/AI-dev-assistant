@@ -4078,9 +4078,30 @@
       }
 
       function loadLocalHistory() {
-        const localHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
-        history = localHistory;
+        let localHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+        
+        // Sort local history
+        localHistory.sort((a, b) => {
+          let valA, valB;
+          if (historySortBy === 'score') {
+            valA = a.result?.suggestions?.overall_score || 0;
+            valB = b.result?.suggestions?.overall_score || 0;
+          } else if (historySortBy === 'issue_count') {
+            valA = a.result?.debugging?.issues?.length || 0;
+            valB = b.result?.debugging?.issues?.length || 0;
+          } else {
+            valA = a.id || 0;
+            valB = b.id || 0;
+          }
+          
+          if (valA < valB) return historyOrder === 'asc' ? -1 : 1;
+          if (valA > valB) return historyOrder === 'asc' ? 1 : -1;
+          return b.id - a.id; // stable tie-breaker
+        });
+
         historyTotal = localHistory.length;
+        history = localHistory.slice(historyOffset, historyOffset + historyLimit);
+        
         renderHistory();
         updatePaginationUI();
       }
