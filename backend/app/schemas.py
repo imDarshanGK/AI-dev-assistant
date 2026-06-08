@@ -245,6 +245,7 @@ class ShareCreateRequest(BaseModel):
     code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
     result: dict[str, Any] | None = Field(default=None)
     result_json: str | None = Field(default=None)
+    images: list[str] = Field(default_factory=list) 
 
     @field_validator("action")
     @classmethod
@@ -287,7 +288,7 @@ class ShareRecord(BaseModel):
     code: str
     result: dict[str, Any]
     created_at: str
-
+    thumbnail: str | None = None
 
 # ── Chat ──────────────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):

@@ -13,3 +13,4 @@ apscheduler>=3.10.0
 python-magic-bin>=0.4.14; platform_system == "Windows"
 python-magic>=0.4.27; platform_system != "Windows"
 prometheus-client>=0.20.0
+Pillow>=10.0.0
