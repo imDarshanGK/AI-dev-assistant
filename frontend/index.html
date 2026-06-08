@@ -4024,7 +4024,7 @@
           historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
-        hhistoryList.innerHTML = history.map(h => `
+        historyList.innerHTML = history.map(h => `
     <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
       ${h.thumbnail ? `<img src="${h.thumbnail}" alt="preview" style="width:56px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;">` : ''}
       <span class="history-lang">${h.lang || '?'}</span>
