@@ -58,6 +58,7 @@ def test_auth_routes_are_exposed_in_openapi(client):
     assert "/auth/signup" in paths
     assert "/auth/login" in paths
     assert "/auth/me" in paths
+    assert "/auth/password" in paths
 
 
 def test_signup_login_and_me_happy_path(client):
@@ -111,3 +112,73 @@ def test_me_rejects_missing_and_invalid_token(client):
     )
     assert invalid_token_response.status_code == 401
     assert "invalid token" in invalid_token_response.json()["detail"].lower()
+
+
+def test_authenticated_user_can_change_password(client):
+    signup_response = client.post(
+        "/auth/signup",
+        json={"email": "rotate@example.com", "password": "OldPass123!"},
+    )
+    assert signup_response.status_code == 200
+    token = signup_response.json()["access_token"]
+
+    change_response = client.patch(
+        "/auth/password",
+        json={
+            "current_password": "OldPass123!",
+            "new_password": "NewPass123!",
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert change_response.status_code == 204
+    assert change_response.content == b""
+
+    old_login_response = client.post(
+        "/auth/login",
+        json={"email": "rotate@example.com", "password": "OldPass123!"},
+    )
+    assert old_login_response.status_code == 401
+
+    new_login_response = client.post(
+        "/auth/login",
+        json={"email": "rotate@example.com", "password": "NewPass123!"},
+    )
+    assert new_login_response.status_code == 200
+
+
+def test_change_password_rejects_incorrect_current_password(client):
+    signup_response = client.post(
+        "/auth/signup",
+        json={"email": "wrong-current@example.com", "password": "OldPass123!"},
+    )
+    assert signup_response.status_code == 200
+    token = signup_response.json()["access_token"]
+
+    change_response = client.patch(
+        "/auth/password",
+        json={
+            "current_password": "WrongPass123!",
+            "new_password": "NewPass123!",
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert change_response.status_code == 400
+    assert "current password" in change_response.json()["detail"].lower()
+
+    old_login_response = client.post(
+        "/auth/login",
+        json={"email": "wrong-current@example.com", "password": "OldPass123!"},
+    )
+    assert old_login_response.status_code == 200
+
+
+def test_change_password_requires_authentication(client):
+    response = client.patch(
+        "/auth/password",
+        json={
+            "current_password": "OldPass123!",
+            "new_password": "NewPass123!",
+        },
+    )
+    assert response.status_code == 401
+    assert "authentication required" in response.json()["detail"].lower()
