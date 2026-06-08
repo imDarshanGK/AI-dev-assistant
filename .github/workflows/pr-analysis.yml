@@ -287,4 +287,12 @@ jobs:
                   sys.exit(0)
 
           print(comment_body)
+
+          if needs_improvement:
+              print(
+                  "Quality gate failed: one or more files scored below 60.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
           PY
