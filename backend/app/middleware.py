@@ -1,4 +1,3 @@
-cat > backend/app/middleware.py << 'EOF'
 import logging
 import time
 import uuid
@@ -103,4 +102,3 @@ async def error_classification_middleware(request: Request, call_next):
             request.url.path,
         )
     return response
-EOF
