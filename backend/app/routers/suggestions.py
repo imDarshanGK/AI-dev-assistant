@@ -1,8 +1,10 @@
 """Suggestions router — POST /suggestions/"""
 
 from fastapi import APIRouter
+
 from ..schemas import CodeRequest, SuggestionsResponse
-from ..services.code_assistant import detect_language, run_suggestions
+from ..services.code_assistant import run_suggestions
+from .utils import resolve_language
 
 router = APIRouter()
 
@@ -11,5 +13,5 @@ router = APIRouter()
     "/", response_model=SuggestionsResponse, summary="Get improvement suggestions"
 )
 async def suggest(req: CodeRequest):
-    lang = detect_language(req.code, req.language)
+    lang = resolve_language(req)
     return run_suggestions(req.code, lang)
