@@ -465,7 +465,7 @@ git checkout -b feat/your-feature-name
 
 # 4. Install and test
 cd backend && pip install -r requirements.txt
-pytest -v   # all 22 tests must pass
+pytest -v   # all 52 tests must pass
 
 # 5. Push and open a pull request
 ```
