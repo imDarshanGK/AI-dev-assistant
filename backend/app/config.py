@@ -41,6 +41,17 @@ def _bool_env(name: str, default: bool) -> bool:
     return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _required_env(name: str) -> str:
+    """Get a required environment variable. Raise error if not set."""
+    value = os.getenv(name)
+    if not value or not value.strip():
+        raise ValueError(
+            f"Required environment variable '{name}' is not set. "
+            f"Please set it before starting the application."
+        )
+    return value
+
+
 class Settings:
     """Application settings loaded from environment variables."""
 
@@ -59,7 +70,7 @@ class Settings:
     enable_docs: bool = _bool_env("ENABLE_DOCS", False)
     public_root_info: bool = _bool_env("PUBLIC_ROOT_INFO", False)
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./assistant.db")
-    jwt_secret: str = os.getenv("JWT_SECRET", "change-this-in-production-min-32-bytes")
+    jwt_secret: str = _required_env("JWT_SECRET")
     jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_minutes: int = _int_env("ACCESS_TOKEN_MINUTES", 720)
     llm_enabled: bool = _bool_env("LLM_ENABLED", False)
