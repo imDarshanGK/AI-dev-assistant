@@ -345,13 +345,6 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                 SOURCE_EXTENSIONS[ext],
             )
 
-            deps = analysis.get("suggestions", {}).get("dependencies", [])
-            if deps:
-                analysis["vulnerabilities"] = await asyncio.to_thread(
-                    correlate_vulnerabilities, deps
-                )
-            else:
-                analysis["vulnerabilities"] = []
 
             language = analysis["explanation"]["language"]
 

@@ -891,9 +891,9 @@ _STDLIB_BY_LANG: dict[str, set[str]] = {
         "os", "sys", "re", "json", "time", "math", "abc", "io",
         "logging", "pathlib", "typing", "collections", "itertools",
         "functools", "hashlib", "threading", "asyncio", "dataclasses",
-        "unittest", "contextlib", "copy", "enum", "warnings",
-        "http", "https", "url", "crypto",  # only if applicable
+        "unittest", "contextlib", "copy", "enum", "warnings"
     },
+    
     "javascript": {
         "fs", "path", "http", "https", "url", "crypto", "events",
         "os", "util", "stream", "buffer", "child_process", "net",
@@ -912,6 +912,9 @@ def _extract_dependencies(code: str, language: str) -> list[str]:
     pattern = _DEP_PATTERNS.get(language)
     if not pattern:
         return []
+
+    # Get stdlib for this language, or empty set if unknown
+    _STDLIB = _STDLIB_BY_LANG.get(language.lower(), set())
     deps = set()
     for match in re.finditer(pattern, code, re.MULTILINE):
         name = next((g for g in match.groups() if g), None)
