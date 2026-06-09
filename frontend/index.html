@@ -3425,9 +3425,16 @@
           const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, language: selectedLang }),
-            signal: AbortSignal.timeout(30000),
-          });
+            body: JSON.stringify({
+              code,
+              language: selectedLang,
+              images: [...document.querySelectorAll('#explainResult img, #debugResult img, #suggestResult img')]
+               .map(img => img.src)
+               .filter(src => src.startsWith('data:image')),
+              }),
+                  signal: AbortSignal.timeout(30000),
+  });
+          
           if (fallbackUsed) {
             persistApiBase(baseUsed);
           }
@@ -4004,6 +4011,7 @@
           lang,
           ts: new Date().toLocaleTimeString(),
           preview: code.slice(0, 60).replace(/\n/g, ' '),
+          thumbnail: result.thumbnail || null,
         };
         history.unshift(entry);
         if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
@@ -4018,6 +4026,7 @@
         }
         historyList.innerHTML = history.map(h => `
     <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+      ${h.thumbnail ? `<img src="${h.thumbnail}" alt="preview" style="width:56px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;">` : ''}
       <span class="history-lang">${h.lang || '?'}</span>
       <span class="history-thumb">${escHtml(h.preview)}…</span>
       <span class="history-meta">${h.ts}</span>

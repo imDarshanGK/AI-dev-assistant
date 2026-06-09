@@ -8,16 +8,14 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import SharedSnippet
 from ..schemas import ShareCreateRequest, ShareRecord
+from ..services.thumbnail import generate_thumbnail
 
 router = APIRouter(prefix="/share", tags=["Share"])
 
 
 @router.post("/", response_model=ShareRecord)
 def create_share(payload: ShareCreateRequest, db: Session = Depends(get_db)):
-    # ensure tables exist on the engine (tests monkeypatch `database.engine`)
-    # ensure tables exist on the current DB bind (use the session's bind)
     from ..database import Base as _Base
-
     _Base.metadata.create_all(bind=db.get_bind())
 
     token = ""
@@ -31,10 +29,14 @@ def create_share(payload: ShareCreateRequest, db: Session = Depends(get_db)):
     if not token:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not create share token")
 
+    # ← generate thumbnail from first image if provided
+    thumbnail = generate_thumbnail(payload.images[0]) if payload.images else None
+
     record = SharedSnippet(
         token=token,
         code=payload.code,
         result_json=json.dumps(payload.result),
+        thumbnail=thumbnail,   
     )
     db.add(record)
     db.commit()
@@ -46,6 +48,7 @@ def create_share(payload: ShareCreateRequest, db: Session = Depends(get_db)):
         code=record.code,
         result=json.loads(record.result_json),
         created_at=record.created_at.isoformat(),
+        thumbnail=record.thumbnail,  
     )
 
 

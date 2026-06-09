@@ -69,6 +69,7 @@ No account required. No API key needed. Works fully offline. Fully open source.
 | **Rate Limiting** | 30 requests/minute per IP - configurable |
 | **Swagger Docs** | Interactive API docs at `/docs` |
 | **Gzip Compression** | Automatic response compression |
+| **Thumbnail Previews** | Auto-generated thumbnails for shared analysis results |
 
 ### Languages and patterns
 
