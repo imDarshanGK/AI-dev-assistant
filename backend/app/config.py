@@ -46,6 +46,7 @@ class Settings:
 
     ai_provider: str = os.getenv("AI_PROVIDER", "rule-based")
     ai_model: str = os.getenv("AI_MODEL", "local-rule-engine-v1")
+    log_level: str = os.getenv("LOG_LEVEL", "WARNING").upper()
     max_code_chars: int = _int_env("MAX_CODE_CHARS", 20000)
     max_request_bytes: int = _int_env("MAX_REQUEST_BYTES", 1048576)
     rate_limit_requests: int = _int_env("RATE_LIMIT_REQUESTS", 120)
