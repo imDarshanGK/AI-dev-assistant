@@ -88,6 +88,40 @@ The entire frontend is `frontend/index.html` — one self-contained file. No bui
 
 ---
 
+## Code Formatting
+
+CI enforces consistent Python formatting on every pull request using
+`black` and `isort`. PRs with improperly formatted code will fail the
+`format` check automatically.
+
+### Install the tools
+
+```bash
+cd backend
+pip install black==24.10.0 isort==5.13.2
+```
+
+### Format before every PR
+
+Run both from the repo root:
+
+```bash
+black backend/
+isort backend/
+```
+
+To check without modifying files (mirrors exactly what CI runs):
+
+```bash
+black --check backend/
+isort --check-only backend/
+```
+
+Both tools are pre-configured in `pyproject.toml` at the repo root so
+they stay compatible with each other — no manual flag juggling needed.
+
+---
+
 ## Pull Request Checklist
 
 Before opening a PR, confirm:
