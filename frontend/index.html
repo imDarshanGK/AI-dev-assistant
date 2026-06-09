@@ -381,6 +381,59 @@
       animation: blink 1.8s ease-in-out infinite;
     }
 
+    .demo-quota-banner {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      margin: -8px 0 16px;
+      border-radius: var(--r2);
+      background: rgba(91, 156, 246, 0.1);
+      border: 1px solid rgba(91, 156, 246, 0.25);
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+    }
+
+    .demo-quota-banner.visible {
+      display: flex;
+    }
+
+    .demo-quota-banner.low {
+      background: rgba(245, 200, 66, 0.12);
+      border-color: rgba(245, 200, 66, 0.35);
+      color: var(--yellow);
+    }
+
+    .demo-quota-banner.exhausted {
+      background: rgba(242, 87, 87, 0.12);
+      border-color: rgba(242, 87, 87, 0.35);
+      color: var(--red);
+    }
+
+    [data-theme="light"] .demo-quota-banner {
+      background: rgba(91, 156, 246, 0.08);
+    }
+
+    [data-theme="light"] .demo-quota-banner.low {
+      background: rgba(245, 200, 66, 0.15);
+    }
+
+    [data-theme="light"] .demo-quota-banner.exhausted {
+      background: rgba(242, 87, 87, 0.1);
+    }
+
+    .demo-quota-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
     @keyframes blink {
 
       0%,
@@ -2123,6 +2176,11 @@
       </div>
     </nav>
 
+    <div id="demoQuotaBanner" class="demo-quota-banner" role="status" aria-live="polite" hidden>
+      <span class="demo-quota-dot" aria-hidden="true"></span>
+      <span id="demoQuotaText">Demo Mode</span>
+    </div>
+
     <!-- ── HERO ──────────────────────────────────────────────────── -->
     <section class="hero">
       <div class="hero-badge">
@@ -2846,6 +2904,67 @@
       let selectedMode = 'analyze';
       let selectedZipFile = null;
       let appLang = localStorage.getItem('qyx_lang') || 'en';
+      let demoQuotaRemaining = null;
+
+      if (new URLSearchParams(window.location.search).get('demo') === '1') {
+        localStorage.setItem('qyx_is_demo', 'true');
+      }
+
+      function isDemoMode() {
+        return localStorage.getItem('qyx_is_demo') === 'true';
+      }
+
+      function getDemoHeaders(extraHeaders = {}) {
+        const headers = { ...extraHeaders };
+        if (isDemoMode()) {
+          headers['X-Demo-User'] = 'true';
+        }
+        return headers;
+      }
+
+      function updateDemoQuotaBanner(response) {
+        const banner = document.getElementById('demoQuotaBanner');
+        const text = document.getElementById('demoQuotaText');
+        if (!banner || !text || !isDemoMode()) {
+          if (banner) {
+            banner.classList.remove('visible', 'low', 'exhausted');
+            banner.hidden = true;
+          }
+          return;
+        }
+
+        const remainingHeader = response?.headers?.get?.('X-RateLimit-Remaining');
+        const limitHeader = response?.headers?.get?.('X-RateLimit-Limit');
+        if (remainingHeader !== null && remainingHeader !== undefined && remainingHeader !== '') {
+          demoQuotaRemaining = parseInt(remainingHeader, 10);
+        }
+        const limit = limitHeader ? parseInt(limitHeader, 10) : 5;
+        const remaining = demoQuotaRemaining ?? limit;
+
+        banner.hidden = false;
+        banner.classList.add('visible');
+        banner.classList.remove('low', 'exhausted');
+
+        if (remaining <= 0) {
+          banner.classList.add('exhausted');
+          text.textContent = 'Demo Mode: 0 requests remaining';
+        } else if (remaining <= 2) {
+          banner.classList.add('low');
+          text.textContent = `Demo Mode: ${remaining} request${remaining === 1 ? '' : 's'} remaining`;
+        } else {
+          text.textContent = `Demo Mode: ${remaining} of ${limit} requests remaining`;
+        }
+      }
+
+      function initDemoQuotaBanner() {
+        if (!isDemoMode()) return;
+        const banner = document.getElementById('demoQuotaBanner');
+        const text = document.getElementById('demoQuotaText');
+        if (!banner || !text) return;
+        banner.hidden = false;
+        banner.classList.add('visible');
+        text.textContent = 'Demo Mode: quota updates after each analysis';
+      }
 
       /* ═══════════════════════════════════════════════════════════════
          DOM REFS
@@ -3368,6 +3487,7 @@
 
       // Auto-ping on load
       setTimeout(pingApi, 800);
+      initDemoQuotaBanner();
 
       /* ═══════════════════════════════════════════════════════════════
          ANALYZE
@@ -3398,12 +3518,14 @@
             formData.append('file', selectedZipFile);
             const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, '/analyze/zip/', {
               method: 'POST',
+              headers: getDemoHeaders(),
               body: formData,
               signal: AbortSignal.timeout(60000),
             });
             if (fallbackUsed) {
               persistApiBase(baseUsed);
             }
+            updateDemoQuotaBanner(res);
             if (!res.ok) {
               const err = await res.json().catch(() => ({}));
               throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3424,13 +3546,14 @@
 
           const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getDemoHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ code, language: selectedLang }),
             signal: AbortSignal.timeout(30000),
           });
           if (fallbackUsed) {
             persistApiBase(baseUsed);
           }
+          updateDemoQuotaBanner(res);
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.detail || `HTTP ${res.status}`);
