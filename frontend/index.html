@@ -2,14 +2,15 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" >
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QyverixAI — AI Developer Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+  <link rel="alternate icon" type="image/x-icon" href="public/favicon.ico">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
-    rel="stylesheet" >
+    rel="stylesheet">
   <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -514,7 +515,7 @@
       font-size: 15px;
     }
 
-    .feat-pill-info h4 {
+    .feat-pill-info .feat-pill-title {
       font-size: 0.82rem;
       font-weight: 600;
       margin-bottom: 1px
@@ -588,6 +589,10 @@
       gap: 6px
     }
 
+    .editor-panel-header {
+      justify-content: flex-end;
+    }
+
     .icon-btn {
       width: 30px;
       height: 30px;
@@ -645,7 +650,73 @@
     /* ── Code Editor ── */
     .editor-wrap {
       position: relative;
-      display: flex
+      display: flex;
+      transition: border-color var(--transition);
+    }
+
+    /* ── Drag-and-Drop Overlay ── */
+    .drop-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(10, 12, 16, 0.82);
+      backdrop-filter: blur(6px);
+      border-radius: 0;
+      border: 2px dashed var(--accent);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+
+    [data-theme="light"] .drop-overlay {
+      background: rgba(244, 246, 251, 0.88);
+    }
+
+    .drop-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .drop-overlay-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(91, 156, 246, 0.15);
+      border: 1px solid rgba(91, 156, 246, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      animation: dropIconBob 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes dropIconBob {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-6px); }
+    }
+
+    .drop-overlay-text {
+      font-family: var(--font-disp);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.01em;
+    }
+
+    .drop-overlay-sub {
+      font-size: 0.75rem;
+      color: var(--text3);
+      font-family: var(--font-ui);
+    }
+
+    .editor-wrap.drag-over {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
     }
 
     .line-numbers {
@@ -659,12 +730,18 @@
       text-align: right;
       background: var(--bg3);
       border-right: 1px solid var(--border);
-    }
+      overflow: hidden;
+      pointer-events: none;
+      min-height: 300px;
+      max-height: 500px;
+      height: 100%;
+      }
 
     #codeEditor {
       width: 100%;
       min-height: 300px;
       max-height: 500px;
+      overflow-y: auto;
       padding: 16px;
       font-family: var(--font-mono);
       font-size: 13px;
@@ -942,7 +1019,7 @@
       }
     }
 
-    .empty-state h3 {
+    .empty-state .empty-title {
       font-family: var(--font-disp);
       font-size: 1rem;
       font-weight: 700
@@ -1250,7 +1327,7 @@
       font-weight: 600
     }
 
-    .score-info h3 {
+    .score-info .score-title {
       font-family: var(--font-disp);
       font-size: 1rem;
       font-weight: 700;
@@ -1645,7 +1722,7 @@
       }
     }
 
-    .clean-state h3 {
+    .clean-state .clean-title {
       font-family: var(--font-disp);
       font-size: 1.1rem;
       font-weight: 700;
@@ -2052,7 +2129,7 @@
         <div class="badge-dot"></div>
         <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
       </div>
-      <h1 data-i18n="hero_title">Debug. Understand.<br ><em>Ship faster.</em></h1>
+      <h1 data-i18n="hero_title">Debug. Understand.<br><em>Ship faster.</em></h1>
       <p class="hero-sub" data-i18n="hero_subtitle">
         Paste your code and get instant bug detection, plain-English explanations, and actionable improvement
         suggestions — no account needed.
@@ -2075,7 +2152,7 @@
         <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path
-              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+                d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 3a7 7 0 1 1-7 7 7 7 0 0 1 7-7zm-1 4h2v6h-2zm0 7h2v2h-2z" />
           </svg>
           <span data-i18n="btn_star_github">Star on GitHub</span>
         </a>
@@ -2091,7 +2168,7 @@
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg></div>
         <div class="feat-pill-info">
-          <h2 data-i18n="pill_patterns_title">40+ Bug Patterns</h2>
+          <p class="feat-pill-title" data-i18n="pill_patterns_title">40+ Bug Patterns</p>
           <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
         </div>
       </div>
@@ -2102,7 +2179,7 @@
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h2 data-i18n="mode_explain">Code Explanation</h2>
+          <p class="feat-pill-title" data-i18n="mode_explain">Code Explanation</p>
           <p data-i18n="pill_explain_desc">Plain English breakdowns</p>
         </div>
       </div>
@@ -2112,7 +2189,7 @@
             <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
           </svg></div>
         <div class="feat-pill-info">
-          <h2 data-i18n="mode_improve">Smart Suggestions</h2>
+          <p class="feat-pill-title" data-i18n="mode_improve">Smart Suggestions</p>
           <p data-i18n="pill_improve_desc">Quality score + grade</p>
         </div>
       </div>
@@ -2122,7 +2199,7 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h2 data-i18n="pill_theme_title">Dark / Light Mode</h2>
+          <p class="feat-pill-title" data-i18n="pill_theme_title">Dark / Light Mode</p>
           <p data-i18n="pill_theme_desc">Persisted preference</p>
         </div>
       </div>
@@ -2132,22 +2209,20 @@
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg></div>
         <div class="feat-pill-info">
-          <h2 data-i18n="pill_upload_title">File Upload</h2>
+          <p class="feat-pill-title" data-i18n="pill_upload_title">File Upload</p>
           <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
         </div>
       </div>
     </div>
 
     <!-- ── WORKSPACE ─────────────────────────────────────────────── -->
-    <section id="workspace" class="workspace">
+    <div id="workspace" class="workspace">
 
       <!-- Editor Panel -->
       <div class="panel" style="grid-column:1">
-        <div class="panel-header">
-          <div class="panel-title"></div>
+        <div class="panel-header editor-panel-header">
           <div class="panel-actions">
-            <button type="button" class="icon-btn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" style="cursor:pointer"
-              aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
+            <button type="button" class="icon-btn" id="uploadBtn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -2156,7 +2231,7 @@
               </svg>
             </button>
             <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
-              tabindex="-1" >
+              tabindex="-1">
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
@@ -2178,14 +2253,26 @@
 
         <!-- Language tabs -->
         <div class="lang-tabs" role="group" aria-label="Select Programming Language">
-          <button class="lang-tab active" data-lang="python" data-i18n="lang_tab_python">Python</button>
-          <button class="lang-tab" data-lang="javascript" data-i18n="lang_tab_javascript">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript" data-i18n="lang_tab_typescript">TypeScript</button>
-          <button class="lang-tab" data-lang="java" data-i18n="lang_tab_java">Java</button>
-          <button class="lang-tab" data-lang="cpp" data-i18n="lang_tab_cpp">C++</button>
+          <button class="lang-tab active" data-lang="python" aria-pressed="true" data-i18n="lang_tab_python">Python</button>
+          <button class="lang-tab" data-lang="javascript" aria-pressed="false" data-i18n="lang_tab_javascript">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript" aria-pressed="false" data-i18n="lang_tab_typescript">TypeScript</button>
+          <button class="lang-tab" data-lang="java" aria-pressed="false" data-i18n="lang_tab_java">Java</button>
+          <button class="lang-tab" data-lang="cpp" aria-pressed="false" data-i18n="lang_tab_cpp">C++</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
-        <div class="editor-wrap">
+        <div class="editor-wrap" id="editorWrap">
+          <!-- Drag-and-drop overlay -->
+          <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
+            <div class="drop-overlay-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="16,16 12,12 8,16"/>
+                <line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+            </div>
+            <div class="drop-overlay-text">Drop your file here</div>
+            <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
+          </div>
           <div class="line-numbers" id="lineNumbers">1</div>
           <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
         </div>
@@ -2225,17 +2312,17 @@
         </div>
 
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
-          <button id="tab-explain" class="result-tab active" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
+          <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
             <span data-i18n="tab_explain">Explain</span>
             <span class="tab-badge" id="explainBadge"></span>
           </button>
-          <button id="tab-debug" class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
+          <button class="result-tab" id="tab-debug" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/></svg>
             <span data-i18n="tab_debug">Debug</span>
             <span class="tab-badge" id="debugBadge"></span>
           </button>
-          <button id="tab-suggest" class="result-tab" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
+          <button class="result-tab" id="tab-suggest" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
             <span data-i18n="tab_improve">Improve</span>
             <span class="tab-badge" id="suggestBadge"></span>
@@ -2243,20 +2330,20 @@
         </div>
         <div class="result-content">
           <!-- Explain Pane -->
-          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel" aria-labelledby="tab-explain">
+          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-labelledby="tab-explain">
             <div class="empty-state" id="emptyExplain">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg></div>
-              <h3 data-i18n="empty_explain_title">No analysis yet</h3>
+              <p class="empty-title" data-i18n="empty_explain_title">No analysis yet</p>
               <p data-i18n="empty_explain_desc">Paste your code and click Analyze to see results</p>
             </div>
             <div id="explainResult" style="display:none"></div>
           </div>
           <!-- Debug Pane -->
-          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel" aria-labelledby="tab-debug">
+          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-labelledby="tab-debug">
             <div class="empty-state" id="emptyDebug">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2270,19 +2357,19 @@
                   <path d="M4.5 19l-2 2" />
                   <path d="M19.5 19l2 2" />
                 </svg></div>
-              <h3 data-i18n="empty_debug_title">No bugs scanned</h3>
+              <p class="empty-title" data-i18n="empty_debug_title">No bugs scanned</p>
               <p data-i18n="empty_debug_desc">Run analysis to detect issues in your code</p>
             </div>
             <div id="debugResult" style="display:none"></div>
           </div>
           <!-- Suggest Pane -->
-          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel" aria-labelledby="tab-suggest">
+          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-labelledby="tab-suggest">
             <div class="empty-state" id="emptySuggest">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
                   <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
                 </svg></div>
-              <h3 data-i18n="empty_suggest_title">No suggestions yet</h3>
+              <p class="empty-title" data-i18n="empty_suggest_title">No suggestions yet</p>
               <p data-i18n="empty_suggest_desc">Run analysis to get improvement ideas</p>
             </div>
             <div id="suggestResult" style="display:none"></div>
@@ -2296,7 +2383,7 @@
           <span id="timeInfo"></span>
         </div>
       </div>
-    </section>
+    </div>
 
     <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
     <div class="bottom-grid">
@@ -2372,7 +2459,7 @@
           nav_github: "GitHub",
           nav_api_docs: "API Docs",
           hero_badge: "Open Source · AI-Powered · Free",
-          hero_title: "Debug. Understand.<br ><em>Ship faster.</em>",
+          hero_title: "Debug. Understand.<br /><em>Ship faster.</em>",
           hero_subtitle: "Paste your code and get instant bug detection, plain-English explanations, and actionable improvement suggestions — no account needed.",
           btn_start_analyzing: "Start Analyzing",
           btn_try_sample: "Try Sample Code",
@@ -2469,7 +2556,7 @@
           nav_github: "கிட்ஹப் (GitHub)",
           nav_api_docs: "ஏபிஐ ஆவணங்கள் (API Docs)",
           hero_badge: "திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்",
-          hero_title: "பிழையறி. புரிந்துகொள்.<br ><em>வேகமாக அனுப்பு.</em>",
+          hero_title: "பிழையறி. புரிந்துகொள்.<br /><em>வேகமாக அனுப்பு.</em>",
           hero_subtitle: "உங்கள் குறியீட்டை ஒட்டி, உடனடி பிழை கண்டறிதல், எளிய ஆங்கில விளக்கங்கள் மற்றும் பயனுள்ள மேம்பாட்டு பரிந்துரைகளைப் பெறுங்கள் — கணக்கு தேவையில்லை.",
           btn_start_analyzing: "பகுப்பாய்வைத் தொடங்கு",
           btn_try_sample: "மாதிரிக் குறியீட்டை முயல்க",
@@ -2566,7 +2653,7 @@
           nav_github: "गिटहब (GitHub)",
           nav_api_docs: "एपीआई दस्तावेज़ (API Docs)",
           hero_badge: "ओपन सोर्स · एआई-संचालित · मुफ्त",
-          hero_title: "डीबग करें। समझें।<br ><em>तेज़ी से शिप करें।</em>",
+          hero_title: "डीबग करें। समझें।<br><em>तेज़ी से शिप करें।</em>",
           hero_subtitle: "अपना कोड पेस्ट करें और तुरंत बग डिटेक्शन, सरल हिंदी में स्पष्टीकरण और व्यावहारिक सुधार सुझाव प्राप्त करें — किसी खाते की आवश्यकता नहीं है।",
           btn_start_analyzing: "विश्लेषण शुरू करें",
           btn_try_sample: "सैंपल कोड आज़माएं",
@@ -2663,7 +2750,7 @@
           nav_github: "GitHub",
           nav_api_docs: "Docs API",
           hero_badge: "Open Source · Propulsé par l'IA · Gratuit",
-          hero_title: "Déboguez. Comprenez.<br ><em>Lisez plus vite.</em>",
+          hero_title: "Déboguez. Comprenez.<br /><em>Lisez plus vite.</em>",
           hero_subtitle: "Collez votre code et obtenez une détection instantanée des bogues, des explications simples et des suggestions d'amélioration exploitables — aucun compte requis.",
           btn_start_analyzing: "Démarrer l'analyse",
           btn_try_sample: "Essayer l'exemple",
@@ -2753,11 +2840,12 @@
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
       let selectedLang = 'python';
+      const LOCAL_API_BASE = 'http://localhost:8000';
+      const REMOTE_API_BASE = 'https://qyverixai.onrender.com';
+
       let selectedMode = 'analyze';
       let selectedZipFile = null;
       let appLang = localStorage.getItem('qyx_lang') || 'en';
-      const LOCAL_API_BASE = 'http://localhost:8000';
-      const REMOTE_API_BASE = 'https://qyverixai.onrender.com';
 
       /* ═══════════════════════════════════════════════════════════════
          DOM REFS
@@ -2878,7 +2966,9 @@
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
           : '1';
-      }
+          // Fix: sync line numbers height exactly to editor height
+          lineNumbers.style.height = editor.offsetHeight + 'px';
+          }
 
       function syncApiStatusText() {
         if (!apiStatusText) return;
@@ -3079,10 +3169,45 @@
         e.target.value = '';
       });
 
-      /* Drag and drop */
+      /* ── Drag and Drop (visual drop zone on editor) ── */
+      const editorWrap  = document.getElementById('editorWrap');
+      const dropOverlay = document.getElementById('dropOverlay');
+      let dragCounter = 0; // track nested dragenter/dragleave events
+
+      // Prevent default browser file-open on body
       document.body.addEventListener('dragover', e => e.preventDefault());
-      document.body.addEventListener('drop', e => {
+      document.body.addEventListener('drop',     e => e.preventDefault());
+
+      editorWrap.addEventListener('dragenter', e => {
         e.preventDefault();
+        dragCounter++;
+        if (dragCounter === 1) {
+          editorWrap.classList.add('drag-over');
+          dropOverlay.classList.add('visible');
+          dropOverlay.setAttribute('aria-hidden', 'false');
+        }
+      });
+
+      editorWrap.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      });
+
+      editorWrap.addEventListener('dragleave', e => {
+        dragCounter--;
+        if (dragCounter === 0) {
+          editorWrap.classList.remove('drag-over');
+          dropOverlay.classList.remove('visible');
+          dropOverlay.setAttribute('aria-hidden', 'true');
+        }
+      });
+
+      editorWrap.addEventListener('drop', e => {
+        e.preventDefault();
+        dragCounter = 0;
+        editorWrap.classList.remove('drag-over');
+        dropOverlay.classList.remove('visible');
+        dropOverlay.setAttribute('aria-hidden', 'true');
         const file = e.dataTransfer.files[0];
         if (!file) return;
         handleUploadedFile(file);
@@ -3140,7 +3265,7 @@
         document.querySelectorAll('.lang-tab').forEach(t => {
           const isActive = t.dataset.lang === lang;
           t.classList.toggle('active', isActive);
-          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+          t.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
 
         // 2. Check if the editor currently contains one of the samples
@@ -3219,7 +3344,9 @@
             apiStatusText.dataset.status = 'connected';
             delete apiStatusText.dataset.statusCode;
             syncApiStatusText();
-            if (notify) { toast(getTranslation('toast_api_reachable'), 'success'); }
+            if (notify) {
+              toast(getTranslation('toast_api_reachable'), 'success');
+            }
           } else {
             apiDot?.classList.remove('connected');
             apiStatusText.dataset.status = 'error';
@@ -3231,7 +3358,9 @@
           apiStatusText.dataset.status = 'unreachable';
           delete apiStatusText.dataset.statusCode;
           syncApiStatusText();
-          if (notify) { toast(getTranslation('toast_api_unreachable'), 'error'); }
+          if (notify) {
+            toast(getTranslation('toast_api_unreachable'), 'error');
+          }
         }
       }
       const pingBtn = document.getElementById('pingBtn');
@@ -3272,7 +3401,9 @@
               body: formData,
               signal: AbortSignal.timeout(60000),
             });
-            if (fallbackUsed) persistApiBase(baseUsed);
+            if (fallbackUsed) {
+              persistApiBase(baseUsed);
+            }
             if (!res.ok) {
               const err = await res.json().catch(() => ({}));
               throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3297,7 +3428,9 @@
             body: JSON.stringify({ code, language: selectedLang }),
             signal: AbortSignal.timeout(30000),
           });
-          if (fallbackUsed) persistApiBase(baseUsed);
+          if (fallbackUsed) {
+            persistApiBase(baseUsed);
+          }
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.detail || `HTTP ${res.status}`);
@@ -3424,7 +3557,7 @@
           </div>
         </div>
         <div class="score-info">
-          <h3>Project Health</h3>
+          <p class="score-title">Project Health</p>
           <p>${escHtml(project.summary)}</p>
         </div>
       </div>
@@ -3511,7 +3644,7 @@
           el.innerHTML = `
       <div class="clean-state">
         <div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
-        <h3>${getTranslation('debug_clean_title')}</h3>
+        <p class="clean-title">${getTranslation('debug_clean_title')}</p>
         <p>${getTranslation('debug_clean_desc')}</p>
       </div>`;
           return;
@@ -3724,13 +3857,13 @@
         </div>
       </div>
       <div class="score-info">
-        <h3>${getTranslation('suggest_quality_score')}</h3>
+        <p class="score-title">${getTranslation('suggest_quality_score')}</p>
         <p>${sugg.next_step}</p>
       </div>
     </div>`;
 
         const cards = sugg.suggestions.length === 0
-          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><h3>${getTranslation('suggest_perfect_title')}</h3><p>${getTranslation('suggest_perfect_desc')}</p></div>`
+          ? `<div class="clean-state"><div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><p class="clean-title">${getTranslation('suggest_perfect_title')}</p><p>${getTranslation('suggest_perfect_desc')}</p></div>`
           : sugg.suggestions.map((s, i) => {
 
             let exampleHtml = '';
@@ -4090,7 +4223,7 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
          SAMPLE CODE LOADER
       ═══════════════════════════════════════════════════════════════ */
       const SAMPLES = {
-        python: `// Python Sample
+        python: `# Python Sample
   import os
 
 # [!] Hardcoded secret - security risk
@@ -4267,4 +4400,3 @@ int main() {
 </body>
 
 </html>
-
