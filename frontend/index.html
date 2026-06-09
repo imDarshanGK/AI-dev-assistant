@@ -2067,6 +2067,103 @@
   .lang-tab{padding:7px 10px;font-size:0.72rem}
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
+
+/* ── Live Collaboration ── */
+.collab-panel {
+  margin: 12px 18px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  background: var(--bg3);
+}
+
+.collab-panel-top,
+.collab-comment-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.collab-panel input {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+}
+
+.collab-panel button {
+  padding: 9px 12px;
+  border-radius: var(--r2);
+  border: 1px solid var(--border2);
+  background: rgba(91, 156, 246, 0.12);
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.collab-panel button:hover {
+  border-color: var(--accent);
+}
+
+.collab-status {
+  margin-top: 8px;
+  font-size: 0.74rem;
+  color: var(--text2);
+}
+
+.collab-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.collab-user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+
+.collab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.collab-comments {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.collab-comment {
+  padding: 8px;
+  border-radius: var(--r2);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  font-size: 0.76rem;
+  color: var(--text2);
+}
+
+.collab-comment strong {
+  color: var(--text);
+}
+
+.collab-line-input {
+  max-width: 90px;
+}
+
 </style>
 <link rel="icon" href="data:,">
 </head>
@@ -4397,6 +4494,326 @@ int main() {
         }
       });
     </script>
+
+<script>
+(function () {
+  const editor = document.querySelector('#codeEditor');
+  if (!editor) return;
+
+  let socket = null;
+  let currentSessionId = '';
+  let clientId = '';
+  let version = 0;
+ let collaborators = [];
+  let suppressNextInput = false;
+  let debounceTimer = null;
+
+  const panel = document.createElement('div');
+  panel.className = 'collab-panel';
+  panel.innerHTML = `
+    <div class="collab-panel-top">
+      <input id="collabName" placeholder="Your name" value="Your name" />
+      <input id="collabSession" placeholder="Session ID e.g. review-676" />
+      <button id="collabJoinBtn" type="button">Join Live</button>
+      <button id="collabLeaveBtn" type="button" disabled>Leave</button>
+    </div>
+    <div id="collabStatus" class="collab-status">Live collaboration is not connected.</div>
+    <div id="collabUsers" class="collab-users"></div>
+    <div class="collab-comment-row" style="margin-top:10px;">
+      <input id="collabLine" class="collab-line-input" type="number" min="1" value="1" />
+      <input id="collabCommentText" placeholder="Add a live review comment..." />
+      <button id="collabCommentBtn" type="button" disabled>Comment</button>
+    </div>
+    <div id="collabComments" class="collab-comments"></div>
+  `;
+
+  const editorPanel = editor.closest('.panel') || editor.parentElement;
+  editorPanel.insertBefore(panel, editorPanel.firstChild);
+
+  const nameInput = panel.querySelector('#collabName');
+  const sessionInput = panel.querySelector('#collabSession');
+  const joinBtn = panel.querySelector('#collabJoinBtn');
+  const leaveBtn = panel.querySelector('#collabLeaveBtn');
+  const statusEl = panel.querySelector('#collabStatus');
+  const usersEl = panel.querySelector('#collabUsers');
+  const lineInput = panel.querySelector('#collabLine');
+  const commentText = panel.querySelector('#collabCommentText');
+  const commentBtn = panel.querySelector('#collabCommentBtn');
+  const commentsEl = panel.querySelector('#collabComments');
+
+  function getApiBase() {
+  const saved = localStorage.getItem('qyx_apiUrl');
+  if (saved) return saved.replace(/\/$/, '');
+
+  if (location.pathname.startsWith('/app')) {
+    return location.origin;
+  }
+
+  return 'http://localhost:8000';
+}
+
+  function getWsBase() {
+    return getApiBase().replace(/^http/, 'ws');
+  }
+
+  function setStatus(text) {
+    statusEl.textContent = text;
+  }
+
+  function selectedLanguage() {
+    const activeTab = document.querySelector('.lang-tab.active');
+    return activeTab ? activeTab.dataset.lang || activeTab.textContent.trim().toLowerCase() : 'python';
+  }
+
+  function getCursorPayload() {
+    const value = editor.value || '';
+    const index = editor.selectionStart || 0;
+    const before = value.slice(0, index);
+    const lines = before.split('\n');
+
+    return {
+      line: lines.length,
+      column: lines[lines.length - 1].length + 1,
+      selectionStart: editor.selectionStart || 0,
+      selectionEnd: editor.selectionEnd || editor.selectionStart || 0
+    };
+  }
+
+  function send(payload) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify(payload));
+  }
+
+  function renderUsers(users) {
+    usersEl.innerHTML = '';
+
+    users.forEach((user) => {
+      const cursor = user.cursor
+        ? ` · L${user.cursor.line}:C${user.cursor.column}`
+        : '';
+
+      const pill = document.createElement('div');
+      pill.className = 'collab-user-pill';
+      pill.innerHTML = `
+        <span class="collab-dot" style="background:${user.color}"></span>
+        <span>${escapeHtml(user.name)}${cursor}</span>
+      `;
+      usersEl.appendChild(pill);
+    });
+  }
+
+  function renderComments(comments) {
+    commentsEl.innerHTML = '';
+
+    comments.forEach((comment) => {
+      const item = document.createElement('div');
+      item.className = 'collab-comment';
+      item.innerHTML = `
+        <strong style="color:${comment.color}">${escapeHtml(comment.author)}</strong>
+        on line <strong>${comment.line}</strong>: ${escapeHtml(comment.text)}
+      `;
+      commentsEl.appendChild(item);
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function applyRemoteCode(message) {
+    suppressNextInput = true;
+    editor.value = message.code || '';
+    version = message.version || version;
+
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+
+    window.setTimeout(() => {
+      suppressNextInput = false;
+    }, 0);
+  }
+
+  function handleMessage(message) {
+    if (message.type === 'session_state') {
+  clientId = message.clientId;
+  version = message.version || 0;
+  collaborators = message.users || [];
+
+  if (message.code) {
+    applyRemoteCode(message);
+  }
+
+  renderUsers(collaborators);
+  renderComments(message.comments || []);
+  setStatus(`Connected to session "${message.sessionId}" as ${clientId}.`);
+  return;
+}
+
+    if (message.type === 'presence_update') {
+  collaborators = message.users || [];
+  renderUsers(collaborators);
+  return;
+}
+
+    if (message.type === 'code_update') {
+  version = message.version || version;
+
+  if (message.senderId === clientId) {
+    setStatus(`Your edit was synced as v${version}.`);
+    return;
+  }
+
+  applyRemoteCode(message);
+  setStatus(`Synced live update v${version}.`);
+  return;
+}
+
+    if (message.type === 'cursor_update') {
+  collaborators = collaborators.map((user) =>
+    user.id === message.user.id ? message.user : user
+  );
+  renderUsers(collaborators);
+  return;
+}
+
+    if (message.type === 'comment_added') {
+      renderComments(message.comments || []);
+      return;
+    }
+
+    if (message.type === 'sync_required') {
+  applyRemoteCode(message);
+  collaborators = message.users || [];
+  renderUsers(collaborators);
+  renderComments(message.comments || []);
+  setStatus('Your local edit was behind the room version, so the latest room state was restored.');
+  return;
+}
+
+    if (message.type === 'pong') {
+      setStatus(`Connected to session "${currentSessionId}".`);
+      return;
+    }
+
+    if (message.type === 'error') {
+      setStatus(`Collaboration error: ${message.detail}`);
+    }
+  }
+
+  function connect() {
+    const session = sessionInput.value.trim();
+    const name = nameInput.value.trim() || 'Anonymous';
+
+    if (!session) {
+      setStatus('Enter a session ID before joining.');
+      return;
+    }
+
+    if (socket) {
+      socket.close();
+    }
+
+    currentSessionId = session;
+
+    const url = `${getWsBase()}/collaboration/ws/${encodeURIComponent(session)}?name=${encodeURIComponent(name)}`;
+    socket = new WebSocket(url);
+
+    socket.addEventListener('open', () => {
+      joinBtn.disabled = true;
+      leaveBtn.disabled = false;
+      commentBtn.disabled = false;
+      setStatus(`Connected to "${session}".`);
+
+      send({
+        type: 'code_update',
+        code: editor.value || '',
+        language: selectedLanguage(),
+        version
+      });
+    });
+
+    socket.addEventListener('message', (event) => {
+      try {
+        handleMessage(JSON.parse(event.data));
+      } catch {
+        setStatus('Received an invalid collaboration message.');
+      }
+    });
+
+    socket.addEventListener('close', () => {
+      joinBtn.disabled = false;
+      leaveBtn.disabled = true;
+      commentBtn.disabled = true;
+      setStatus('Live collaboration disconnected.');
+    });
+
+    socket.addEventListener('error', () => {
+      setStatus('Could not connect to live collaboration WebSocket.');
+    });
+  }
+
+  function disconnect() {
+    if (socket) {
+      socket.close();
+      socket = null;
+    }
+  }
+
+  editor.addEventListener('input', () => {
+    if (suppressNextInput) return;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      send({
+        type: 'code_update',
+        code: editor.value || '',
+        language: selectedLanguage(),
+        version
+      });
+    }, 250);
+  });
+
+  editor.addEventListener('keyup', () => {
+    send({
+      type: 'cursor_update',
+      cursor: getCursorPayload()
+    });
+  });
+
+  editor.addEventListener('click', () => {
+    send({
+      type: 'cursor_update',
+      cursor: getCursorPayload()
+    });
+  });
+
+  commentBtn.addEventListener('click', () => {
+    const text = commentText.value.trim();
+    if (!text) return;
+
+    send({
+      type: 'comment_added',
+      line: Number(lineInput.value || 1),
+      text
+    });
+
+    commentText.value = '';
+  });
+
+  joinBtn.addEventListener('click', connect);
+  leaveBtn.addEventListener('click', disconnect);
+
+  setInterval(() => {
+    send({ type: 'ping' });
+  }, 25000);
+})();
+</script>
+
 </body>
 
 </html>
