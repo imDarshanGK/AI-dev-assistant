@@ -8,10 +8,24 @@ import zipfile
 from io import BytesIO
 from pathlib import PurePosixPath
 
-from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    UploadFile,
+)
 from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
 
+from ..database import get_db
+from ..models import User
 from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
+from ..security import get_optional_user
 from ..services.cache import cache
 from ..services.code_assistant import (
     detect_language,
@@ -20,6 +34,7 @@ from ..services.code_assistant import (
     run_explanation,
     run_suggestions,
 )
+from ..services.usage import enforce_quota, estimate_usage, log_usage
 from ..sanitize import sanitize_code_input, sanitize_language_hint
 router = APIRouter()
 
@@ -192,15 +207,28 @@ async def analyze_stream_get(
     response_model=AnalyzeResponse,
     summary="Run full analysis (explain + debug + suggest)",
 )
-async def analyze(req: CodeRequest, response: Response):
+async def analyze(
+    req: CodeRequest,
+    response: Response,
+    current_user: User | None = Depends(get_optional_user),
+    db: Session = Depends(get_db),
+    team_id: str | None = Header(default=None, alias="X-Team-Id"),
+):
+    user_id = current_user.id if current_user else None
+    preflight_estimate = estimate_usage(req.code)
+    enforce_quota(db, preflight_estimate, user_id=user_id, team_id=team_id)
+
     cache_input = f"{req.language or 'auto'}\n{req.code}"
     cached_payload = cache.get("analyze:v1", cache_input)
 
     if cached_payload is not None:
         response.headers["X-Cache"] = "HIT"
+        log_usage(db, "/analyze/", preflight_estimate, user_id=user_id, team_id=team_id)
         return cached_payload
 
     payload = full_analysis(req.code, req.language)
+    usage_estimate = estimate_usage(req.code, json.dumps(payload, sort_keys=True))
+    log_usage(db, "/analyze/", usage_estimate, user_id=user_id, team_id=team_id)
 
     cache.set("analyze:v1", cache_input, payload)
 

@@ -71,3 +71,19 @@ def get_current_user(
         )
 
     return user
+
+
+def get_optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> User | None:
+    """Return the authenticated user when a valid bearer token is provided."""
+    if credentials is None:
+        return None
+
+    try:
+        user_id = decode_access_token(credentials.credentials)
+    except Exception:
+        return None
+
+    return db.get(User, user_id)
