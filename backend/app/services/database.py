@@ -13,7 +13,8 @@ DB_PATH = os.getenv("HISTORY_DB_PATH", "history.db")
 
 async def init_db() -> None:
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("""
+        await db.execute(
+            """
             CREATE TABLE IF NOT EXISTS history (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 code_hash   TEXT NOT NULL,
@@ -23,11 +24,14 @@ async def init_db() -> None:
                 timestamp   TEXT NOT NULL DEFAULT (datetime('now')),
                 code_preview TEXT NOT NULL
             )
-        """)
-        await db.execute("""
+        """
+        )
+        await db.execute(
+            """
             CREATE VIRTUAL TABLE IF NOT EXISTS fts_history
             USING fts5(code_preview, content=history, content_rowid=id)
-        """)
+        """
+        )
         await db.execute(
             "CREATE INDEX IF NOT EXISTS idx_timestamp ON history(timestamp DESC)"
         )
@@ -101,11 +105,7 @@ async def search_entries(q: str, limit: int = 20) -> list[dict]:
 
 async def delete_entry(entry_id: int) -> bool:
     async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute(
-            "DELETE FROM history WHERE id = ?", (entry_id,)
-        )
-        await db.execute(
-            "DELETE FROM fts_history WHERE rowid = ?", (entry_id,)
-        )
+        cursor = await db.execute("DELETE FROM history WHERE id = ?", (entry_id,))
+        await db.execute("DELETE FROM fts_history WHERE rowid = ?", (entry_id,))
         await db.commit()
         return cursor.rowcount > 0
