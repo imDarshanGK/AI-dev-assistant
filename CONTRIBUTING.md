@@ -134,7 +134,109 @@ Before opening a PR, confirm:
 - [ ] PR description explains *what* and *why*
 
 ---
+## PR Process Examples
 
+To keep the contribution flow consistent, follow these patterns when creating a branch, writing commits, and opening a Pull Request.
+
+### 🌿 Branch Naming
+
+Use a short, descriptive, kebab-case branch name prefixed by the type of change.
+
+| Type | Format | Example |
+|------|--------|---------|
+| New feature | `feat/<short-description>` | `feat/add-dark-mode-toggle` |
+| Bug fix | `fix/<issue-id>-<short-description>` | `fix/142-null-pointer-on-login` |
+| Documentation | `docs/<short-description>` | `docs/update-readme-installation` |
+| Refactor | `refactor/<short-description>` | `refactor/simplify-auth-service` |
+| Tests | `test/<short-description>` | `test/cover-debugging-endpoint` |
+| Chore / tooling | `chore/<short-description>` | `chore/bump-fastapi-version` |
+
+```bash
+# Create and switch to a new branch
+git checkout -b feat/add-dark-mode-toggle
+```
+
+---
+
+### 📝 Conventional Commit Messages
+
+Write commit messages in the format: `type(optional-scope): short summary`.
+
+| Type | When to use | Example |
+|------|-------------|---------|
+| `feat` | A new feature | `feat(api): add /health endpoint` |
+| `fix` | A bug fix | `fix(auth): handle expired tokens correctly` |
+| `docs` | Documentation only changes | `docs(contributing): add PR examples` |
+| `refactor` | Code change that neither fixes a bug nor adds a feature | `refactor(parser): extract helper function` |
+| `test` | Adding or updating tests | `test(debugging): cover empty input case` |
+| `chore` | Build process, dependencies, tooling | `chore(deps): upgrade pytest to 8.2` |
+| `style` | Formatting only, no logic change | `style: apply ruff formatting` |
+
+```bash
+# Example commit
+git commit -m "feat(debugging): add detection for mutable default arguments"
+```
+
+**Rules of thumb**
+- Keep the summary under **72 characters**.
+- Use the imperative mood: *"add"*, *"fix"*, *"update"* — not *"added"* or *"adds"*.
+- Reference the issue in the body if relevant: `Closes #465`.
+
+---
+
+### 📨 Sample Pull Request Description
+
+Use the template below when opening a PR. It mirrors the **Pull Request Checklist** above and helps reviewers understand the change quickly.
+
+```markdown
+## Summary
+<!-- One or two sentences: what does this PR do and why? -->
+Adds a `/health` endpoint that returns service status, used by Docker healthchecks and uptime monitors.
+
+## Related Issue
+Closes #123
+
+## Changes
+- Added `GET /health` route in `backend/app/api/health.py`
+- Registered the new router in `backend/app/main.py`
+- Added unit test in `backend/tests/test_health.py`
+
+## How to Test
+1. Run `uvicorn app.main:app --reload`
+2. Visit `http://localhost:8000/health`
+3. Expected response: `{"status": "ok"}`
+
+## Checklist
+- [x] `pytest -v` passes (all tests green)
+- [x] New feature has at least one test
+- [x] Code has type hints and docstrings
+- [x] README updated if behavior changed
+- [x] Branch is up-to-date with `main`
+- [x] PR description explains *what* and *why*
+
+## Screenshots / Notes (optional)
+<!-- Add screenshots, logs, or notes for the reviewer here. -->
+```
+
+---
+
+### 🔁 End-to-End Example
+
+Putting it all together for a hypothetical issue *#123 — Add /health endpoint*:
+
+```bash
+# 1. Create a branch
+git checkout -b feat/123-add-health-endpoint
+
+# 2. Make changes, then stage and commit
+git add backend/app/api/health.py backend/tests/test_health.py
+git commit -m "feat(api): add /health endpoint for uptime checks"
+
+# 3. Push the branch to your fork
+git push -u origin feat/123-add-health-endpoint
+
+# 4. Open a PR on GitHub using the description template above
+```
 ## Getting Help
 
 - Open an issue with the `question` label
