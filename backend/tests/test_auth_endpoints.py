@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.database import Base, get_db
 from app.main import app as fastapi_app
 
-
 TEST_ENGINE = create_engine(
     "sqlite:///:memory:",
     connect_args={"check_same_thread": False},

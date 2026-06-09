@@ -30,7 +30,9 @@ from app.sanitize import (
 )
 from security_payloads import (
     ANSI_PAYLOAD,
-    SCRIPT_TAG as XSS_PAYLOAD,
+)
+from security_payloads import SCRIPT_TAG as XSS_PAYLOAD
+from security_payloads import (
     XSS_WITH_NULL,
     assert_no_raw_script_tag,
 )
