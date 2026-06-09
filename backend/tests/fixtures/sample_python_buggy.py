@@ -17,4 +17,3 @@ def risky():
 
 
 x = eval("1+2")
-
