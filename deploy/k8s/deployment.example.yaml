@@ -1,0 +1,89 @@
+# Example Kubernetes Deployment + Service for QyverixAI.
+#
+# This manifest is illustrative — it shows how to wire the new probes and the
+# /metrics endpoint into a typical cluster. Adjust resources, replicas and
+# image references for your environment.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qyverixai
+  labels:
+    app: qyverixai
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qyverixai
+  template:
+    metadata:
+      labels:
+        app: qyverixai
+      annotations:
+        # Tell Prometheus' Kubernetes service-discovery to scrape this pod.
+        # (Only relevant if you use the prometheus.io/* annotation style. If
+        # you scrape via a ServiceMonitor / PodMonitor CRD instead, drop these.)
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: qyverixai
+          image: ghcr.io/imdarshangk/ai-dev-assistant:latest
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: METRICS_ENABLED
+              value: "true"
+            - name: RATE_LIMIT_PER_MINUTE
+              value: "120"
+          # Liveness — restarts the container when the process can no longer
+          # respond. Must NOT depend on external services.
+          livenessProbe:
+            httpGet:
+              path: /healthz/live
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          # Readiness — pulls the pod out of the Service load balancer when a
+          # critical dependency is down, but does NOT restart it.
+          readinessProbe:
+            httpGet:
+              path: /healthz/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          # Startup probe gives slow boots room to breathe before liveness
+          # takes over. Useful when scheduler / DB migrations run on start.
+          startupProbe:
+            httpGet:
+              path: /healthz/live
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30  # up to 150s of warm-up
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qyverixai
+  labels:
+    app: qyverixai
+spec:
+  selector:
+    app: qyverixai
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
