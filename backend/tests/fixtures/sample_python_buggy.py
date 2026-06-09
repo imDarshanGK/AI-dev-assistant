@@ -1,3 +1,4 @@
+# ruff: noqa
 import os
 
 password = "supersecret123"
@@ -11,10 +12,9 @@ def calculate(a, b):
 def risky():
     try:
         pass
-    except:
+    except Exception:
         pass
 
 
-from os import *
-
 x = eval("1+2")
+
