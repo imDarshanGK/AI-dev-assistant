@@ -4,7 +4,7 @@ import uuid
 from collections import defaultdict, deque
 from threading import Lock
 
-from fastapi import Request, Response, HTTPException
+from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 
 from .config import settings

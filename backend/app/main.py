@@ -3,45 +3,29 @@ QyverixAI — Backend API
 FastAPI application with advanced middleware, rate limiting, and full analysis engine.
 """
 
-from fastapi import FastAPI, Request
+import logging
+import os
+import time
+from contextlib import asynccontextmanager
+
+# ── Redis Rate Limiting ───────────────────────────────────────────────────────
+import redis.asyncio as redis
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-import time
-import os
-import logging
-from contextlib import asynccontextmanager
 
-from .routers import (
-    analyze,
-    auth,
-    chat,
-    debugging,
-    explanation,
-    history,
-    share,
-    subscribe,
-    suggestions,
-    upload_file,
-    user_data,
-)
+from .middleware import dynamic_rate_limiter
+from .observability import initialise_app_info, prometheus_metrics_middleware
+from .routers import analyze, auth, chat, debugging, explanation
 from .routers import health as health_router
+from .routers import history
 from .routers import metrics as metrics_router
+from .routers import share, subscribe, suggestions, upload_file, user_data
+from .schemas import HealthResponse
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
-from .observability import (
-    initialise_app_info,
-    prometheus_metrics_middleware,
-)
-
-from .schemas import HealthResponse
-
-
-# ── Redis Rate Limiting ───────────────────────────────────────────────────────
-import redis.asyncio as redis
-from fastapi import Depends
-from .middleware import dynamic_rate_limiter
 
 try:
     from fastapi_limiter import FastAPILimiter

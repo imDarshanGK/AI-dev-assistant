@@ -1,9 +1,11 @@
 """Tests for the code assistant service helpers."""
 
 from __future__ import annotations
-from app.services.code_assistant import chat_fallback_reply
+
 import os
 import sys
+
+from app.services.code_assistant import chat_fallback_reply
 
 CURRENT_DIR = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))

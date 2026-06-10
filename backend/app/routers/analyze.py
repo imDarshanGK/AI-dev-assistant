@@ -12,6 +12,7 @@ from pathlib import PurePosixPath
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 
+from ..sanitize import sanitize_code_input, sanitize_language_hint
 from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
 from ..services.cache import cache
 from ..services.code_assistant import (
@@ -21,7 +22,6 @@ from ..services.code_assistant import (
     run_explanation,
     run_suggestions,
 )
-from ..sanitize import sanitize_code_input, sanitize_language_hint
 
 router = APIRouter()
 
