@@ -18,6 +18,7 @@ from .routers import (
     analyze,
     auth,
     chat,
+    completions,
     debugging,
     explanation,
     history,
@@ -114,7 +115,13 @@ async def add_process_time_header(request: Request, call_next):
     remaining = RATE_LIMIT
 
     # Apply rate limiting to analysis endpoints only
-    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
+    if request.url.path in (
+        "/explanation/",
+        "/debugging/",
+        "/suggestions/",
+        "/analyze/",
+        "/api/suggestions",
+    ):
         remaining = check_rate_limit(ip)
         if remaining < 0:
             elapsed = (time.perf_counter() - start) * 1000
@@ -152,6 +159,7 @@ async def add_cache_header(request: Request, call_next):
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
 app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
+app.include_router(completions.router, prefix="/api",         tags=["AI Suggestions"])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
 app.include_router(history.router,     prefix="/history",     tags=["History"])
@@ -181,6 +189,7 @@ async def root():
             "/explanation/",
             "/debugging/",
             "/suggestions/",
+            "/api/suggestions",
             "/analyze/",
             "/subscribe/",
             "/share/",

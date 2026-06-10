@@ -70,6 +70,19 @@ class Settings:
     llm_max_retries: int = _int_env("LLM_MAX_RETRIES", 3)
     llm_retry_backoff: float = _float_env("LLM_RETRY_BACKOFF", 1.0)
 
+    # ── AI code-completion / suggestion engine ──────────────────
+    # Hard cap on the source size forwarded to the model for a single
+    # suggestion request. Kept well below max_code_chars so prompts stay
+    # within model context limits.
+    suggestion_max_code_chars: int = _int_env("SUGGESTION_MAX_CODE_CHARS", 8000)
+    # Maximum number of suggestions returned to the caller.
+    suggestion_max_results: int = _int_env("SUGGESTION_MAX_RESULTS", 6)
+    # Reject any single applyEdit whose newText exceeds this many lines —
+    # a guard against the model dumping an entire rewritten file.
+    suggestion_max_edit_lines: int = _int_env("SUGGESTION_MAX_EDIT_LINES", 40)
+    # Sampling temperature for completion-style generation (low = focused).
+    suggestion_temperature: float = _float_env("SUGGESTION_TEMPERATURE", 0.2)
+
     # ── Email / Digest ──────────────────────────────────────────
     smtp_host: str = os.getenv("SMTP_HOST", "")
     smtp_port: int = _int_env("SMTP_PORT", 587)
