@@ -85,7 +85,10 @@ async def dynamic_rate_limiter(request: Request, response: Response):
     Dynamic dependency that checks if Redis-backed rate limiter is initialized.
     If so, it uses it. Otherwise, it gracefully falls back to the in-memory deque.
     """
-    if FastAPILimiter is not None and getattr(FastAPILimiter, "redis", None) is not None:
+    if (
+        FastAPILimiter is not None
+        and getattr(FastAPILimiter, "redis", None) is not None
+    ):
         try:
             limiter = RateLimiter(
                 times=settings.rate_limit_requests,
@@ -96,7 +99,9 @@ async def dynamic_rate_limiter(request: Request, response: Response):
         except HTTPException:
             raise
         except Exception as e:
-            logger.warning(f"Redis rate limiting failed: {e}. Falling back to in-memory.")
+            logger.warning(
+                f"Redis rate limiting failed: {e}. Falling back to in-memory."
+            )
 
     # In-memory fallback
     client_key = get_client_key(request)

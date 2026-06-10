@@ -42,6 +42,7 @@ from .schemas import HealthResponse
 import redis.asyncio as redis
 from fastapi import Depends
 from .middleware import dynamic_rate_limiter
+
 try:
     from fastapi_limiter import FastAPILimiter
 except ImportError:
@@ -58,17 +59,25 @@ async def lifespan(app: FastAPI):
 
     if settings.redis_url and FastAPILimiter is not None:
         try:
-            redis_client = redis.from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
+            redis_client = redis.from_url(
+                settings.redis_url, encoding="utf-8", decode_responses=True
+            )
             await redis_client.ping()
             await FastAPILimiter.init(redis_client)
             print("✅ Redis rate limiter initialized.")
         except Exception as e:
-            print(f"⚠️ Redis connection failed: {e}. Falling back to in-memory rate limiter.")
+            print(
+                f"⚠️ Redis connection failed: {e}. Falling back to in-memory rate limiter."
+            )
     else:
-        print("⚠️ Redis URL not configured or fastapi-limiter not installed. Using in-memory rate limiter.")
+        print(
+            "⚠️ Redis URL not configured or fastapi-limiter not installed. Using in-memory rate limiter."
+        )
 
     # Static info gauge so dashboards can pin version / provider labels.
-    initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
+    initialise_app_info(
+        version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
+    )
     start_scheduler()
     yield
     stop_scheduler()
@@ -126,17 +135,37 @@ async def add_cache_header(request: Request, call_next):
 
 
 # ── Routers ───────────────────────────────────────────────────────────────────
-app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"], dependencies=[Depends(dynamic_rate_limiter)])
-app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"], dependencies=[Depends(dynamic_rate_limiter)])
-app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"], dependencies=[Depends(dynamic_rate_limiter)])
-app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"], dependencies=[Depends(dynamic_rate_limiter)])
-app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
-app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(
+    explanation.router,
+    prefix="/explanation",
+    tags=["Explanation"],
+    dependencies=[Depends(dynamic_rate_limiter)],
+)
+app.include_router(
+    debugging.router,
+    prefix="/debugging",
+    tags=["Debugging"],
+    dependencies=[Depends(dynamic_rate_limiter)],
+)
+app.include_router(
+    suggestions.router,
+    prefix="/suggestions",
+    tags=["Suggestions"],
+    dependencies=[Depends(dynamic_rate_limiter)],
+)
+app.include_router(
+    analyze.router,
+    prefix="/analyze",
+    tags=["Full Analysis"],
+    dependencies=[Depends(dynamic_rate_limiter)],
+)
+app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
+app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
-app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
 
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics
