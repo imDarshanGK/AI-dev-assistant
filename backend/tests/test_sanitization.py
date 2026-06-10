@@ -191,4 +191,3 @@ def test_html_angle_brackets_in_code_preserved():
     r = client.post("/explanation/", json={"code": code, "language": "cpp"})
     assert r.status_code == 200
     assert r.json()["language"] == "C++"
-
