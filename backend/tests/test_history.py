@@ -1,6 +1,7 @@
 """
 Tests for the /history/ endpoints.
 """
+
 import sys
 import os
 import tempfile
@@ -22,12 +23,15 @@ client = TestClient(app, raise_server_exceptions=True)
 
 
 def test_save_history():
-    r = client.post("/history/", json={
-        "code": "print('hello')",
-        "language": "Python",
-        "score": 85,
-        "issue_count": 1,
-    })
+    r = client.post(
+        "/history/",
+        json={
+            "code": "print('hello')",
+            "language": "Python",
+            "score": 85,
+            "issue_count": 1,
+        },
+    )
     assert r.status_code == 201
     d = r.json()
     assert d["status"] == "saved"
@@ -35,7 +39,10 @@ def test_save_history():
 
 
 def test_get_history():
-    client.post("/history/", json={"code": "x = 1", "language": "Python", "score": 90, "issue_count": 0})
+    client.post(
+        "/history/",
+        json={"code": "x = 1", "language": "Python", "score": 90, "issue_count": 0},
+    )
     r = client.get("/history/")
     assert r.status_code == 200
     assert isinstance(r.json(), list)
@@ -49,7 +56,10 @@ def test_get_history_pagination():
 
 
 def test_search_history():
-    client.post("/history/", json={"code": "def my_unique_function(): pass", "language": "Python"})
+    client.post(
+        "/history/",
+        json={"code": "def my_unique_function(): pass", "language": "Python"},
+    )
     r = client.get("/history/search?q=my_unique_function")
     assert r.status_code == 200
     results = r.json()
@@ -71,9 +81,16 @@ def test_delete_nonexistent():
     assert "History entry not found" in r.json()["detail"]
 
 
-
 def test_history_entry_fields():
-    client.post("/history/", json={"code": "let x = 1;", "language": "JavaScript", "score": 70, "issue_count": 2})
+    client.post(
+        "/history/",
+        json={
+            "code": "let x = 1;",
+            "language": "JavaScript",
+            "score": 70,
+            "issue_count": 2,
+        },
+    )
     r = client.get("/history/")
     assert r.status_code == 200
     entry = r.json()[0]

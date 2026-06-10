@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger("ai_assistant.exceptions")
 
+
 class ErrorCode(str, Enum):
     INVALID_TOKEN = "invalid_token"
     AUTHENTICATION_REQUIRED = "authentication_required"
@@ -24,10 +25,18 @@ class ErrorCode(str, Enum):
     ALREADY_SUBSCRIBED = "already_subscribed"
     SUBSCRIPTION_NOT_FOUND = "subscription_not_found"
 
+
 class APIException(HTTPException):
-    def __init__(self, status_code: int, error_code: ErrorCode, detail: str, headers: dict | None = None):
+    def __init__(
+        self,
+        status_code: int,
+        error_code: ErrorCode,
+        detail: str,
+        headers: dict | None = None,
+    ):
         super().__init__(status_code=status_code, detail=detail, headers=headers)
         self.error_code = error_code
+
 
 def map_http_exception_to_code(status_code: int, detail: str) -> str:
     detail_lower = detail.lower()
@@ -90,7 +99,10 @@ def map_http_exception_to_code(status_code: int, detail: str) -> str:
     if status_code == 500:
         return ErrorCode.INTERNAL_SERVER_ERROR
 
-    return ErrorCode.BAD_REQUEST if status_code < 500 else ErrorCode.INTERNAL_SERVER_ERROR
+    return (
+        ErrorCode.BAD_REQUEST if status_code < 500 else ErrorCode.INTERNAL_SERVER_ERROR
+    )
+
 
 async def api_exception_handler(request: Request, exc: APIException):
     return JSONResponse(
@@ -102,6 +114,7 @@ async def api_exception_handler(request: Request, exc: APIException):
         headers=exc.headers,
     )
 
+
 async def http_exception_handler(request: Request, exc: HTTPException):
     error_code = map_http_exception_to_code(exc.status_code, exc.detail)
     return JSONResponse(
@@ -112,6 +125,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         },
         headers=exc.headers,
     )
+
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
