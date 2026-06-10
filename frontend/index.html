@@ -746,6 +746,7 @@
       width: 100%;
       min-height: 300px;
       max-height: 500px;
+      overflow-y: auto;
       padding: 16px;
       font-family: var(--font-mono);
       font-size: 13px;
@@ -2262,6 +2263,7 @@
         </div>
 
         <!-- Language tabs -->
+
         <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
           <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true"  data-i18n="lang_tab_python">Python</button>
           <button class="lang-tab" data-lang="javascript"    role="tab" aria-selected="false" data-i18n="lang_tab_javascript">JavaScript</button>
@@ -2322,17 +2324,17 @@
         </div>
 
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
-          <button id="tab-explain" class="result-tab active" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
+          <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
             <span data-i18n="tab_explain">Explain</span>
             <span class="tab-badge" id="explainBadge"></span>
           </button>
-          <button id="tab-debug" class="result-tab" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
+          <button class="result-tab" id="tab-debug" data-rtab="debug" role="tab" aria-selected="false" aria-controls="pane-debug">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 2l1.5 1.5"/></svg>
             <span data-i18n="tab_debug">Debug</span>
             <span class="tab-badge" id="debugBadge"></span>
           </button>
-          <button id="tab-suggest" class="result-tab" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
+          <button class="result-tab" id="tab-suggest" data-rtab="suggest" role="tab" aria-selected="false" aria-controls="pane-suggest">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
             <span data-i18n="tab_improve">Improve</span>
             <span class="tab-badge" id="suggestBadge"></span>
@@ -2340,7 +2342,7 @@
         </div>
         <div class="result-content">
           <!-- Explain Pane -->
-          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-label="Explanation Panel">
+          <div class="result-pane active" id="pane-explain" role="tabpanel" tabindex="0" aria-labelledby="tab-explain">
             <div class="empty-state" id="emptyExplain">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2353,7 +2355,7 @@
             <div id="explainResult" style="display:none"></div>
           </div>
           <!-- Debug Pane -->
-          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-label="Debugging Panel">
+          <div class="result-pane" id="pane-debug" role="tabpanel" tabindex="0" aria-labelledby="tab-debug">
             <div class="empty-state" id="emptyDebug">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2373,7 +2375,7 @@
             <div id="debugResult" style="display:none"></div>
           </div>
           <!-- Suggest Pane -->
-          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-label="Suggestions Panel">
+          <div class="result-pane" id="pane-suggest" role="tabpanel" tabindex="0" aria-labelledby="tab-suggest">
             <div class="empty-state" id="emptySuggest">
               <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5">
@@ -2997,7 +2999,9 @@
         lineNumbers.innerHTML = val
           ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
           : '1';
-      }
+          // Fix: sync line numbers height exactly to editor height
+          lineNumbers.style.height = editor.offsetHeight + 'px';
+          }
 
       function syncApiStatusText() {
         if (!apiStatusText) return;
@@ -3294,7 +3298,7 @@
         document.querySelectorAll('.lang-tab').forEach(t => {
           const isActive = t.dataset.lang === lang;
           t.classList.toggle('active', isActive);
-          t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+          t.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
 
         // 2. Check if the editor currently contains one of the samples
@@ -4252,7 +4256,7 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
          SAMPLE CODE LOADER
       ═══════════════════════════════════════════════════════════════ */
       const SAMPLES = {
-        python: `// Python Sample
+        python: `# Python Sample
   import os
 
 # [!] Hardcoded secret - security risk
