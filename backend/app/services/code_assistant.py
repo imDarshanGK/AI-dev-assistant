@@ -878,14 +878,13 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 def run_suggestions(code: str, language: str) -> dict:
     """Generate improvement suggestions for the provided source code.
 
-    Args:
-        code: The source code to analyse.
-        language: The detected or selected programming language.
+Args:
+    code: The source code to analyse.
+    language: The detected or selected programming language.
 
-    Returns:
-        Suggestion results including score, grade, and recommendations.
-    """
-    """Enhanced suggestion engine with line number tracking."""
+Returns:
+    Suggestion results including score, grade, and recommendations.
+"""
     from .line_utils import (
         format_code_snippet,
         find_lines_matching_pattern,
@@ -896,6 +895,16 @@ def run_suggestions(code: str, language: str) -> dict:
     suggestions: list[dict] = []
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
+
+    # Cache commonly used regex checks
+    has_try = bool(re.search(r"\btry\b", code))
+    has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
+    has_tests = bool(
+        re.search(
+            r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]",
+            code,
+        )
+    )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 1: Documentation Quality
@@ -971,7 +980,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 4: Error Handling
     # ─────────────────────────────────────────────────────────────
-    if language == "Python" and not re.search(r"\btry\b", code):
+    if language == "Python" and not has_try:
         risky_patterns = [
             r"requests\.(get|post|put|delete)",
             r"open\s*\(",
@@ -1030,7 +1039,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 6: Tests
     # ─────────────────────────────────────────────────────────────
-    if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]", code):
+    if not has_tests:
         suggestions.append(
             {
                 "category": "Testing",
@@ -1048,7 +1057,6 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     if language == "Python":
         print_lines = find_lines_matching_pattern(code, r"\bprint\s*\(")
-        has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
