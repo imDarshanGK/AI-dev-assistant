@@ -18,6 +18,7 @@ from .routers import (
     analyze,
     auth,
     chat,
+    collaboration,
     debugging,
     explanation,
     history,
@@ -150,16 +151,21 @@ async def add_cache_header(request: Request, call_next):
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
-app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
+app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
-app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
-app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+app.include_router(subscribe.router,   prefix="/subscribe", tags=["Subscription"])
+app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
-app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
+app.include_router(
+    collaboration.router,
+    prefix="/collaboration",
+    tags=["Collaboration"],
+)
 
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics
@@ -188,10 +194,8 @@ async def root():
             "/chat/",
             "/user/",
             "/analyze/zip/",
-            "/analyze/zip/",
-            "/subscribe/",
-            "/share/",
             "/history/",
+            "/collaboration/ws/{session_id}",
         ],
     }
 
@@ -217,6 +221,7 @@ async def health_check():
             "/user/",
             "/analyze/zip/",
             "/history/",
+            "/collaboration/ws/{session_id}",
         ],
     }
 
