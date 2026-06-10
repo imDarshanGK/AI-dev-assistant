@@ -14,13 +14,14 @@ import httpx
 
 logger = logging.getLogger("ai_provider")
 
-LLM_ENABLED  = os.getenv("LLM_ENABLED", "false").lower() == "true"
-LLM_API_KEY  = os.getenv("LLM_API_KEY", "")
+LLM_ENABLED = os.getenv("LLM_ENABLED", "false").lower() == "true"
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
-LLM_MODEL    = os.getenv("LLM_MODEL", "gpt-4o-mini")
-LLM_TIMEOUT  = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
+LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
+LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
 LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))
 LLM_RETRY_BACKOFF = float(os.getenv("LLM_RETRY_BACKOFF", "1.0"))
+
 
 def _get_provider_name(base_url: str) -> str:
     parsed = urlparse(base_url)
@@ -34,6 +35,7 @@ def _get_provider_name(base_url: str) -> str:
     elif "localhost" in hostname or "127.0.0.1" in hostname:
         return "ollama"
     return "unknown"
+
 
 async def call_llm(system: str, user: str) -> str | None:
     """Return LLM text response or None if disabled/error."""
@@ -144,7 +146,9 @@ async def call_llm(system: str, user: str) -> str | None:
             "fallback_available": True,
         }
     )
+
     return None
+
 
 def is_enabled() -> bool:
     return LLM_ENABLED and bool(LLM_API_KEY)

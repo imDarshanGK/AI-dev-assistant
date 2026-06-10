@@ -61,6 +61,8 @@ def metrics_auth_token() -> str | None:
 # Paths the middleware ignores entirely (the /metrics endpoint must not record
 # itself; static files under /app are noisy and high-cardinality if used as
 # labels). Health probes ARE recorded so we can alert on probe failures.
+
+
 _EXCLUDED_PATH_PREFIXES: tuple[str, ...] = (
     "/metrics",
     "/app",
