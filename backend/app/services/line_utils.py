@@ -3,18 +3,86 @@
 import re
 
 
+def _generate_lines(code: str):
+    """Generate (line_number, line_text) without eagerly splitting all lines."""
+    current_pos = 0
+    current_line = 1
+    length = len(code)
+    if length == 0:
+        return
+
+    while current_pos < length:
+        end_pos = code.find("\n", current_pos)
+        if end_pos == -1:
+            line = code[current_pos:]
+            if line.endswith("\r"):
+                line = line[:-1]
+            yield current_line, line
+            break
+
+        line = code[current_pos:end_pos]
+        if line.endswith("\r"):
+            line = line[:-1]
+        yield current_line, line
+
+        current_pos = end_pos + 1
+        current_line += 1
+
+
 def get_line_content(code: str, line_number: int) -> str:
     """Get text of specific line."""
-    lines = code.splitlines()
-    if 1 <= line_number <= len(lines):
-        return lines[line_number - 1]
-    return ""
+    if line_number < 1:
+        return ""
+    
+    current_pos = 0
+    for _ in range(line_number - 1):
+        current_pos = code.find("\n", current_pos)
+        if current_pos == -1:
+            return ""
+        current_pos += 1
+        
+    end_pos = code.find("\n", current_pos)
+    if end_pos == -1:
+        res = code[current_pos:]
+    else:
+        res = code[current_pos:end_pos]
+    if res.endswith("\r"):
+        res = res[:-1]
+    return res
 
 
 def get_lines_range(code: str, start: int, end: int) -> list[str]:
     """Get lines from start to end (inclusive)."""
-    lines = code.splitlines()
-    return lines[max(0, start - 1) : min(len(lines), end)]
+    if start < 1:
+        start = 1
+    if end < start:
+        return []
+
+    current_pos = 0
+    for _ in range(start - 1):
+        current_pos = code.find("\n", current_pos)
+        if current_pos == -1:
+            return []
+        current_pos += 1
+
+    result = []
+    for _ in range(end - start + 1):
+        end_pos = code.find("\n", current_pos)
+        if end_pos == -1:
+            res = code[current_pos:]
+            if res or (current_pos < len(code)):
+                if res.endswith("\r"):
+                    res = res[:-1]
+                result.append(res)
+            break
+        else:
+            res = code[current_pos:end_pos]
+            if res.endswith("\r"):
+                res = res[:-1]
+            result.append(res)
+            current_pos = end_pos + 1
+
+    return result
 
 
 def _escape_script_tags(text: str) -> str:
@@ -31,35 +99,35 @@ def format_code_snippet(
     Format code snippet with line numbers.
     Highlights specified lines with >>> prefix.
     """
-    lines = code.splitlines()
+    if not code:
+        return ""
+
+    total_lines = code.count("\n") + (1 if not code.endswith("\n") and code else 0)
     min_line = min(line_numbers) if line_numbers else 1
-    max_line = max(line_numbers) if line_numbers else len(lines)
+    max_line = max(line_numbers) if line_numbers else total_lines
 
     # Add context
-    start = max(0, min_line - 1 - context_lines)
-    end = min(len(lines), max_line + context_lines)
+    start = max(1, min_line - context_lines)
+    end = min(total_lines, max_line + context_lines)
 
     snippet = ""
-    for idx in range(start, end):
-        line_num = idx + 1
-        marker = ">>> " if line_num in line_numbers else "    "
-        line = _escape_script_tags(lines[idx])
-        snippet += f"{marker}{line_num}: {line}\n"
+    for line_num, line in _generate_lines(code):
+        if line_num > end:
+            break
+        if line_num >= start:
+            marker = ">>> " if line_num in line_numbers else "    "
+            escaped_line = _escape_script_tags(line)
+            snippet += f"{marker}{line_num}: {escaped_line}\n"
 
     return snippet
 
 
 def find_lines_matching_pattern(code: str, pattern: str) -> list[int]:
     """Find all line numbers matching regex pattern."""
-    import re
-
-    lines = code.splitlines()
     matches = []
-
-    for idx, line in enumerate(lines, start=1):
+    for line_num, line in _generate_lines(code):
         if re.search(pattern, line, re.IGNORECASE):
-            matches.append(idx)
-
+            matches.append(line_num)
     return matches
 
 
@@ -101,14 +169,27 @@ def find_function_lines(code: str, language: str = "Python") -> list[dict]:
     matches = list(re.finditer(pattern, code, re.MULTILINE))
     functions = []
 
+    total_lines = code.count("\n")
+    if not code.endswith("\n") and code:
+        total_lines += 1
+
+    current_line = 1
+    current_pos = 0
+
     for i, match in enumerate(matches):
-        start_line = code[: match.start()].count("\n") + 1
+        segment = code[current_pos:match.start()]
+        current_line += segment.count("\n")
+        current_pos = match.start()
+
+        start_line = current_line
 
         # Find end: either next function or EOF
         if i + 1 < len(matches):
-            end_line = code[: matches[i + 1].start()].count("\n")
+            next_start = matches[i + 1].start()
+            segment_next = code[current_pos:next_start]
+            end_line = current_line + segment_next.count("\n")
         else:
-            end_line = len(code.splitlines())
+            end_line = total_lines
 
         func_name = next((g for g in match.groups() if g), "anonymous")
         functions.append(
@@ -125,28 +206,31 @@ def find_function_lines(code: str, language: str = "Python") -> list[dict]:
 
 def find_undocumented_lines(code: str) -> list[int]:
     """Find code lines that lack documentation/comments."""
-    lines = code.splitlines()
     undocumented = []
+    
+    prev_line_1 = None
+    prev_line_2 = None
 
-    for idx, line in enumerate(lines, start=1):
+    for line_num, line in _generate_lines(code):
         stripped = line.strip()
-
+        
         # Skip blank lines and pure comment lines
+        is_code = True
         if not stripped or stripped.startswith(("#", "//", "/*", "*", '"""', "'''")):
-            continue
+            is_code = False
 
-        # Check if there's a comment within last 2 lines
-        has_comment = False
-        for offset in range(-2, 1):
-            check_idx = idx + offset - 1
-            if 0 <= check_idx < len(lines):
-                check_line = lines[check_idx].strip()
-                if check_line.startswith(("#", "//", "/*")):
-                    has_comment = True
-                    break
+        if is_code:
+            has_comment = False
+            if prev_line_1 is not None and prev_line_1.startswith(("#", "//", "/*")):
+                has_comment = True
+            elif prev_line_2 is not None and prev_line_2.startswith(("#", "//", "/*")):
+                has_comment = True
 
-        if not has_comment:
-            undocumented.append(idx)
+            if not has_comment:
+                undocumented.append(line_num)
+
+        prev_line_2 = prev_line_1
+        prev_line_1 = stripped
 
     return undocumented
 
@@ -154,4 +238,4 @@ def find_undocumented_lines(code: str) -> list[int]:
 def is_code_line(line: str) -> bool:
     """Check if line is actual code (not comment/blank)."""
     stripped = line.strip()
-    return stripped and not stripped.startswith(("#", "//", "/*", "*", '"""', "'''"))
+    return bool(stripped and not stripped.startswith(("#", "//", "/*", "*", '"""', "'''")))
