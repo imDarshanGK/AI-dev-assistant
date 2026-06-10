@@ -80,4 +80,5 @@ UPLOAD_ERROR_MESSAGES = {
     ),
     "blocked_file": "Executable files are not allowed.",
     "invalid_mime": "Invalid MIME type detected.",
+    "file_too_large": "File size exceeds the maximum limit of 5MB. Please upload a smaller file."
 }
