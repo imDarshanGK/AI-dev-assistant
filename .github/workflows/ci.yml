@@ -7,6 +7,63 @@ on:
     branches: [main]
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Test Backend (Python ${{ matrix.python-version }})
+
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Ensure libmagic is installed
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1 libmagic-dev
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Verify python-magic import
+        run: |
+          cd backend
+          python -c "import magic; print(magic.__file__)"
+
+      - name: Run backend tests
+        env:
+          RATE_LIMIT_PER_MINUTE: 300
+        run: |
+          cd backend
+          pytest -q --tb=short
+
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff lint
+        run: ruff check backend/app --select E,F,W --ignore E501
+
   frontend-check:
     name: Frontend Check
     runs-on: ubuntu-latest
@@ -20,3 +77,29 @@ jobs:
         run: |
           test -f frontend/index.html
           echo "Frontend files verified"
+
+  format:
+    runs-on: ubuntu-latest
+    name: Format check
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install formatting tools
+        run: pip install black==24.10.0 isort==5.13.2
+
+      - name: Check formatting with black
+        run: |
+          git diff --name-only origin/main...HEAD -- '*.py' | \
+          xargs -r black --check
+
+      - name: Check import ordering with isort
+        run: |
+          git diff --name-only origin/main...HEAD -- '*.py' | \
+          xargs -r isort --check-only
