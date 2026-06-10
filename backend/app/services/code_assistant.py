@@ -9,9 +9,10 @@ import re
 import time
 from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+from typing import Optional, List, Dict
 
 # ── Language Detection ─────────────────────────────────────────────────────────
-LANG_SIGNATURES: dict[str, list[str]] = {
+LANG_SIGNATURES: Dict[str, List[str]] = {
     "Python": [
         r"\bdef\s+\w+\s*\(",
         r"\bimport\s+\w+",
@@ -87,7 +88,7 @@ LANG_SIGNATURES: dict[str, list[str]] = {
 }
 
 
-def detect_language(code: str, hint: str | None = None) -> str:
+def detect_language(code: str, hint: Optional[str] = None) -> str:
     """Detect the programming language of the given code snippet.
 
     Args:
@@ -122,7 +123,7 @@ def detect_language(code: str, hint: str | None = None) -> str:
         if normalized in mapping:
             return mapping[normalized]
 
-    scores: dict[str, int] = {lang: 0 for lang in LANG_SIGNATURES}
+    scores: Dict[str, int] = {lang: 0 for lang in LANG_SIGNATURES}
     for lang, patterns in LANG_SIGNATURES.items():
         for pat in patterns:
             if re.search(pat, code, re.MULTILINE):
@@ -200,8 +201,8 @@ def estimate_complexity(code: str) -> str:
 
 def chat_fallback_reply(
     message: str,
-    code: str | None,
-    history: list[str],
+    code: Optional[str],
+    history: List[str],
     level: str,
 ) -> str:
     """Return a simple fallback chat response when the LLM is unavailable."""
@@ -253,7 +254,7 @@ class BugPattern:
     description: str
     suggestion: str
     severity: str
-    languages: list[str] = field(
+    languages: List[str] = field(
         default_factory=lambda: [
             "Python",
             "JavaScript",
@@ -803,7 +804,7 @@ BUG_PATTERNS: list[BugPattern] = [
 ]
 
 
-def run_bug_detection(code: str, language: str) -> list[dict]:
+def run_bug_detection(code: str, language: str) -> List[Dtr]:
     """Run rule-based bug detection for the provided source code.
 
     Args:
@@ -817,7 +818,7 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     from .ast_analyzer import analyze_python_ast
 
     lines = code.splitlines()
-    found: list[dict] = []
+    found: List[Dtr] = []
     seen: set[str] = set()
 
     if language == "Python":
@@ -893,7 +894,7 @@ def run_suggestions(code: str, language: str) -> dict:
         find_undocumented_lines,
     )
 
-    suggestions: list[dict] = []
+    suggestions: List[Dtr] = []
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
 
@@ -1218,15 +1219,15 @@ class Issue:
     type: str
     line: int | None
     description: str
-    suggestion: str | None = None
-    severity: str | None = None
-    code_snippet: str | None = None
+    suggestion: Optional[str] = None
+    severity: Optional[str] = None
+    code_snippet: Optional[str] = None
 
 
 @dataclass
 class DebugResult:
     issues: list[Issue]
-    summary: str | None = None
+    summary: Optional[str] = None
 
 
 def debug_code(code: str, language: str = "Python") -> DebugResult:
@@ -1251,7 +1252,7 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
         return DebugResult(issues=issues, summary="Syntax error detected")
 
     # Track simple assignments to infer literal container lengths
-    container_lengths: dict[str, int] = {}
+    container_lengths: Dict[str, int] = {}
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
@@ -1362,7 +1363,7 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
 
 
 # ── Combined ───────────────────────────────────────────────────────────────────
-def full_analysis(code: str, language_hint: str | None = None) -> dict:
+def full_analysis(code: str, language_hint: Optional[str] = None) -> dict:
     """Run the complete analysis pipeline for the provided source code.
 
     Args:

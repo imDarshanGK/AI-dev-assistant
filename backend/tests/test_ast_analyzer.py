@@ -2,8 +2,8 @@
 
 from app.services.ast_analyzer import analyze_python_ast, analyze
 
-
-def _types(code: str) -> list[str]:
+from typing import List
+def _types(code: str) -> List[str]:
     return [i["type"] for i in analyze_python_ast(code)]
 
 

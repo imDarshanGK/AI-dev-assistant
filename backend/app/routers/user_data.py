@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
+from typing import List
 
 from ..database import get_db
 from ..models import FavoriteResult, QueryHistory, User
@@ -15,9 +16,10 @@ from ..security import get_current_user
 router = APIRouter(prefix="/user", tags=["User Data"])
 
 
-@router.get("/history", response_model=list[HistoryRecord])
+@router.get("/history", response_model=List[HistoryRecord])
 def list_history(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     records = (
         db.execute(
@@ -75,12 +77,15 @@ def delete_history(
 ):
     record = db.execute(
         select(QueryHistory).where(
-            QueryHistory.id == history_id, QueryHistory.user_id == current_user.id
+            QueryHistory.id == history_id,
+            QueryHistory.user_id == current_user.id
         )
     ).scalar_one_or_none()
+
     if record is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="History record not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="History record not found"
         )
 
     db.execute(delete(QueryHistory).where(QueryHistory.id == history_id))
@@ -100,9 +105,10 @@ def clear_history(
     return {"status": "cleared", "deleted": result.rowcount or 0}
 
 
-@router.get("/favorites", response_model=list[FavoriteRecord])
+@router.get("/favorites", response_model=List[FavoriteRecord])
 def list_favorites(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     records = (
         db.execute(
@@ -163,12 +169,15 @@ def delete_favorite(
 ):
     record = db.execute(
         select(FavoriteResult).where(
-            FavoriteResult.id == favorite_id, FavoriteResult.user_id == current_user.id
+            FavoriteResult.id == favorite_id,
+            FavoriteResult.user_id == current_user.id
         )
     ).scalar_one_or_none()
+
     if record is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Favorite not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Favorite not found"
         )
 
     db.execute(delete(FavoriteResult).where(FavoriteResult.id == favorite_id))

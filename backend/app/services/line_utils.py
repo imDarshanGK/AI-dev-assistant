@@ -1,6 +1,7 @@
 """Line number tracking utilities for code analysis."""
 
 import re
+from typing import Optional, List, Dict
 
 
 def get_line_content(code: str, line_number: int) -> str:
@@ -11,7 +12,7 @@ def get_line_content(code: str, line_number: int) -> str:
     return ""
 
 
-def get_lines_range(code: str, start: int, end: int) -> list[str]:
+def get_lines_range(code: str, start: int, end: int) -> List[str]:
     """Get lines from start to end (inclusive)."""
     lines = code.splitlines()
     return lines[max(0, start - 1) : min(len(lines), end)]
@@ -51,8 +52,6 @@ def format_code_snippet(
 
 def find_lines_matching_pattern(code: str, pattern: str) -> list[int]:
     """Find all line numbers matching regex pattern."""
-    import re
-
     lines = code.splitlines()
     matches = []
 
@@ -85,7 +84,7 @@ def group_consecutive_lines(line_numbers: list[int]) -> list[tuple[int, int]]:
     return groups
 
 
-def find_function_lines(code: str, language: str = "Python") -> list[dict]:
+def find_function_lines(code: str, language: str = "Python") -> List[Dict]:
     """Find all function definitions with their line ranges."""
     if language == "Python":
         pattern = r"def\s+(\w+)\s*\([^)]*\):"
@@ -104,13 +103,13 @@ def find_function_lines(code: str, language: str = "Python") -> list[dict]:
     for i, match in enumerate(matches):
         start_line = code[: match.start()].count("\n") + 1
 
-        # Find end: either next function or EOF
         if i + 1 < len(matches):
             end_line = code[: matches[i + 1].start()].count("\n")
         else:
             end_line = len(code.splitlines())
 
         func_name = next((g for g in match.groups() if g), "anonymous")
+
         functions.append(
             {
                 "name": func_name,
@@ -131,11 +130,9 @@ def find_undocumented_lines(code: str) -> list[int]:
     for idx, line in enumerate(lines, start=1):
         stripped = line.strip()
 
-        # Skip blank lines and pure comment lines
         if not stripped or stripped.startswith(("#", "//", "/*", "*", '"""', "'''")):
             continue
 
-        # Check if there's a comment within last 2 lines
         has_comment = False
         for offset in range(-2, 1):
             check_idx = idx + offset - 1

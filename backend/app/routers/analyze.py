@@ -7,6 +7,7 @@ import time
 import zipfile
 from io import BytesIO
 from pathlib import PurePosixPath
+from typing import Optional, List, Dict
 
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
@@ -67,7 +68,9 @@ SOURCE_EXTENSIONS = {
 }
 
 
-async def _stream_analysis(code: str, language_hint: str | None):
+async def _stream_analysis(code: str, language_hint: Optional[str]):
+    """Async generator that yields SSE chunks for each analysis section."""
+
     code = sanitize_code_input(code)
     language_hint = sanitize_language_hint(language_hint)
 
@@ -151,7 +154,7 @@ def _is_ignored_member(name: str) -> bool:
     return any(part.lower() in IGNORED_DIRS for part in path.parts)
 
 
-def _add_skipped(skipped_files: list[str], reason: str) -> None:
+def _add_skipped(skipped_files: List[str], reason: str) -> None:
     if len(skipped_files) < MAX_SKIPPED_FILES:
         skipped_files.append(reason)
 
@@ -176,7 +179,7 @@ async def analyze_stream(req: CodeRequest):
 )
 async def analyze_stream_get(
     code: str = Query(..., min_length=1, max_length=50000, description="Source code to analyze"),
-    language: str | None = Query(None, description="Optional language hint"),
+    language: Optional[str] = Query(None, description="Optional language hint"),
 ):
     if not code.strip():
         raise HTTPException(status_code=400, detail="code must not be empty or whitespace")
@@ -263,8 +266,8 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
 
     t0 = time.perf_counter()
 
-    results: list[dict] = []
-    skipped_files: list[str] = []
+    results: List[Dtr] = []
+    skipped_files: List[str] = []
     total_size = 0
 
     with archive:

@@ -53,7 +53,11 @@ describe('sanitizeClientCode', () => {
   for (const payload of XSS_PAYLOADS) {
     it(`preserves code text for analysis: ${payload.slice(0, 30)}`, () => {
       const clean = SEC.sanitizeClientCode(payload);
-      assert.ok(clean.includes('alert') || clean.includes('script') || clean.includes('svg'));
+      assert.ok(
+        clean.includes('alert') ||
+        clean.includes('script') ||
+        clean.includes('svg')
+      );
     });
   }
 });
@@ -105,11 +109,17 @@ describe('stored history normalization', () => {
         this.data[key] = value;
       },
     };
+
     storage.setItem(
       'qyx_history',
-      JSON.stringify([STORED_HISTORY_ATTACK, { id: 42, code: 'x=1', preview: 'x=1', lang: 'Py', ts: 't' }]),
+      JSON.stringify([
+        STORED_HISTORY_ATTACK,
+        { id: 42, code: 'x=1', preview: 'x=1', lang: 'Py', ts: 't' },
+      ])
     );
+
     const list = SEC.loadStoredHistory('qyx_history', storage);
+
     assert.equal(list.length, 1);
     assert.equal(list[0].id, 42);
   });
@@ -132,7 +142,9 @@ describe('buildStoredListItemHtml', () => {
       ts: STORED_HISTORY_ATTACK.ts,
       preview: STORED_HISTORY_ATTACK.preview,
     };
+
     const html = SEC.buildStoredListItemHtml(entry);
+
     assertPlainTextHtml(html, 'history item');
     assert.ok(!html.includes('onclick='), 'no inline handlers');
     assert.ok(!html.includes("');alert"), 'no JS breakout in attributes');
@@ -147,6 +159,7 @@ describe('buildStoredListItemHtml', () => {
         ts: 'now',
         preview: payload,
       });
+
       assertPlainTextHtml(html, 'history preview');
     });
   }
@@ -159,6 +172,7 @@ describe('buildIssueCardHtml / buildSuggestCardHtml', () => {
       type: '<script>alert(1)</script>',
       description: '<img src=x onerror=alert(1)>',
     });
+
     assertPlainTextHtml(html, 'issue card');
     assert.ok(html.includes('issue-card info') || html.includes('issue-card error'));
     assert.ok(!html.includes('onmouseover='));
@@ -169,6 +183,7 @@ describe('buildIssueCardHtml / buildSuggestCardHtml', () => {
       priority: 'high"><script>alert(1)</script>',
       description: '${alert(1)}',
     });
+
     assertPlainTextHtml(html, 'suggest card');
     assert.ok(html.includes('priority-medium') || html.includes('priority-high'));
     assert.ok(!html.includes('<script>'));

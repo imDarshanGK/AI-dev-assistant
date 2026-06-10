@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Optional, List, Dict
 
 # Match ANSI CSI escape sequences (colours, cursor moves, etc.)
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
@@ -64,7 +65,7 @@ def sanitize_text_input(text: str) -> str:
     return text
 
 
-def sanitize_language_hint(language: str | None) -> str | None:
+def sanitize_language_hint(language: Optional[str]) -> Optional[str]:
     """Normalize optional language hint from API clients."""
     if language is None:
         return None

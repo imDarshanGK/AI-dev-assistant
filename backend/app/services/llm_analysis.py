@@ -1,10 +1,10 @@
 import logging
 import json
-
+from typing import Optional, List, Dict
 import httpx
 
 from ..config import settings
-
+from typing import Optional, List, Dict
 logger = logging.getLogger("ai_assistant.api")
 
 
@@ -24,7 +24,7 @@ class LLMAnalysisClient:
         return bool(settings.llm_enabled and self.api_key)
 
     async def _chat_completion(
-        self, messages: list[dict], temperature: float = 0.2
+        self, messages: List[dict], temperature: float = 0.2
     ) -> str:
         if not self.enabled:
             raise LLMAnalysisError("llm_disabled")
@@ -133,7 +133,7 @@ class LLMAnalysisClient:
             raise LLMAnalysisError(str(exc)) from exc
 
     async def chat_reply(
-        self, message: str, code: str | None, history: list[str], level: str
+        self, message: str, code: Optional[str], history: List[str], level: str
     ) -> str:
         # SECURITY FIX: Harden system prompt against injection
         prompt = (

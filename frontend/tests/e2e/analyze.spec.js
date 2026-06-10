@@ -1,5 +1,5 @@
-const { test, expect } = require('@playwright/test');
-const { sampleFixturePath } = require('../helpers');
+import { test, expect } from '@playwright/test';
+import { sampleFixturePath } from '../helpers.js';
 
 test('uploads a sample file and renders analysis results', async ({ page }) => {
   await page.goto('/app/');
