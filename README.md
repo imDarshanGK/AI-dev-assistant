@@ -30,6 +30,25 @@
 
 ---
 
+## Table of Contents
+
+- [What is QyverixAI?](#what-is-qyverixai)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [API Reference](#api-reference)
+- [Project Structure](#project-structure)
+- [Running Tests](#running-tests)
+- [Deployment](#deployment)
+- [Observability](#observability)
+- [Optional LLM Integration](#optional-llm-integration)
+- [Configuration Reference](#configuration-reference)
+- [Tech Stack](#tech-stack)
+- [Contributing](#contributing)
+- [Roadmap](#roadmap)
+- [License](#license)
+
+---
+
 ## What is QyverixAI?
 
 QyverixAI is a code analysis workspace. Paste any code and get three things back instantly:
@@ -485,6 +504,16 @@ Read the full workflow, code standards, and pattern guide in [CONTRIBUTING.md](C
 | Add VS Code extension | `hard` |
 
 Browse all open issues: [github.com/imDarshanGK/AI-dev-assistant/issues](https://github.com/imDarshanGK/AI-dev-assistant/issues)
+
+<!-- START doctoc -->
+
+<!-- END doctoc -->
+
+### 👥 Contributors
+
+Thanks to all contributors ❤️
+
+[![Contributors](https://contrib.rocks/image?repo=imDarshanGK/AI-dev-assistant)](https://github.com/imDarshanGK/AI-dev-assistant/graphs/contributors)
 
 ---
 
