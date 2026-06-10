@@ -14,6 +14,9 @@ import httpx
 
 logger = logging.getLogger("ai_provider")
 
+# ── Added AI_PROVIDER config for Dev Mode Toggle ──────────────
+AI_PROVIDER  = os.getenv("AI_PROVIDER", "rule-based").lower()
+
 LLM_ENABLED  = os.getenv("LLM_ENABLED", "false").lower() == "true"
 LLM_API_KEY  = os.getenv("LLM_API_KEY", "")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
@@ -37,6 +40,18 @@ def _get_provider_name(base_url: str) -> str:
 
 async def call_llm(system: str, user: str) -> str | None:
     """Return LLM text response or None if disabled/error."""
+    
+    # ── Intercept and handle Mock Mode execution ─────────────────
+    if AI_PROVIDER == "mock":
+        logger.info("AI_PROVIDER set to mock. Returning simulated text analysis.")
+        return (
+            "[MOCK ANALYSIS]\n"
+            "1. Bug Detection: No critical logical regressions detected.\n"
+            "2. Suggestion: Code formatting looks clean. Consider adding inline docstrings.\n"
+            "3. Complexity: O(1) space complexity verified."
+        )
+    # ──────────────────────────────────────────────────────────
+
     if not LLM_ENABLED or not LLM_API_KEY:
         return None
 
@@ -147,4 +162,7 @@ async def call_llm(system: str, user: str) -> str | None:
     return None
 
 def is_enabled() -> bool:
+    # ── Allow mock engine to report enabled without an active API token ──
+    if AI_PROVIDER == "mock":
+        return True
     return LLM_ENABLED and bool(LLM_API_KEY)
