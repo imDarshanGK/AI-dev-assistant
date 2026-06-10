@@ -1,46 +1,47 @@
-"""
-QyverixAI — Backend API
-FastAPI application with advanced middleware, rate limiting, and full analysis engine.
-"""
-
-import logging
 import os
+import sys
 import time
+import logging
 from collections import defaultdict
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .observability import (
-    initialise_app_info,
-    prometheus_metrics_middleware,
-)
-from .routers import (
+from backend.app.routers import (
     analyze,
-    auth,
-    chat,
     debugging,
     explanation,
-)
-from .routers import health as health_router
-from .routers import (
+    health,
     history,
-)
-from .routers import metrics as metrics_router
-from .routers import (
+    metrics,
     share,
     subscribe,
     suggestions,
     upload_file,
-    user_data,
 )
-from .schemas import HealthResponse
-from .services import database
-from .services.scheduler import start_scheduler, stop_scheduler
+from backend.app.services import (
+    ai_provider,
+    ast_analyzer,
+    code_assistant,
+    database,
+    email_service,
+    llm_analysis,
+    scheduler,
+)
+from backend.app.observability import (
+    initialise_app_info,
+    prometheus_metrics_middleware,
+)
+from backend.app.schemas import HealthResponse
+
+"""
+QyverixAI — Backend API
+FastAPI application with advanced middleware, rate limiting, and full analysis engine.
+"""
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
@@ -77,9 +78,9 @@ async def lifespan(app: FastAPI):
     initialise_app_info(
         version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
     )
-    start_scheduler()
+    scheduler.start_scheduler()
     yield
-    stop_scheduler()
+    scheduler.stop_scheduler()
     logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
 
 
@@ -165,16 +166,13 @@ app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions
 app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
 app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
 app.include_router(history.router, prefix="/history", tags=["History"])
-app.include_router(auth.router)
-app.include_router(chat.router)
 app.include_router(share.router)
-app.include_router(user_data.router)
 app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
 
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics
-app.include_router(health_router.router)
-app.include_router(metrics_router.router)
+app.include_router(health.router)
+app.include_router(metrics.router)
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
@@ -185,23 +183,16 @@ async def root():
         "version": "3.0.0",
         "message": "QyverixAI API is running.",
         "endpoints": [
-            "/auth/signup",
-            "/auth/login",
-            "/auth/me",
             "/explanation/",
             "/debugging/",
             "/suggestions/",
             "/analyze/",
             "/subscribe/",
             "/share/",
-            "/auth/",
-            "/chat/",
-            "/user/",
-            "/analyze/zip/",
-            "/analyze/zip/",
-            "/subscribe/",
-            "/share/",
             "/history/",
+            "/upload/",
+            "/health",
+            "/metrics",
         ],
     }
 
@@ -213,20 +204,14 @@ async def health_check():
         "version": "3.0.0",
         "message": "QyverixAI is healthy",
         "endpoints": [
-            "/auth/signup",
-            "/auth/login",
-            "/auth/me",
             "/explanation/",
             "/debugging/",
             "/suggestions/",
             "/analyze/",
             "/subscribe/",
             "/share/",
-            "/auth/",
-            "/chat/",
-            "/user/",
-            "/analyze/zip/",
             "/history/",
+            "/upload/",
         ],
     }
 
@@ -250,3 +235,4 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "Internal server error. Please try again."},
     )
+    

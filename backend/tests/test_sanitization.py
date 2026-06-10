@@ -11,13 +11,18 @@ See also: test_sanitization_payloads.py for parametrized script/img/svg/template
 Frontend: frontend/tests/*.test.mjs (Node). Manual: docs/SECURITY_MANUAL_TEST_CHECKLIST.md.
 """
 
+# 1. Standard Library imports
 import json
 import os
 import sys
 
+
+# 2. Third-Party imports
 import pytest
 from fastapi.testclient import TestClient
 
+
+# 3. Local/First-Party imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -30,12 +35,11 @@ from app.sanitize import (
 )
 from security_payloads import (
     ANSI_PAYLOAD,
-)
-from security_payloads import SCRIPT_TAG as XSS_PAYLOAD
-from security_payloads import (
+    SCRIPT_TAG as XSS_PAYLOAD,
     XSS_WITH_NULL,
     assert_no_raw_script_tag,
 )
+
 
 client = TestClient(app_main.app)
 
@@ -191,3 +195,4 @@ def test_html_angle_brackets_in_code_preserved():
     r = client.post("/explanation/", json={"code": code, "language": "cpp"})
     assert r.status_code == 200
     assert r.json()["language"] == "C++"
+    
