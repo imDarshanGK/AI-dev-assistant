@@ -86,6 +86,10 @@ def get_share(token: str, db: Session = Depends(get_db)):
             created_at = created_at.replace(tzinfo=_dt.timezone.utc)
 
         if created_at < _dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(days=7):
+            # cleanup expired share from DB to prevent unbounded growth
+            from sqlalchemy import delete as _delete
+            db.execute(_delete(SharedSnippet).where(SharedSnippet.token == token_val))
+            db.commit()
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result expired")
 
         return ShareRecord(id=token_val, action="share", code=code_val, result=json.loads(result_json_val), created_at=created_at.isoformat())
@@ -98,6 +102,10 @@ def get_share(token: str, db: Session = Depends(get_db)):
         created_at = created_at.replace(tzinfo=timezone.utc)
 
     if created_at < datetime.now(timezone.utc) - timedelta(days=7):
+        # cleanup expired share from DB to prevent unbounded growth
+        from sqlalchemy import delete as _delete
+        db.execute(_delete(SharedSnippet).where(SharedSnippet.token == token))
+        db.commit()
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared result expired")
 
     return ShareRecord(
