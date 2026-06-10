@@ -4,10 +4,17 @@ import uuid
 from collections import defaultdict, deque
 from threading import Lock
 
-from fastapi import Request
+from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 
 from .config import settings
+
+try:
+    from fastapi_limiter import FastAPILimiter
+    from fastapi_limiter.depends import RateLimiter
+except ImportError:
+    FastAPILimiter = None
+    RateLimiter = None
 
 logger = logging.getLogger("ai_assistant.api")
 
@@ -73,7 +80,30 @@ async def request_size_limit_middleware(request: Request, call_next):
     return await call_next(request)
 
 
-async def rate_limit_middleware(request: Request, call_next):
+async def dynamic_rate_limiter(request: Request, response: Response):
+    """
+    Dynamic dependency that checks if Redis-backed rate limiter is initialized.
+    If so, it uses it. Otherwise, it gracefully falls back to the in-memory deque.
+    """
+    if (
+        FastAPILimiter is not None
+        and getattr(FastAPILimiter, "redis", None) is not None
+    ):
+        try:
+            limiter = RateLimiter(
+                times=settings.rate_limit_requests,
+                seconds=settings.rate_limit_window_seconds,
+            )
+            await limiter(request=request, response=response)
+            return
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.warning(
+                f"Redis rate limiting failed: {e}. Falling back to in-memory."
+            )
+
+    # In-memory fallback
     client_key = get_client_key(request)
     now = time.time()
     cutoff = now - settings.rate_limit_window_seconds
@@ -84,17 +114,9 @@ async def rate_limit_middleware(request: Request, call_next):
             bucket.popleft()
 
         if len(bucket) >= settings.rate_limit_requests:
-            return JSONResponse(
+            raise HTTPException(
                 status_code=429,
-                content={
-                    "error": "rate_limited",
-                    "detail": (
-                        f"Too many requests. Limit is {settings.rate_limit_requests} requests "
-                        f"per {settings.rate_limit_window_seconds} seconds."
-                    ),
-                },
+                detail=f"Rate limit exceeded. Max {settings.rate_limit_requests} requests/{settings.rate_limit_window_seconds}s.",
             )
 
         bucket.append(now)
-
-    return await call_next(request)

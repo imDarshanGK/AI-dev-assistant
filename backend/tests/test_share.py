@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 from app import database
 from app.database import Base
 from app.main import app
 from app.models import SharedSnippet
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 
 def _configure_test_db(monkeypatch, tmp_path):
