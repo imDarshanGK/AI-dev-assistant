@@ -617,20 +617,35 @@ const digestEmail = document.getElementById('digestEmail');
 const digestBtn = document.getElementById('digestBtn');
 
 if (digestForm) {
-  digestForm.addEventListener('submit', (e) => {
+  digestForm.addEventListener('submit', async (e) => {
     e.preventDefault(); // stop page reload
 
     const email = digestEmail.value.trim();
+    if (!email) {
+      return;
+    }
 
     // Show loading state
     digestBtn.textContent = 'Subscribing...';
     digestBtn.disabled = true;
 
-    // Simulate subscription (replace with real API call when backend is ready)
-    setTimeout(() => {
-      // Show success message
-      digestForm.innerHTML = `<p style="font-size:0.8rem;color:#4caf50;margin:0;">✓ You have been subscribed!</p>`;
-    }, 800);
+    try {
+      const resp = await fetch(`${getApiUrl()}/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (resp.ok) {
+        digestForm.innerHTML = `<p style="font-size:0.8rem;color:#4caf50;margin:0;">✓ You have been subscribed!</p>`;
+      } else {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.detail || 'Subscription failed');
+      }
+    } catch (err) {
+      digestBtn.textContent = 'Subscribe';
+      digestBtn.disabled = false;
+      alert(err.message || 'Could not subscribe. Please try again.');
+    }
   });
 }
 
