@@ -93,3 +93,4 @@ def test_expired_share_returns_404(monkeypatch, tmp_path):
 
     assert resp.status_code == 404
     assert "expired" in resp.json()["detail"].lower()
+    assert resp.json()["error"] == "shared_result_not_found"

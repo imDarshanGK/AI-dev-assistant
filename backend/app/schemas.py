@@ -13,6 +13,7 @@ from .schema_validators import (
     validate_stored_result_json,
 )
 
+
 class CodeRequest(BaseModel):
     code: str
     language: str | None = None
@@ -240,6 +241,7 @@ class ReadinessResponse(BaseModel):
     status: str
     checks: dict[str, dict[str, Any]]
 
+
 class ShareCreateRequest(BaseModel):
     action: str = Field("share", min_length=3, max_length=50)
     code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
@@ -365,11 +367,13 @@ class ExplanationResponse(BaseModel):
     cyclomatic_complexity: int
     complexity_risk: str
 
+
 class SuggestionsResponse(BaseModel):
     suggestions: list[Suggestion]
     overall_score: int
     grade: str
     next_step: str
+
 
 class AnalyzeResponse(BaseModel):
     provider: str
@@ -378,3 +382,8 @@ class AnalyzeResponse(BaseModel):
     debugging: DebuggingResponse
     suggestions: SuggestionsResponse
     analysis_time_ms: float | None = None
+
+
+class ErrorResponse(BaseModel):
+    error: str
+    detail: str
