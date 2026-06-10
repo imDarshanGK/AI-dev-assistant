@@ -155,9 +155,7 @@ def detect_language(code: str) -> str:
     best = max(scores, key=scores.get)
     return best if scores[best] > 0 else "Unknown"
 
-    Returns:
-        A tuple of (score, risk) where risk is one of "Simple", "Moderate",
-        "High", or "Very High".
+   
     """
     score = len(_DECISION_RE.findall(code)) + 1
     for threshold, label in _RISK_THRESHOLDS:
@@ -168,7 +166,6 @@ def detect_language(code: str) -> str:
 
 # ── Complexity Estimation ──────────────────────────────────────────────────────
 def estimate_complexity(code: str) -> str:
-
     """
     Estimates the complexity level of the given source code.
 
@@ -178,6 +175,9 @@ def estimate_complexity(code: str) -> str:
     Returns:
         str: Complexity level classified as Beginner, Intermediate, or Advanced.
     """
+    
+       
+    
     lines = len(code.strip().splitlines())
     func_count = len(re.findall(r"\bdef |\bfunction |\bfunc \b", code))
     if lines < 15 and func_count <= 1:
@@ -191,15 +191,15 @@ def estimate_complexity(code: str) -> str:
 # ── Explanation Service ──
 def explain_code(code: str, language: Optional[str] = None) -> ExplanationResponse:
     """
-Generates a human-readable explanation of the provided source code.
+    Generates a human-readable explanation of the provided source code.
 
-Args:
-    code (str): Source code to explain.
-    language (str): Programming language of the source code.
+    Args:
+        code (str): Source code to explain.
+        language (str): Programming language of the source code.
 
-Returns:
-    ExplanationResponse: Explanation summary, key points, and complexity details.
-"""
+    Returns:
+        ExplanationResponse: Explanation summary, key points, and complexity details.
+    """
     lang = language or detect_language(code)
     lines = code.strip().splitlines()
     line_count = len(lines)
