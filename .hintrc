@@ -1,0 +1,26 @@
+{
+  "extends": [
+    "development"
+  ],
+  "hints": {
+    "compat-api/css": [
+      "default",
+      {
+        "ignore": [
+          "user-select",
+          "backdrop-filter",
+          "scrollbar-width",
+          "scrollbar-width: none"
+        ]
+      }
+    ],
+    "disown-opener": "off",
+    "axe/aria": [
+      "default",
+      {
+        "aria-required-children": "off"
+      }
+    ],
+    "no-inline-styles": "off"
+  }
+}
