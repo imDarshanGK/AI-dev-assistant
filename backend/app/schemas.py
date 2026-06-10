@@ -351,7 +351,17 @@ class ChatMessageResponse(BaseModel):
     model: str
     mode: str
     reply: str
+class ComplexityFunction(BaseModel):
+    function: str
+    time_complexity: str
+    space_complexity: str
+    reason: str
 
+
+class ComplexityResponse(BaseModel):
+    overall_time_complexity: str
+    overall_space_complexity: str
+    functions: list[ComplexityFunction]
 
 # ── Explanation / Debugging / Suggestions response models ───────────────────
 class ExplanationResponse(BaseModel):
