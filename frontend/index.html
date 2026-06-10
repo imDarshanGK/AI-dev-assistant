@@ -5,12 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QyverixAI — AI Developer Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
   <link rel="alternate icon" type="image/x-icon" href="public/favicon.ico">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=fetch,Promise,Array.prototype.at,Object.assign,Element.prototype.classList"></script>
   <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -197,6 +198,7 @@
       position: sticky;
       top: 0;
       background: rgba(10, 12, 16, 0.85);
+      -webkit-backdrop-filter: blur(20px);
       backdrop-filter: blur(20px);
       z-index: 100;
       margin: 0 -24px;
@@ -224,7 +226,6 @@
       width: 36px;
       height: 36px;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
-      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -232,6 +233,8 @@
       font-weight: 900;
       color: #fff;
       animation: hexPulse 4s ease-in-out infinite;
+      -webkit-clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     }
 
     @keyframes hexPulse {
@@ -621,6 +624,8 @@
       border-bottom: 1px solid var(--border);
       overflow-x: auto;
       scrollbar-width: none;
+      .lang-tabs::-webkit-scrollbar,
+      .result-tabs::-webkit-scrollbar { display: none; }
     }
 
     .lang-tab {
@@ -665,12 +670,13 @@
       justify-content: center;
       gap: 12px;
       background: rgba(10, 12, 16, 0.82);
-      backdrop-filter: blur(6px);
       border-radius: 0;
       border: 2px dashed var(--accent);
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.18s ease;
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(20px);
     }
 
     [data-theme="light"] .drop-overlay {
@@ -730,12 +736,11 @@
       text-align: right;
       background: var(--bg3);
       border-right: 1px solid var(--border);
-      overflow: hidden;
-      pointer-events: none;
-      min-height: 300px;
-      max-height: 500px;
-      height: 100%;
-      }
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
 
     #codeEditor {
       width: 100%;
@@ -907,6 +912,8 @@
       border-bottom: 1px solid var(--border);
       overflow-x: auto;
       scrollbar-width: none;
+      .lang-tabs::-webkit-scrollbar,
+      .result-tabs::-webkit-scrollbar { display: none; }
     }
 
     .result-tab {
@@ -1617,6 +1624,10 @@
       border-right: 1px solid var(--border);
       margin-right: 8px;
       line-height: 1.6;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
     }
 
     .diff-line-content {
@@ -2036,7 +2047,7 @@
 /* responsive */
 @media(max-width:600px){
   .hero h1{font-size:2.2rem}
-  nav{flex-wrap:wrap;gap:8px}
+  nav{flex-wrap:wrap;gap:8px;} 
   .nav-links .nav-link span{display:none}
   .hero{padding:50px 0 40px}
   .hero-sub{font-size:0.98rem}
@@ -2085,7 +2096,7 @@
           style="font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(91,156,246,0.15);color:var(--accent);border:1px solid rgba(91,156,246,0.25);letter-spacing:0.04em;margin-left:4px">v3.0</span>
       </a>
       <div class="nav-links">
-        <select id="langSelect" class="lang-select" aria-label="Select Language" data-i18n-aria-label="lang_select_label">
+        <select id="langSelect" class="lang-select" aria-label="Select UI Language" data-i18n-aria-label="lang_select_label">
           <option value="en" data-i18n="lang_option_en">English</option>
           <option value="ta" data-i18n="lang_option_ta">தமிழ் (Tamil)</option>
           <option value="hi" data-i18n="lang_option_hi">हिन्दी (Hindi)</option>
@@ -2230,8 +2241,8 @@
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
             </button>
-            <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
-              tabindex="-1">
+              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
+              tabindex="-1" aria-label="Upload code file" title="Upload code file">
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
@@ -2252,12 +2263,13 @@
         </div>
 
         <!-- Language tabs -->
-        <div class="lang-tabs" role="group" aria-label="Select Programming Language">
-          <button class="lang-tab active" data-lang="python" aria-pressed="true" data-i18n="lang_tab_python">Python</button>
-          <button class="lang-tab" data-lang="javascript" aria-pressed="false" data-i18n="lang_tab_javascript">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript" aria-pressed="false" data-i18n="lang_tab_typescript">TypeScript</button>
-          <button class="lang-tab" data-lang="java" aria-pressed="false" data-i18n="lang_tab_java">Java</button>
-          <button class="lang-tab" data-lang="cpp" aria-pressed="false" data-i18n="lang_tab_cpp">C++</button>
+
+        <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
+          <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true"  data-i18n="lang_tab_python">Python</button>
+          <button class="lang-tab" data-lang="javascript"    role="tab" aria-selected="false" data-i18n="lang_tab_javascript">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript"    role="tab" aria-selected="false" data-i18n="lang_tab_typescript">TypeScript</button>
+          <button class="lang-tab" data-lang="java"          role="tab" aria-selected="false" data-i18n="lang_tab_java">Java</button>
+          <button class="lang-tab" data-lang="cpp"           role="tab" aria-selected="false" data-i18n="lang_tab_cpp">C++</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap" id="editorWrap">
@@ -2280,7 +2292,7 @@
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
-            <div class="mode-row" role="tablist" aria-label="Mode selector">
+            <div class="mode-row" role="group" aria-label="Mode selector">
               <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
               <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
               <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
@@ -2427,10 +2439,14 @@
 
         <div style="max-width:360px;">
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
-          <form id="digestForm" style="display:flex;gap:6px;">
-            <input type="email" id="digestEmail" placeholder="your@email.com" required
-                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
-            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:360px;">
+          <label for="digestEmail" style="position:absolute;width:1px;height:1px;overflow:hidden;  clip:rect(0,0,0,0);white-space:nowrap;">Email for weekly digest</label>
+              <input type="email" id="digestEmail" name="digestEmail" placeholder="your@email.com"
+                   aria-label="Email address for weekly digest"
+                   title="Enter your email for weekly digest"
+                   required
+                   style="flex:1;min-width:120px;width:100%;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);">
+            <button type="button" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Subscribe</button>
           </form>
           <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
@@ -2441,7 +2457,24 @@
     <div id="toastContainer"></div>
 
     <script>
-      /* ═══════════════════════════════════════════════════════════════
+      function timeoutSignal(ms) {
+        if (typeof AbortSignal.timeout === 'function') return AbortSignal.timeout(ms);
+        var ctrl = new AbortController();
+        setTimeout(function(){ ctrl.abort(); }, ms);
+        return ctrl.signal;
+      }
+
+      function copyToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext)
+          return navigator.clipboard.writeText(text);
+        var el = document.createElement('textarea');
+        el.value = text; el.style.position = 'absolute'; el.style.opacity = '0';
+        document.body.appendChild(el); el.select();
+        try { document.execCommand('copy'); } catch(e) {}
+        document.body.removeChild(el);
+        return Promise.resolve();
+      }
+/* ═══════════════════════════════════════════════════════════════
          STATE & TRANSLATIONS
       ═══════════════════════════════════════════════════════════════ */
       const TRANSLATIONS = {
@@ -3327,7 +3360,7 @@
       });
       document.getElementById('copyBtn').addEventListener('click', () => {
         if (!editor.value.trim()) return;
-        navigator.clipboard.writeText(editor.value).then(() => toast(getTranslation('toast_code_copied'), 'success'));
+        copyToClipboard(editor.value).then(() => toast(getTranslation('toast_code_copied'), 'success'));
       });
 
       /* ═══════════════════════════════════════════════════════════════
@@ -3337,7 +3370,7 @@
         if (!apiUrlInput || !apiStatusText) return;
         const base = getApiBase();
         try {
-          const { response: r, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, '/health', { signal: AbortSignal.timeout(5000) });
+          const { response: r, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, '/health', { signal: timeoutSignal(5000) });
           if (fallbackUsed) persistApiBase(baseUsed);
           if (r.ok) {
             apiDot?.classList.add('connected');
@@ -3399,7 +3432,7 @@
             const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, '/analyze/zip/', {
               method: 'POST',
               body: formData,
-              signal: AbortSignal.timeout(60000),
+              signal: timeoutSignal(60000),
             });
             if (fallbackUsed) {
               persistApiBase(baseUsed);
@@ -3426,7 +3459,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code, language: selectedLang }),
-            signal: AbortSignal.timeout(30000),
+            signal: timeoutSignal(30000),
           });
           if (fallbackUsed) {
             persistApiBase(baseUsed);
@@ -3946,7 +3979,7 @@
           }
 
           btn.addEventListener('click', () => {
-            navigator.clipboard.writeText(fixedCode).then(() => {
+            copyToClipboard(fixedCode).then(() => {
               btn.textContent = '\u2713 Copied!';
               btn.style.background = 'rgba(34,212,123,0.25)';
               setTimeout(() => {
@@ -4369,8 +4402,8 @@ int main() {
       /* ═══════════════════════════════════════════════════════════════
          DIGEST SUBSCRIBE
       ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('digestForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
+      const digestBtn = document.getElementById('digestBtn');
+      if (digestBtn) digestBtn.addEventListener('click', async (e) => {
         const email = document.getElementById('digestEmail').value.trim();
         const btn = document.getElementById('digestBtn');
         btn.disabled = true;
