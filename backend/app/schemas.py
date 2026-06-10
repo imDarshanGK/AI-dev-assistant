@@ -113,6 +113,16 @@ class SignupRequest(BaseModel):
     email: str = Field(..., min_length=5, max_length=320)
     password: str = Field(..., min_length=8, max_length=128)
 
+    @field_validator("email", "password", mode="before")
+    @classmethod
+    def strip_and_validate_whitespace(cls, v: str) -> str:
+        """Strip leading/trailing whitespace and reject empty/whitespace-only values."""
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                raise ValueError("This field cannot be empty or contain only whitespace")
+        return v
+
 
 class LoginRequest(BaseModel):
     """Request body for user login.
@@ -124,6 +134,16 @@ class LoginRequest(BaseModel):
 
     email: str = Field(..., min_length=5, max_length=320)
     password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator("email", "password", mode="before")
+    @classmethod
+    def strip_and_validate_whitespace(cls, v: str) -> str:
+        """Strip leading/trailing whitespace and reject empty/whitespace-only values."""
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                raise ValueError("This field cannot be empty or contain only whitespace")
+        return v
 
 
 class AuthResponse(BaseModel):
