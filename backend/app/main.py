@@ -18,6 +18,7 @@ from .routers import (
     analyze,
     auth,
     chat,
+    preview, 
     debugging,
     explanation,
     history,
@@ -153,6 +154,7 @@ app.include_router(explanation.router, prefix="/explanation", tags=["Explanation
 app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
+app.include_router(preview.router,     prefix="/admin",       tags=["Admin"] )
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
 app.include_router(history.router,     prefix="/history",     tags=["History"])
 app.include_router(auth.router)
