@@ -1,16 +1,35 @@
 import ast
+import asyncio
+import json
 import logging
 import time
 import zipfile
 from io import BytesIO
+from pathlib import PurePosixPath
 from typing import Any, Dict, List
+
+from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
+from fastapi.responses import StreamingResponse
+
 from app.models.analyze import AnalyzeResponse, CodeRequest, ZipAnalyzerResponse
 from app.utils.cache import cache
 from app.utils.detector import UnreachableCodeDetector
 from app.utils.engine import full_analysis
-from fastapi import APIRouter, File, HTTPException, Response, UploadFile
+from app.sanitize import sanitize_code_input, sanitize_language_hint
+
 router = APIRouter(tags=["Analysis"])
 logger = logging.getLogger("uvicorn.error")
+
+_SSE_HEADERS = {
+    "Cache-Control": "no-cache",
+    "X-Accel-Buffering": "no",
+}
+
+MAX_ZIP_FILES = 20
+MAX_ZIP_TOTAL_BYTES = 5 * 1024 * 1024
+MAX_SKIPPED_FILES = 20
+
+# ... rest of the code remains the same
 SOURCE_EXTENSIONS = {
     ".py": "python",
     ".js": "javascript",
