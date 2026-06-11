@@ -74,8 +74,17 @@ async def lifespan(app: FastAPI):
     initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
     start_scheduler()
     yield
-    stop_scheduler()
-    logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
+    try:
+        stop_scheduler()
+    except Exception as e:
+        logging.exception(f"Scheduler stop failed: {e}")
+
+    try:
+        await database.close_db()
+    except Exception as e:
+        logging.exception(f"DB shutdown failed: {e}")
+
+    logging.getLogger(__name__).info("🛑 QyverixAI backend shutdown complete")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
