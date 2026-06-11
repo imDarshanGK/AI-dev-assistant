@@ -102,8 +102,15 @@ cd AI-dev-assistant
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
+
+If `uvicorn` is not recognized on Windows, make sure you installed dependencies in the same Python environment and run:
+
+```powershell
+python -m uvicorn app.main:app --reload
+```
+
 ### Environment Setup
 
 Copy `.env.example` to `.env`
