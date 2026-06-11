@@ -27,7 +27,7 @@ let favorites = JSON.parse(localStorage.getItem('qyverix_favorites') || '[]');
 let lastResult = '';
 
 // ── DOM refs ──
-const codeInput = document.getElementById('codeInput');
+const codeEditor = document.getElementById('codeEditor');
 const runBtn = document.getElementById('runBtn');
 const runLabel = document.getElementById('runLabel');
 const outputBox = document.getElementById('outputBox');
@@ -35,7 +35,7 @@ const apiUrlInput = document.getElementById('apiUrl');
 const apiDocsLink = document.getElementById('apiDocsLink');
 const engineBadge = document.getElementById('engineBadge');
 const statusDot = document.getElementById('statusDot');
-const lineCount = document.getElementById('lineCount');
+const charCount = document.getElementById('charCount');
 const fileInput = document.getElementById('fileInput');
 const historyContainer = document.getElementById('historyContainer');
 const favContainer = document.getElementById('favContainer');
@@ -79,15 +79,17 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // ── Line count ──
-codeInput.addEventListener('input', () => {
-  const lines = codeInput.value.split('\n').length;
-  lineCount.textContent = `${lines} line${lines !== 1 ? 's' : ''}`;
+codeEditor.addEventListener('input', () => {
+  const lines = codeEditor.value.split('\n').length;
+  const chars = codeEditor.value.length;
+  charCount.textContent = `${chars} chars · ${lines} line${lines !== 1 ? 's' : ''}`;
+  clearLineHighlights();
 });
 
 // ── Keyboard shortcut ──
-codeInput.addEventListener('keydown', (e) => {
+codeEditor.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    codeInput.blur();
+    codeEditor.blur();
     return;
   }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -103,16 +105,17 @@ fileInput.addEventListener('change', (e) => {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (ev) => {
-    codeInput.value = sanitizeClientCode(ev.target.result);
-    codeInput.dispatchEvent(new Event('input'));
+    codeEditor.value = sanitizeClientCode(ev.target.result);
+    codeEditor.dispatchEvent(new Event('input'));
   };
   reader.readAsText(file);
 });
 
 // ── Clear ──
 document.getElementById('clearBtn').addEventListener('click', () => {
-  codeInput.value = '';
+  codeEditor.value = '';
   lineCount.textContent = '0 lines';
+  clearLineHighlights();
   resetOutput();
 });
 
@@ -138,7 +141,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
   if (!lastResult) return;
   const entry = {
     id: Date.now(),
-    code: codeInput.value.slice(0, 100),
+    code: codeEditor.value.slice(0, 100),
     result: lastResult,
     mode: currentMode,
     time: new Date().toLocaleString()
@@ -370,14 +373,118 @@ apiUrlInput.addEventListener('change', () => {
 });
 checkConnection();
 
+// ── Line Highlighting System ──
+/**
+ * Apply visual highlights to lines with detected issues
+ * @param {Array} issues - Array of issue objects with {line, type, description, suggestion}
+ */
+function applyLineHighlights(issues) {
+  clearLineHighlights();
+  
+  if (!issues || issues.length === 0) return;
+
+  const highlightsContainer = document.getElementById('issueLineHighlights');
+  const codeEditor = document.getElementById('codeEditor');
+  const lineHeight = 1.7 * 13; // line-height * font-size in px
+  const paddingTop = 16; // padding from CSS
+  
+  // Map severity to severity level (for styling and priority)
+  const severityMap = {
+    'error': 'error',
+    'warning': 'warning',
+    'info': 'info',
+    'Error': 'error',
+    'Warning': 'warning',
+    'Info': 'info'
+  };
+
+  // Track unique lines to avoid duplicate highlights
+  const highlightedLines = new Map();
+
+  issues.forEach(issue => {
+    if (!issue.line) return;
+
+    const lineNum = parseInt(issue.line, 10);
+    if (isNaN(lineNum) || lineNum < 1) return;
+
+    // Determine severity: use severity field if available, fallback to type
+    let severity = severityMap[issue.severity] || severityMap[issue.type] || 'info';
+    
+    // If we have multiple issues on same line, keep the highest severity
+    if (highlightedLines.has(lineNum)) {
+      const priorities = { error: 3, warning: 2, info: 1 };
+      if ((priorities[severity] || 0) <= (priorities[highlightedLines.get(lineNum).severity] || 0)) {
+        return;
+      }
+    }
+
+    highlightedLines.set(lineNum, {
+      severity,
+      description: issue.description || '',
+      suggestion: issue.suggestion || '',
+      type: issue.type || 'Issue'
+    });
+  });
+
+  // Create highlight elements for each line
+  highlightedLines.forEach((data, lineNum) => {
+    const topOffset = paddingTop + (lineNum - 1) * lineHeight;
+
+    // Create highlight element
+    const highlight = document.createElement('div');
+    highlight.className = `issue-line-highlight ${data.severity}`;
+    highlight.style.top = topOffset + 'px';
+    highlight.title = `Line ${lineNum}: ${data.type}`;
+    
+    // Add hover tooltip
+    const tooltip = document.createElement('div');
+    tooltip.className = `issue-tooltip ${data.severity}`;
+    tooltip.style.display = 'none';
+    tooltip.innerHTML = `<strong>${escHtml(data.type)}</strong><br/>${escHtml(data.description)}${data.suggestion ? `<br/>Fix: ${escHtml(data.suggestion)}` : ''}`;
+    
+    highlight.addEventListener('mouseenter', (e) => {
+      tooltip.style.display = 'block';
+      tooltip.style.top = topOffset + 'px';
+      tooltip.style.left = '20px';
+    });
+
+    highlight.addEventListener('mouseleave', () => {
+      tooltip.style.display = 'none';
+    });
+
+    highlight.appendChild(tooltip);
+    highlightsContainer.appendChild(highlight);
+
+    // Activate on hover to show the highlight
+    highlight.addEventListener('mouseenter', () => {
+      highlight.classList.add('active');
+    });
+
+    highlight.addEventListener('mouseleave', () => {
+      highlight.classList.remove('active');
+    });
+  });
+}
+
+/**
+ * Clear all line highlights
+ */
+function clearLineHighlights() {
+  const highlightsContainer = document.getElementById('issueLineHighlights');
+  if (highlightsContainer) {
+    highlightsContainer.innerHTML = '';
+  }
+}
+
 // ── Main Analysis ──
 async function runAnalysis() {
-  const code = sanitizeClientCode(codeInput.value.trim());
+  const code = sanitizeClientCode(codeEditor.value.trim());
   if (!code) {
     showError('Please paste some code first.');
     return;
   }
 
+  clearLineHighlights();
   runBtn.disabled = true;
   runBtn.classList.add('loading');
   runLabel.textContent = '⟳ Analyzing...';
@@ -451,6 +558,11 @@ function renderResult(data, mode) {
         </div>
       </div>`;
       text += issues.map(i => `${i.type}: ${i.description}\nFix: ${i.suggestion}`).join('\n') + '\n\n';
+      
+      // Apply line highlights if issues exist
+      if (issues.length > 0) {
+        applyLineHighlights(issues);
+      }
     }
     if (data.suggestions) {
       const sg = data.suggestions;
@@ -497,6 +609,9 @@ function renderResult(data, mode) {
       </div>
     </div>`;
     text = issues.map(i => `[${i.type}] Line ${i.line}: ${i.description}\nFix: ${i.suggestion}`).join('\n');
+    
+    // Apply line highlights for debugging mode
+    applyLineHighlights(issues);
   } else if (mode === 'suggestions') {
     const cards = data.suggestions || [];
     html += `<div class="result-section">

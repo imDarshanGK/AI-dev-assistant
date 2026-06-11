@@ -361,8 +361,10 @@ body {
 }
 
 .code-editor {
+  position: relative;
+  z-index: 1;
   flex: 1;
-  background: var(--bg);
+  background: transparent;
   border: none;
   outline: none;
   color: var(--text);
@@ -372,8 +374,145 @@ body {
   padding: 16px;
   resize: none;
   min-height: 380px;
+  caret-color: var(--text);
 }
 .code-editor::placeholder { color: var(--text-3); }
+
+/* ── Line highlighting system ── */
+.editor-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.line-numbers {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 8px;
+  background: var(--bg-2);
+  border-right: 1px solid var(--border);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: right;
+  user-select: none;
+  min-width: 40px;
+  pointer-events: none;
+}
+
+.code-editor-shell {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.issue-line-highlights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.issue-line-highlight {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc(1.7 * 13px);
+  opacity: 0;
+  transition: opacity var(--transition);
+  pointer-events: auto;
+}
+
+.issue-line-highlight:hover {
+  opacity: 1 !important;
+}
+
+.issue-line-highlight.error {
+  background: rgba(239, 68, 68, 0.15);
+  border-left: 3px solid #ef4444;
+}
+
+.issue-line-highlight.warning {
+  background: rgba(234, 179, 8, 0.15);
+  border-left: 3px solid #eab308;
+}
+
+.issue-line-highlight.info {
+  background: rgba(59, 130, 246, 0.15);
+  border-left: 3px solid #3b82f6;
+}
+
+.issue-line-highlight.active {
+  opacity: 0.6;
+}
+
+.issue-tooltip {
+  position: absolute;
+  background: var(--bg-3);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.issue-tooltip.error {
+  border-left: 3px solid #ef4444;
+}
+
+.issue-tooltip.warning {
+  border-left: 3px solid #eab308;
+}
+
+.issue-tooltip.info {
+  border-left: 3px solid #3b82f6;
+}
+
+.issue-gutter-marker {
+  position: absolute;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.issue-gutter-marker.error {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.issue-gutter-marker.warning {
+  background: rgba(234, 179, 8, 0.2);
+  color: #eab308;
+}
+
+.issue-gutter-marker.info {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.issue-gutter-marker:hover {
+  transform: scale(1.2);
+}
 
 .editor-footer {
   display: flex;
