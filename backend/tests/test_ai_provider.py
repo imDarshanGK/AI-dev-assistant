@@ -21,7 +21,6 @@ import httpx
 import pytest
 
 
-
 def _make_llm_response(text: str) -> MagicMock:
     """Return a fake httpx.Response with an OpenAI-compatible JSON body."""
     resp = MagicMock()
@@ -64,10 +63,9 @@ def _reload_module(env: dict):
     """Reload ai_provider so module-level env vars are re-evaluated."""
     with patch.dict(os.environ, env, clear=False):
         import app.services.ai_provider as mod
+
         importlib.reload(mod)
         return mod
-
-
 
 
 @pytest.fixture()
@@ -199,6 +197,7 @@ class TestCallLlmSuccess:
             patcher.stop()
         assert result == ""
 
+
 class TestCallLlmPayload:
 
     @pytest.mark.asyncio
@@ -267,6 +266,7 @@ class TestCallLlmPayload:
         url_called = mock_client.post.call_args[0][0]
         assert url_called == "http://localhost:11434/v1/chat/completions"
 
+
 class TestCallLlmErrors:
 
     @pytest.mark.asyncio
@@ -316,7 +316,9 @@ class TestCallLlmErrors:
     async def test_returns_none_on_network_error(self, enabled_env):
         mod = _reload_module(enabled_env)
         mock_client = AsyncMock()
-        mock_client.post = AsyncMock(side_effect=httpx.ConnectError("connection refused"))
+        mock_client.post = AsyncMock(
+            side_effect=httpx.ConnectError("connection refused")
+        )
 
         with patch("app.services.ai_provider.httpx.AsyncClient") as MockCls:
             MockCls.return_value.__aenter__ = AsyncMock(return_value=mock_client)

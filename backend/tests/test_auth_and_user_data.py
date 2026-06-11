@@ -13,8 +13,11 @@ from app.main import app
 
 # Use a separate SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_app.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def override_get_db():
     try:
@@ -22,6 +25,8 @@ def override_get_db():
         yield db
     finally:
         db.close()
+
+
 @pytest.fixture(scope="module", autouse=True)
 def setup_db():
     app.dependency_overrides[get_db] = override_get_db
@@ -33,7 +38,9 @@ def setup_db():
     if os.path.exists("./test_app.db"):
         os.remove("./test_app.db")
 
+
 client = TestClient(app)
+
 
 def test_auth_and_user_data_flow():
     # 1. Signup
@@ -62,7 +69,7 @@ def test_auth_and_user_data_flow():
     history_payload = {
         "action": "analyze",
         "code": "def hello(): pass",
-        "result_json": '{"status": "ok"}'
+        "result_json": '{"status": "ok"}',
     }
     r = client.post("/user/history", json=history_payload, headers=headers)
     assert r.status_code == 200
@@ -79,7 +86,7 @@ def test_auth_and_user_data_flow():
         "title": "My snippet",
         "action": "analyze",
         "code": "def hello(): pass",
-        "result_json": '{"status": "ok"}'
+        "result_json": '{"status": "ok"}',
     }
     r = client.post("/user/favorites", json=favorite_payload, headers=headers)
     assert r.status_code == 200
