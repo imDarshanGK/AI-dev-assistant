@@ -154,6 +154,15 @@ def compute_subscriber_stats(db: Session, email: str) -> dict | None:
 
 def _build_html(stats: dict, unsubscribe_url: str) -> str:
     """Render the weekly digest HTML email."""
+    import html
+
+    # Escape dynamic and user-controlled strings to prevent HTML injection
+    escaped_email = html.escape(stats["email"])
+    escaped_languages = [html.escape(lang) for lang in stats["languages"]]
+    escaped_top_bug = html.escape(stats["top_bug"]) if stats["top_bug"] else None
+    escaped_unsubscribe_url = html.escape(unsubscribe_url)
+    escaped_base_url = html.escape(stats.get("base_url", "https://qyverixai.onrender.com"))
+
     score_line = ""
     if stats["avg_score"] is not None:
         emoji = {"up": "📈", "down": "📉", "stable": "➡️"}.get(stats["trend"], "➡️")
@@ -168,11 +177,11 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
         </tr>"""
 
     bug_line = ""
-    if stats["top_bug"]:
+    if escaped_top_bug:
         bug_line = f"""
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;"><strong>Most Common Bug</strong></td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{stats['top_bug']}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{escaped_top_bug}</td>
         </tr>"""
 
     return f"""<!DOCTYPE html>
@@ -195,7 +204,7 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
         </tr>
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;"><strong>Languages</strong></td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{', '.join(stats['languages'])}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{', '.join(escaped_languages)}</td>
         </tr>
         {score_line}
         <tr>
@@ -206,11 +215,11 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
       </table>
     </td></tr>
     <tr><td style="padding:0 32px 24px;text-align:center;">
-      <a href="{stats.get('base_url', 'https://qyverixai.onrender.com')}/app" style="display:inline-block;padding:10px 24px;background:#f0a030;color:#1a1a2e;text-decoration:none;border-radius:6px;font-weight:bold;font-size:0.9rem;">Open QyverixAI</a>
+      <a href="{escaped_base_url}/app" style="display:inline-block;padding:10px 24px;background:#f0a030;color:#1a1a2e;text-decoration:none;border-radius:6px;font-weight:bold;font-size:0.9rem;">Open QyverixAI</a>
     </td></tr>
     <tr><td style="padding:16px 32px;background:#faf8f5;font-size:0.75rem;color:#888;text-align:center;">
-      <p style="margin:0;">This email was sent to {stats['email']} because you subscribed to the QyverixAI weekly digest.</p>
-      <p style="margin:4px 0 0;"><a href="{unsubscribe_url}" style="color:#888;text-decoration:underline;">Unsubscribe</a></p>
+      <p style="margin:0;">This email was sent to {escaped_email} because you subscribed to the QyverixAI weekly digest.</p>
+      <p style="margin:4px 0 0;"><a href="{escaped_unsubscribe_url}" style="color:#888;text-decoration:underline;">Unsubscribe</a></p>
     </td></tr>
   </table>
 </td></tr></table>
