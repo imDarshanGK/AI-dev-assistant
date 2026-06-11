@@ -42,6 +42,9 @@ from contextlib import contextmanager
 from typing import Any, Callable, Generator, TypeVar
 
 _log = logging.getLogger("profiler")
+_log.setLevel(logging.DEBUG)
+if not _log.handlers:
+    _log.addHandler(logging.StreamHandler())
 
 # Evaluated once at import time — zero per-call overhead when disabled.
 _ENABLED: bool = os.getenv("QYVERIX_PROFILE", "false").lower() == "true"
