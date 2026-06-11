@@ -1,5 +1,6 @@
 import logging
 import json
+from typing import Any
 
 import httpx
 
@@ -14,17 +15,17 @@ class LLMAnalysisError(Exception):
 
 class LLMAnalysisClient:
     def __init__(self) -> None:
-        self.api_key = settings.llm_api_key
-        self.base_url = settings.llm_base_url.rstrip("/")
-        self.model = settings.llm_model
-        self.timeout_seconds = settings.llm_timeout_seconds
+        self.api_key: str | None = settings.llm_api_key
+        self.base_url: str = settings.llm_base_url.rstrip("/")
+        self.model: str = settings.llm_model
+        self.timeout_seconds: int = settings.llm_timeout_seconds
 
     @property
     def enabled(self) -> bool:
         return bool(settings.llm_enabled and self.api_key)
 
     async def _chat_completion(
-        self, messages: list[dict], temperature: float = 0.2
+        self, messages: list[dict[str, str]], temperature: float = 0.2
     ) -> str:
         if not self.enabled:
             raise LLMAnalysisError("llm_disabled")
@@ -46,7 +47,8 @@ class LLMAnalysisClient:
                 response = await client.post(url, headers=headers, json=payload)
             response.raise_for_status()
             data = response.json()
-            message = data["choices"][0]["message"]["content"].strip()
+            content: str = data["choices"][0]["message"]["content"]
+            message = content.strip()
             if not message:
                 raise LLMAnalysisError("empty_llm_response")
             return message
@@ -54,7 +56,7 @@ class LLMAnalysisClient:
             raise LLMAnalysisError(str(exc)) from exc
 
     @staticmethod
-    def _extract_json(raw_text: str) -> dict:
+    def _extract_json(raw_text: str) -> dict[str, Any]:
         candidate = raw_text.strip()
         if candidate.startswith("```"):
             candidate = candidate.strip("`")
@@ -67,7 +69,8 @@ class LLMAnalysisClient:
         if start == -1 or end == -1 or end <= start:
             raise LLMAnalysisError("invalid_json_payload")
 
-        return json.loads(candidate[start : end + 1])
+        parsed: dict[str, Any] = json.loads(candidate[start : end + 1])
+        return parsed
 
     async def summarize_code(self, code: str, language_guess: str) -> str:
         if not self.enabled:
@@ -97,8 +100,8 @@ class LLMAnalysisClient:
             logger.warning("llm_summary_failed detail=%s", str(exc))
             raise LLMAnalysisError(str(exc)) from exc
 
-    async def analyze_code_structured(self, code: str, language_guess: str) -> dict:
-        # SECURITY FIX: Harden system prompt against injection
+
+    async def analyze_code_structured(self, code: str, language_guess: str) -> dict[str, Any]:
         prompt = (
             "You are a senior software engineer assistant. "
             "Analyze the code deeply and respond ONLY JSON with this shape: "
@@ -159,4 +162,4 @@ class LLMAnalysisClient:
         )
 
 
-llm_analysis_client = LLMAnalysisClient()
+llm_analysis_client: LLMAnalysisClient = LLMAnalysisClient()
