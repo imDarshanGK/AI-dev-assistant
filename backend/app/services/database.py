@@ -16,6 +16,7 @@ async def init_db() -> None:
         await db.execute("""
             CREATE TABLE IF NOT EXISTS history (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id     INTEGER,
                 code_hash   TEXT NOT NULL,
                 language    TEXT NOT NULL,
                 score       INTEGER,
@@ -28,8 +29,16 @@ async def init_db() -> None:
             CREATE VIRTUAL TABLE IF NOT EXISTS fts_history
             USING fts5(code_preview, content=history, content_rowid=id)
         """)
+        columns = await db.execute("PRAGMA table_info(history)")
+        column_names = {row[1] for row in await columns.fetchall()}
+        if "user_id" not in column_names:
+            await db.execute("ALTER TABLE history ADD COLUMN user_id INTEGER")
         await db.execute(
             "CREATE INDEX IF NOT EXISTS idx_timestamp ON history(timestamp DESC)"
+        )
+        await db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_history_user_timestamp "
+            "ON history(user_id, timestamp DESC)"
         )
         await db.commit()
 
@@ -39,6 +48,7 @@ def hash_code(code: str) -> str:
 
 
 async def save_entry(
+    user_id: int,
     code: str,
     language: str,
     score: int | None,
@@ -49,10 +59,12 @@ async def save_entry(
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute(
             """
-            INSERT INTO history (code_hash, language, score, issue_count, code_preview)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO history (
+                user_id, code_hash, language, score, issue_count, code_preview
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (code_hash, language, score, issue_count, preview),
+            (user_id, code_hash, language, score, issue_count, preview),
         )
         row_id = cursor.lastrowid
         await db.execute(
@@ -63,23 +75,24 @@ async def save_entry(
         return row_id
 
 
-async def get_entries(limit: int = 20, offset: int = 0) -> list[dict]:
+async def get_entries(user_id: int, limit: int = 20, offset: int = 0) -> list[dict]:
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute(
             """
             SELECT id, code_hash, language, score, issue_count, timestamp, code_preview
             FROM history
+            WHERE user_id = ?
             ORDER BY timestamp DESC
             LIMIT ? OFFSET ?
             """,
-            (limit, offset),
+            (user_id, limit, offset),
         )
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]
 
 
-async def search_entries(q: str, limit: int = 20) -> list[dict]:
+async def search_entries(user_id: int, q: str, limit: int = 20) -> list[dict]:
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute(
@@ -87,25 +100,27 @@ async def search_entries(q: str, limit: int = 20) -> list[dict]:
             SELECT h.id, h.code_hash, h.language, h.score,
                    h.issue_count, h.timestamp, h.code_preview
             FROM history h
-            WHERE h.id IN (
+            WHERE h.user_id = ?
+              AND h.id IN (
                 SELECT rowid FROM fts_history WHERE fts_history MATCH ?
             )
             ORDER BY h.timestamp DESC
             LIMIT ?
             """,
-            (q, limit),
+            (user_id, q, limit),
         )
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]
 
 
-async def delete_entry(entry_id: int) -> bool:
+async def delete_entry(entry_id: int, user_id: int) -> bool:
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute(
-            "DELETE FROM history WHERE id = ?", (entry_id,)
+            "DELETE FROM history WHERE id = ? AND user_id = ?", (entry_id, user_id)
         )
-        await db.execute(
-            "DELETE FROM fts_history WHERE rowid = ?", (entry_id,)
-        )
+        if cursor.rowcount > 0:
+            await db.execute(
+                "DELETE FROM fts_history WHERE rowid = ?", (entry_id,)
+            )
         await db.commit()
         return cursor.rowcount > 0
