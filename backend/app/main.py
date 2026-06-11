@@ -35,6 +35,10 @@ from .observability import (
     initialise_app_info,
     prometheus_metrics_middleware,
 )
+from .middleware import (
+    request_id_and_logging_middleware,
+    request_size_limit_middleware,
+)
 
 from .schemas import HealthResponse
 
@@ -104,6 +108,8 @@ app.add_middleware(
 # handler's 500s). The middleware self-disables per-request when
 # METRICS_ENABLED is false, so installing it unconditionally costs nothing
 # operationally and lets operators flip the flag without a restart.
+app.middleware("http")(request_id_and_logging_middleware)
+app.middleware("http")(request_size_limit_middleware)
 app.middleware("http")(prometheus_metrics_middleware)
 
 
