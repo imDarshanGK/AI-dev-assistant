@@ -80,6 +80,14 @@ async def get_entries(limit: int = 20, offset: int = 0) -> list[dict]:
 
 
 async def search_entries(q: str, limit: int = 20) -> list[dict]:
+    # Sanitize search query to prevent FTS5 syntax errors
+    tokens = q.split()
+    if not tokens:
+        return []
+    
+    # Wrap each token in double quotes, doubling any inner double quotes to escape them
+    sanitized_query = " ".join('"' + token.replace('"', '""') + '"' for token in tokens)
+
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute(
@@ -93,7 +101,7 @@ async def search_entries(q: str, limit: int = 20) -> list[dict]:
             ORDER BY h.timestamp DESC
             LIMIT ?
             """,
-            (q, limit),
+            (sanitized_query, limit),
         )
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]

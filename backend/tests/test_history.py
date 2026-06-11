@@ -87,3 +87,23 @@ def test_search_no_results():
     r = client.get("/history/search?q=xyznotfoundever")
     assert r.status_code == 200
     assert r.json() == []
+
+
+def test_search_fts5_special_characters():
+    # Test FTS5 special character escaping and empty search inputs
+    special_queries = [
+        "print(\"hello\"",  # Unbalanced double quotes
+        "import *",        # Prefix operator
+        "AND OR NOT",      # Boolean FTS5 operators
+        "()",              # Empty grouping
+        "   ",             # Only whitespace
+    ]
+    for q in special_queries:
+        r = client.get(f"/history/search?q={q}")
+        assert r.status_code == 200
+        assert isinstance(r.json(), list)
+
+    # Empty string should fail FastAPI parameter validation with 422
+    r = client.get("/history/search?q=")
+    assert r.status_code == 422
+
