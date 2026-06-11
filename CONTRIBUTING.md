@@ -252,3 +252,50 @@ Be respectful, inclusive, and constructive. We're here to learn and build togeth
 ---
 
 Thank you for contributing! 🚀
+---
+
+## First-Time Contributors Guide
+
+Never contributed to open source before? This section is for you!
+
+### Step-by-Step for Beginners
+
+**1. Find an issue**
+- Go to Issues: https://github.com/imDarshanGK/AI-dev-assistant/issues
+- Filter by good first issue or level:beginner label
+- Comment /assign to get it assigned to you
+
+**2. Set up upstream**
+
+    git remote add upstream https://github.com/imDarshanGK/AI-dev-assistant.git
+    git fetch upstream
+    git merge upstream/main
+
+**3. Always create a new branch**
+
+    git checkout -b feat/your-feature-name
+
+**4. Keep your fork synced**
+
+    git fetch upstream
+    git checkout main
+    git merge upstream/main
+    git push origin main
+
+**5. Commit message format**
+
+    feat: add new bug pattern for Python
+    fix: correct typo in README
+    docs: update contributing guide
+    test: add edge case for empty input
+
+**6. Before opening a PR**
+- Run pytest -v and make sure all tests pass
+- Make sure your branch is up to date with main
+- Reference the issue in PR description: Closes #477
+
+### Common Mistakes to Avoid
+- Do not commit directly to main
+- Do not open a PR without being assigned the issue
+- Do not skip running tests before pushing
+- Always sync with upstream before starting work
