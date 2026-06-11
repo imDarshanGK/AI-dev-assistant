@@ -9,6 +9,9 @@ from ..schemas import (
     FavoriteRecord,
     HistoryCreateRequest,
     HistoryRecord,
+    UserDataExportResponse,
+    UserDataImportRequest,
+    UserDataImportResponse,
 )
 from ..security import get_current_user
 
@@ -186,3 +189,90 @@ def clear_favorites(
     )
     db.commit()
     return {"status": "cleared", "deleted": result.rowcount or 0}
+
+
+@router.get("/export", response_model=UserDataExportResponse)
+def export_user_data(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    histories = (
+        db.execute(
+            select(QueryHistory)
+            .where(QueryHistory.user_id == current_user.id)
+            .order_by(QueryHistory.id.asc())
+        )
+        .scalars()
+        .all()
+    )
+    favorites = (
+        db.execute(
+            select(FavoriteResult)
+            .where(FavoriteResult.user_id == current_user.id)
+            .order_by(FavoriteResult.id.asc())
+        )
+        .scalars()
+        .all()
+    )
+
+    return UserDataExportResponse(
+        history=[
+            HistoryRecord(
+                id=h.id,
+                action=h.action,
+                code=h.code,
+                result_json=h.result_json,
+                created_at=h.created_at.isoformat() if h.created_at else "",
+            )
+            for h in histories
+        ],
+        favorites=[
+            FavoriteRecord(
+                id=f.id,
+                title=f.title,
+                action=f.action,
+                code=f.code,
+                result_json=f.result_json,
+                created_at=f.created_at.isoformat() if f.created_at else "",
+            )
+            for f in favorites
+        ],
+    )
+
+
+@router.post("/import", response_model=UserDataImportResponse)
+def import_user_data(
+    payload: UserDataImportRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    imported_history = []
+    imported_favorites = []
+
+    for h in payload.history:
+        record = QueryHistory(
+            user_id=current_user.id,
+            action=h.action,
+            code=h.code,
+            result_json=h.result_json,
+        )
+        db.add(record)
+        imported_history.append(record)
+
+    for f in payload.favorites:
+        record = FavoriteResult(
+            user_id=current_user.id,
+            title=f.title,
+            action=f.action,
+            code=f.code,
+            result_json=f.result_json,
+        )
+        db.add(record)
+        imported_favorites.append(record)
+
+    db.commit()
+
+    return UserDataImportResponse(
+        status="success",
+        imported_history_count=len(imported_history),
+        imported_favorites_count=len(imported_favorites),
+    )
