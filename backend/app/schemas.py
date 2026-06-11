@@ -1,7 +1,7 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
 import json
 from typing import Any
 
@@ -79,51 +79,32 @@ class ZipAnalyzeResponse(BaseModel):
 
 
 class SubscribeRequest(BaseModel):
-    email: str
-
-    @field_validator("email")
-    @classmethod
-    def email_must_be_valid(cls, v: str) -> str:
-        v = v.strip().lower()
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Invalid email address")
-        if len(v) > 320:
-            raise ValueError("Email too long")
-        return v
+    email: EmailStr
 
 
 class SubscribeResponse(BaseModel):
     message: str
-    email: str
+    email: EmailStr
 
 
 class UnsubscribeRequest(BaseModel):
-    email: str
+    email: EmailStr
     token: str
 
 
 class SignupRequest(BaseModel):
-    """Request body for creating a new user account.
+    """Request body for creating a new user account."""
 
-    Attributes:
-        email: The user's email address.
-        password: The user's chosen password (plaintext in request).
-    """
-
-    email: str = Field(..., min_length=5, max_length=320)
+    email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
 
 
 class LoginRequest(BaseModel):
-    """Request body for user login.
+    """Request body for user login."""
 
-    Attributes:
-        email: The user's email address.
-        password: The user's password.
-    """
-
-    email: str = Field(..., min_length=5, max_length=320)
+    email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
+
 
 
 class AuthResponse(BaseModel):
@@ -138,7 +119,8 @@ class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user_id: int
-    email: str
+    email: EmailStr
+
 
 
 class UserProfileResponse(BaseModel):
@@ -150,7 +132,7 @@ class UserProfileResponse(BaseModel):
     """
 
     user_id: int
-    email: str
+    email: EmailStr
 
 
 class HealthResponse(BaseModel):
