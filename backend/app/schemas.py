@@ -1,9 +1,10 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
+from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, model_validator
 import json
-from typing import Any
+from typing import Any, Literal
 
 from .config import settings
 from .schema_validators import (
@@ -378,3 +379,79 @@ class AnalyzeResponse(BaseModel):
     debugging: DebuggingResponse
     suggestions: SuggestionsResponse
     analysis_time_ms: float | None = None
+
+
+# ── Compliance reporting ──────────────────────────────────────────────────────
+ReportFormat = Literal["json", "csv", "pdf"]
+Severity = Literal["error", "warning", "info"]
+
+
+class ReportFilters(BaseModel):
+    """Filtering options applied when building a compliance report.
+
+    Every field is optional; an empty filter set selects the full audit history
+    available to the requesting user. The applied filters are echoed back in the
+    report metadata so a reviewer can reproduce exactly which slice of data the
+    report covers.
+    """
+
+    start_date: datetime | None = Field(
+        default=None, description="Inclusive lower bound on record timestamp (UTC)."
+    )
+    end_date: datetime | None = Field(
+        default=None, description="Inclusive upper bound on record timestamp (UTC)."
+    )
+    actions: list[str] | None = Field(
+        default=None, description="Restrict to these analysis actions (e.g. analyze)."
+    )
+    languages: list[str] | None = Field(
+        default=None, description="Restrict to these detected languages."
+    )
+    severities: list[Severity] | None = Field(
+        default=None,
+        description="Keep only records containing at least one issue of these severities.",
+    )
+    min_score: int | None = Field(default=None, ge=0, le=100)
+    max_score: int | None = Field(default=None, ge=0, le=100)
+    search: str | None = Field(
+        default=None, max_length=200, description="Case-insensitive substring of the code."
+    )
+
+    @field_validator("actions", "languages")
+    @classmethod
+    def _normalise_lists(cls, v: list[str] | None) -> list[str] | None:
+        if v is None:
+            return None
+        cleaned = [item.strip().lower() for item in v if item and item.strip()]
+        return cleaned or None
+
+    @model_validator(mode="after")
+    def _check_bounds(self) -> "ReportFilters":
+        if (
+            self.start_date is not None
+            and self.end_date is not None
+            and self.start_date > self.end_date
+        ):
+            raise ValueError("start_date must not be after end_date")
+        if (
+            self.min_score is not None
+            and self.max_score is not None
+            and self.min_score > self.max_score
+        ):
+            raise ValueError("min_score must not be greater than max_score")
+        return self
+
+
+class ReportRequest(BaseModel):
+    """Request to generate a compliance report in a chosen export format."""
+
+    format: ReportFormat = "json"
+    filters: ReportFilters = Field(default_factory=ReportFilters)
+
+
+class AuditLogRecord(BaseModel):
+    id: int
+    action: str
+    resource: str
+    detail: dict[str, Any]
+    created_at: str

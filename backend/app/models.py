@@ -78,3 +78,26 @@ class SharedSnippet(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
     )
+
+
+class AuditLog(Base):
+    """Append-only audit trail for compliance-relevant actions.
+
+    Rows are never updated or deleted in normal operation — each entry records
+    one action (e.g. generating a compliance report) together with the actor,
+    the affected resource, and a JSON blob of contextual detail such as the
+    applied filters and the resulting report identifier.
+    """
+
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), index=True, nullable=True
+    )
+    action: Mapped[str] = mapped_column(String(100), index=True)
+    resource: Mapped[str] = mapped_column(String(100), default="")
+    detail_json: Mapped[str] = mapped_column(Text, default="{}")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(UTC), index=True
+    )

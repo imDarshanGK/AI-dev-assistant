@@ -1739,12 +1739,12 @@
 ═══════════════════════════════════════════════════════════════ */
     .bottom-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       animation: fadeUp 0.6s 0.5s ease both;
     }
 
-    @media(max-width:700px) {
+    @media(max-width:1000px) {
       .bottom-grid {
         grid-template-columns: 1fr
       }
@@ -2405,6 +2405,100 @@
         </div>
         <div class="fav-list" id="favList" aria-live="polite">
           <div class="list-empty" data-i18n="empty_favorites">No favorites saved yet.</div>
+        </div>
+      </div>
+
+      <!-- Compliance Reports Panel -->
+      <div class="panel" id="compliancePanel">
+        <div class="panel-header">
+          <div class="panel-title">Compliance Reports &amp; Audit</div>
+          <button class="btn-clear" id="logoutBtn" style="display:none">Log Out</button>
+        </div>
+        <!-- Auth State: Logged Out -->
+        <div id="reportsAuthView" class="panel-body" style="padding:16px;">
+          <p style="font-size:0.8rem;color:var(--text3);margin-bottom:12px;">Log in or sign up to generate certified compliance reports.</p>
+          <form id="authForm" style="display:flex;flex-direction:column;gap:10px;">
+            <input type="email" id="authEmail" placeholder="Email" required autocomplete="username" style="padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.8rem;">
+            <input type="password" id="authPassword" placeholder="Password" required autocomplete="current-password" style="padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.8rem;">
+            <div style="display:flex;gap:8px;">
+              <button type="button" id="loginBtn" style="flex:1;padding:8px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.8rem;">Log In</button>
+              <button type="button" id="signupBtn" style="flex:1;padding:8px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign Up</button>
+            </div>
+          </form>
+        </div>
+        <!-- Auth State: Logged In -->
+        <div id="reportsMainView" class="panel-body" style="display:none;padding:16px;overflow-y:auto;max-height:450px;">
+          <!-- Filters Form -->
+          <form id="reportFiltersForm" style="display:flex;flex-direction:column;gap:12px;">
+            <!-- Date Range Selection -->
+            <div style="display:flex;gap:8px;">
+              <div style="flex:1;">
+                <label style="font-size:0.7rem;color:var(--text3);display:block;margin-bottom:4px;">Start Date</label>
+                <input type="date" id="repStartDate" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.75rem;">
+              </div>
+              <div style="flex:1;">
+                <label style="font-size:0.7rem;color:var(--text3);display:block;margin-bottom:4px;">End Date</label>
+                <input type="date" id="repEndDate" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.75rem;">
+              </div>
+            </div>
+            <!-- Severity Filter -->
+            <div>
+              <span style="font-size:0.7rem;color:var(--text3);display:block;margin-bottom:6px;">Severities</span>
+              <div style="display:flex;gap:12px;font-size:0.75rem;">
+                <label><input type="checkbox" name="repSeverity" value="error" checked> Error</label>
+                <label><input type="checkbox" name="repSeverity" value="warning" checked> Warning</label>
+                <label><input type="checkbox" name="repSeverity" value="info" checked> Info</label>
+              </div>
+            </div>
+            <!-- Languages and Search -->
+            <div style="display:flex;gap:8px;">
+              <div style="flex:1;">
+                <label style="font-size:0.7rem;color:var(--text3);display:block;margin-bottom:4px;">Languages (comma-separated)</label>
+                <input type="text" id="repLanguages" placeholder="e.g. python, javascript" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.75rem;">
+              </div>
+              <div style="flex:1;">
+                <label style="font-size:0.7rem;color:var(--text3);display:block;margin-bottom:4px;">Search Term</label>
+                <input type="text" id="repSearch" placeholder="Filter code preview..." style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.75rem;">
+              </div>
+            </div>
+            <!-- Score Bounds -->
+            <div style="display:flex;gap:8px;">
+              <div style="flex:1;">
+                <label style="font-size:0.7rem;color:var(--text3);display:block;margin-bottom:4px;">Min Quality Score</label>
+                <input type="number" id="repMinScore" min="0" max="100" placeholder="0" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.75rem;">
+              </div>
+              <div style="flex:1;">
+                <label style="font-size:0.7rem;color:var(--text3);display:block;margin-bottom:4px;">Max Quality Score</label>
+                <input type="number" id="repMaxScore" min="0" max="100" placeholder="100" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.75rem;">
+              </div>
+            </div>
+            <!-- Export Format Selector -->
+            <div>
+              <span style="font-size:0.7rem;color:var(--text3);display:block;margin-bottom:6px;">Export Format</span>
+              <div style="display:flex;gap:16px;font-size:0.75rem;">
+                <label><input type="radio" name="repFormat" value="pdf" checked> PDF (Compliance)</label>
+                <label><input type="radio" name="repFormat" value="csv"> CSV Spreadsheet</label>
+                <label><input type="radio" name="repFormat" value="json"> JSON Archive</label>
+              </div>
+            </div>
+            <!-- Generate Buttons -->
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <button type="button" id="btnPreviewReport" style="flex:1;padding:8px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;">Preview Report</button>
+              <button type="button" id="btnGenerateReport" style="flex:1;padding:8px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;">Download Report</button>
+            </div>
+          </form>
+          <!-- Report Preview Area -->
+          <div id="reportPreviewArea" style="display:none;margin-top:16px;padding:12px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);">
+            <h4 style="font-size:0.8rem;margin:0 0 8px;color:var(--accent);">Report Preview Summary</h4>
+            <div id="reportPreviewSummary" style="font-size:0.75rem;color:var(--text2);line-height:1.4;"></div>
+          </div>
+          <!-- Audit Trail Block -->
+          <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:12px;">
+            <h4 style="font-size:0.8rem;margin:0 0 8px;color:var(--text);">Compliance Audit Trail</h4>
+            <div id="auditTrailList" style="font-size:0.72rem;display:flex;flex-direction:column;gap:6px;max-height:150px;overflow-y:auto;">
+              <!-- Loaded dynamically -->
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -4396,6 +4490,220 @@ int main() {
           btn.textContent = 'Subscribe';
         }
       });
+
+      /* ═══════════════════════════════════════════════════════════════
+         COMPLIANCE REPORTS & AUDIT TRAIL
+      ═══════════════════════════════════════════════════════════════ */
+
+      // ── Auth state helpers ──────────────────────────────────────────
+      function getAuthToken() {
+        return localStorage.getItem('qyverix_auth_token');
+      }
+      function isAuthenticated() {
+        return !!getAuthToken();
+      }
+
+      // Request wrapper injecting the Bearer token, with 401 session handling.
+      async function fetchWithAuth(path, options = {}) {
+        const token = getAuthToken();
+        const base = getApiBase();
+        options.headers = {
+          ...options.headers,
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          options.headers['Authorization'] = `Bearer ${token}`;
+        }
+        const { response } = await fetchWithApiFallback(base, path, options);
+        if (response.status === 401) {
+          localStorage.removeItem('qyverix_auth_token');
+          showAuthView();
+          toast('Session expired. Please log in again.', 'error');
+        }
+        return response;
+      }
+
+      // ── View toggle ─────────────────────────────────────────────────
+      function showAuthView() {
+        document.getElementById('reportsAuthView').style.display = 'block';
+        document.getElementById('reportsMainView').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'none';
+      }
+      function showMainReportsView() {
+        document.getElementById('reportsAuthView').style.display = 'none';
+        document.getElementById('reportsMainView').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'block';
+        loadAuditTrail();
+      }
+
+      // ── Authentication ──────────────────────────────────────────────
+      async function handleAuth(endpoint, email, password) {
+        const base = getApiBase();
+        try {
+          const { response } = await fetchWithApiFallback(base, `/auth/${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || 'Authentication failed');
+          }
+          localStorage.setItem('qyverix_auth_token', data.access_token);
+          toast(endpoint === 'login' ? 'Logged in successfully' : 'Account created successfully', 'success');
+          showMainReportsView();
+        } catch (err) {
+          toast(err.message, 'error');
+        }
+      }
+
+      document.getElementById('loginBtn').addEventListener('click', () => {
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value;
+        if (email && password) handleAuth('login', email, password);
+      });
+      document.getElementById('signupBtn').addEventListener('click', () => {
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value;
+        if (email && password) handleAuth('signup', email, password);
+      });
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('qyverix_auth_token');
+        showAuthView();
+        toast('Logged out successfully', 'info');
+      });
+
+      // ── Filter serialization ────────────────────────────────────────
+      function buildFiltersPayload() {
+        const startVal = document.getElementById('repStartDate').value;
+        const endVal = document.getElementById('repEndDate').value;
+        const searchVal = document.getElementById('repSearch').value.trim();
+        const minVal = document.getElementById('repMinScore').value;
+        const maxVal = document.getElementById('repMaxScore').value;
+        const langVal = document.getElementById('repLanguages').value.trim();
+        const severities = Array.from(document.querySelectorAll('input[name="repSeverity"]:checked'))
+          .map(el => el.value);
+
+        const filters = {};
+        if (startVal) filters.start_date = `${startVal}T00:00:00Z`;
+        if (endVal) filters.end_date = `${endVal}T23:59:59Z`;
+        if (searchVal) filters.search = searchVal;
+        if (minVal !== '') filters.min_score = parseInt(minVal, 10);
+        if (maxVal !== '') filters.max_score = parseInt(maxVal, 10);
+        if (severities.length > 0) filters.severities = severities;
+        if (langVal) filters.languages = langVal.split(',').map(s => s.trim()).filter(Boolean);
+        return filters;
+      }
+
+      // ── Action A: PREVIEW ───────────────────────────────────────────
+      document.getElementById('btnPreviewReport').addEventListener('click', async () => {
+        const filters = buildFiltersPayload();
+        try {
+          const res = await fetchWithAuth('/reports/preview', {
+            method: 'POST',
+            body: JSON.stringify({ format: 'json', filters }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          displayPreview(data);
+          loadAuditTrail(); // Refresh audit logs — a preview is itself logged.
+        } catch (err) {
+          toast(`Preview failed: ${err.message}`, 'error');
+        }
+      });
+
+      function displayPreview(data) {
+        const area = document.getElementById('reportPreviewArea');
+        const summaryDiv = document.getElementById('reportPreviewSummary');
+        area.style.display = 'block';
+        const metadata = data.metadata;
+        const summary = data.summary;
+        summaryDiv.innerHTML = `
+          <strong>Report ID:</strong> <span style="font-family:var(--font-mono);">${escHtml(metadata.report_id)}</span><br>
+          <strong>Records Count:</strong> ${summary.total_records} match(es)<br>
+          <strong>Errors/Warnings/Info:</strong> ${summary.by_severity.error}/${summary.by_severity.warning}/${summary.by_severity.info}<br>
+          <strong>Average Quality Score:</strong> ${summary.average_score !== null ? summary.average_score + '/100' : 'N/A'}<br>
+          <strong>Analysis version:</strong> v${escHtml(metadata.analysis_version)}
+        `;
+      }
+
+      // ── Action B: GENERATE AND DOWNLOAD ─────────────────────────────
+      document.getElementById('btnGenerateReport').addEventListener('click', async () => {
+        const format = document.querySelector('input[name="repFormat"]:checked').value;
+        const filters = buildFiltersPayload();
+        try {
+          const res = await fetchWithAuth('/reports/generate', {
+            method: 'POST',
+            body: JSON.stringify({ format, filters }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP ${res.status}`);
+          }
+          // Programmatic attachment download.
+          const blob = await res.blob();
+          const disposition = res.headers.get('Content-Disposition');
+          let filename = `compliance-report-${Date.now()}.${format}`;
+          if (disposition && disposition.indexOf('filename=') !== -1) {
+            const matches = disposition.match(/filename="([^"]+)"/);
+            if (matches && matches[1]) filename = matches[1];
+          }
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          a.remove();
+          toast('Report downloaded successfully!', 'success');
+          loadAuditTrail(); // Refresh audit list.
+        } catch (err) {
+          toast(`Download failed: ${err.message}`, 'error');
+        }
+      });
+
+      // ── Audit trail retrieval ───────────────────────────────────────
+      async function loadAuditTrail() {
+        const listEl = document.getElementById('auditTrailList');
+        try {
+          const res = await fetchWithAuth('/reports/audit?limit=25');
+          if (!res.ok) return;
+          const logs = await res.json();
+          if (logs.length === 0) {
+            listEl.innerHTML = `<div style="color:var(--text3);font-style:italic;">No compliance logs recorded yet.</div>`;
+            return;
+          }
+          listEl.innerHTML = logs.map(log => {
+            const dateStr = new Date(log.created_at).toLocaleString();
+            const format = String(log.detail.format || 'JSON');
+            const actionLabel = log.action === 'report.generate' ? 'Generated File' : 'Previewed';
+            return `
+              <div style="padding:6px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);display:flex;flex-direction:column;gap:2px;">
+                <div style="display:flex;justify-content:space-between;font-weight:600;color:var(--text);">
+                  <span>${actionLabel} (${escHtml(format.toUpperCase())})</span>
+                  <span style="margin-left:auto;color:var(--text3);font-size:0.65rem;">${escHtml(dateStr)}</span>
+                </div>
+                <div style="color:var(--text2);font-size:0.65rem;word-break:break-all;">
+                  Report: ${escHtml(log.resource)} | Matches: ${log.detail.record_count || 0}
+                </div>
+              </div>
+            `;
+          }).join('');
+        } catch {
+          listEl.innerHTML = `<div style="color:var(--red);">Failed to load audit logs.</div>`;
+        }
+      }
+
+      // ── Initial session check (script runs at end of body, DOM ready) ─
+      if (isAuthenticated()) {
+        showMainReportsView();
+      } else {
+        showAuthView();
+      }
     </script>
 </body>
 

@@ -21,6 +21,7 @@ from .routers import (
     debugging,
     explanation,
     history,
+    reports,
     share,
     subscribe,
     suggestions,
@@ -29,6 +30,7 @@ from .routers import (
 )
 from .routers import health as health_router
 from .routers import metrics as metrics_router
+from .database import Base, engine
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
 from .observability import (
@@ -69,6 +71,10 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
+    # Create the relational (SQLAlchemy) tables — users, history, favorites,
+    # shares, audit_logs — so auth and compliance reporting work on a fresh DB
+    # without waiting for a /share call to lazily bootstrap the schema.
+    Base.metadata.create_all(bind=engine)
     print("🚀 QyverixAI backend starting…")
     # Static info gauge so dashboards can pin version / provider labels.
     initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
@@ -96,6 +102,9 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Expose download/report headers so a cross-origin frontend can read the
+    # attachment filename and report id from report downloads.
+    expose_headers=["Content-Disposition", "X-Report-Id"],
 )
 
 
@@ -160,6 +169,7 @@ app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+app.include_router(reports.router)
 
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics
@@ -192,6 +202,8 @@ async def root():
             "/subscribe/",
             "/share/",
             "/history/",
+            "/reports/generate",
+            "/reports/audit",
         ],
     }
 
