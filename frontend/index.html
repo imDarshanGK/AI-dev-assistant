@@ -2424,48 +2424,33 @@
       </div>
     </div>
 
-    <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
-    <div class="bottom-grid">
-      <div class="panel">
-        <div class="panel-header">
-add-history-search-v2
-          <div class="panel-title">Query History</div>
-          <button class="btn-clear" id="clearHistoryBtnSecond" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
-          </div>
-        <div class="history-search-wrap">
-          <input type="text" id="historySearch" placeholder="Search history..." aria-label="Search history">
-          <button id="clearSearchBtn" class="btn-clear-search" aria-label="Clear search">✕</button>
-
-          <div class="panel-title" data-i18n="history_title">Query History</div>
-          <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
-          <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
-          <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
- main
-        </div>
-        <div class="history-list" id="historyList" aria-live="polite">
-          <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title" data-i18n="favorites_title">Saved Favorites</div>
-          <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
-        </div>
-        <div class="fav-list" id="favList" aria-live="polite">
- add-history-search-v2
-          <div class="list-empty">No favorites saved yet.</div>
-
-          <div class="list-empty" data-i18n="empty_favorites">No favorites saved yet.</div>
-          main
-        </div>
-      </div>
+<!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
+<div class="bottom-grid">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title" data-i18n="history_title">Query History</div>
+      <button class="btn-clear" id="clearHistoryBtn" aria-label="Clear query history" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
+      <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
+      <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
     </div>
-
-  </div><!-- /app -->
-
- add-history-search-v2
-
- main
+    <div class="history-search-wrap">
+      <input type="text" id="historySearch" placeholder="Search history..." aria-label="Search history">
+      <button id="clearSearchBtn" class="btn-clear-search" aria-label="Clear search">✕</button>
+    </div>
+    <div class="history-list" id="historyList" aria-live="polite">
+      <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title" data-i18n="favorites_title">Saved Favorites</div>
+      <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
+    </div>
+    <div class="fav-list" id="favList" aria-live="polite">
+      <div class="list-empty" data-i18n="empty_favorites">No favorites saved yet.</div>
+    </div>
+  </div>
+</div>
     <!-- ── FOOTER ─────────────────────────────────────────────────── -->
     <footer>
       <div class="app" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:space-between;">
