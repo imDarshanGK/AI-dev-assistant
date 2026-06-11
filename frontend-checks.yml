@@ -15,8 +15,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Start local W3C validator server
+        run: |
+          docker run -d -p 8888:8888 ghcr.io/validator/validator:latest
+          until curl -s http://localhost:8888/ > /dev/null; do sleep 1; done
+
       - name: Validate HTML syntax
-        run: npx --yes w3c-html-validator "frontend/index.html"
+        run: npx --yes w3c-html-validator "frontend/index.html" --check-url=http://localhost:8888/
 
       - name: Check for broken local links
         uses: lycheeverse/lychee-action@v2

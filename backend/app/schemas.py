@@ -1,9 +1,11 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator, model_validator
+
 import json
 from typing import Any
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .config import settings
 from .schema_validators import (
@@ -12,6 +14,7 @@ from .schema_validators import (
     validate_stored_code,
     validate_stored_result_json,
 )
+
 
 class CodeRequest(BaseModel):
     code: str
@@ -112,6 +115,21 @@ class SignupRequest(BaseModel):
 
     email: str = Field(..., min_length=5, max_length=320)
     password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        return v
 
 
 class LoginRequest(BaseModel):
@@ -240,6 +258,7 @@ class ReadinessResponse(BaseModel):
     status: str
     checks: dict[str, dict[str, Any]]
 
+
 class ShareCreateRequest(BaseModel):
     action: str = Field("share", min_length=3, max_length=50)
     code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
@@ -274,11 +293,10 @@ class ShareCreateRequest(BaseModel):
         return values
 
     @model_validator(mode="after")
-    @classmethod
-    def ensure_result_present(cls, model: "ShareCreateRequest") -> "ShareCreateRequest":
-        if model.result is None:
+    def ensure_result_present(self) -> "ShareCreateRequest":
+        if self.result is None:
             raise ValueError("result or result_json is required")
-        return model
+        return self
 
 
 class ShareRecord(BaseModel):
@@ -365,11 +383,13 @@ class ExplanationResponse(BaseModel):
     cyclomatic_complexity: int
     complexity_risk: str
 
+
 class SuggestionsResponse(BaseModel):
     suggestions: list[Suggestion]
     overall_score: int
     grade: str
     next_step: str
+
 
 class AnalyzeResponse(BaseModel):
     provider: str
