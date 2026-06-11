@@ -3,25 +3,23 @@ Tests for weekly email digest — subscribe / unsubscribe / scheduler.
 Run: cd backend && pytest test_digest.py -v
 """
 
+import os
+import sys
+from urllib.parse import parse_qs, urlparse
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from urllib.parse import parse_qs, urlparse
-
-import sys
-import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.database import Base, get_db
-from app.models import DigestSubscription
-from app.services import email_service
 
 # Now import the FastAPI app and wire up the test DB override.
 from app.main import app as fastapi_app
-
-
+from app.models import DigestSubscription
+from app.services import email_service
 from sqlalchemy.pool import StaticPool
 
 TEST_ENGINE = create_engine(
