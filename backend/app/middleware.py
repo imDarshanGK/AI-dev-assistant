@@ -98,3 +98,45 @@ async def rate_limit_middleware(request: Request, call_next):
         bucket.append(now)
 
     return await call_next(request)
+
+
+async def static_cache_headers_middleware(request: Request, call_next):
+    """Add Cache-Control headers for static frontend assets (Issue #533).
+
+    Only affects responses served under the /app mount (FastAPI StaticFiles).
+    Cache durations are intentionally conservative because frontend filenames
+    are NOT content-hashed, so immutable/long-lived caching would serve stale
+    assets after a deployment.
+
+    Strategy by asset type:
+    - HTML / directory roots  → no-cache, must-revalidate
+      Always revalidate so the latest app shell is fetched after each deploy.
+    - JS / CSS                → public, max-age=3600  (1 hour)
+      Short window to limit stale-asset exposure without hammering the server.
+    - Images / favicon        → public, max-age=86400  (24 hours)
+      Visuals change rarely between deploys; a day-long cache is safe.
+    - Web fonts               → public, max-age=604800  (7 days)
+      Fonts almost never change; a week avoids needless redownloads.
+    """
+    response = await call_next(request)
+
+    path = request.url.path
+
+    # Only apply to the static frontend mount; leave API routes untouched.
+    if not path.startswith("/app"):
+        return response
+
+    if path.endswith((".woff", ".woff2", ".ttf", ".eot", ".otf")):
+        # Web fonts — 7 days
+        response.headers["Cache-Control"] = "public, max-age=604800"
+    elif path.endswith((".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico")):
+        # Images and favicon — 24 hours
+        response.headers["Cache-Control"] = "public, max-age=86400"
+    elif path.endswith((".js", ".css")):
+        # JavaScript and CSS — 1 hour
+        response.headers["Cache-Control"] = "public, max-age=3600"
+    else:
+        # HTML files and bare directory paths — always revalidate
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+
+    return response

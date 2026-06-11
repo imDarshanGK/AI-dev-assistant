@@ -35,6 +35,7 @@ from .observability import (
     initialise_app_info,
     prometheus_metrics_middleware,
 )
+from .middleware import static_cache_headers_middleware
 
 from .schemas import HealthResponse
 
@@ -105,6 +106,8 @@ app.add_middleware(
 # METRICS_ENABLED is false, so installing it unconditionally costs nothing
 # operationally and lets operators flip the flag without a restart.
 app.middleware("http")(prometheus_metrics_middleware)
+# Issue #533 — Cache-Control headers for static frontend assets served at /app
+app.middleware("http")(static_cache_headers_middleware)
 
 
 @app.middleware("http")
