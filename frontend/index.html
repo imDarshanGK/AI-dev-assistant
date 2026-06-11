@@ -3391,6 +3391,7 @@
         analyzeBtn.classList.add('loading');
         analyzeBtn.disabled = true;
         showShimmers();
+        await new Promise(r => requestAnimationFrame(r));
 
         try {
           if (selectedZipFile) {
