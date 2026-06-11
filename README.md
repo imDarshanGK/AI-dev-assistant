@@ -12,6 +12,7 @@
 <br/>
 
 [![CI](https://github.com/imDarshanGK/AI-dev-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/imDarshanGK/AI-dev-assistant/actions)
+[![codecov](https://codecov.io/gh/imDarshanGK/AI-dev-assistant/graph/badge.svg)](https://codecov.io/gh/imDarshanGK/AI-dev-assistant)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://python.org)
@@ -44,11 +45,8 @@ No account required. No API key needed. Works fully offline. Fully open source.
 
 ---
 
-## Preview
-
-<!-- Add a screenshot of the live site here -->
-<!-- ![QyverixAI Preview](assets/preview.png) -->
-
+## Preview 
+![QyverixAI Preview](assets/preview.png)
 ---
 
 ## Features
