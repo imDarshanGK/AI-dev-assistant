@@ -222,6 +222,20 @@ class FavoriteRecord(BaseModel):
     created_at: str
 
 
+class PaginatedHistoryResponse(BaseModel):
+    items: list[HistoryRecord]
+    total: int
+    skip: int
+    limit: int
+
+
+class PaginatedFavoritesResponse(BaseModel):
+    items: list[FavoriteRecord]
+    total: int
+    skip: int
+    limit: int
+
+
 # ── Share ─────────────────────────────────────────────────────────────────────
 class LivenessResponse(BaseModel):
     """Minimal liveness response — emitted only when the process can answer."""

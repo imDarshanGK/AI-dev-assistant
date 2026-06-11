@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import delete, select
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -9,37 +9,54 @@ from ..schemas import (
     FavoriteRecord,
     HistoryCreateRequest,
     HistoryRecord,
+    PaginatedFavoritesResponse,
+    PaginatedHistoryResponse,
 )
 from ..security import get_current_user
 
 router = APIRouter(prefix="/user", tags=["User Data"])
 
 
-@router.get("/history", response_model=list[HistoryRecord])
+@router.get("/history", response_model=PaginatedHistoryResponse)
 def list_history(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
 ):
+    total = db.execute(
+        select(func.count(QueryHistory.id)).where(
+            QueryHistory.user_id == current_user.id
+        )
+    ).scalar()
+
     records = (
         db.execute(
             select(QueryHistory)
             .where(QueryHistory.user_id == current_user.id)
             .order_by(QueryHistory.id.desc())
-            .limit(50)
+            .offset(skip)
+            .limit(limit)
         )
         .scalars()
         .all()
     )
 
-    return [
-        HistoryRecord(
-            id=record.id,
-            action=record.action,
-            code=record.code,
-            result_json=record.result_json,
-            created_at=record.created_at.isoformat(),
-        )
-        for record in records
-    ]
+    return PaginatedHistoryResponse(
+        items=[
+            HistoryRecord(
+                id=record.id,
+                action=record.action,
+                code=record.code,
+                result_json=record.result_json,
+                created_at=record.created_at.isoformat(),
+            )
+            for record in records
+        ],
+        total=total,
+        skip=skip,
+        limit=limit,
+    )
 
 
 @router.post("/history", response_model=HistoryRecord)
@@ -100,32 +117,47 @@ def clear_history(
     return {"status": "cleared", "deleted": result.rowcount or 0}
 
 
-@router.get("/favorites", response_model=list[FavoriteRecord])
+@router.get("/favorites", response_model=PaginatedFavoritesResponse)
 def list_favorites(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
 ):
+    total = db.execute(
+        select(func.count(FavoriteResult.id)).where(
+            FavoriteResult.user_id == current_user.id
+        )
+    ).scalar()
+
     records = (
         db.execute(
             select(FavoriteResult)
             .where(FavoriteResult.user_id == current_user.id)
             .order_by(FavoriteResult.id.desc())
-            .limit(50)
+            .offset(skip)
+            .limit(limit)
         )
         .scalars()
         .all()
     )
 
-    return [
-        FavoriteRecord(
-            id=record.id,
-            title=record.title,
-            action=record.action,
-            code=record.code,
-            result_json=record.result_json,
-            created_at=record.created_at.isoformat(),
-        )
-        for record in records
-    ]
+    return PaginatedFavoritesResponse(
+        items=[
+            FavoriteRecord(
+                id=record.id,
+                title=record.title,
+                action=record.action,
+                code=record.code,
+                result_json=record.result_json,
+                created_at=record.created_at.isoformat(),
+            )
+            for record in records
+        ],
+        total=total,
+        skip=skip,
+        limit=limit,
+    )
 
 
 @router.post("/favorites", response_model=FavoriteRecord)
