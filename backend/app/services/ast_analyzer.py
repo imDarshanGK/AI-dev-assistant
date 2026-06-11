@@ -216,7 +216,6 @@ def detect_unused_imports(tree, code):
 
 def detect_unused_arguments(tree, code):
     issues = []
-
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
@@ -241,6 +240,33 @@ def detect_unused_arguments(tree, code):
                     "info",
                     _get_snippet(code, node.lineno),
                 ))
+
+    return issues
+def detect_unused_variables(tree, code):
+    issues = []
+
+    assigned = {}
+    used = set()
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            if isinstance(node.ctx, ast.Store):
+                if not node.id.startswith("_"):
+                    assigned[node.id] = node.lineno
+
+            elif isinstance(node.ctx, ast.Load):
+                used.add(node.id)
+
+    for var, line in assigned.items():
+        if var not in used:
+            issues.append(_make_issue(
+                "Unused Variable",
+                line,
+                f"Variable '{var}' is assigned but never used.",
+                "Remove the unused variable or use it.",
+                "info",
+                _get_snippet(code, line),
+            ))
 
     return issues
 
@@ -309,7 +335,8 @@ def analyze(source: str) -> list[dict]:
     issues += detect_unreachable_code(tree, source)
     issues += detect_unused_imports(tree, source)
     issues += detect_unused_arguments(tree, source)
-    issues += detect_too_many_returns(tree, source)
+    issues += detect_unused_variables(tree, source)
+    issues += detect_too_many_returns(tree, source)    
     issues += detect_deep_nesting(tree, source)
     issues.sort(key=lambda i: i["line"])
     return issues
