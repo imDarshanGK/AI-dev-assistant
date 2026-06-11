@@ -57,21 +57,19 @@ EXPECTED_TABLES = {
 # ── database URL (PostgreSQL in CI, SQLite locally) ───────────────────────────
 _DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test_schema_smoke.db")
 _connect_args = (
-    {"check_same_thread": False}
-    if _DATABASE_URL.startswith("sqlite")
-    else {}
+    {"check_same_thread": False} if _DATABASE_URL.startswith("sqlite") else {}
 )
 _poolclass_kwargs = (
-    {"poolclass": StaticPool}
-    if _DATABASE_URL.startswith("sqlite:///:memory:")
-    else {}
+    {"poolclass": StaticPool} if _DATABASE_URL.startswith("sqlite:///:memory:") else {}
 )
 
 
 # ── fixtures ──────────────────────────────────────────────────────────────────
 @pytest.fixture(scope="module")
 def db_engine():
-    engine = create_engine(_DATABASE_URL, connect_args=_connect_args, **_poolclass_kwargs)
+    engine = create_engine(
+        _DATABASE_URL, connect_args=_connect_args, **_poolclass_kwargs
+    )
     Base.metadata.create_all(bind=engine)
     yield engine
     Base.metadata.drop_all(bind=engine)
@@ -140,7 +138,9 @@ def test_query_history_foreign_key(db_session):
     """QueryHistory.user_id must reference a valid users.id."""
     from datetime import UTC, datetime
 
-    user = User(email="fk_smoke@test.local", password_hash="x", created_at=datetime.now(UTC))
+    user = User(
+        email="fk_smoke@test.local", password_hash="x", created_at=datetime.now(UTC)
+    )
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
@@ -164,7 +164,11 @@ def test_cascade_delete(db_session):
     """Deleting a User must cascade-delete related QueryHistory rows."""
     from datetime import UTC, datetime
 
-    user = User(email="cascade_smoke@test.local", password_hash="y", created_at=datetime.now(UTC))
+    user = User(
+        email="cascade_smoke@test.local",
+        password_hash="y",
+        created_at=datetime.now(UTC),
+    )
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
@@ -199,7 +203,9 @@ def test_shared_snippet_insert(db_session):
     db_session.commit()
     db_session.refresh(snippet)
 
-    fetched = db_session.query(SharedSnippet).filter_by(token="smoke-token-abc123").first()
+    fetched = (
+        db_session.query(SharedSnippet).filter_by(token="smoke-token-abc123").first()
+    )
     assert fetched is not None
     assert fetched.code == "x = 42"
 
@@ -232,9 +238,7 @@ def test_history_db_init():
 def test_history_save_and_retrieve():
     """save_entry() and get_entries() must round-trip a record."""
     asyncio.run(_hist_db_module.init_db())
-    row_id = asyncio.run(
-        _hist_db_module.save_entry("print('smoke')", "python", 95, 1)
-    )
+    row_id = asyncio.run(_hist_db_module.save_entry("print('smoke')", "python", 95, 1))
     assert isinstance(row_id, int) and row_id > 0
 
     entries = asyncio.run(_hist_db_module.get_entries(limit=10))
