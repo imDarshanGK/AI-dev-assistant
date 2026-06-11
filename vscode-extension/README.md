@@ -50,6 +50,92 @@ npm run compile
 
 The compile step emits `extension.js`, which matches the package entrypoint declared in `package.json`.
 
+## Running the Extension Locally
+
+After compiling the extension:
+
+1. Open the `vscode-extension` folder in VS Code.
+2. Press **F5** or navigate to **Run → Start Debugging**.
+3. A new **Extension Development Host** window will open.
+4. Open any source file in the new window.
+5. Open the Command Palette (`Ctrl+Shift+P`) and run one of:
+
+   * `QyverixAI: Analyze Current File`
+   * `QyverixAI: Debug Current File`
+   * `QyverixAI: Explain Current File`
+
+The command results will appear in a WebView panel, and diagnostics will be displayed in the editor where applicable.
+
+## Debugging
+
+### Setting Breakpoints
+
+Breakpoints can be added by clicking in the margin next to a line number in `src/extension.ts`.
+
+Useful locations include:
+
+* `postToApi()` – inspect outgoing API requests and responses.
+* Command handlers – verify command execution flow.
+* Diagnostic creation logic – inspect generated warnings and errors.
+* WebView rendering functions – inspect response formatting.
+
+### Example Breakpoint
+
+Place a breakpoint on the following line:
+
+```ts
+function postToApi<T>(endpoint: string, body: object, timeoutS: number): Promise<T> {
+```
+
+Then:
+
+1. Press **F5** to launch the Extension Development Host.
+2. Run any QyverixAI command.
+3. VS Code will pause execution when the breakpoint is reached.
+4. Inspect variables using the Debug panel.
+
+### Debug Console
+
+While debugging, open:
+
+**View → Debug Console**
+
+The Debug Console displays:
+
+* Runtime errors
+* Breakpoint information
+* Logged messages
+* Stack traces
+
+## Example Launch Configuration
+
+If a launch configuration is not automatically generated, create `.vscode/launch.json`:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ]
+    }
+  ]
+}
+```
+
+## Testing Tips
+
+* Run all three extension commands after making changes.
+* Verify diagnostics appear in the editor and Problems panel.
+* Test with multiple programming languages when possible.
+* Use `Ctrl+Shift+P → Developer: Reload Window` after rebuilding.
+* Keep `npm run watch` running during development for automatic recompilation.
+
 To build an installable VSIX package:
 
 ```bash
