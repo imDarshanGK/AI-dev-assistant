@@ -302,6 +302,24 @@ pytest -v
 
 Tests run automatically on every push and pull request via GitHub Actions across Python 3.11 and 3.12.
 
+## Cleanup Test Artifacts
+
+To remove stale test and development artifacts, run:
+
+```bash
+python3 scripts/cleanup_tests.py
+```
+
+This removes:
+
+- `__pycache__` directories
+- `.pytest_cache`
+- `.coverage`
+- `htmlcov`
+- `.tox`
+- log files (`*.log`)
+- temporary database files
+
 ---
 
 ## Deployment
