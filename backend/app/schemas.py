@@ -113,6 +113,21 @@ class SignupRequest(BaseModel):
     email: str = Field(..., min_length=5, max_length=320)
     password: str = Field(..., min_length=8, max_length=128)
 
+@field_validator("email")
+@classmethod
+def validate_email(cls, v: str) -> str:
+    v = v.strip() # REmove leading/trailing whitespace
+    if not v:
+        raise ValueError("email cannot be empty")
+    return v
+
+@field_validator("password")
+@classmethod
+def validate_password(cls, v: str) -> str:
+    v = v.strip()
+    if not v:
+        raise ValueError("password cannot be empty")
+    return v    
 
 class LoginRequest(BaseModel):
     """Request body for user login.
