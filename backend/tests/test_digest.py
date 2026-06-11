@@ -267,3 +267,34 @@ def test_unsubscribe_url_encodes_query_parameters(monkeypatch):
     assert parsed.path == "/subscribe/unsubscribe"
     assert query["email"] == ["digest.user+weekly@example.com"]
     assert query["token"] == ["token/value+with symbols"]
+
+
+def test_digest_html_injection_escaping():
+    stats = {
+        "email": "<script>alert('email')</script>",
+        "total_analyses": 3,
+        "languages": ["<img src=x onerror=alert(1)>", "Python"],
+        "avg_score": 88,
+        "prev_avg": 80,
+        "improvement": 10,
+        "trend": "up",
+        "top_bug": "<h1>Crash</h1>",
+        "total_issues": 1,
+        "week_start": "May 19",
+        "week_end": "May 26, 2026",
+    }
+    
+    html_content = email_service._build_html(stats, "https://example.com/unsub?a=1&b=2")
+    
+    # Assert that raw HTML tags are NOT in the output, and instead their escaped versions are present
+    assert "<script>" not in html_content
+    assert "&lt;script&gt;alert(&#x27;email&#x27;)&lt;/script&gt;" in html_content or "&lt;script&gt;alert(&#39;email&#39;)&lt;/script&gt;" in html_content
+    
+    assert "<img" not in html_content
+    assert "&lt;img src=x onerror=alert(1)&gt;" in html_content
+    
+    assert "<h1>" not in html_content
+    assert "&lt;h1&gt;Crash&lt;/h1&gt;" in html_content
+
+    # Unsubscribe url ampersand should be escaped in HTML attributes
+    assert "a=1&amp;b=2" in html_content
