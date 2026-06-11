@@ -4061,26 +4061,18 @@
           historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
- 
-
+      
         if (!filtered.length) {
           historyList.innerHTML = '<div class="list-empty">No results found.</div>';
           return;
         }
 
         historyList.innerHTML = filtered.map(h => `
-          <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="Load history entry for ${h.lang} at ${h.ts}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+          <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
             <span class="history-lang">${h.lang || '?'}</span>
             <span class="history-thumb">${escHtml(h.preview)}…</span>
             <span class="history-meta">${h.ts}</span>
           </div>`).join('');
-        historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
-      <span class="history-lang">${h.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(h.preview)}…</span>
-      <span class="history-meta">${h.ts}</span>
-    </div>`).join('');
- 
       }
 
       document.getElementById('clearHistoryBtn').addEventListener('click', () => {
