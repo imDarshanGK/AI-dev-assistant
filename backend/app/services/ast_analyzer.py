@@ -1,7 +1,9 @@
 """AST-based Python code analyzer using the built-in ast module."""
 
 from __future__ import annotations
+
 import ast
+
 from .line_utils import format_code_snippet
 
 _PYTHON_BUILTINS = frozenset(
