@@ -34,16 +34,20 @@ async def upload_file(file: UploadFile):
         )
     filename = file.filename
     logger = logging.getLogger(__name__)
-    filecontent = await file.read()
+
+    # Secure chunked read to prevent memory exhaustion
+    filecontent = bytearray()
+    while chunk := await file.read(64 * 1024):  # 64KB chunks
+        filecontent.extend(chunk)
+        if len(filecontent) > max_file_size:
+            raise HTTPException(
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                detail=f"File size should not exceed {max_file_size / (1024 * 1024)} MB"
+            )
+
+    filecontent = bytes(filecontent)
     logger.debug("Received upload: %s (%d bytes)", filename, len(filecontent))
     filesize = len(filecontent)
-
-    # Validate max size
-    if filesize > max_file_size:
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail=f"File size should not exceed {max_file_size / (1024 * 1024)} MB"
-        )
 
     try:
         detected_mime = validate_file(
