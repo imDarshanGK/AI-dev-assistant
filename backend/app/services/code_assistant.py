@@ -875,6 +875,54 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
 
 # ── Suggestion Engine ──────────────────────────────────────────────────────────
+
+# ── Dependency Extractor ───────────────────────────────────────────────────────
+_DEP_PATTERNS: dict[str, str] = {
+    "Python":     r"^\s*(?:import|from)\s+([\w]+)",
+    "JavaScript": r'(?:require\s*\(\s*["\']([^"\'./][^"\']*)["\']|(?:import\s+[^"\']*\s+from|export\s+[^"\']*\s+from)\s+["\']([^"\'./][^"\']*)["\'])',
+    "TypeScript": r'(?:import\s+[^"\']*\s+from|export\s+[^"\']*\s+from|import)\s+["\']([^"\'./][^"\']*)["\']',
+    "Java":       r"import\s+([\w]+)\.",
+    "PHP":        r'require(?:_once)?\s*\(\s*["\']([^"\'./][^"\']*)["\']',
+    "Rust":       r'extern\s+crate\s+([\w]+)|use\s+([\w]+)::',
+}
+
+_STDLIB_BY_LANG: dict[str, set[str]] = {
+    "python": {
+        "os", "sys", "re", "json", "time", "math", "abc", "io",
+        "logging", "pathlib", "typing", "collections", "itertools",
+        "functools", "hashlib", "threading", "asyncio", "dataclasses",
+        "unittest", "contextlib", "copy", "enum", "warnings"
+    },
+    
+    "javascript": {
+        "fs", "path", "http", "https", "url", "crypto", "events",
+        "os", "util", "stream", "buffer", "child_process", "net",
+    },
+    "java": {
+        "java", "javax", "sun",
+    },
+    "rust": {
+        "std",
+    },
+}
+
+
+def _extract_dependencies(code: str, language: str) -> list[str]:
+    """Extract third-party dependency names from import statements."""
+    pattern = _DEP_PATTERNS.get(language)
+    if not pattern:
+        return []
+
+    # Get stdlib for this language, or empty set if unknown
+    _STDLIB = _STDLIB_BY_LANG.get(language.lower(), set())
+    deps = set()
+    for match in re.finditer(pattern, code, re.MULTILINE):
+        name = next((g for g in match.groups() if g), None)
+        if name and name not in _STDLIB:
+            deps.add(name)
+    return sorted(deps)
+
+
 def run_suggestions(code: str, language: str) -> dict:
     """Generate improvement suggestions for the provided source code.
 
@@ -1097,6 +1145,10 @@ def run_suggestions(code: str, language: str) -> dict:
                 }
             )
 
+    
+    # Dependencies
+    detected_deps = _extract_dependencies(code, language)
+
     # Score
     # Score calculation
     deductions = sum(
@@ -1126,6 +1178,7 @@ def run_suggestions(code: str, language: str) -> dict:
         "overall_score": score,
         "grade": grade,
         "next_step": next_step,
+        "dependencies": detected_deps,
     }
 
 
