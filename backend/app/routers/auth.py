@@ -44,7 +44,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     ).scalar_one_or_none()
     if user is None or not verify_password(payload.password, user.password_hash):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials. Please check your API key and try again."
         )
 
     token = create_access_token(user.id)
