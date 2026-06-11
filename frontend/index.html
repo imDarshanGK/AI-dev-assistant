@@ -495,14 +495,16 @@
       border-radius: var(--r);
       background: var(--bg2);
       border: 1px solid var(--border);
-      transition: all var(--transition);
-      cursor: default;
+      transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-color 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
     }
 
     .feat-pill:hover {
-      border-color: var(--border2);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow2)
+      border-color: var(--accent);
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 8px 24px rgba(91, 156, 246, 0.22), var(--shadow)
     }
 
     .feat-pill-icon {
