@@ -117,6 +117,27 @@ def analyze_python_ast(code: str) -> list[dict]:
     Returns a list of issue dicts. If the code has a syntax error,
     returns a single issue describing it instead of crashing.
     """
+    
+    # Pre-flight check to prevent AST parser bombs (DoS)
+    # deeply nested parentheses/brackets can crash the CPython parser
+    max_nesting = 0
+    current_nesting = 0
+    for char in code:
+        if char in "([{":
+            current_nesting += 1
+            if current_nesting > max_nesting:
+                max_nesting = current_nesting
+                if max_nesting > 150:
+                    return [_issue(
+                        "AST Parser Bomb Detected",
+                        "Code contains excessively deep nesting which could cause a Denial of Service.",
+                        "Refactor the code to reduce nesting depth.",
+                        "error",
+                        1,
+                    )]
+        elif char in ")]}":
+            current_nesting = max(0, current_nesting - 1)
+
     try:
         tree = ast.parse(code)
     except SyntaxError as exc:
@@ -304,7 +325,36 @@ def detect_deep_nesting(tree, code):
     return issues
 
 def analyze(source: str) -> list[dict]:
-    tree = ast.parse(source)
+    # Pre-flight check to prevent AST parser bombs
+    max_nesting = 0
+    current_nesting = 0
+    for char in source:
+        if char in "([{":
+            current_nesting += 1
+            if current_nesting > 150:
+                return [_make_issue(
+                    "AST Parser Bomb Detected",
+                    1,
+                    "Code contains excessively deep nesting which could cause a Denial of Service.",
+                    "Refactor the code to reduce nesting depth.",
+                    "error",
+                    ""
+                )]
+        elif char in ")]}":
+            current_nesting = max(0, current_nesting - 1)
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError as exc:
+        return [_make_issue(
+            "Syntax Error",
+            exc.lineno or 1,
+            f"Python syntax error: {exc.msg}",
+            "Fix the syntax error before running further analysis.",
+            "error",
+            ""
+        )]
+    
     issues = []
     issues += detect_unreachable_code(tree, source)
     issues += detect_unused_imports(tree, source)
