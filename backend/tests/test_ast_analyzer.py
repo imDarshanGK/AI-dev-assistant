@@ -230,3 +230,26 @@ def test_deep_nesting_exact_boundary():
     )
     issues = analyze(code)
     assert not any(i["type"] == "Deep Nesting" for i in issues)
+    
+def test_unused_variable_detected():
+    code = "x = 10\ny = 20\nprint(x)"
+    issues = analyze(code)
+    assert any(i["type"] == "Unused Variable" for i in issues)
+
+
+def test_used_variable_not_flagged():
+    code = "x = 10\nprint(x)"
+    issues = analyze(code)
+    assert not any(i["type"] == "Unused Variable" for i in issues)
+
+
+def test_unused_variable_name():
+    code = "x = 10\ny = 20\nprint(x)"
+    issues = analyze(code)
+
+    unused = [
+        i for i in issues
+        if i["type"] == "Unused Variable"
+    ]
+
+    assert "y" in unused[0]["description"]
