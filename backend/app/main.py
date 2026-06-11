@@ -26,6 +26,7 @@ from .routers import (
     suggestions,
     upload_file,
     user_data,
+    scheduler,
 )
 from .routers import health as health_router
 from .routers import metrics as metrics_router
@@ -160,6 +161,7 @@ app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+app.include_router(scheduler.router)
 
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics

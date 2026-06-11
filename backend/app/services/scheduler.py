@@ -8,50 +8,16 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from ..config import settings
 from ..database import SessionLocal
-from ..models import DigestSubscription
+from ..models import DigestSubscription, AnalysisSchedule
 from .email_service import compute_subscriber_stats, send_digest
+from .ai_provider import run_analysis_pipeline
 
 log = logging.getLogger(__name__)
 scheduler = BackgroundScheduler(daemon=True)
-JOB_ID = "weekly_digest"
+DIGEST_JOB_ID = "weekly_digest"
 
+# --- Analysis Scheduling ---
 
-def _send_weekly_digests() -> None:
-    """Query all active subscribers and send them their weekly digest."""
-    if not settings.digest_enabled:
-        log.info("Digest disabled — skipping weekly run")
-        return
-
-    db = SessionLocal()
-    try:
-        subs = (
-            db.query(DigestSubscription)
-            .filter(DigestSubscription.is_active.is_(True))
-            .all()
-        )
-        if not subs:
-            log.info("No active digest subscribers")
-            return
-
-        sent = 0
-        for sub in subs:
-            stats = compute_subscriber_stats(db, sub.email)
-            if not stats:
-                log.debug("No stats for %s, skipping", sub.email)
-                continue
-            ok = send_digest(stats, sub.unsubscribe_token)
-            if ok:
-                sub.last_sent_at = datetime.now(UTC)
-                sent += 1
-            else:
-                log.warning("Failed to deliver digest to %s", sub.email)
-
-        db.commit()
-        log.info("Weekly digest sent to %d/%d subscribers", sent, len(subs))
-    except Exception:
-        log.exception("Error in weekly digest job")
-    finally:
-        db.close()
 
 
 def start_scheduler() -> None:
