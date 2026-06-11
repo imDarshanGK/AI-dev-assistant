@@ -1,5 +1,11 @@
-const { test, expect } = require('@playwright/test');
-const { sampleFixturePath } = require('../helpers');
+import { test, expect } from '@playwright/test';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const sampleFixturePath = (filename = 'sample-python.py') => {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  return path.resolve(__dirname, '..', 'fixtures', filename);
+};
 
 test('uploads a sample file and renders analysis results', async ({ page }) => {
   await page.goto('/app/');

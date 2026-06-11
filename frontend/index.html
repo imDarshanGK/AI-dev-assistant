@@ -548,11 +548,16 @@
       border: 1px solid var(--border);
       border-radius: var(--r);
       overflow: hidden;
-      transition: border-color var(--transition);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .panel:hover {
+      border-color: var(--border2);
     }
 
     .panel:focus-within {
-      border-color: var(--border2)
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91, 156, 246, 0.15);
     }
 
     .panel-header {
@@ -614,18 +619,47 @@
       border-color: var(--border2)
     }
 
-    /* ── Language Tabs ── */
-    .lang-tabs {
-      display: flex;
-      gap: 0;
-      border-bottom: 1px solid var(--border);
-      overflow-x: auto;
-      scrollbar-width: none;
+    /* Borderless premium tool buttons in panel headers */
+    .panel-header .icon-btn {
+      border: none;
+      background: transparent;
     }
 
-    .lang-tab {
-      padding: 8px 16px;
-      font-size: 0.78rem;
+    .panel-header .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+
+    [data-theme="light"] .panel-header .icon-btn:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    /* ── Language Tabs ── */
+    .editor-panel-header {
+      padding: 0 16px 0 0;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg3);
+    }
+
+    .editor-panel-header .lang-tabs {
+      display: flex;
+      height: 100%;
+      border-bottom: none;
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex: 1;
+    }
+
+    .editor-panel-header .lang-tab {
+      padding: 0 16px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      font-size: 0.8rem;
       font-weight: 600;
       font-family: var(--font-mono);
       color: var(--text3);
@@ -635,23 +669,31 @@
       cursor: pointer;
       transition: all var(--transition);
       white-space: nowrap;
-      margin-bottom: -1px;
+      margin-bottom: 0;
     }
 
-    .lang-tab:hover {
-      color: var(--text2)
+    .editor-panel-header .lang-tab:hover {
+      color: var(--text2);
+      background: rgba(255, 255, 255, 0.02);
     }
 
-    .lang-tab.active {
+    [data-theme="light"] .editor-panel-header .lang-tab:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .editor-panel-header .lang-tab.active {
       color: var(--accent);
-      border-bottom-color: var(--accent)
+      border-bottom-color: var(--accent);
+      background: var(--bg2);
     }
 
     /* ── Code Editor ── */
     .editor-wrap {
       position: relative;
       display: flex;
-      transition: border-color var(--transition);
+      height: 420px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
     }
 
     /* ── Drag-and-Drop Overlay ── */
@@ -720,13 +762,13 @@
     }
 
     .line-numbers {
-      padding: 16px 0 16px 12px;
+      padding: 16px 12px 16px 8px;
       font-family: var(--font-mono);
       font-size: 13px;
       line-height: 1.7;
       color: var(--text3);
       user-select: none;
-      min-width: 44px;
+      min-width: 48px;
       text-align: right;
       background: var(--bg3);
       border-right: 1px solid var(--border);
@@ -743,95 +785,128 @@
       max-height: 500px;
       overflow-y: auto;
       padding: 16px;
+      margin: 0;
       font-family: var(--font-mono);
       font-size: 13px;
       line-height: 1.7;
       color: var(--text);
       background: transparent;
       border: none;
-      outline: none;
-      resize: vertical;
+      outline: none !important;
+      box-shadow: none !important;
+      resize: none;
       tab-size: 2;
+      overflow-y: auto;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    #codeEditor:hover,
+    #codeEditor:focus,
+    #codeEditor:focus-visible,
+    #codeEditor:active {
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Custom scrollbars for code editor */
+    #codeEditor::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    #codeEditor::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #codeEditor::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 4px;
+    }
+    #codeEditor::-webkit-scrollbar-thumb:hover {
+      background: var(--text3);
     }
 
     .editor-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 18px;
+      padding: 8px 16px;
       border-top: 1px solid var(--border);
       font-size: 0.75rem;
       color: var(--text3);
       font-family: var(--font-mono);
+      background: var(--bg3);
+      min-height: 48px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .editor-footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     #charCount {
-      color: var(--text3)
+      color: var(--text2);
     }
 
     /* ── Mode Selector ── */
     .mode-row {
       display: flex;
-      gap: 8px;
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap;
+      gap: 4px;
+      padding: 0;
+      border-bottom: none;
     }
 
     .mode-btn {
-      flex: 1;
-      padding: 9px 8px;
-      border-radius: var(--r2);
-      font-size: 0.8rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.76rem;
       font-weight: 600;
       cursor: pointer;
-      border: 1px solid var(--border);
-      background: none;
+      border: 1px solid transparent;
+      background: var(--bg2);
       color: var(--text2);
       display: flex;
       flex-direction: row;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 4px;
       transition: all var(--transition);
       white-space: nowrap;
     }
 
     .mode-btn:hover {
-      border-color: var(--border2);
       color: var(--text);
-      background: var(--bg3)
+      background: var(--border2);
     }
 
     .mode-btn.active {
-      background: rgba(91, 156, 246, 0.1);
-      border-color: var(--accent);
+      background: rgba(91, 156, 246, 0.12);
+      border-color: rgba(91, 156, 246, 0.25);
       color: var(--accent);
     }
 
     .mode-btn-icon {
       display: flex;
       align-items: center;
-      flex-shrink: 0
+      flex-shrink: 0;
     }
 
     .mode-btn-label {
-      font-size: 0.8rem;
-      font-weight: 600
+      font-size: 0.76rem;
+      font-weight: 600;
     }
 
     /* ── Analyze Button ── */
-    .analyze-row {
-      padding: 14px 18px
-    }
-
     .btn-analyze {
-      width: 100%;
-      padding: 13px;
-      border-radius: var(--r2);
+      padding: 6px 16px;
+      height: 32px;
+      border-radius: 6px;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       color: #fff;
-      font-size: 0.92rem;
+      font-size: 0.78rem;
       font-weight: 700;
       font-family: var(--font-disp);
       letter-spacing: 0.02em;
@@ -840,9 +915,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 6px;
       transition: all var(--transition);
-      box-shadow: 0 4px 20px rgba(91, 156, 246, 0.3);
+      box-shadow: 0 2px 8px rgba(91, 156, 246, 0.25);
       position: relative;
       overflow: hidden;
     }
@@ -851,28 +926,29 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.15), transparent);
       transform: translateX(-100%);
       transition: transform 0.5s ease;
     }
 
     .btn-analyze:hover::before {
-      transform: translateX(100%)
+      transform: translateX(100%);
     }
 
     .btn-analyze:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(91, 156, 246, 0.4)
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(91, 156, 246, 0.4);
     }
 
     .btn-analyze:active {
-      transform: translateY(0)
+      transform: translateY(0);
     }
 
     .btn-analyze:disabled {
       opacity: 0.6;
       cursor: not-allowed;
-      transform: none
+      transform: none;
+      box-shadow: none;
     }
 
     .spinner {
@@ -957,9 +1033,24 @@
 
     .result-content {
       padding: 20px;
-      min-height: 280px;
+      height: 420px;
       overflow-y: auto;
-      max-height: 480px
+    }
+
+    /* Custom scrollbars for results content */
+    .result-content::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .result-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .result-content::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 4px;
+    }
+    .result-content::-webkit-scrollbar-thumb:hover {
+      background: var(--text3);
     }
 
     .result-pane {
@@ -989,7 +1080,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 240px;
+      height: 100%;
+      min-height: 280px;
       gap: 12px;
       text-align: center;
     }
@@ -1998,17 +2090,16 @@
     .result-actions {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border-top: 1px solid var(--border);
+      gap: 6px;
     }
 
     .result-actions .icon-btn {
       font-size: 11px;
       gap: 4px;
-      width: auto;
-      padding: 0 10px;
-      height: 28px
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border-radius: 6px;
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -2044,11 +2135,38 @@
   .feat-pill{padding:10px 14px;min-width:140px}
   .workspace{gap:14px}
   .panel-header{padding:12px 14px}
-  .mode-row{gap:6px;padding:10px 14px}
-  .mode-btn{padding:8px 4px;font-size:0.74rem}
-  .analyze-row{padding:10px 14px}
-  .btn-analyze{padding:14px}
-  .result-content{min-height:280px;max-height:420px;padding:14px}
+  
+  .editor-footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+    height: auto;
+  }
+  .editor-footer-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+  }
+  .mode-row {
+    flex: 1;
+    gap: 4px;
+    padding: 0;
+  }
+  .mode-btn {
+    padding: 6px 4px;
+    font-size: 0.72rem;
+  }
+  .btn-analyze {
+    padding: 6px 12px;
+    font-size: 0.74rem;
+    height: 30px;
+    flex-shrink: 0;
+  }
+  
+  .editor-wrap { height: 320px; }
+  .result-content{ height: 320px; padding:14px }
+  
   .bottom-grid{gap:14px}
   .history-list,.fav-list{max-height:200px}
   .score-ring-wrap{flex-direction:column;text-align:center;gap:12px}
@@ -2221,6 +2339,14 @@
       <!-- Editor Panel -->
       <div class="panel" style="grid-column:1">
         <div class="panel-header editor-panel-header">
+          <!-- Language tabs inside panel-header -->
+          <div class="lang-tabs" role="group" aria-label="Select Programming Language">
+            <button class="lang-tab active" data-lang="python" data-i18n="lang_tab_python">Python</button>
+            <button class="lang-tab" data-lang="javascript" data-i18n="lang_tab_javascript">JavaScript</button>
+            <button class="lang-tab" data-lang="typescript" data-i18n="lang_tab_typescript">TypeScript</button>
+            <button class="lang-tab" data-lang="java" data-i18n="lang_tab_java">Java</button>
+            <button class="lang-tab" data-lang="cpp" data-i18n="lang_tab_cpp">C++</button>
+          </div>
           <div class="panel-actions">
             <button type="button" class="icon-btn" id="uploadBtn" title="Upload file" data-i18n-title="btn_upload" data-i18n-aria-label="btn_upload" aria-label="Upload code file" onclick="document.getElementById('fileInput').click();">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -2251,14 +2377,6 @@
           </div>
         </div>
 
-        <!-- Language tabs -->
-        <div class="lang-tabs" role="group" aria-label="Select Programming Language">
-          <button class="lang-tab active" data-lang="python" aria-pressed="true" data-i18n="lang_tab_python">Python</button>
-          <button class="lang-tab" data-lang="javascript" aria-pressed="false" data-i18n="lang_tab_javascript">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript" aria-pressed="false" data-i18n="lang_tab_typescript">TypeScript</button>
-          <button class="lang-tab" data-lang="java" aria-pressed="false" data-i18n="lang_tab_java">Java</button>
-          <button class="lang-tab" data-lang="cpp" aria-pressed="false" data-i18n="lang_tab_cpp">C++</button>
-        </div>
         <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap" id="editorWrap">
           <!-- Drag-and-drop overlay -->
@@ -2279,27 +2397,21 @@
 
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
-          <div style="display:flex;gap:8px">
+          <div class="editor-footer-actions">
             <div class="mode-row" role="tablist" aria-label="Mode selector">
               <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
               <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
               <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
               <button class="mode-btn" data-mode="suggest" aria-pressed="false">Improve</button>
             </div>
+            <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
+              <span class="spinner" id="spinner"></span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:2px;">
+                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+              </svg>
+              <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
+            </button>
           </div>
-        </div>
-
-        <div class="analyze-row">
-          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
-            <span class="spinner" id="spinner"></span>
-            <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
-          </button>
-        </div>
-
-        <!-- Result action buttons (hidden until results) -->
-        <div id="resultActions" class="result-actions" style="display:none">
-          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
-          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
         </div>
 
       </div>
@@ -2308,7 +2420,13 @@
       <div class="panel" style="grid-column:2">
         <div class="panel-header">
           <div class="panel-title" data-i18n="results_title">Analysis Results</div>
-          <div class="panel-actions"></div>
+          <div class="panel-actions">
+            <!-- Relocated result action buttons -->
+            <div id="resultActions" class="result-actions" style="display:none">
+              <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
+              <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
+            </div>
+          </div>
         </div>
 
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
