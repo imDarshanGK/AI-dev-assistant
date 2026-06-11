@@ -2067,6 +2067,48 @@
   .lang-tab{padding:7px 10px;font-size:0.72rem}
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SCROLL FAB BUTTONS
+    ═══════════════════════════════════════════════════════════════ */
+    #scrollFab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 900;
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+    #scrollFab.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .fab-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .fab-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      transform: scale(1.05);
+    }
+    .fab-btn:active {
+      transform: scale(0.95);
+    }
+
 </style>
 <link rel="icon" href="data:,">
 </head>
@@ -2436,6 +2478,16 @@
         </div>
       </div>
     </footer>
+
+    <!-- ── SCROLL FABs ────────────────────────────────────────────────── -->
+    <div id="scrollFab" style="display:none" aria-hidden="true">
+      <button class="fab-btn" id="scrollTopBtn" aria-label="Scroll to top" title="Scroll to top">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+      </button>
+      <button class="fab-btn" id="scrollBottomBtn" aria-label="Scroll to bottom" title="Scroll to bottom">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
 
     <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
     <div id="toastContainer"></div>
@@ -3370,6 +3422,40 @@
       setTimeout(pingApi, 800);
 
       /* ═══════════════════════════════════════════════════════════════
+         SCROLL FAB BUTTONS
+      ═══════════════════════════════════════════════════════════════ */
+      const scrollFab = document.getElementById('scrollFab');
+      const scrollTopBtn = document.getElementById('scrollTopBtn');
+      const scrollBottomBtn = document.getElementById('scrollBottomBtn');
+      let fabVisible = false;
+
+      function updateScrollFab() {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const atBottom = scrollTop >= scrollHeight - 50;
+        const pastThreshold = scrollTop > 300;
+
+        if (!scrollFab) return;
+        if (pastThreshold || !atBottom) {
+          scrollFab.style.display = 'flex';
+          if (!fabVisible) {
+            scrollFab.classList.remove('hidden');
+            fabVisible = true;
+          }
+          scrollTopBtn.style.display = pastThreshold ? 'flex' : 'none';
+          scrollBottomBtn.style.display = atBottom ? 'none' : 'flex';
+        } else {
+          scrollFab.style.display = 'none';
+          fabVisible = false;
+        }
+      }
+
+      if (scrollTopBtn) scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      if (scrollBottomBtn) scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+      window.addEventListener('scroll', updateScrollFab, { passive: true });
+      updateScrollFab();
+
+      /* ═══════════════════════════════════════════════════════════════
          ANALYZE
       ═══════════════════════════════════════════════════════════════ */
       analyzeBtn.addEventListener('click', doAnalyze);
@@ -3391,6 +3477,7 @@
         analyzeBtn.classList.add('loading');
         analyzeBtn.disabled = true;
         showShimmers();
+        await new Promise(r => requestAnimationFrame(r));
 
         try {
           if (selectedZipFile) {
