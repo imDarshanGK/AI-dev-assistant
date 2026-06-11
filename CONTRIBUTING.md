@@ -1,6 +1,6 @@
 # Contributing to QyverixAI
 
-Thank you for wanting to contribute! QyverixAI is a GSSoC 2026 project and welcomes all levels of contributors — from first-timers to veterans.
+Thank you for wanting to contribute! QyverixAI is a GSSoC 2026 project and welcomes all levels of contributors - from first-timers to veterans.
 
 ---
 
@@ -19,7 +19,7 @@ git checkout -b feat/your-feature-name
 cd backend
 pip install -r requirements.txt
 
-# 5. Run tests — all must pass before submitting
+# 5. Run tests - all must pass before submitting
 pytest -v
 
 # 6. Start the dev server
@@ -30,11 +30,11 @@ uvicorn app.main:app --reload
 
 ## Ways to Contribute
 
-### 🐛 Bug Fixes
+### Bug Fixes
 - Open an issue first if the bug isn't already reported
 - Include the code snippet that triggers it + expected vs actual behavior
 
-### ✨ New Bug Detection Patterns
+### New Bug Detection Patterns
 Bug patterns live in `backend/app/services/code_assistant.py` in the `BUG_PATTERNS` list.
 
 Each pattern is a `BugPattern` dataclass:
@@ -44,7 +44,7 @@ BugPattern(
     name="Pattern Name",
     pattern=r"regex_to_match",
     description="What the bug is and why it's a problem.",
-    suggestion="How to fix it — be specific and actionable.",
+    suggestion="How to fix it - be specific and actionable.",
     severity="error",        # "error" | "warning" | "info"
     languages=["Python"],    # which languages this applies to
 )
@@ -60,18 +60,18 @@ def test_debug_detects_your_pattern():
     assert "Pattern Name" in types
 ```
 
-### 💡 New Suggestion Rules
+### New Suggestion Rules
 Suggestion logic is in the `run_suggestions()` function in `code_assistant.py`. Add a new `if` block that appends to the `suggestions` list.
 
-### 🎨 Frontend Improvements
-The entire frontend is `frontend/index.html` — one self-contained file. No build step, no Node.js required. Just edit and open in your browser.
+### Frontend Improvements
+The entire frontend is `frontend/index.html` - one self-contained file. No build step, no Node.js required. Just edit and open in your browser.
 
-### 📖 Documentation
+### Documentation
 - Fix typos, improve clarity, add examples
 - Update the README if you add/change a feature
 - Add docstrings to functions that lack them
 
-### 🧪 Tests
+### Tests
 - Add test cases for edge cases
 - Improve coverage for existing features
 - Parametrize tests where appropriate
@@ -115,4 +115,4 @@ Be respectful, inclusive, and constructive. We're here to learn and build togeth
 
 ---
 
-Thank you for contributing! 🚀
+Thank you for contributing!
