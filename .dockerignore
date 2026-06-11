@@ -1,7 +1,29 @@
-**/__pycache__/
-**/*.pyc
-**/.pytest_cache/
-.git/
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Environment files (secrets)
 .env
+.env.*
+.env.local
+
+# Git
+.git/
+.gitignore
+
+# Frontend dependencies
+node_modules/
+frontend/node_modules/
+
+# Documentation
+*.md
+
+# IDE files
+.vscode/
+.idea/
+
+# Virtual environments
 .venv/
 venv/
