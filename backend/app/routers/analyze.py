@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 
+
 from app.models.analyze import AnalyzeResponse, CodeRequest, ZipAnalyzerResponse
 from app.utils.cache import cache
 from app.utils.detector import UnreachableCodeDetector
@@ -19,6 +20,18 @@ from app.sanitize import sanitize_code_input, sanitize_language_hint
 
 router = APIRouter(tags=["Analysis"])
 logger = logging.getLogger("uvicorn.error")
+
+from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
+from ..services.cache import cache
+from ..services.code_assistant import (
+    detect_language,
+    full_analysis,
+    run_bug_detection,
+    run_explanation,
+    run_suggestions,
+)
+from ..sanitize import sanitize_code_input, sanitize_language_hint
+router = APIRouter()
 
 _SSE_HEADERS = {
     "Cache-Control": "no-cache",
@@ -42,6 +55,129 @@ SOURCE_EXTENSIONS = {
     ".rb": "ruby",
     ".php": "php",
 }
+
+
+async def _stream_analysis(code: str, language_hint: str | None):
+    code = sanitize_code_input(code)
+    language_hint = sanitize_language_hint(language_hint)
+
+    t0 = time.perf_counter()
+    language = detect_language(code, language_hint)
+
+    # Explanation
+    explanation = run_explanation(code, language)
+    yield f"data: {json.dumps({'type': 'explanation', 'data': explanation})}\n\n"
+    await asyncio.sleep(0)
+
+    # Debugging
+    raw_issues = run_bug_detection(code, language)
+
+    errors = [i for i in raw_issues if i["severity"] == "error"]
+    warnings = [i for i in raw_issues if i["severity"] == "warning"]
+    infos = [i for i in raw_issues if i["severity"] == "info"]
+
+    debugging = {
+        "issues": raw_issues,
+        "summary": (
+            f"Found {len(raw_issues)} issue(s): "
+            f"{len(errors)} error(s), "
+            f"{len(warnings)} warning(s), "
+            f"{len(infos)} info."
+            if raw_issues
+            else "✅ No issues detected!"
+        ),
+        "clean": len(raw_issues) == 0,
+        "error_count": len(errors),
+        "warning_count": len(warnings),
+        "info_count": len(infos),
+    }
+
+    yield f"data: {json.dumps({'type': 'debugging', 'data': debugging})}\n\n"
+    await asyncio.sleep(0)
+
+    # Suggestions
+    suggestions = run_suggestions(code, language)
+    yield f"data: {json.dumps({'type': 'suggestions', 'data': suggestions})}\n\n"
+    await asyncio.sleep(0)
+
+    elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
+    done_payload = {
+        "type": "done",
+        "provider": "rule-based",
+        "model": "qyverix-engine-v3",
+        "analysis_time_ms": elapsed_ms,
+    }
+    yield f"data: {json.dumps(done_payload)}\n\n"
+
+
+def _project_grade(score: int) -> str:
+    if score >= 90:
+        return "A"
+    if score >= 75:
+        return "B"
+    if score >= 60:
+        return "C"
+    if score >= 40:
+        return "D"
+    return "F"
+
+
+def _safe_zip_name(name: str) -> str:
+    return name.replace("\\", "/").lstrip("/")
+
+
+def _is_safe_member(name: str) -> bool:
+    path = PurePosixPath(name.replace("\\", "/"))
+    has_drive = bool(path.parts and path.parts[0].endswith(":"))
+    return (
+        not path.is_absolute()
+        and ".." not in path.parts
+        and not has_drive
+    )
+
+
+def _is_ignored_member(name: str) -> bool:
+    path = PurePosixPath(_safe_zip_name(name))
+    return any(part.lower() in IGNORED_DIRS for part in path.parts)
+
+
+def _add_skipped(skipped_files: list[str], reason: str) -> None:
+    if len(skipped_files) < MAX_SKIPPED_FILES:
+        skipped_files.append(reason)
+
+
+@router.post(
+    "/stream",
+    summary="Stream analysis results section by section (SSE)",
+    response_class=StreamingResponse,
+)
+async def analyze_stream(req: CodeRequest):
+    return StreamingResponse(
+        _stream_analysis(req.code, req.language),
+        media_type="text/event-stream",
+        headers=_SSE_HEADERS,
+    )
+
+
+@router.get(
+    "/stream",
+    summary="Stream analysis results section by section (SSE) — issue #128 spec",
+    response_class=StreamingResponse,
+)
+async def analyze_stream_get(
+    code: str = Query(..., min_length=1, max_length=50000, description="Source code to analyze"),
+    language: str | None = Query(None, description="Optional language hint"),
+):
+    if not code.strip():
+        raise HTTPException(status_code=400, detail="code must not be empty or whitespace")
+    return StreamingResponse(
+        _stream_analysis(code.strip(), language),
+        media_type="text/event-stream",
+        headers=_SSE_HEADERS,
+    )
+
+
+
 @router.post(
     "/",
     response_model=AnalyzeResponse,
