@@ -35,8 +35,8 @@ import app.services.database as _hist_db_module  # noqa: E402
 
 _hist_db_module.DB_PATH = _tmp_history.name
 
-from app.database import Base  # noqa: E402
 from app import models as _models  # noqa: E402, F401  – registers all ORM models
+from app.database import Base  # noqa: E402
 from app.models import (  # noqa: E402
     DigestSubscription,
     FavoriteResult,
@@ -122,6 +122,7 @@ def test_user_insert_and_query(db_session):
 def test_unique_email_constraint(db_session):
     """users.email must have a UNIQUE constraint."""
     from datetime import UTC, datetime
+
     from sqlalchemy.exc import IntegrityError
 
     email = "dup_smoke@test.local"
