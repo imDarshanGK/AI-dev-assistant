@@ -2163,7 +2163,7 @@
           </svg></div>
         <div class="feat-pill-info">
           <p class="feat-pill-title" data-i18n="pill_patterns_title">40+ Bug Patterns</p>
-          <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++</p>
+          <p data-i18n="pill_patterns_desc">Python, JS, TS, Java, C++, Go</p>
         </div>
       </div>
       <div class="feat-pill">
@@ -2204,7 +2204,7 @@
           </svg></div>
         <div class="feat-pill-info">
           <p class="feat-pill-title" data-i18n="pill_upload_title">File Upload</p>
-          <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .kt .zip</p>
+          <p data-i18n="pill_upload_desc">.py .js .ts .java .cpp .go .kt .zip</p>
         </div>
       </div>
     </div>
@@ -2224,7 +2224,7 @@
                 <line x1="12" y1="3" x2="12" y2="15"  />
               </svg>
             </button>
-              <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
+      <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.go,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
               tabindex="-1">
             <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -2252,6 +2252,7 @@
           <button class="lang-tab" data-lang="typescript" aria-pressed="false" data-i18n="lang_tab_typescript">TypeScript</button>
           <button class="lang-tab" data-lang="java" aria-pressed="false" data-i18n="lang_tab_java">Java</button>
           <button class="lang-tab" data-lang="cpp" aria-pressed="false" data-i18n="lang_tab_cpp">C++</button>
+          <button class="lang-tab" data-lang="go" aria-pressed="false" data-i18n="lang_tab_go">Go</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
         <div class="editor-wrap" id="editorWrap">
@@ -2461,6 +2462,7 @@
           lang_tab_typescript: "TypeScript",
           lang_tab_java: "Java",
           lang_tab_cpp: "C++",
+          lang_tab_go: "Go",
           nav_github: "GitHub",
           nav_api_docs: "API Docs",
           hero_badge: "Open Source · AI-Powered · Free",
@@ -2470,7 +2472,7 @@
           btn_try_sample: "Try Sample Code",
           btn_star_github: "Star on GitHub",
           pill_patterns_title: "40+ Bug Patterns",
-          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          pill_patterns_desc: "Python, JS, TS, Java, C++, Go",
           mode_explain: "Code Explanation",
           pill_explain_desc: "Plain English breakdowns",
           mode_improve: "Smart Suggestions",
@@ -2478,7 +2480,7 @@
           pill_theme_title: "Dark / Light Mode",
           pill_theme_desc: "Persisted preference",
           pill_upload_title: "File Upload",
-          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          pill_upload_desc: ".py .js .ts .java .cpp .go .kt .zip",
           editor_title: "Code Editor",
           editor_placeholder: "# Paste your code here or click 'Try Sample Code' above…",
           char_count_initial: "Paste or type code to begin",
@@ -2558,6 +2560,7 @@
           lang_tab_typescript: "TypeScript",
           lang_tab_java: "Java",
           lang_tab_cpp: "C++",
+          lang_tab_go: "Go",
           nav_github: "கிட்ஹப் (GitHub)",
           nav_api_docs: "ஏபிஐ ஆவணங்கள் (API Docs)",
           hero_badge: "திறந்த மூல · ஏஐ-ஆற்றல் · இலவசம்",
@@ -2567,7 +2570,7 @@
           btn_try_sample: "மாதிரிக் குறியீட்டை முயல்க",
           btn_star_github: "கிட்ஹப்பில் ஸ்டார் செய்க",
           pill_patterns_title: "40+ பிழை வடிவங்கள்",
-          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          pill_patterns_desc: "Python, JS, TS, Java, C++, Go",
           mode_explain: "குறியீடு விளக்கம்",
           pill_explain_desc: "எளிய ஆங்கில விளக்கங்கள்",
           mode_improve: "ஸ்மார்ட் பரிந்துரைகள்",
@@ -2575,7 +2578,7 @@
           pill_theme_title: "இருண்ட / ஒளி முறை",
           pill_theme_desc: "சேமிக்கப்பட்ட விருப்பம்",
           pill_upload_title: "கோப்பு பதிவேற்றம்",
-          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          pill_upload_desc: ".py .js .ts .java .cpp .go .kt .zip",
           editor_title: "குறியீட்டு எடிட்டர்",
           editor_placeholder: "# உங்கள் குறியீட்டை இங்கே ஒட்டவும் அல்லது மேலே உள்ள 'மாதிரிக் குறியீட்டை முயல்க' என்பதைக் கிளிக் செய்யவும்…",
           char_count_initial: "தொடங்குவதற்கு குறியீட்டை ஒட்டவும் அல்லது தட்டச்சு செய்யவும்",
@@ -2655,6 +2658,7 @@
           lang_tab_typescript: "TypeScript",
           lang_tab_java: "Java",
           lang_tab_cpp: "C++",
+          lang_tab_go: "Go",
           nav_github: "गिटहब (GitHub)",
           nav_api_docs: "एपीआई दस्तावेज़ (API Docs)",
           hero_badge: "ओपन सोर्स · एआई-संचालित · मुफ्त",
@@ -2664,7 +2668,7 @@
           btn_try_sample: "सैंपल कोड आज़माएं",
           btn_star_github: "गिटहब पर स्टार करें",
           pill_patterns_title: "40+ बग पैटर्न",
-          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          pill_patterns_desc: "Python, JS, TS, Java, C++, Go",
           mode_explain: "कोड का स्पष्टीकरण",
           pill_explain_desc: "सरल स्पष्टीकरण",
           mode_improve: "स्मार्ट सुझाव",
@@ -2672,7 +2676,7 @@
           pill_theme_title: "डार्क / लाइट मोड",
           pill_theme_desc: "सहेजी गई प्राथमिकता",
           pill_upload_title: "फ़ाइल अपलोड",
-          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          pill_upload_desc: ".py .js .ts .java .cpp .go .kt .zip",
           editor_title: "कोड एडिटर",
           editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
           char_count_initial: "शुरू करने के लिए कोड पेस्ट करें या टाइप करें",
@@ -2752,6 +2756,7 @@
           lang_tab_typescript: "TypeScript",
           lang_tab_java: "Java",
           lang_tab_cpp: "C++",
+          lang_tab_go: "Go",
           nav_github: "GitHub",
           nav_api_docs: "Docs API",
           hero_badge: "Open Source · Propulsé par l'IA · Gratuit",
@@ -2761,7 +2766,7 @@
           btn_try_sample: "Essayer l'exemple",
           btn_star_github: "Star sur GitHub",
           pill_patterns_title: "40+ Modèles de bogues",
-          pill_patterns_desc: "Python, JS, TS, Java, C++",
+          pill_patterns_desc: "Python, JS, TS, Java, C++, Go",
           mode_explain: "Explication de code",
           pill_explain_desc: "Analyses en français simple",
           mode_improve: "Suggestions intelligentes",
@@ -2769,7 +2774,7 @@
           pill_theme_title: "Mode Sombre / Clair",
           pill_theme_desc: "Préférence persistée",
           pill_upload_title: "Télécharger un fichier",
-          pill_upload_desc: ".py .js .ts .java .cpp .kt .zip",
+          pill_upload_desc: ".py .js .ts .java .cpp .go .kt .zip",
           editor_title: "Éditeur de code",
           editor_placeholder: "# Collez votre code ici ou cliquez sur 'Essayer l'exemple' ci-dessus…",
           char_count_initial: "Collez ou tapez du code pour commencer",
@@ -3102,7 +3107,7 @@
 
           // JavaScript / TypeScript / Java / C++
           else if (
-            ['javascript', 'typescript', 'java', 'cpp']
+            ['javascript', 'typescript', 'java', 'cpp','go']
               .includes(selectedLang) &&
             trimmed.endsWith('{')
           ) {
@@ -3246,6 +3251,7 @@
           hpp: 'cpp',
           kt: 'kotlin',
           kts: 'kotlin',
+          go: 'go',
         };
         if (langMap[ext]) setLanguage(langMap[ext]);
         const reader = new FileReader();
@@ -4325,7 +4331,24 @@ void processData() {
 int main() {
     processData();
     return 0;
-}`
+}`,
+       go: `// Go Sample
+package main
+
+import "fmt"
+
+// [!] Ignored error return value
+func riskyOperation() (int, error) {
+	return 0, fmt.Errorf("something went wrong")
+}
+
+func main() {
+	// [!] Error ignored - anti-pattern
+	result, _ := riskyOperation()
+
+	// [!] fmt.Println left in production code
+	fmt.Println("Result:", result)
+}`,
       };
 
       function loadSample() {
