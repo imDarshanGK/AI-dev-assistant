@@ -138,32 +138,6 @@ _DECISION_RE = re.compile(
     re.MULTILINE,
 )
 
-def detect_language(code: str) -> str:
-
-    """
-    Detects the programming language of the given source code.
-
-    Args:
-        code (str): Source code to analyze.
-
-    Returns:
-        str: Detected programming language or "Unknown" if no match is found.
-    """
-    scores = {}
-    for lang, patterns in LANG_PATTERNS.items():
-        scores[lang] = sum(1 for p in patterns if re.search(p, code))
-    best = max(scores, key=scores.get)
-    return best if scores[best] > 0 else "Unknown"
-
-   
-    """
-    score = len(_DECISION_RE.findall(code)) + 1
-    for threshold, label in _RISK_THRESHOLDS:
-        if score <= threshold:
-            return score, label
-    return score, "Very High"
-
-
 # ── Complexity Estimation ──────────────────────────────────────────────────────
 def estimate_complexity(code: str) -> str:
     """
@@ -173,19 +147,21 @@ def estimate_complexity(code: str) -> str:
         code (str): Source code to evaluate.
 
     Returns:
-        str: Complexity level classified as Beginner, Intermediate, or Advanced.
+        str: Complexity level classified as Beginner, Intermediate, Advanced, or Expert.
     """
-    
-       
-    
+
     lines = len(code.strip().splitlines())
     func_count = len(re.findall(r"\bdef |\bfunction |\bfunc \b", code))
+
     if lines < 15 and func_count <= 1:
         return "Beginner"
-    if n <= 80 and branches <= 10:
+
+    if lines <= 80:
         return "Intermediate"
-    if n <= 200:
+
+    if lines <= 200:
         return "Advanced"
+
     return "Expert"
 
 # ── Explanation Service ──
