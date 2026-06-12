@@ -1027,10 +1027,14 @@ def run_suggestions(code: str, language: str) -> dict:
                 }
             )
 
+  
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 6: Tests
     # ─────────────────────────────────────────────────────────────
     if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]", code):
+        func_names = re.findall(r"def\s+(\w+)\s*\(", code)
+        first_func = func_names[0] if func_names else None
+
         suggestions.append(
             {
                 "category": "Testing",
@@ -1038,7 +1042,10 @@ def run_suggestions(code: str, language: str) -> dict:
                 "line_number": None,
                 "line_range": None,
                 "code_context": None,
-                "example": "def test_add():\n    assert add(2, 3) == 5\n    assert add(-1, 1) == 0",  # noqa: E501
+                "example": (
+                    f"def test_{first_func}():\n    result = {first_func}(...)\n    assert result == expected"
+                    if first_func else None
+                ),
                 "priority": "high",
             }
         )
