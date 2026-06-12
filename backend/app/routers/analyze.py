@@ -8,10 +8,10 @@ import zipfile
 from io import BytesIO
 from pathlib import PurePosixPath
 
-from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
+from fastapi import APIRouter, Body, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 
-from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
+from ..schemas import AnalyzeResponse, CODE_REQUEST_EXAMPLES, CodeRequest, ZipAnalyzeResponse
 from ..services.cache import cache
 from ..services.code_assistant import (
     detect_language,
@@ -192,7 +192,10 @@ async def analyze_stream_get(
     response_model=AnalyzeResponse,
     summary="Run full analysis (explain + debug + suggest)",
 )
-async def analyze(req: CodeRequest, response: Response):
+async def analyze(
+    response: Response,
+    req: CodeRequest = Body(..., examples=CODE_REQUEST_EXAMPLES),
+):
     cache_input = f"{req.language or 'auto'}\n{req.code}"
     cached_payload = cache.get("analyze:v1", cache_input)
 
