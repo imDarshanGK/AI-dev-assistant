@@ -734,3 +734,23 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+
+def test_testing_suggestion_no_example_for_no_functions():
+    from app.services.code_assistant import run_suggestions
+    result = run_suggestions('print("Hello world")', "Python")
+    testing_sugg = next(
+        (s for s in result["suggestions"] if s["category"] == "Testing"), None
+    )
+    assert testing_sugg is not None
+    assert testing_sugg["example"] is None
+
+
+def test_testing_suggestion_uses_actual_function_name():
+    from app.services.code_assistant import run_suggestions
+    code = "def greet(name):\n    print(name)"
+    result = run_suggestions(code, "Python")
+    testing_sugg = next(
+        (s for s in result["suggestions"] if s["category"] == "Testing"), None
+    )
+    assert testing_sugg is not None
+    assert "greet" in testing_sugg["example"]

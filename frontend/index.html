@@ -3920,7 +3920,9 @@
           <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', s.priority)}</span>
         </div>
         <div class="suggest-desc">${s.description}</div>
-        ${exampleHtml}
+         ${exampleHtml ? `<div style="font-size:0.72rem;color:var(--text3);margin:8px 0 2px">
+          💡 Example pattern (illustrative — not specific to your code):
+        </div>${exampleHtml}` : ''}
       </div>`;
           }).join('');
 
