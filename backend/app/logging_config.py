@@ -24,7 +24,6 @@ from logging.config import dictConfig
 
 from .config import settings
 
-
 _PLAIN_FORMAT = "%(asctime)s %(levelname)-8s %(name)s: %(message)s"
 _DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 

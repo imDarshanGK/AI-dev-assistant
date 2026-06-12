@@ -7,7 +7,6 @@ import json
 import logging
 
 import pytest
-
 from app import logging_config
 from app.logging_config import JsonFormatter, configure_logging
 
