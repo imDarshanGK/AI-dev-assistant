@@ -3,40 +3,30 @@ QyverixAI — Backend API
 FastAPI application with advanced middleware, rate limiting, and full analysis engine.
 """
 
+import logging
+import os
+import time
+from collections import defaultdict
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-import time
-import os
-from collections import defaultdict
-import logging
-from contextlib import asynccontextmanager
 
-from .routers import (
-    analyze,
-    auth,
-    chat,
-    debugging,
-    explanation,
-    history,
-    share,
-    subscribe,
-    suggestions,
-    upload_file,
-    user_data,
-)
+from .logging_config import configure_logging
+from .observability import initialise_app_info, prometheus_metrics_middleware
+from .routers import analyze, auth, chat, debugging, explanation
 from .routers import health as health_router
+from .routers import history
 from .routers import metrics as metrics_router
+from .routers import share, subscribe, suggestions, upload_file, user_data
+from .schemas import HealthResponse
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
-from .observability import (
-    initialise_app_info,
-    prometheus_metrics_middleware,
-)
 
-from .schemas import HealthResponse
+logger = logging.getLogger(__name__)
 
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
@@ -68,14 +58,17 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    configure_logging()
     await database.init_db()
-    print("🚀 QyverixAI backend starting…")
+    logger.info("🚀 QyverixAI backend starting…")
     # Static info gauge so dashboards can pin version / provider labels.
-    initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
+    initialise_app_info(
+        version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
+    )
     start_scheduler()
     yield
     stop_scheduler()
-    logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
+    logger.info("🛑 QyverixAI backend shutting down…")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -114,7 +107,12 @@ async def add_process_time_header(request: Request, call_next):
     remaining = RATE_LIMIT
 
     # Apply rate limiting to analysis endpoints only
-    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
+    if request.url.path in (
+        "/explanation/",
+        "/debugging/",
+        "/suggestions/",
+        "/analyze/",
+    ):
         remaining = check_rate_limit(ip)
         if remaining < 0:
             elapsed = (time.perf_counter() - start) * 1000
@@ -150,16 +148,16 @@ async def add_cache_header(request: Request, call_next):
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
-app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
+app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
-app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
-app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
+app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
-app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
 
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics
