@@ -17,6 +17,15 @@ class CodeRequest(BaseModel):
     code: str
     language: str | None = None
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2",
+                "language": "python"
+            }
+        }
+    }
+
     @field_validator("code")
     @classmethod
     def validate_code(cls, v: str) -> str:
@@ -37,6 +46,20 @@ class Issue(BaseModel):
     code_snippet: str | None = None
     code_context: str | None = None
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "type": "ZeroDivisionError",
+                "line": 4,
+                "description": "Division by literal zero detected.",
+                "suggestion": "Ensure the divisor is not zero.",
+                "severity": "error",
+                "code_snippet": "result = 10 / 0",
+                "code_context": "2: def divide(a):\n3:     # division by zero\n4:     result = 10 / 0"
+            }
+        }
+    }
+
 
 class DebuggingResponse(BaseModel):
     issues: list[dict]
@@ -46,6 +69,30 @@ class DebuggingResponse(BaseModel):
     warning_count: int
     info_count: int
     code: str
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "issues": [
+                    {
+                        "type": "ZeroDivisionError",
+                        "line": 4,
+                        "description": "Division by literal zero detected.",
+                        "suggestion": "Ensure the divisor is not zero.",
+                        "severity": "error",
+                        "code_snippet": "result = 10 / 0",
+                        "code_context": "2: def divide(a):\n3:     # division by zero\n4:     result = 10 / 0"
+                    }
+                ],
+                "summary": "Found 1 issue(s): 1 error(s), 0 warning(s), 0 info.",
+                "clean": False,
+                "error_count": 1,
+                "warning_count": 0,
+                "info_count": 0,
+                "code": "def divide(a):\n    # division by zero\n    result = 10 / 0"
+            }
+        }
+    }
 
 
 class Suggestion(BaseModel):
@@ -57,12 +104,69 @@ class Suggestion(BaseModel):
     example: str | None = None
     priority: str
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "category": "Documentation",
+                "description": "Less than 10% of lines are comments. Add docstrings/comments to explain intent.",
+                "line_number": 1,
+                "line_range": [1],
+                "code_context": "1: def calculate_area(radius):\n2:     import math",
+                "example": "\"\"\"Calculate the area of a circle given radius r.\"\"\"",
+                "priority": "medium"
+            }
+        }
+    }
+
 
 class ZipAnalyzeFileResult(BaseModel):
     filename: str
     language: str
     size_bytes: int
     analysis: AnalyzeResponse
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "filename": "math_utils.py",
+                "language": "Python",
+                "size_bytes": 78,
+                "analysis": {
+                    "provider": "rule-based",
+                    "model": "qyverix-engine-v3",
+                    "explanation": {
+                        "language": "Python",
+                        "summary": "A short Python function that calculates the area of a circle using the radius.",
+                        "key_points": [
+                            "Written in **Python** — 3 non-blank lines of code."
+                        ],
+                        "complexity": "Beginner",
+                        "line_count": 3,
+                        "function_count": 1,
+                        "class_count": 0,
+                        "cyclomatic_complexity": 1,
+                        "complexity_risk": "low"
+                    },
+                    "debugging": {
+                        "issues": [],
+                        "summary": "✅ No issues detected!",
+                        "clean": True,
+                        "error_count": 0,
+                        "warning_count": 0,
+                        "info_count": 0,
+                        "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2"
+                    },
+                    "suggestions": {
+                        "suggestions": [],
+                        "overall_score": 100,
+                        "grade": "A",
+                        "next_step": "Excellent code! Consider adding integration tests."
+                    },
+                    "analysis_time_ms": 5.67
+                }
+            }
+        }
+    }
 
 
 class ZipAnalyzeResponse(BaseModel):
@@ -76,6 +180,62 @@ class ZipAnalyzeResponse(BaseModel):
     files: list[ZipAnalyzeFileResult]
     skipped_files: list[str] = Field(default_factory=list)
     analysis_time_ms: float | None = None
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "provider": "rule-based",
+                "model": "qyverix-engine-v3",
+                "file_count": 1,
+                "total_size_bytes": 78,
+                "overall_project_score": 100,
+                "grade": "A",
+                "summary": "Analyzed 1 file(s). Skipped 0 file(s). Overall project score: 100/100.",
+                "files": [
+                    {
+                        "filename": "math_utils.py",
+                        "language": "Python",
+                        "size_bytes": 78,
+                        "analysis": {
+                            "provider": "rule-based",
+                            "model": "qyverix-engine-v3",
+                            "explanation": {
+                                "language": "Python",
+                                "summary": "A short Python function that calculates the area of a circle using the radius.",
+                                "key_points": [
+                                    "Written in **Python** — 3 non-blank lines of code."
+                                ],
+                                "complexity": "Beginner",
+                                "line_count": 3,
+                                "function_count": 1,
+                                "class_count": 0,
+                                "cyclomatic_complexity": 1,
+                                "complexity_risk": "low"
+                            },
+                            "debugging": {
+                                "issues": [],
+                                "summary": "✅ No issues detected!",
+                                "clean": True,
+                                "error_count": 0,
+                                "warning_count": 0,
+                                "info_count": 0,
+                                "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2"
+                            },
+                            "suggestions": {
+                                "suggestions": [],
+                                "overall_score": 100,
+                                "grade": "A",
+                                "next_step": "Excellent code! Consider adding integration tests."
+                            },
+                            "analysis_time_ms": 5.67
+                        }
+                    }
+                ],
+                "skipped_files": [],
+                "analysis_time_ms": 15.42
+            }
+        }
+    }
 
 
 class SubscribeRequest(BaseModel):
@@ -365,11 +525,55 @@ class ExplanationResponse(BaseModel):
     cyclomatic_complexity: int
     complexity_risk: str
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "language": "Python",
+                "summary": "A short Python function that calculates the area of a circle using the radius.",
+                "key_points": [
+                    "Written in **Python** — 3 non-blank lines of code.",
+                    "Defines 1 function(s): `calculate_area`.",
+                    "Imports 1 module(s) — external dependencies present.",
+                    "Contains conditional logic — branching control flow."
+                ],
+                "complexity": "Beginner",
+                "line_count": 3,
+                "function_count": 1,
+                "class_count": 0,
+                "cyclomatic_complexity": 1,
+                "complexity_risk": "low"
+            }
+        }
+    }
+
+
 class SuggestionsResponse(BaseModel):
     suggestions: list[Suggestion]
     overall_score: int
     grade: str
     next_step: str
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "suggestions": [
+                    {
+                        "category": "Documentation",
+                        "description": "Less than 10% of lines are comments. Add docstrings/comments to explain intent.",
+                        "line_number": 1,
+                        "line_range": [1],
+                        "code_context": "1: def calculate_area(radius):\n2:     import math",
+                        "example": "\"\"\"Calculate the area of a circle given radius r.\"\"\"",
+                        "priority": "medium"
+                    }
+                ],
+                "overall_score": 93,
+                "grade": "A",
+                "next_step": "Excellent code! Address the medium-priority items next."
+            }
+        }
+    }
+
 
 class AnalyzeResponse(BaseModel):
     provider: str
@@ -378,3 +582,53 @@ class AnalyzeResponse(BaseModel):
     debugging: DebuggingResponse
     suggestions: SuggestionsResponse
     analysis_time_ms: float | None = None
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "provider": "rule-based",
+                "model": "qyverix-engine-v3",
+                "explanation": {
+                    "language": "Python",
+                    "summary": "A short Python function that calculates the area of a circle using the radius.",
+                    "key_points": [
+                        "Written in **Python** — 3 non-blank lines of code.",
+                        "Defines 1 function(s): `calculate_area`.",
+                        "Imports 1 module(s) — external dependencies present."
+                    ],
+                    "complexity": "Beginner",
+                    "line_count": 3,
+                    "function_count": 1,
+                    "class_count": 0,
+                    "cyclomatic_complexity": 1,
+                    "complexity_risk": "low"
+                },
+                "debugging": {
+                    "issues": [],
+                    "summary": "✅ No issues detected!",
+                    "clean": True,
+                    "error_count": 0,
+                    "warning_count": 0,
+                    "info_count": 0,
+                    "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2"
+                },
+                "suggestions": {
+                    "suggestions": [
+                        {
+                            "category": "Documentation",
+                            "description": "Less than 10% of lines are comments. Add docstrings/comments to explain intent.",
+                            "line_number": 1,
+                            "line_range": [1],
+                            "code_context": "1: def calculate_area(radius):\n2:     import math",
+                            "example": "\"\"\"Calculate the area of a circle given radius r.\"\"\"",
+                            "priority": "medium"
+                        }
+                    ],
+                    "overall_score": 93,
+                    "grade": "A",
+                    "next_step": "Excellent code! Address the medium-priority items next."
+                },
+                "analysis_time_ms": 12.34
+            }
+        }
+    }
