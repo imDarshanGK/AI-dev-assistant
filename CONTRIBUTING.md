@@ -100,7 +100,7 @@ CI automatically rejects PRs that contain files larger than **5 MB**. This keeps
 
 ### Configure exceptions
 
-If you believe a file legitimately needs to exceed 5 MB (e.g., a bundled model or a large screenshot), add an exception path to `.github/workflows/check-large-files.yml` in the `find` command using `-not -path './path/to/exclude/*'`.
+If you believe a file legitimately needs to exceed 5 MB (e.g., a bundled model or a large screenshot), add an exception to the check by modifying the comparison in `.github/workflows/check-large-files.yml`.
 
 ---
 
