@@ -16,6 +16,7 @@ from .schema_validators import (
 class CodeRequest(BaseModel):
     code: str
     language: str | None = None
+    ai_language: str | None = None
 
     @field_validator("code")
     @classmethod

@@ -67,6 +67,8 @@ SOURCE_EXTENSIONS = {
 }
 
 
+async def _stream_analysis(code: str, language_hint: str | None, ai_language: str | None = None):
+    """Async generator that yields SSE chunks for each analysis section."""
 async def _stream_analysis(code: str, language_hint: str | None):
     code = sanitize_code_input(code)
     language_hint = sanitize_language_hint(language_hint)
@@ -75,7 +77,7 @@ async def _stream_analysis(code: str, language_hint: str | None):
     language = detect_language(code, language_hint)
 
     # Explanation
-    explanation = run_explanation(code, language)
+    explanation = run_explanation(code, language, ai_language)
     yield f"data: {json.dumps({'type': 'explanation', 'data': explanation})}\n\n"
     await asyncio.sleep(0)
 
@@ -106,7 +108,7 @@ async def _stream_analysis(code: str, language_hint: str | None):
     await asyncio.sleep(0)
 
     # Suggestions
-    suggestions = run_suggestions(code, language)
+    suggestions = run_suggestions(code, language, ai_language)
     yield f"data: {json.dumps({'type': 'suggestions', 'data': suggestions})}\n\n"
     await asyncio.sleep(0)
 
@@ -163,7 +165,7 @@ def _add_skipped(skipped_files: list[str], reason: str) -> None:
 )
 async def analyze_stream(req: CodeRequest):
     return StreamingResponse(
-        _stream_analysis(req.code, req.language),
+        _stream_analysis(req.code, req.language, req.ai_language),
         media_type="text/event-stream",
         headers=_SSE_HEADERS,
     )
@@ -177,11 +179,12 @@ async def analyze_stream(req: CodeRequest):
 async def analyze_stream_get(
     code: str = Query(..., min_length=1, max_length=50000, description="Source code to analyze"),
     language: str | None = Query(None, description="Optional language hint"),
+    ai_language: str | None = Query(None, description="Optional UI language code (en, ta, hi, fr)"),
 ):
     if not code.strip():
         raise HTTPException(status_code=400, detail="code must not be empty or whitespace")
     return StreamingResponse(
-        _stream_analysis(code.strip(), language),
+        _stream_analysis(code.strip(), language, ai_language),
         media_type="text/event-stream",
         headers=_SSE_HEADERS,
     )
@@ -200,7 +203,7 @@ async def analyze(req: CodeRequest, response: Response):
         response.headers["X-Cache"] = "HIT"
         return cached_payload
 
-    payload = full_analysis(req.code, req.language)
+    payload = full_analysis(req.code, req.language, req.ai_language)
 
     cache.set("analyze:v1", cache_input, payload)
 

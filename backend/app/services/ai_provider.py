@@ -11,6 +11,7 @@ import logging
 import time
 from urllib.parse import urlparse
 import httpx
+from .multilingual import get_system_prompt
 
 logger = logging.getLogger("ai_provider")
 
@@ -35,10 +36,23 @@ def _get_provider_name(base_url: str) -> str:
         return "ollama"
     return "unknown"
 
-async def call_llm(system: str, user: str) -> str | None:
-    """Return LLM text response or None if disabled/error."""
+async def call_llm(system: str, user: str, ai_language: str | None = None) -> str | None:
+    """Return LLM text response or None if disabled/error.
+    
+    Args:
+        system: The system prompt for the LLM.
+        user: The user message.
+        ai_language: Optional language code (e.g., "en", "ta", "hi", "fr") to inject language instruction.
+    
+    Returns:
+        The LLM response text, or None if disabled/error.
+    """
     if not LLM_ENABLED or not LLM_API_KEY:
         return None
+
+    # If ai_language is specified, get the multilingual system prompt instead
+    if ai_language:
+        system = get_system_prompt(ai_language)
 
     provider_name = _get_provider_name(LLM_BASE_URL)
     headers = {
