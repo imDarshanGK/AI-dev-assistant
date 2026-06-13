@@ -5,6 +5,7 @@ import sys
 import os
 import tempfile
 import asyncio
+import hashlib
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
@@ -87,3 +88,95 @@ def test_search_no_results():
     r = client.get("/history/search?q=xyznotfoundever")
     assert r.status_code == 200
     assert r.json() == []
+
+
+def test_code_too_large():
+    large_code = "x" * 50001
+
+    r = client.post(
+        "/history/",
+        json={
+            "code": large_code,
+            "language": "Python"
+        }
+    )
+
+    assert r.status_code == 422
+
+
+def test_limit_above_max():
+    r = client.get("/history/?limit=101")
+    assert r.status_code == 422
+
+
+def test_limit_below_min():
+    r = client.get("/history/?limit=0")
+    assert r.status_code == 422
+
+
+def test_search_limit_above_max():
+    r = client.get("/history/search?q=test&limit=101")
+    assert r.status_code == 422
+
+
+def test_code_preview_truncated():
+    code = "a" * 200
+
+    client.post(
+        "/history/",
+        json={
+            "code": code,
+            "language": "Python"
+        }
+    )
+
+    r = client.get("/history/")
+
+    matching = next(
+        entry
+        for entry in r.json()
+        if entry["code_preview"].startswith("aaaa")
+    )
+
+    assert len(matching["code_preview"]) == 120
+
+
+def test_code_hash_matches_sha256():
+    code = "print('hello')"
+
+    client.post(
+        "/history/",
+        json={
+            "code": code,
+            "language": "Python"
+        }
+    )
+
+    r = client.get("/history/")
+    entry = r.json()[0]
+
+    expected = hashlib.sha256(
+        code.encode()
+    ).hexdigest()
+
+    assert entry["code_hash"] == expected
+
+
+def test_delete_entry_twice():
+    r = client.post(
+        "/history/",
+        json={
+            "code": "test",
+            "language": "Python"
+        }
+    )
+
+    entry_id = r.json()["id"]
+
+    first = client.delete(f"/history/{entry_id}")
+    assert first.status_code == 200
+
+    second = client.delete(f"/history/{entry_id}")
+    assert second.status_code == 404
+
+
