@@ -6,6 +6,7 @@ from backend.app.services.ai_provider import retry_metrics
 
 router = APIRouter()
 
+
 @router.get("/metrics", tags=["Monitoring"])
 def get_metrics():
     """

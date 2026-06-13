@@ -16,11 +16,11 @@ import httpx
 
 logger = logging.getLogger("ai_provider")
 
-LLM_ENABLED     = os.getenv("LLM_ENABLED", "false").lower() == "true"
-LLM_API_KEY     = os.getenv("LLM_API_KEY", "")
-LLM_BASE_URL    = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
-LLM_MODEL       = os.getenv("LLM_MODEL", "gpt-4o-mini")
-LLM_TIMEOUT     = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
+LLM_ENABLED = os.getenv("LLM_ENABLED", "false").lower() == "true"
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
+LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
+LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
 LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))
 LLM_RETRY_BACKOFF = float(os.getenv("LLM_RETRY_BACKOFF", "1.0"))
 
