@@ -21,6 +21,7 @@ from .routers import (
     debugging,
     explanation,
     history,
+    notifications,
     share,
     subscribe,
     suggestions,
@@ -155,6 +156,7 @@ app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
 app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
