@@ -1,0 +1,34 @@
+name: Check Large Files
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for oversized files
+        env:
+          THRESHOLD_MB: 5
+        run: |
+          LARGE_FILES=$(find . -type f -size +${THRESHOLD_MB}M \
+            -not -path './.git/*' \
+            -print)
+          if [ -n "$LARGE_FILES" ]; then
+            echo "::error::Files exceeding ${THRESHOLD_MB}MB found:"
+            echo "$LARGE_FILES" | while IFS= read -r f; do
+              echo "::error::  $(du -h "$f" | cut -f1)  $f"
+            done
+            echo ""
+            echo "Large files bloat repo size and slow CI."
+            echo "Remove them or use Git LFS / external storage."
+            exit 1
+          fi
+          echo "✓ No files exceed ${THRESHOLD_MB}MB"
