@@ -20,7 +20,7 @@ from ..services.code_assistant import (
     run_explanation,
     run_suggestions,
 )
-
+from ..sanitize import sanitize_code_input, sanitize_language_hint
 router = APIRouter()
 
 _SSE_HEADERS = {
@@ -68,7 +68,9 @@ SOURCE_EXTENSIONS = {
 
 
 async def _stream_analysis(code: str, language_hint: str | None):
-    """Async generator that yields SSE chunks for each analysis section."""
+    code = sanitize_code_input(code)
+    language_hint = sanitize_language_hint(language_hint)
+
     t0 = time.perf_counter()
     language = detect_language(code, language_hint)
 
