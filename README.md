@@ -130,6 +130,7 @@ The app can still run without external AI providers when `LLM_ENABLED=false`.
 | API root | http://localhost:8000/ |
 | Interactive docs | http://localhost:8000/docs |
 | Health check | http://localhost:8000/health |
+| Container health check | http://localhost:8000/healthz/live |
 | Signup | http://localhost:8000/auth/signup |
 | Login | http://localhost:8000/auth/login |
 | Current user | http://localhost:8000/auth/me |
