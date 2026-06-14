@@ -316,34 +316,68 @@ Tests run automatically on every push and pull request via GitHub Actions across
 
 > **Note:** The free tier sleeps after 15 minutes of inactivity. The first request after sleep takes 30–60 seconds to wake up. This is expected.
 
-### Docker
+---
+## Docker Compose — Full Local Dev Environment
 
+Run the complete stack (backend + frontend + PostgreSQL) with a single command.
+
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed
+
+### 1. Clone the repo
 ```bash
-docker build -t qyverixai .
-docker run -p 8000:8000 qyverixai
+git clone https://github.com/imDarshanGK/AI-dev-assistant.git
+cd AI-dev-assistant
 ```
-### Docker Compose
 
-Run the complete local development environment:
+### 2. Set up environment variables
+```bash
+cp .env.example .env
+```
+Open `.env` and fill in the required values (see [Configuration](#configuration)).
+The database is pre-configured in `docker-compose.yml`:
+- **User:** `postgres`
+- **Password:** `postgres`
+- **Database:** `aidevdb`
 
+### 3. Start all services
 ```bash
 docker compose up --build
 ```
 
-Available services:
+This starts three services:
 
-- Frontend → http://localhost:3000
-- Backend API → http://localhost:8000
-- PostgreSQL → localhost:5432
+| Service  | URL                        | Description              |
+|----------|----------------------------|--------------------------|
+| Frontend | http://localhost:3000      | Nginx-served UI          |
+| Backend  | http://localhost:8000      | FastAPI + rule-based engine |
+| Database | localhost:5432             | PostgreSQL 16            |
 
-Stop containers:
+The backend includes a health check — wait for the log line `Application startup complete` before sending requests.
 
+### 4. Verify everything is running
+```bash
+# Check all containers are up
+docker compose ps
+
+# Hit the health endpoint
+curl http://localhost:8000/healthz/ready
+```
+
+You should see `{"status": "ok"}` (or a `degraded` breakdown if the DB isn't ready yet).
+
+### 5. Open the app
+Navigate to **http://localhost:3000**, set the API URL to `http://localhost:8000`, click **Ping** to confirm the green Connected status, then paste any code and click **Analyze Code**.
+
+### Stop containers
 ```bash
 docker compose down
 ```
 
----
-
+To also remove the database volume (wipes all stored data):
+```bash
+docker compose down -v
+```
 ## Observability
 
 QyverixAI exposes operational endpoints designed for container orchestration and Prometheus scraping.
