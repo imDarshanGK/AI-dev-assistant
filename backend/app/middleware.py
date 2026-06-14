@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 from .config import settings
 
-logger = logging.getLogger("ai_assistant.api")
+logger = logging.getLogger(__name__)
 
 _rate_limit_buckets: dict[str, deque[float]] = defaultdict(deque)
 _rate_limit_lock = Lock()

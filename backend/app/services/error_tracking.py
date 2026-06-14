@@ -2,7 +2,7 @@ import logging
 
 from ..config import settings
 
-logger = logging.getLogger("ai_assistant.api")
+logger = logging.getLogger(__name__)
 
 
 def init_error_tracking() -> bool:
