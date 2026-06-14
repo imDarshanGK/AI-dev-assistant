@@ -40,6 +40,7 @@ Subscription API Usage Examples
    - Use generated URL for webhook callbacks
 """
 
+
 @router.post("/", response_model=SubscribeResponse)
 def subscribe(body: SubscribeRequest, db: Session = Depends(get_db)):
     """Subscribe an email address to the weekly digest.
