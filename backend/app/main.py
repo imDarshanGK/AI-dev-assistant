@@ -18,7 +18,7 @@ from .routers import (
     analyze,
     auth,
     chat,
-    preview, 
+    preview,
     debugging,
     explanation,
     history,
