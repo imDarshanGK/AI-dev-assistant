@@ -24,8 +24,12 @@ router = APIRouter()
     ),
     responses={
         200: {"description": "Analysis completed successfully."},
-        422: {"description": "Validation error — `code` is missing, empty, or exceeds 50,000 characters."},
-        429: {"description": "Rate limit exceeded — maximum 30 requests/minute per IP. Check the `Retry-After` header."},
+        422: {
+            "description": "Validation error — `code` is missing, empty, or exceeds 50,000 characters."
+        },
+        429: {
+            "description": "Rate limit exceeded — maximum 30 requests/minute per IP. Check the `Retry-After` header."
+        },
         500: {"description": "Internal server error."},
     },
 )
