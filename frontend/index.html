@@ -2297,9 +2297,13 @@
         </div>
 
         <!-- Result action buttons (hidden until results) -->
-        <div id="resultActions" class="result-actions" style="display:none">
-          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
-          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
+       <div id="resultActions" class="result-actions" style="display:none">
+          <button class="icon-btn" id="favBtn" title="Save to favourites" aria-label="Save to favourites" style="display:inline-flex;align-items:center;gap:5px;width:auto;padding:0 12px;">
+            <span aria-hidden="true">★</span> Save
+          </button>
+          <button class="icon-btn" id="downloadBtn" title="Download code" aria-label="Download code" style="display:inline-flex;align-items:center;gap:5px;width:auto;padding:0 12px;">
+            <span aria-hidden="true">⬇</span> Download
+          </button>
         </div>
 
       </div>
