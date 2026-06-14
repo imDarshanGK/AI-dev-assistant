@@ -280,10 +280,18 @@ class AnalyzeResponse(BaseModel):
 class ZipAnalyzeFileResult(BaseModel):
     """Analysis result for a single file inside an uploaded ZIP archive."""
 
-    filename: str = Field(..., description="Relative path of the file inside the archive.", example="src/utils.py")
-    language: str = Field(..., description="Detected programming language.", example="Python")
+    filename: str = Field(
+        ...,
+        description="Relative path of the file inside the archive.",
+        example="src/utils.py",
+    )
+    language: str = Field(
+        ..., description="Detected programming language.", example="Python"
+    )
     size_bytes: int = Field(..., description="File size in bytes.", example=1024)
-    analysis: AnalyzeResponse = Field(..., description="Full analysis result for this file.")
+    analysis: AnalyzeResponse = Field(
+        ..., description="Full analysis result for this file."
+    )
 
 
 class ZipAnalyzeResponse(BaseModel):
@@ -291,18 +299,38 @@ class ZipAnalyzeResponse(BaseModel):
 
     provider: str = Field(..., example="rule-based")
     model: str = Field(..., example="qyverix-engine-v3")
-    file_count: int = Field(..., description="Number of files successfully analysed.", example=5)
-    total_size_bytes: int = Field(..., description="Total size of all analysed files in bytes.", example=20480)
-    overall_project_score: int = Field(..., description="Aggregated quality score across all files, 0–100.", example=68)
+    file_count: int = Field(
+        ..., description="Number of files successfully analysed.", example=5
+    )
+    total_size_bytes: int = Field(
+        ...,
+        description="Total size of all analysed files in bytes.",
+        example=20480,
+    )
+    overall_project_score: int = Field(
+        ...,
+        description="Aggregated quality score across all files, 0–100.",
+        example=68,
+    )
     grade: str = Field(..., description="Project-level letter grade A–F.", example="C")
-    summary: str = Field(..., description="High-level summary of the project analysis.", example="5 files analysed. 3 files have errors.")
-    files: list[ZipAnalyzeFileResult] = Field(..., description="Per-file analysis results.")
+    summary: str = Field(
+        ...,
+        description="High-level summary of the project analysis.",
+        example="5 files analysed. 3 files have errors.",
+    )
+    files: list[ZipAnalyzeFileResult] = Field(
+        ..., description="Per-file analysis results."
+    )
     skipped_files: list[str] = Field(
         default_factory=list,
         description="Files skipped because they are unsupported, empty, or too large.",
         example=["README.md", "package-lock.json"],
     )
-    analysis_time_ms: float | None = Field(default=None, description="Total analysis time in milliseconds.", example=42.5)
+    analysis_time_ms: float | None = Field(
+        default=None,
+        description="Total analysis time in milliseconds.",
+        example=42.5,
+    )
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -357,24 +385,42 @@ class AuthResponse(BaseModel):
         description="Token type. Always `bearer`.",
         example="bearer",
     )
-    user_id: int = Field(..., description="Internal numeric user identifier.", example=42)
-    email: str = Field(..., description="The authenticated user's email address.", example="dev@example.com")
+    user_id: int = Field(
+        ..., description="Internal numeric user identifier.", example=42
+    )
+    email: str = Field(
+        ...,
+        description="The authenticated user's email address.",
+        example="dev@example.com",
+    )
 
 
 class UserProfileResponse(BaseModel):
     """Public user profile returned by GET /auth/me."""
 
-    user_id: int = Field(..., description="Internal numeric user identifier.", example=42)
-    email: str = Field(..., description="The authenticated user's email address.", example="dev@example.com")
+    user_id: int = Field(
+        ..., description="Internal numeric user identifier.", example=42
+    )
+    email: str = Field(
+        ...,
+        description="The authenticated user's email address.",
+        example="dev@example.com",
+    )
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
 class HealthResponse(BaseModel):
     """Generic health / status response."""
 
-    status: str = Field(..., description="Service status. `ok` when healthy.", example="ok")
+    status: str = Field(
+        ..., description="Service status. `ok` when healthy.", example="ok"
+    )
     version: str = Field(..., description="API version string.", example="3.0.0")
-    message: str = Field(..., description="Human-readable status message.", example="QyverixAI API is running.")
+    message: str = Field(
+        ...,
+        description="Human-readable status message.",
+        example="QyverixAI API is running.",
+    )
     endpoints: list[str] | None = Field(
         default=None,
         description="List of available API endpoint paths.",
@@ -385,7 +431,9 @@ class HealthResponse(BaseModel):
 class LivenessResponse(BaseModel):
     """Liveness probe response — emitted only when the process can answer HTTP."""
 
-    status: str = Field(..., description="Always `ok` when this response is returned.", example="ok")
+    status: str = Field(
+        ..., description="Always `ok` when this response is returned.", example="ok"
+    )
 
 
 class ReadinessResponse(BaseModel):
@@ -438,15 +486,29 @@ class SubscribeRequest(BaseModel):
 class SubscribeResponse(BaseModel):
     """Confirmation returned after a successful subscription."""
 
-    message: str = Field(..., description="Human-readable confirmation message.", example="Subscribed successfully.")
-    email: str = Field(..., description="The email address that was subscribed.", example="dev@example.com")
+    message: str = Field(
+        ...,
+        description="Human-readable confirmation message.",
+        example="Subscribed successfully.",
+    )
+    email: str = Field(
+        ...,
+        description="The email address that was subscribed.",
+        example="dev@example.com",
+    )
 
 
 class UnsubscribeRequest(BaseModel):
     """Request body for newsletter unsubscription."""
 
-    email: str = Field(..., description="Email address to unsubscribe.", example="dev@example.com")
-    token: str = Field(..., description="Unsubscribe token sent in the confirmation email.", example="abc123token")
+    email: str = Field(
+        ..., description="Email address to unsubscribe.", example="dev@example.com"
+    )
+    token: str = Field(
+        ...,
+        description="Unsubscribe token sent in the confirmation email.",
+        example="abc123token",
+    )
 
 
 # ── History ───────────────────────────────────────────────────────────────────
@@ -498,7 +560,11 @@ class HistoryRecord(BaseModel):
     action: str = Field(..., description="Analysis type.", example="debugging")
     code: str = Field(..., description="The analysed source code.")
     result_json: str = Field(..., description="The analysis result as a JSON string.")
-    created_at: str = Field(..., description="ISO 8601 timestamp of when this record was created.", example="2024-06-01T12:00:00Z")
+    created_at: str = Field(
+        ...,
+        description="ISO 8601 timestamp of when this record was created.",
+        example="2024-06-01T12:00:00Z",
+    )
 
 
 # ── Favorites ─────────────────────────────────────────────────────────────────
@@ -554,11 +620,17 @@ class FavoriteRecord(BaseModel):
     """A single bookmarked analysis entry."""
 
     id: int = Field(..., description="Unique record identifier.", example=7)
-    title: str = Field(..., description="User-supplied title.", example="Divide function bug check")
+    title: str = Field(
+        ..., description="User-supplied title.", example="Divide function bug check"
+    )
     action: str = Field(..., description="Analysis type.", example="debugging")
     code: str = Field(..., description="The analysed source code.")
     result_json: str = Field(..., description="The analysis result as a JSON string.")
-    created_at: str = Field(..., description="ISO 8601 creation timestamp.", example="2024-06-01T12:00:00Z")
+    created_at: str = Field(
+        ...,
+        description="ISO 8601 creation timestamp.",
+        example="2024-06-01T12:00:00Z",
+    )
 
 
 # ── Share ─────────────────────────────────────────────────────────────────────
@@ -627,11 +699,19 @@ class ShareCreateRequest(BaseModel):
 class ShareRecord(BaseModel):
     """A stored share entry returned by GET /share/{id}."""
 
-    id: str = Field(..., description="Short unique identifier for this share.", example="aB3xYz")
+    id: str = Field(
+        ...,
+        description="Short unique identifier for this share.",
+        example="aB3xYz",
+    )
     action: str = Field(..., description="Analysis type.", example="analyze")
     code: str = Field(..., description="The shared source code.")
     result: dict[str, Any] = Field(..., description="The shared analysis result.")
-    created_at: str = Field(..., description="ISO 8601 creation timestamp. Share links expire after 7 days.", example="2024-06-01T12:00:00Z")
+    created_at: str = Field(
+        ...,
+        description="ISO 8601 creation timestamp. Share links expire after 7 days.",
+        example="2024-06-01T12:00:00Z",
+    )
 
 
 # ── Chat ──────────────────────────────────────────────────────────────────────
@@ -679,7 +759,11 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     """Simple chat response."""
 
-    response: str = Field(..., description="The assistant's reply.", example="The crash happens because b is 0.")
+    response: str = Field(
+        ...,
+        description="The assistant's reply.",
+        example="The crash happens because b is 0.",
+    )
 
 
 class ChatMessageRequest(BaseModel):
@@ -735,7 +819,17 @@ class ChatMessageRequest(BaseModel):
 class ChatMessageResponse(BaseModel):
     """Extended chat response with provider and mode metadata."""
 
-    provider: str = Field(..., description="LLM provider used, or `rule-based`.", example="openai")
-    model: str = Field(..., description="Model name used to generate the reply.", example="gpt-4o-mini")
+    provider: str = Field(
+        ..., description="LLM provider used, or `rule-based`.", example="openai"
+    )
+    model: str = Field(
+        ...,
+        description="Model name used to generate the reply.",
+        example="gpt-4o-mini",
+    )
     mode: str = Field(..., description="Conversation mode.", example="chat")
-    reply: str = Field(..., description="The assistant's reply.", example="A ZeroDivisionError occurs when you divide by zero.")
+    reply: str = Field(
+        ...,
+        description="The assistant's reply.",
+        example="A ZeroDivisionError occurs when you divide by zero.",
+    )
