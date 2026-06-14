@@ -1,10 +1,8 @@
-import os
-from dotenv import load_dotenv
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 """
-QyverixAI — Backend API
-FastAPI application with advanced middleware, rate limiting, and full analysis engine.
+QyverixAI – Backend API
+...
 """
+
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
