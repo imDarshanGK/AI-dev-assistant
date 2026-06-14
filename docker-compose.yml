@@ -14,6 +14,12 @@ services:
       - .env
     # Removed host volume mounts and --reload for performance and isolation
     command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz/live', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     depends_on:
       db:
         condition: service_healthy
@@ -54,8 +60,4 @@ services:
       - ai_prod_network
 
 volumes:
-  postgres_prod_data:
-
-networks:
-  ai_prod_network:
-    driver: bridge
+  postgres_data:

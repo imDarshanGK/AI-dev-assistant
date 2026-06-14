@@ -127,6 +127,7 @@ The app can still run without external AI providers when `LLM_ENABLED=false`.
 | API root | http://localhost:8000/ |
 | Interactive docs | http://localhost:8000/docs |
 | Health check | http://localhost:8000/health |
+| Container health check | http://localhost:8000/healthz/live |
 | Signup | http://localhost:8000/auth/signup |
 | Login | http://localhost:8000/auth/login |
 | Current user | http://localhost:8000/auth/me |
@@ -315,31 +316,120 @@ Tests run automatically on every push and pull request via GitHub Actions across
 
 > **Note:** The free tier sleeps after 15 minutes of inactivity. The first request after sleep takes 30–60 seconds to wake up. This is expected.
 
-### Docker
+---
+## Docker Compose — Full Local Dev Environment
 
+Run the complete stack (backend + frontend + PostgreSQL) with a single command.
+
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed
+
+### 1. Clone the repo
 ```bash
-docker build -t qyverixai .
-docker run -p 8000:8000 qyverixai
+git clone https://github.com/imDarshanGK/AI-dev-assistant.git
+cd AI-dev-assistant
 ```
-### Docker Compose
 
-Run the complete local development environment:
+### 2. Set up environment variables
+```bash
+cp .env.example .env
+```
+Open `.env` and fill in the required values (see [Configuration](#configuration)).
+The database is pre-configured in `docker-compose.yml`:
+- **User:** `postgres`
+- **Password:** `postgres`
+- **Database:** `aidevdb`
 
+### 3. Start all services
 ```bash
 docker compose up --build
 ```
 
-Available services:
+This starts three services:
 
-- Frontend → http://localhost:3000
-- Backend API → http://localhost:8000
-- PostgreSQL → localhost:5432
+| Service  | URL                        | Description              |
+|----------|----------------------------|--------------------------|
+| Frontend | http://localhost:3000      | Nginx-served UI          |
+| Backend  | http://localhost:8000      | FastAPI + rule-based engine |
+| Database | localhost:5432             | PostgreSQL 16            |
 
-Stop containers:
+The backend includes a health check — wait for the log line `Application startup complete` before sending requests.
 
+### 4. Verify everything is running
+```bash
+# Check all containers are up
+docker compose ps
+
+# Hit the health endpoint
+curl http://localhost:8000/healthz/ready
+```
+
+You should see `{"status": "ok"}` (or a `degraded` breakdown if the DB isn't ready yet).
+
+### 5. Open the app
+Navigate to **http://localhost:3000**, set the API URL to `http://localhost:8000`, click **Ping** to confirm the green Connected status, then paste any code and click **Analyze Code**.
+
+### Stop containers
 ```bash
 docker compose down
 ```
+
+To also remove the database volume (wipes all stored data):
+```bash
+docker compose down -v
+```
+## Observability
+
+QyverixAI exposes operational endpoints designed for container orchestration and Prometheus scraping.
+
+### Health probes
+
+| Endpoint | Purpose | Behaviour |
+|---|---|---|
+| `GET /healthz/live` | Liveness probe | Returns `200` while the process can answer HTTP. Does **not** check external dependencies — Kubernetes restarts the container on failure, so this must never depend on recoverable backends. |
+| `GET /healthz/ready` | Readiness probe | Returns `200` only when every dependency check (currently: database) passes. Returns `503` with a per-check breakdown otherwise. Kubernetes removes the pod from service load balancers on failure but does **not** restart it. |
+| `GET /health` | Legacy combined check | Retained for backward compatibility with anything already pointing at it. |
+
+Example response from `/healthz/ready` when degraded:
+
+```json
+{
+  "status": "degraded",
+  "checks": {
+    "database": {
+      "ok": false,
+      "elapsed_ms": 2003.41,
+      "error": "OperationalError: connection refused"
+    }
+  }
+}
+```
+
+A ready-to-copy Kubernetes manifest with probes wired up lives at [`deploy/k8s/deployment.example.yaml`](deploy/k8s/deployment.example.yaml).
+
+### Prometheus metrics
+
+`GET /metrics` exposes the Prometheus exposition format. Metric families:
+
+| Metric | Type | Labels | Description |
+|---|---|---|---|
+| `qyverixai_http_requests_total` | Counter | `method`, `endpoint`, `status_code` | Total requests processed. |
+| `qyverixai_http_request_duration_seconds` | Histogram | `method`, `endpoint` | Request latency. Buckets: 5ms → 30s. |
+| `qyverixai_http_requests_in_progress` | Gauge | `method`, `endpoint` | Concurrent in-flight requests. |
+| `qyverixai_http_request_exceptions_total` | Counter | `method`, `endpoint`, `exception_type` | Unhandled exceptions raised during request handling. |
+| `qyverixai_app_info` | Gauge | `version`, `ai_provider` | Static identity, always `1`. |
+
+The `endpoint` label is the matched **route template** (e.g. `/share/{share_id}`), not the raw URL — this keeps label cardinality bounded as IDs flow through the system. The `/metrics` endpoint itself is excluded from observation to prevent a scrape feedback loop.
+
+A drop-in Prometheus scrape config is provided at [`deploy/prometheus/scrape-config.example.yaml`](deploy/prometheus/scrape-config.example.yaml).
+
+#### Configuration
+
+| Variable | Default | Description |
+|---|---|---|
+| `METRICS_ENABLED` | `true` | Set to `false` to disable `/metrics` and skip the middleware entirely. |
+| `METRICS_AUTH_TOKEN` | — | Optional bearer token. When set, scrapers must send `Authorization: Bearer <token>`. |
+| `PROMETHEUS_MULTIPROC_DIR` | — | Set when running `uvicorn --workers N > 1` so scrapes aggregate across workers. The directory must exist and be writable. |
 
 ---
 
