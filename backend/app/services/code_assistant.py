@@ -272,6 +272,7 @@ class BugPattern:
             "TypeScript",
             "Java",
             "C++",
+            "Go"
             "PHP",
             "Rust",
         ]
@@ -721,6 +722,31 @@ BUG_PATTERNS: list[BugPattern] = [
         "Ensure you have two semicolons separating the initialization, condition, and increment statements.",
         "error",
         ["C++", "Java", "JavaScript", "TypeScript"],
+    ),
+    # ── Go ──
+    BugPattern(
+        "Ignored Error",
+        r",\s*_\s*:=",
+        "Error return value is being ignored using blank identifier.",
+        "Handle the error explicitly: `result, err := ...; if err != nil { ... }`",
+        "warning",
+        ["Go"],
+    ),
+    BugPattern(
+        "fmt.Println in Production",
+        r"\bfmt\.Println\s*\(",
+        "fmt.Println left in production code.",
+        "Use a proper logging package like `log` or `zap` instead.",
+        "info",
+        ["Go"],
+    ),
+    BugPattern(
+        "Naked Return",
+        r"\breturn\s*$",
+        "Naked return in a named-return function reduces readability.",
+        "Return values explicitly for clarity.",
+        "info",
+        ["Go"],
     ),
     # ── PHP ──
     BugPattern(
