@@ -31,13 +31,10 @@ from .routers import health as health_router
 from .routers import metrics as metrics_router
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
-<<<<<<< HEAD
 from .observability import (
     initialise_app_info,
     prometheus_metrics_middleware,
 )
-=======
->>>>>>> b4b90c0 (Fix CI errors in main.py)
 
 from .schemas import HealthResponse
 
