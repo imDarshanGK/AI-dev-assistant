@@ -3324,6 +3324,7 @@
         editor.value = '';
         updateEditor();
         resetResults();
+        toast('Code cleared!', 'info');
       });
       document.getElementById('copyBtn').addEventListener('click', () => {
         if (!editor.value.trim()) return;

@@ -9,18 +9,18 @@ on:
 
 jobs:
   test:
-    name: test (${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    name: Test Backend (Python ${{ matrix.python-version }})
 
     strategy:
       matrix:
         python-version: ["3.11", "3.12"]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -46,7 +46,7 @@ jobs:
           RATE_LIMIT_PER_MINUTE: 300
         run: |
           cd backend
-          pytest -v --tb=short
+          pytest -q --tb=short
 
   email-share-e2e:
     name: E2E email-share tests (${{ matrix.python-version }})
@@ -92,15 +92,13 @@ jobs:
           pytest tests/test_email_share_e2e.py -v --tb=short
 
   lint:
-    name: Lint
     runs-on: ubuntu-latest
+    name: Lint
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
@@ -114,6 +112,7 @@ jobs:
   frontend-check:
     name: Frontend Check
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout repository
