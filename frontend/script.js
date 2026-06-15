@@ -1,3 +1,7 @@
+// DEPRECATED: This file is not loaded by index.html.
+// All app logic lives in the inline <script> at the bottom of index.html.
+// See issue#855 for context.
+
 /** Use security-utils.js when present (production index.html loads it first). */
 const SEC = window.QyverixSecurity || {
   escHtml(s) {
