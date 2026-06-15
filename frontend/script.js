@@ -640,7 +640,6 @@ renderFavorites();
 
 
 document.addEventListener("DOMContentLoaded", () => {
-
   const modal = document.getElementById("onboarding-modal");
 
   if (!localStorage.getItem("tourCompleted")) {
@@ -659,5 +658,4 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("skip-tour-btn")
     ?.addEventListener("click", closeTour);
-
 });
