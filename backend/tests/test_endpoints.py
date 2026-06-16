@@ -153,7 +153,9 @@ def test_rate_limit_headers_on_success_response():
     assert r.status_code == 200
     assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
     assert r.headers["X-RateLimit-Remaining"] == str(app_main.RATE_LIMIT)
-
+    assert r.headers["X-RateLimit-Reset"] == str(
+        app_main.RATE_LIMIT_WINDOW_SECONDS
+    )
 
 def test_rate_limit_returns_429_with_retry_after_header():
     payload = {"code": "print('hello')", "language": "python"}
@@ -163,12 +165,18 @@ def test_rate_limit_returns_429_with_retry_after_header():
         assert r.status_code == 200
         assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
         assert r.headers["X-RateLimit-Remaining"] == str(expected_remaining)
+        assert r.headers["X-RateLimit-Reset"] == str(
+        app_main.RATE_LIMIT_WINDOW_SECONDS
+    )
 
     r = client.post("/debugging/", json=payload)
     assert r.status_code == 429
     assert r.headers["Retry-After"] == str(app_main.RATE_LIMIT_WINDOW_SECONDS)
     assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
     assert r.headers["X-RateLimit-Remaining"] == "0"
+    assert r.headers["X-RateLimit-Reset"] == str(
+        app_main.RATE_LIMIT_WINDOW_SECONDS
+    )
 
 
 # ── Explanation ───────────────────────────────────────────────────────────────
