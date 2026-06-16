@@ -2,7 +2,8 @@
 QyverixAI — Backend API
 FastAPI application with advanced middleware, rate limiting, and full analysis engine.
 """
-
+from .database import engine
+from .models import Base
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -66,12 +67,18 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
-# ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
 
     logging.getLogger(__name__).info("🚀 QyverixAI backend starting…")
+
+    Base.metadata.create_all(bind=engine)
+
+    initialise_app_info(
+        version="3.0.0",
+        ai_provider=os.getenv("AI_PROVIDER", "rule-based"),
+    )
 
     start_scheduler()
     yield
