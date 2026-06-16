@@ -329,14 +329,14 @@ def detect_deep_nesting(tree, code):
     walk(tree, 0)
     return issues
 
-def analyze(source: str) -> list[dict]:
+def analyze(source: str) ->  list[dict]:
     tree = ast.parse(source)
     issues = []
     issues += detect_unreachable_code(tree, source)
     issues += detect_unused_imports(tree, source)
     issues += detect_unused_arguments(tree, source)
     issues += detect_unused_variables(tree, source)
-    issues += detect_too_many_returns(tree, source)    
+    issues += detect_too_many_returns(tree, source)   
     issues += detect_deep_nesting(tree, source)
     issues.sort(key=lambda i: i["line"])
     return issues
