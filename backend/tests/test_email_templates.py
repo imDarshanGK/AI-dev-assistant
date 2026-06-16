@@ -4,11 +4,10 @@ Run: cd backend && pytest tests/test_email_templates.py -v
 """
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.config import settings
 from app.main import app
 from app.services import email_service
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 

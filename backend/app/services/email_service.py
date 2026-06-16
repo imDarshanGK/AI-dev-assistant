@@ -189,15 +189,21 @@ def _focus_recommendations(
     if top_bug:
         items.append(f"Prioritize fixing recurring {top_bug} patterns.")
     if avg_score is not None and avg_score < 70:
-        items.append("Add docstrings and inline comments to lift your documentation score.")
+        items.append(
+            "Add docstrings and inline comments to lift your documentation score."
+        )
     if total_issues > 10:
-        items.append("Tackle high-severity issues first — sort by error before warnings.")
+        items.append(
+            "Tackle high-severity issues first — sort by error before warnings."
+        )
     if len(languages) > 2:
         items.append(
             f"Standardize patterns across {', '.join(languages[:3])} for consistency."
         )
     if not items:
-        items.append("Keep running analyses weekly to maintain momentum and track trends.")
+        items.append(
+            "Keep running analyses weekly to maintain momentum and track trends."
+        )
     return items[:3]
 
 
@@ -649,7 +655,5 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
     html = render_template("digest", template_context)
     text = _build_digest_text(stats, unsubscribe_url)
 
-    subject = (
-        f"QyverixAI Weekly Digest — {stats['week_start']} to {stats['week_end']}"
-    )
+    subject = f"QyverixAI Weekly Digest — {stats['week_start']} to {stats['week_end']}"
     return _send_email(stats["email"], subject, html, text)

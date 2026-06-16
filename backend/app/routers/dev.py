@@ -19,12 +19,12 @@ def _ensure_dev_enabled() -> None:
 
 
 def _preview_index_html(*, base_path: str) -> str:
-  """HTML index listing all email preview links."""
-  items = "\n".join(
-      f'    <li><a href="{base_path}/{name}">{name}</a></li>'
-      for name in sorted(email_service.EMAIL_TEMPLATES)
-  )
-  return f"""<!DOCTYPE html>
+    """HTML index listing all email preview links."""
+    items = "\n".join(
+        f'    <li><a href="{base_path}/{name}">{name}</a></li>'
+        for name in sorted(email_service.EMAIL_TEMPLATES)
+    )
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
