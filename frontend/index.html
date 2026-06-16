@@ -625,7 +625,9 @@
       overflow-x: auto;
       scrollbar-width: none;
       .lang-tabs::-webkit-scrollbar,
-      .result-tabs::-webkit-scrollbar { display: none; }
+      .result-tabs::-webkit-scrollbar { 
+        display: none;
+      }
     }
 
     .lang-tab {
@@ -913,7 +915,9 @@
       overflow-x: auto;
       scrollbar-width: none;
       .lang-tabs::-webkit-scrollbar,
-      .result-tabs::-webkit-scrollbar { display: none; }
+      .result-tabs::-webkit-scrollbar { 
+        display: none;
+       }
     }
 
     .result-tab {
@@ -2265,13 +2269,24 @@
         <!-- Language tabs -->
 
         <div class="lang-tabs" role="tablist" aria-label="Select Programming Language">
-          <button class="lang-tab active" data-lang="python" role="tab" aria-selected="true"  data-i18n="lang_tab_python">Python</button>
-          <button class="lang-tab" data-lang="javascript"    role="tab" aria-selected="false" data-i18n="lang_tab_javascript">JavaScript</button>
-          <button class="lang-tab" data-lang="typescript"    role="tab" aria-selected="false" data-i18n="lang_tab_typescript">TypeScript</button>
-          <button class="lang-tab" data-lang="java"          role="tab" aria-selected="false" data-i18n="lang_tab_java">Java</button>
-          <button class="lang-tab" data-lang="cpp"           role="tab" aria-selected="false" data-i18n="lang_tab_cpp">C++</button>
+          <button class="lang-tab active" data-lang="python" data-i18n="lang_tab_python"
+                  role="tab" id="lang-tab-python"
+                  aria-selected="true" aria-controls="panel-python">Python</button>
+          <button class="lang-tab" data-lang="javascript" data-i18n="lang_tab_javascript"
+                  role="tab" id="lang-tab-javascript"
+                  aria-selected="false" aria-controls="panel-javascript">JavaScript</button>
+          <button class="lang-tab" data-lang="typescript" data-i18n="lang_tab_typescript"
+                  role="tab" id="lang-tab-typescript"
+                  aria-selected="false" aria-controls="panel-typescript">TypeScript</button>
+          <button class="lang-tab" data-lang="java" data-i18n="lang_tab_java"
+                  role="tab" id="lang-tab-java"
+                  aria-selected="false" aria-controls="panel-java">Java</button>
+          <button class="lang-tab" data-lang="cpp" data-i18n="lang_tab_cpp"
+                  role="tab" id="lang-tab-cpp"
+                  aria-selected="false" aria-controls="panel-cpp">C++</button>
         </div>
         <!-- Editor area (line numbers + code editor) -->
+      <div id="panel-python" role="tabpanel" aria-labelledby="lang-tab-python">
         <div class="editor-wrap" id="editorWrap">
           <!-- Drag-and-drop overlay -->
           <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
@@ -2288,7 +2303,7 @@
           <div class="line-numbers" id="lineNumbers">1</div>
           <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
         </div>
-
+      </div>
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
@@ -2447,7 +2462,7 @@
                    required
                    style="flex:1;min-width:120px;width:100%;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);">
             <button type="button" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Subscribe</button>
-          </form>
+          </div>
           <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
       </div>
