@@ -69,6 +69,7 @@ The entire frontend is `frontend/index.html` — one self-contained file. No bui
 ### 📖 Documentation
 - Fix typos, improve clarity, add examples
 - Update the README if you add/change a feature
+- Add changelog entries for user-facing changes and fixes in `docs/CHANGELOG.md`
 - Add docstrings to functions that lack them
 
 ### 🧪 Tests
@@ -130,6 +131,7 @@ Before opening a PR, confirm:
 - [ ] New feature has at least one test
 - [ ] Code has type hints and docstrings
 - [ ] README updated if behavior changed
+- [ ] `docs/CHANGELOG.md` updated if this PR introduces user-facing changes or fixes
 - [ ] Branch is up-to-date with `main`
 - [ ] PR description explains *what* and *why*
 
