@@ -88,14 +88,14 @@ async def get_entries(limit: int = 20, offset: int = 0, sort_by: str = "timestam
     if order.lower() not in allowed_orders:
         order = "desc"
     async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row       
+        db.row_factory = aiosqlite.Row
         query = f"""
             SELECT id, code_hash, language, score, issue_count, timestamp, code_preview
             FROM history
             ORDER BY {sort_by} {order}, id DESC
             LIMIT ? OFFSET ?
         """
-        
+
         cursor = await db.execute(query, (limit, offset))
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]
