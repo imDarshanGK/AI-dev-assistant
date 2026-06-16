@@ -4,8 +4,10 @@ Full-text search is powered by SQLite FTS5.
 """
 
 from __future__ import annotations
+
 import hashlib
 import os
+
 import aiosqlite
 
 DB_PATH = os.getenv("HISTORY_DB_PATH", "history.db")
@@ -13,7 +15,8 @@ DB_PATH = os.getenv("HISTORY_DB_PATH", "history.db")
 
 async def init_db() -> None:
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("""
+        await db.execute(
+            """
             CREATE TABLE IF NOT EXISTS history (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 code_hash   TEXT NOT NULL,
@@ -25,7 +28,8 @@ async def init_db() -> None:
                 code        TEXT,
                 result_json TEXT
             )
-        """)
+        """
+        )
         try:
             await db.execute("ALTER TABLE history ADD COLUMN code TEXT")
         except Exception:
@@ -34,10 +38,12 @@ async def init_db() -> None:
             await db.execute("ALTER TABLE history ADD COLUMN result_json TEXT")
         except Exception:
             pass
-        await db.execute("""
+        await db.execute(
+            """
             CREATE VIRTUAL TABLE IF NOT EXISTS fts_history
             USING fts5(code_preview, content=history, content_rowid=id)
-        """)
+        """
+        )
         await db.execute(
             "CREATE INDEX IF NOT EXISTS idx_timestamp ON history(timestamp DESC)"
         )
@@ -73,6 +79,7 @@ async def save_entry(
         await db.commit()
         return row_id
 
+
 async def count_entries() -> int:
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute("SELECT COUNT(*) FROM history")
@@ -80,7 +87,9 @@ async def count_entries() -> int:
         return row[0] if row else 0
 
 
-async def get_entries(limit: int = 20, offset: int = 0, sort_by: str = "timestamp", order: str="desc") -> list[dict]:
+async def get_entries(
+    limit: int = 20, offset: int = 0, sort_by: str = "timestamp", order: str = "desc"
+) -> list[dict]:
     allowed_sort_columns = {"timestamp", "score", "issue_count", "id"}
     allowed_orders = {"asc", "desc"}
     if sort_by not in allowed_sort_columns:
@@ -99,6 +108,7 @@ async def get_entries(limit: int = 20, offset: int = 0, sort_by: str = "timestam
         cursor = await db.execute(query, (limit, offset))
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]
+
 
 async def search_entries(q: str, limit: int = 20) -> list[dict]:
     async with aiosqlite.connect(DB_PATH) as db:
@@ -122,12 +132,8 @@ async def search_entries(q: str, limit: int = 20) -> list[dict]:
 
 async def delete_entry(entry_id: int) -> bool:
     async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute(
-            "DELETE FROM history WHERE id = ?", (entry_id,)
-        )
-        await db.execute(
-            "DELETE FROM fts_history WHERE rowid = ?", (entry_id,)
-        )
+        cursor = await db.execute("DELETE FROM history WHERE id = ?", (entry_id,))
+        await db.execute("DELETE FROM fts_history WHERE rowid = ?", (entry_id,))
         await db.commit()
         return cursor.rowcount > 0
 
