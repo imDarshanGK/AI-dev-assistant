@@ -1,17 +1,22 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator, model_validator
+
 import json
-from typing import Any
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .config import settings
 from .schema_validators import (
+    sanitize_code_input,
     validate_chat_history,
+    validate_language_hint,
     validate_stored_action,
     validate_stored_code,
     validate_stored_result_json,
 )
+
 
 class CodeRequest(BaseModel):
     code: str
@@ -56,6 +61,98 @@ class Suggestion(BaseModel):
     code_context: str | None = None
     example: str | None = None
     priority: str
+
+
+class ExplanationResponse(BaseModel):
+    language: str
+    summary: str
+    key_points: list[str]
+    complexity: str
+    line_count: int
+    function_count: int
+    class_count: int
+    cyclomatic_complexity: int
+    complexity_risk: str
+
+
+class SuggestionsResponse(BaseModel):
+    suggestions: list[Suggestion]
+    overall_score: int
+    grade: str
+    next_step: str | None = None
+
+
+class AnalyzeResponse(BaseModel):
+    provider: str
+    model: str | None = None
+    explanation: dict | ExplanationResponse | None = None
+    debugging: dict | DebuggingResponse | None = None
+    suggestions: dict | SuggestionsResponse | None = None
+    analysis_time_ms: float | None = None
+
+
+class IncrementalFileChange(BaseModel):
+    path: str = Field(..., min_length=1, max_length=500)
+    content: str | None = Field(default=None, max_length=50_000)
+    previous_path: str | None = Field(default=None, max_length=500)
+    previous_content: str | None = Field(default=None, max_length=50_000)
+    language: str | None = None
+    status: Literal["added", "modified", "renamed", "deleted"] | None = None
+
+    @field_validator("path", "previous_path")
+    @classmethod
+    def validate_path(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+
+        cleaned = value.replace("\\", "/").strip()
+
+        if not cleaned:
+            raise ValueError("path must not be empty")
+
+        if cleaned.startswith("/") or ".." in cleaned.split("/"):
+            raise ValueError("path must be a safe relative path")
+
+        return cleaned
+
+    @field_validator("content", "previous_content")
+    @classmethod
+    def sanitize_file_content(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        return sanitize_code_input(value)
+
+    @field_validator("language")
+    @classmethod
+    def sanitize_incremental_language(cls, value: str | None) -> str | None:
+        return validate_language_hint(value)
+
+
+class IncrementalAnalyzeRequest(BaseModel):
+    files: list[IncrementalFileChange] = Field(..., min_length=1, max_length=50)
+
+
+class IncrementalAnalyzeFileResult(BaseModel):
+    filename: str
+    previous_filename: str | None = None
+    status: str
+    language: str | None = None
+    changed_line_ranges: list[list[int]] = Field(default_factory=list)
+    changed_line_count: int = 0
+    size_bytes: int = 0
+    analysis: AnalyzeResponse | None = None
+    skipped_reason: str | None = None
+
+
+class IncrementalAnalyzeResponse(BaseModel):
+    provider: str
+    model: str
+    file_count: int
+    analyzed_file_count: int
+    skipped_file_count: int
+    files: list[IncrementalAnalyzeFileResult]
+    summary: str
+    analysis_time_ms: float | None = None
 
 
 class ZipAnalyzeFileResult(BaseModel):
@@ -240,6 +337,7 @@ class ReadinessResponse(BaseModel):
     status: str
     checks: dict[str, dict[str, Any]]
 
+
 class ShareCreateRequest(BaseModel):
     action: str = Field("share", min_length=3, max_length=50)
     code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
@@ -351,30 +449,3 @@ class ChatMessageResponse(BaseModel):
     model: str
     mode: str
     reply: str
-
-
-# ── Explanation / Debugging / Suggestions response models ───────────────────
-class ExplanationResponse(BaseModel):
-    language: str
-    summary: str
-    key_points: list[str]
-    complexity: str
-    line_count: int
-    function_count: int
-    class_count: int
-    cyclomatic_complexity: int
-    complexity_risk: str
-
-class SuggestionsResponse(BaseModel):
-    suggestions: list[Suggestion]
-    overall_score: int
-    grade: str
-    next_step: str
-
-class AnalyzeResponse(BaseModel):
-    provider: str
-    model: str
-    explanation: ExplanationResponse
-    debugging: DebuggingResponse
-    suggestions: SuggestionsResponse
-    analysis_time_ms: float | None = None
