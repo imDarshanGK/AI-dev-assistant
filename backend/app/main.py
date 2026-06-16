@@ -73,8 +73,7 @@ async def lifespan(app: FastAPI):
 
     logging.getLogger(__name__).info("🚀 QyverixAI backend starting…")
 
-    Base.metadata.create_all(bind=engine)
-
+    # Static info gauge so dashboards can pin version / provider labels.
     initialise_app_info(
         version="3.0.0",
         ai_provider=os.getenv("AI_PROVIDER", "rule-based"),
