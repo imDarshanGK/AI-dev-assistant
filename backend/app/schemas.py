@@ -113,6 +113,26 @@ class SignupRequest(BaseModel):
     email: str = Field(..., min_length=5, max_length=320)
     password: str = Field(..., min_length=8, max_length=128)
 
+        @field_validator("email", mode="before")
+    @classmethod
+    def strip_and_validate_email(cls, v: str) -> str:
+        if isinstance(v, str):
+            v = v.strip().lower()
+        if not v:
+            raise ValueError("email must not be empty or whitespace only")
+        return v
+
+    @field_validator("password", mode="before")
+    @classmethod
+    def strip_and_validate_password(cls, v: str) -> str:
+        if isinstance(v, str):
+            v = v.strip()
+        if not v:
+            raise ValueError("password must not be empty or whitespace only")
+        return v
+
+    
+
 
 class LoginRequest(BaseModel):
     """Request body for user login.
@@ -124,6 +144,24 @@ class LoginRequest(BaseModel):
 
     email: str = Field(..., min_length=5, max_length=320)
     password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def strip_and_validate_email(cls, v: str) -> str:
+        if isinstance(v, str):
+            v = v.strip().lower()
+        if not v:
+            raise ValueError("email must not be empty or whitespace only")
+        return v
+
+    @field_validator("password", mode="before")
+    @classmethod
+    def strip_and_validate_password(cls, v: str) -> str:
+        if isinstance(v, str):
+            v = v.strip()
+        if not v:
+            raise ValueError("password must not be empty or whitespace only")
+        return v
 
 
 class AuthResponse(BaseModel):
