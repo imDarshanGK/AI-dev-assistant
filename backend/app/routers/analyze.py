@@ -12,6 +12,7 @@ from pathlib import PurePosixPath
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 
+from ..sanitize import sanitize_code_input, sanitize_language_hint
 from ..schemas import (
     AnalyzeResponse,
     CodeRequest,
@@ -19,9 +20,6 @@ from ..schemas import (
     IncrementalAnalyzeResponse,
     ZipAnalyzeResponse,
 )
-
-from ..services.incremental_analysis import build_incremental_plan
-
 from ..services.cache import cache
 from ..services.code_assistant import (
     detect_language,
@@ -30,7 +28,8 @@ from ..services.code_assistant import (
     run_explanation,
     run_suggestions,
 )
-from ..sanitize import sanitize_code_input, sanitize_language_hint
+from ..services.incremental_analysis import build_incremental_plan
+
 router = APIRouter()
 
 _SSE_HEADERS = {
@@ -242,9 +241,9 @@ async def analyze_incremental(req: IncrementalAnalyzeRequest):
                     "language": plan.language,
                     "changed_line_ranges": plan.changed_line_ranges,
                     "changed_line_count": plan.changed_line_count,
-                    "size_bytes": len(plan.content.encode("utf-8"))
-                    if plan.content
-                    else 0,
+                    "size_bytes": (
+                        len(plan.content.encode("utf-8")) if plan.content else 0
+                    ),
                     "analysis": None,
                     "skipped_reason": plan.skipped_reason,
                 }

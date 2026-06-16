@@ -3,6 +3,7 @@ History router — save, retrieve, search and delete analysis history entries.
 """
 
 from __future__ import annotations
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
