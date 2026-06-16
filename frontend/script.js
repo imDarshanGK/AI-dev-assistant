@@ -642,13 +642,15 @@ renderFavorites();
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("onboarding-modal");
 
+  if (!modal) return;
+
   if (!localStorage.getItem("tourCompleted")) {
-    modal.style.display = "flex";
+    modal.classList.add("active");
   }
 
   function closeTour() {
     localStorage.setItem("tourCompleted", "true");
-    modal.style.display = "none";
+    modal.classList.remove("active");
   }
 
   document
