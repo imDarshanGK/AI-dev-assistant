@@ -87,6 +87,7 @@ def test_signup_login_and_me_happy_path(client):
     assert me_response.json() == {
         "user_id": signup_data["user_id"],
         "email": "new.user@example.com",
+        "is_demo": False,
     }
 
 
