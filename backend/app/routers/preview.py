@@ -17,10 +17,10 @@ def require_admin(token: str = ""):
 
 # ── Request and response models ───────────────────────────────────────────────
 class PreviewRequest(BaseModel):
-    template: str                          # e.g. "Analyze {language} code: {code}"
-    variables: dict = {}                   # e.g. {"language": "Python", "code": "x=1"}
+    template: str  # e.g. "Analyze {language} code: {code}"
+    variables: dict = {}  # e.g. {"language": "Python", "code": "x=1"}
     mock_response: Optional[bool] = False  # If True, return a fake provider response
-    admin_token: str = ""                  # Simple auth token
+    admin_token: str = ""  # Simple auth token
 
 
 class PreviewResponse(BaseModel):
