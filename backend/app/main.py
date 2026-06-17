@@ -71,7 +71,9 @@ async def lifespan(app: FastAPI):
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
     # Static info gauge so dashboards can pin version / provider labels.
-    initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
+    initialise_app_info(
+        version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
+    )
     start_scheduler()
     yield
     stop_scheduler()
@@ -114,7 +116,12 @@ async def add_process_time_header(request: Request, call_next):
     remaining = RATE_LIMIT
 
     # Apply rate limiting to analysis endpoints only
-    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
+    if request.url.path in (
+        "/explanation/",
+        "/debugging/",
+        "/suggestions/",
+        "/analyze/",
+    ):
         remaining = check_rate_limit(ip)
         if remaining < 0:
             elapsed = (time.perf_counter() - start) * 1000
@@ -150,21 +157,25 @@ async def add_cache_header(request: Request, call_next):
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
-app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
+app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
-app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
-app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
+app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
-app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
 
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)
+if os.getenv("ENVIRONMENT", "development") != "production":
+    from .services.ai_provider import dev_cache_router
+
+    app.include_router(dev_cache_router, tags=["Dev"])
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
