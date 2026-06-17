@@ -11,6 +11,10 @@ All notable changes to QyverixAI are documented in this file.
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.
 
+### Fixed
+- Fixed Weekly Digest "Subscribe" button having no visual feedback in the footer on the live site by correcting the default API URL base to the current origin and adding interactive success/error inline message feedback.
+- Fixed backend Windows lifespan startup UnicodeEncodeError crash caused by emojis in console logs.
+
 ## [3.0.0] - 2026-06-06
 
 ### Added

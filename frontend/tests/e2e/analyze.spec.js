@@ -1,5 +1,5 @@
-const { test, expect } = require('@playwright/test');
-const { sampleFixturePath } = require('../helpers');
+import { test, expect } from '@playwright/test';
+import { sampleFixturePath } from '../helpers.js';
 
 test('uploads a sample file and renders analysis results', async ({ page }) => {
   await page.goto('/app/');
@@ -40,8 +40,24 @@ test('drag-and-drop upload auto-selects the detected language tab', async ({ pag
     return transfer;
   });
 
-  await page.locator('body').dispatchEvent('drop', { dataTransfer });
+  await page.locator('#editorWrap').dispatchEvent('drop', { dataTransfer });
 
   await expect(editor).toHaveValue('const answer: number = 42;\n');
   await expect(activeTab).toHaveAttribute('data-lang', 'typescript');
+});
+
+test('subscribes to weekly digest and shows success feedback', async ({ page }) => {
+  await page.goto('/app/');
+
+  const emailInput = page.locator('#digestEmail').first();
+  const subscribeBtn = page.locator('#digestBtn').first();
+  const feedback = page.locator('#digestFeedback').first();
+
+  const testEmail = `test-${Date.now()}@example.com`;
+  await emailInput.fill(testEmail);
+  await subscribeBtn.click();
+
+  await expect(feedback).toBeVisible();
+  await expect(feedback).toHaveText(/subscribed/i);
+  await expect(emailInput).toHaveValue('');
 });

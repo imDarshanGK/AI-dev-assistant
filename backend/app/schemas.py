@@ -1,9 +1,11 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator, model_validator
+
 import json
 from typing import Any
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .config import settings
 from .schema_validators import (
@@ -12,6 +14,7 @@ from .schema_validators import (
     validate_stored_code,
     validate_stored_result_json,
 )
+
 
 class CodeRequest(BaseModel):
     code: str
@@ -240,6 +243,7 @@ class ReadinessResponse(BaseModel):
     status: str
     checks: dict[str, dict[str, Any]]
 
+
 class ShareCreateRequest(BaseModel):
     action: str = Field("share", min_length=3, max_length=50)
     code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
@@ -365,11 +369,13 @@ class ExplanationResponse(BaseModel):
     cyclomatic_complexity: int
     complexity_risk: str
 
+
 class SuggestionsResponse(BaseModel):
     suggestions: list[Suggestion]
     overall_score: int
     grade: str
     next_step: str
+
 
 class AnalyzeResponse(BaseModel):
     provider: str

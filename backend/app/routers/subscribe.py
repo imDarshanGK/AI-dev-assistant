@@ -6,9 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..models import DigestSubscription
 from ..schemas import SubscribeRequest, SubscribeResponse, UnsubscribeRequest
 from ..services.email_service import _generate_token
-from ..models import DigestSubscription
 
 router = APIRouter(tags=["subscribe"])
 
