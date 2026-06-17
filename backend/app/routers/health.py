@@ -65,7 +65,11 @@ def _check_database(timeout_seconds: float = 2.0) -> tuple[bool, str | None, flo
             conn.execute(text("SELECT 1"))
         return True, None, (time.perf_counter() - start) * 1000.0
     except Exception as exc:  # noqa: BLE001 — we genuinely want every failure mode.
-        return False, f"{type(exc).__name__}: {exc}", (time.perf_counter() - start) * 1000.0
+        return (
+            False,
+            f"{type(exc).__name__}: {exc}",
+            (time.perf_counter() - start) * 1000.0,
+        )
 
 
 @router.get(
