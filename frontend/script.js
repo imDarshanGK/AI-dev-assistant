@@ -458,7 +458,10 @@ function renderResult(data, mode) {
             : issues.map(i => `<div style="margin-bottom:10px">
                 <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
                 <p style="margin-top:4px">${escHtml(i.description || '')}</p>
-                ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${escHtml(i.suggestion)}</p>` : ''}
+                ${i.suggestion ? `<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:4px; gap:8px;">
+                    <p style="color:var(--accent-green);margin-top:0;">Fix: ${escHtml(i.suggestion)}</p>
+                    <button class="btn-copy-fix-script" data-suggestion="${escHtml(i.suggestion)}" aria-label="Copy suggestion" style="white-space:nowrap; padding: 4px 8px; font-size: 11px; border-radius: 4px; background: var(--bg-3, #333); color: var(--text, #fff); border: 1px solid var(--border, #444); cursor: pointer;">Copy</button>
+                  </div>` : ''}
               </div>`).join('')}
         </div>
       </div>`;
@@ -504,7 +507,10 @@ function renderResult(data, mode) {
               <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
               ${i.line ? `<span class="result-tag tag-info">Line ${i.line}</span>` : ''}
               <p style="margin-top:8px">${escHtml(i.description || '')}</p>
-              ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${escHtml(i.suggestion)}</p>` : ''}
+              ${i.suggestion ? `<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:6px; gap:8px;">
+                  <p style="margin-top:0;color:var(--accent-green)">→ ${escHtml(i.suggestion)}</p>
+                  <button class="btn-copy-fix-script" data-suggestion="${escHtml(i.suggestion)}" aria-label="Copy suggestion" style="white-space:nowrap; padding: 4px 8px; font-size: 11px; border-radius: 4px; background: var(--bg-3, #333); color: var(--text, #fff); border: 1px solid var(--border, #444); cursor: pointer;">Copy</button>
+                </div>` : ''}
             </div>`).join('')}
       </div>
     </div>`;
@@ -526,6 +532,24 @@ function renderResult(data, mode) {
 
   lastResult = text;
   outputBox.innerHTML = html || '<p style="color:var(--text-3)">No structured output returned.</p>';
+
+  // Wire up "Copy suggestion" buttons
+  document.querySelectorAll('.btn-copy-fix-script').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const suggestion = btn.getAttribute('data-suggestion');
+      if (suggestion) {
+        navigator.clipboard.writeText(suggestion).then(() => {
+          btn.textContent = '\u2713 Copied!';
+          btn.style.background = 'rgba(34,212,123,0.25)';
+          showToast('Suggestion copied');
+          setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.style.background = 'var(--bg-3, #333)';
+          }, 2000);
+        }).catch(() => showToast('Copy failed'));
+      }
+    });
+  });
 }
 
 function showLoading() {
