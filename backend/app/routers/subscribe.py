@@ -11,28 +11,20 @@ from ..services.email_service import _generate_token
 from ..models import DigestSubscription
 
 router = APIRouter(tags=["subscribe"])
-
 """
 Subscription API Usage Examples
 ================================
-
 1. SUBSCRIBE (Add email to digest):
    POST /subscribe/
    Body: {"email": "user@example.com"}
-   
    Response: {"message": "You're subscribed!", "email": "user@example.com"}
-
 2. UNSUBSCRIBE (Remove email):
    POST /subscribe/unsubscribe
    Body: {"email": "user@example.com", "token": "abc123"}
-   
    Response: {"message": "You've been unsubscribed.", "email": "user@example.com"}
-
 3. UNSUBSCRIBE via GET (One-click email link):
    GET /subscribe/unsubscribe?email=user@example.com&token=abc123
-   
    Response: {"message": "You've been unsubscribed."}
-
 4. WEBHOOK TESTING TIP:
    Use ngrok to test locally:
    - Install: pip install ngrok
