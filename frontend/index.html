@@ -1760,23 +1760,46 @@
       gap:12px;
     }
 
-    .analytics-card{
-      padding:16px;
-      border:1px solid var(--border-color,#2a2a2a);
-      border-radius:12px;
-      background:var(--panel-bg,#111);
+    .analytics-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
     }
 
-    .analytics-card span{
-      display:block;
-      font-size:.8rem;
-      opacity:.7;
-      margin-bottom:6px;
+    .analytics-card span {
+        color: var(--text-secondary);
     }
 
+    .analytics-value {
+        color: var(--text-primary);
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+        
     .analytics-card h3{
-      margin:0;
-      font-size:1.6rem;
+    margin:0;
+    font-size:1.6rem;
+    }
+
+    .analytics-summary{
+    cursor:pointer;
+    user-select:none;
+    }
+
+    .analytics-summary::-webkit-details-marker{
+        display:none;
+    }
+
+    .analytics-summary::after{
+        content:"▼";
+        margin-left:auto;
+        font-size:.8rem;
+        opacity:.7;
+    }
+
+    details:not([open]) .analytics-summary::after{
+        content:"▶";
     }
 
     .history-list,
@@ -2415,33 +2438,40 @@
     </div>
 
     <!-- ── ANALYTICS DASHBOARD ───────────────────────────────────── -->
-    <div class="panel analytics-panel">
-      <div class="panel-header">
-        <div class="panel-title">Analytics Dashboard</div>
-      </div>
+
+    <details class="panel analytics-panel">
+
+      <summary class="panel-header analytics-summary">
+          <div class="panel-title">
+              Analytics Dashboard
+          </div>
+      </summary>
 
       <div class="analytics-grid">
-        <div class="analytics-card">
-          <span>Total Analyses</span>
-          <p id="analyticsTotal" class="analytics-value">0</p>
-        </div>
 
-        <div class="analytics-card">
-          <span>Top Language</span>
-          <p id="analyticsLanguage" class="analytics-value">-</p>
-        </div>
+          <div class="analytics-card">
+              <span>Total Analyses</span>
+              <p id="analyticsTotal" class="analytics-value">0</p>
+          </div>
 
-        <div class="analytics-card">
-          <span>Average Score</span>
-          <p id="analyticsScore" class="analytics-value">0</p>
-        </div>
+          <div class="analytics-card">
+              <span>Top Language</span>
+              <p id="analyticsLanguage" class="analytics-value">-</p>
+          </div>
 
-        <div class="analytics-card">
-          <span>Total Issues</span>
-          <p id="analyticsIssues" class="analytics-value">0</p>
-        </div>
+          <div class="analytics-card">
+              <span>Average Score</span>
+              <p id="analyticsScore" class="analytics-value">0</p>
+          </div>
+
+          <div class="analytics-card">
+              <span>Total Issues</span>
+              <p id="analyticsIssues" class="analytics-value">0</p>
+          </div>
+
       </div>
-    </div>
+
+    </details>
 
     <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
     <div class="bottom-grid">
