@@ -353,6 +353,85 @@ class ChatMessageResponse(BaseModel):
     reply: str
 
 
+class UsageAlert(BaseModel):
+    """Alert emitted when usage reaches a configured quota threshold."""
+
+    metric: str
+    threshold: float
+    percent_used: float
+    message: str
+
+
+class UsageSummaryResponse(BaseModel):
+    """Aggregated usage totals for a user, team, or global scope."""
+
+    scope: str
+    user_id: int | None = None
+    team_id: str | None = None
+    period: str
+    request_count: int
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    estimated_cost_usd: float
+    alerts: list[UsageAlert] = Field(default_factory=list)
+
+
+class UsageCostsResponse(BaseModel):
+    """Provider-level usage and estimated cost breakdown."""
+
+    scope: str
+    user_id: int | None = None
+    team_id: str | None = None
+    period: str
+    providers: list[dict[str, Any]]
+    total_cost_usd: float
+
+
+class QuotaUpsertRequest(BaseModel):
+    """Create or update quota limits for a user, team, or global scope."""
+
+    user_id: int | None = None
+    team_id: str | None = Field(default=None, max_length=120)
+    period: str = Field(default="monthly", pattern="^(daily|monthly)$")
+    max_requests: int | None = Field(default=None, gt=0)
+    max_tokens: int | None = Field(default=None, gt=0)
+    max_cost_usd: float | None = Field(default=None, gt=0)
+    alert_thresholds: list[float] = Field(default_factory=lambda: [0.8, 1.0])
+
+    @field_validator("alert_thresholds")
+    @classmethod
+    def validate_alert_thresholds(cls, value: list[float]) -> list[float]:
+        if not value:
+            return [0.8, 1.0]
+        if any(threshold <= 0 or threshold > 1 for threshold in value):
+            raise ValueError("alert thresholds must be between 0 and 1")
+        return sorted(set(value))
+
+    @model_validator(mode="after")
+    def ensure_limit_present(self) -> "QuotaUpsertRequest":
+        if (
+            self.max_requests is None
+            and self.max_tokens is None
+            and self.max_cost_usd is None
+        ):
+            raise ValueError("at least one quota limit is required")
+        return self
+
+
+class QuotaResponse(BaseModel):
+    """Stored quota configuration."""
+
+    id: int
+    user_id: int | None = None
+    team_id: str | None = None
+    period: str
+    max_requests: int | None = None
+    max_tokens: int | None = None
+    max_cost_usd: float | None = None
+    alert_thresholds: list[float]
+
+
 # ── Explanation / Debugging / Suggestions response models ───────────────────
 class ExplanationResponse(BaseModel):
     language: str

@@ -21,10 +21,12 @@ from .routers import (
     debugging,
     explanation,
     history,
+    quotas,
     share,
     subscribe,
     suggestions,
     upload_file,
+    usage,
     user_data,
 )
 from .routers import health as health_router
@@ -157,6 +159,8 @@ app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscriptio
 app.include_router(history.router,     prefix="/history",     tags=["History"])
 app.include_router(auth.router)
 app.include_router(chat.router)
+app.include_router(usage.router)
+app.include_router(quotas.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
