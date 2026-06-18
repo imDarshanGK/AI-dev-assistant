@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter
 
 from ..config import settings
@@ -6,6 +8,8 @@ from ..services.code_assistant import chat_fallback_reply
 from ..services.llm_analysis import llm_analysis_client
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
+
+logger = logging.getLogger(__name__)
 
 
 @router.post("", response_model=ChatResponse)
@@ -19,8 +23,8 @@ async def chat(payload: ChatRequest) -> ChatResponse:
                 level="intermediate",
             )
             return ChatResponse(response=reply)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("LLM chat request failed, falling back to rule-based: %s", exc)
 
     fallback_reply = chat_fallback_reply(
         message=payload.message,
@@ -47,8 +51,10 @@ async def chat_message(payload: ChatMessageRequest) -> ChatMessageResponse:
                 mode="live-llm",
                 reply=reply,
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(
+                "LLM chat_message request failed, falling back to rule-based: %s", exc
+            )
 
     fallback_reply = chat_fallback_reply(
         message=payload.message,
@@ -60,6 +66,6 @@ async def chat_message(payload: ChatMessageRequest) -> ChatMessageResponse:
     return ChatMessageResponse(
         provider=settings.ai_provider,
         model=settings.ai_model,
-        mode="ready+chat_fallback",
+        mode="llm_error_fallback" if llm_analysis_client.enabled else "ready+chat_fallback",
         reply=fallback_reply,
     )
