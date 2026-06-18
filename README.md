@@ -118,6 +118,7 @@ cp .env.example .env
 Update the environment variable values if needed before running the app.
 
 Important variables:
+- LOG_LEVEL (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 - `JWT_SECRET`
 - `DATABASE_URL`
 - `RATE_LIMIT_PER_MINUTE`
@@ -465,6 +466,7 @@ The backend includes built-in resilience for LLM requests:
 | Variable | Default | Description |
 |---|---|---|
 | `RATE_LIMIT_PER_MINUTE` | `30` | Max requests per IP per minute |
+| LOG_LEVEL | WARNING | Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL) |
 | `LLM_ENABLED` | `false` | Enable LLM provider |
 | `LLM_API_KEY` | — | API key for your LLM provider |
 | `LLM_BASE_URL` | `https://api.openai.com/v1` | LLM base URL |
