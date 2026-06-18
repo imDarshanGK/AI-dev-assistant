@@ -43,6 +43,7 @@ jobs:
 
       - name: Run backend tests
         env:
+          JWT_SECRET: "test-secret-key-min-32-bytes-long-for-jwt-testing"
           RATE_LIMIT_PER_MINUTE: 300
         run: |
           cd backend
