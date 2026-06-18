@@ -637,3 +637,27 @@ if (digestForm) {
 // ── Init ──
 renderHistory();
 renderFavorites();
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("onboarding-modal");
+
+  if (!modal) return;
+
+  if (!localStorage.getItem("tourCompleted")) {
+    modal.classList.add("active");
+  }
+
+  function closeTour() {
+    localStorage.setItem("tourCompleted", "true");
+    modal.classList.remove("active");
+  }
+
+  document
+    .getElementById("start-tour-btn")
+    ?.addEventListener("click", closeTour);
+
+  document
+    .getElementById("skip-tour-btn")
+    ?.addEventListener("click", closeTour);
+});
