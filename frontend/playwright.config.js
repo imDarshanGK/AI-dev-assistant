@@ -29,6 +29,8 @@ module.exports = defineConfig({
     timeout: 120000,
     env: {
       RATE_LIMIT_PER_MINUTE: '1000',
+      PYTHONIOENCODING: 'utf-8',
+      PYTHONUTF8: '1',
     },
   },
 });
