@@ -256,6 +256,37 @@ Create a share link for a saved analysis, then load it back by ID for seven days
 
 ---
 
+### Compliance Reports — `POST /reports/generate`, `POST /reports/preview`, `GET /reports/audit`
+
+Generate compliance reports and audit trails from your saved analysis history. **All report endpoints require a Bearer token** (`Authorization: Bearer <token>`) and are scoped to the authenticated user — a report only ever covers your own data.
+
+The report builder is **format-agnostic**: it assembles one structured report model (compliance metadata + summary statistics + records), and pluggable exporters render it to **PDF**, **CSV**, or **JSON**. PDF generation is fully self-contained — no external libraries required.
+
+**Request body** (all filters optional):
+```json
+{
+  "format": "pdf",
+  "filters": {
+    "start_date": "2025-01-01T00:00:00",
+    "end_date": "2025-06-30T23:59:59",
+    "actions": ["analyze"],
+    "languages": ["python"],
+    "severities": ["error", "warning"],
+    "min_score": 0,
+    "max_score": 100,
+    "search": "def "
+  }
+}
+```
+
+- `POST /reports/generate` — returns the report as a downloadable file (`Content-Disposition: attachment`) in the requested `format` (`json` \| `csv` \| `pdf`). The response carries an `X-Report-Id` header.
+- `POST /reports/preview` — returns the structured report model as JSON (for UIs to render before choosing an export format).
+- `GET /reports/audit?limit=100` — returns the user's audit trail (newest first). Every report generation is recorded with the report ID, applied filters, record count, and export format.
+
+Each report embeds compliance metadata: a unique `report_id`, generation timestamp, requesting user, applied filters, and the analysis source/version that produced the underlying data.
+
+---
+
 ## Project Structure
 
 ```
