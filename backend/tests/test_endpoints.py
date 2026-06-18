@@ -734,3 +734,23 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+
+# Tests for os.system() and os.popen() shell injection detection
+
+def test_debug_detects_os_system_shell_injection():
+    r = client.post("/debugging/", json={
+        "code": "import os\ncmd = input()\nos.system(cmd)",
+        "language": "python"
+    })
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "OS System Shell Injection" in types
+
+def test_debug_detects_os_popen_shell_injection():
+    r = client.post("/debugging/", json={
+        "code": "import os\ncmd = input()\nos.popen(cmd)",
+        "language": "python"
+    })
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "OS Popen Shell Injection" in types
