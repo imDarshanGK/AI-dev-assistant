@@ -197,7 +197,7 @@ function renderAnalyzeHtml(res: AnalyzeResponse): string {
 </style>
 </head>
 <body>
-  <h1>QyverixAI Analysis</h1>
+  <h2>QyverixAI Analysis</h2>
   <div class="meta">
     ${escapeHtml(res.provider)} &middot; ${escapeHtml(res.model)} &middot;
     ${res.analysis_time_ms !== null ? `${(res.analysis_time_ms / 1000).toFixed(2)}s` : ''}
@@ -259,6 +259,8 @@ function renderExplainHtml(res: ExplanationResponse): string {
 </style>
 </head>
 <body>
+  <h2>Code Explanation</h2>
+  <div class="meta">${escapeHtml(res.language)} &middot; ${res.complexity}</div>
   <h1>Code Explanation</h1>
   <div class="meta">${escapeHtml(res.language)} &middot; ${escapeHtml(res.complexity)}</div>
   <div class="summary">
@@ -472,7 +474,7 @@ function renderDebugHtml(res: DebuggingResponse): string {
 <title>QyverixAI Debug</title>
 <style>
   body { font-family: var(--vscode-font-family); padding: 16px; color: var(--vscode-editor-foreground); }
-  h1 { font-size: 1.4em; }
+  h2 { font-size: 1.4em; }
   .stats { display: flex; gap: 16px; margin: 12px 0; }
   .stat { text-align: center; padding: 8px 16px; background: var(--vscode-textBlockQuote-background); border-radius: 4px; }
   .stat-num { font-size: 1.5em; font-weight: bold; }
@@ -485,7 +487,7 @@ function renderDebugHtml(res: DebuggingResponse): string {
 </style>
 </head>
 <body>
-  <h1>Debug Results</h1>
+  <h2>Debug Results</h2>
   <p style="color:var(--vscode-descriptionForeground);">${escapeHtml(res.summary)}</p>
   <div class="stats">
     <div class="stat"><div class="stat-num" style="color:#f14c4c">${res.error_count}</div><div class="stat-label">Errors</div></div>
