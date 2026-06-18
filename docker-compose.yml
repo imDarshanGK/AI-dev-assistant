@@ -27,6 +27,7 @@ services:
       - "3000:80"
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro  # Issue #533: custom cache-control config
     depends_on:
       - backend
 
