@@ -1,15 +1,25 @@
-"""Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
-from __future__ import annotations
-
+import ast
 import asyncio
 import json
+import logging
 import time
 import zipfile
 from io import BytesIO
 from pathlib import PurePosixPath
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
+
+
+from app.models.analyze import AnalyzeResponse, CodeRequest, ZipAnalyzerResponse
+from app.utils.cache import cache
+from app.utils.detector import UnreachableCodeDetector
+from app.utils.engine import full_analysis
+from app.sanitize import sanitize_code_input, sanitize_language_hint
+
+router = APIRouter(tags=["Analysis"])
+logger = logging.getLogger("uvicorn.error")
 
 from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
 from ..services.cache import cache
@@ -32,38 +42,18 @@ MAX_ZIP_FILES = 20
 MAX_ZIP_TOTAL_BYTES = 5 * 1024 * 1024
 MAX_SKIPPED_FILES = 20
 
-IGNORED_DIRS = {
-    ".git",
-    ".hg",
-    ".svn",
-    ".venv",
-    "__pycache__",
-    "build",
-    "cmakefiles",
-    "debug",
-    "dist",
-    "node_modules",
-    "release",
-    "target",
-    "x64",
-}
-
+# ... rest of the code remains the same
 SOURCE_EXTENSIONS = {
     ".py": "python",
     ".js": "javascript",
     ".ts": "typescript",
     ".java": "java",
     ".cpp": "cpp",
-    ".cc": "cpp",
-    ".cxx": "cpp",
-    ".c": "cpp",
-    ".h": "cpp",
-    ".hpp": "cpp",
-    ".php": "php",
+    ".c": "c",
+    ".go": "go",
     ".rs": "rust",
-    ".kt": "kotlin",
-    ".kts": "kotlin",
-    ".txt": None,
+    ".rb": "ruby",
+    ".php": "php",
 }
 
 
@@ -187,6 +177,7 @@ async def analyze_stream_get(
     )
 
 
+
 @router.post(
     "/",
     response_model=AnalyzeResponse,
@@ -202,30 +193,42 @@ async def analyze(req: CodeRequest, response: Response):
 
     payload = full_analysis(req.code, req.language)
 
-    cache.set("analyze:v1", cache_input, payload)
+    # --- INJECT YOUR NEW CODE HERE FOR SINGLE FILES ---
+    if req.language.lower() == "python":
+        try:
+            tree = ast.parse(req.code)
+            detector = UnreachableCodeDetector()
+            detector.visit(tree)
 
+            for issue in detector.dead_code_issues:
+                lines = req.code.splitlines()
+                if 0 < issue["line"] <= len(lines):
+                    issue["code_snippet"] = lines[issue["line"] - 1].strip()
+
+                if "debugging" in payload and "issues" in payload["debugging"]:
+                    payload["debugging"]["issues"].append(issue)
+                elif "issues" in payload:
+                    payload["issues"].append(issue)
+                else:
+                    if "debugging" not in payload:
+                        payload["debugging"] = {}
+                    if "issues" not in payload["debugging"]:
+                        payload["debugging"]["issues"] = []
+                    payload["debugging"]["issues"].append(issue)
+        except SyntaxError:
+            pass
+    # --------------------------------------------------
+
+    cache.set("analyze:v1", cache_input, payload)
     response.headers["X-Cache"] = "MISS"
     return payload
-
-
 @router.post(
     "/zip/",
-    response_model=ZipAnalyzeResponse,
+    response_model=ZipAnalyzerResponse,
     summary="Run full analysis for source files in a ZIP",
 )
-async def analyze_zip(request: Request, file: UploadFile = File(...)):
+async def analyze_zip(file: UploadFile = File(...)):
     """Analyze up to 20 source files from an uploaded ZIP archive."""
-
-    # 1. Fast check via Content-Length header to reject large uploads early
-    # Limit upload size to 10MB (compressed) to prevent OOM/DoS
-    MAX_UPLOAD_SIZE = 10 * 1024 * 1024
-    content_length = request.headers.get("content-length")
-    if content_length and int(content_length) > MAX_UPLOAD_SIZE:
-        raise HTTPException(
-            status_code=413,
-            detail=f"ZIP file too large (max {MAX_UPLOAD_SIZE // (1024 * 1024)}MB)",
-        )
-
     filename = file.filename or ""
 
     if not filename.lower().endswith(".zip"):
@@ -234,150 +237,174 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
             detail="Only .zip uploads are supported",
         )
 
-    # 2. Secure chunked read to prevent memory exhaustion from missing headers
-    buffer = BytesIO()
-    total_read = 0
-    while chunk := await file.read(64 * 1024):  # 64KB chunks
-        total_read += len(chunk)
-        if total_read > MAX_UPLOAD_SIZE:
-            raise HTTPException(
-                status_code=413,
-                detail=f"ZIP file exceeds size limit during upload (max {MAX_UPLOAD_SIZE // (1024 * 1024)}MB)",
-            )
-        buffer.write(chunk)
-
-    uploaded = buffer.getvalue()
+    uploaded = await file.read()
     if not uploaded:
-        raise HTTPException(
-            status_code=400,
-            detail="Uploaded ZIP file is empty",
-        )
+        raise HTTPException(status_code=400, detail="Empty file uploaded")
 
     try:
-        archive = zipfile.ZipFile(buffer)
-    except zipfile.BadZipFile as exc:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid ZIP file",
-        ) from exc
+        with zipfile.ZipFile(BytesIO(uploaded)) as z:
+            namelist = [
+                f
+                for f in z.namelist()
+                if not f.endswith("/") and not f.startswith("__MACOSX")
+            ]
 
-    t0 = time.perf_counter()
-
-    results: list[dict] = []
-    skipped_files: list[str] = []
-    total_size = 0
-
-    with archive:
-        members = [
-            info for info in archive.infolist()
-            if not info.is_dir()
-        ]
-
-        if not members:
-            raise HTTPException(
-                status_code=400,
-                detail="ZIP file does not contain any files",
-            )
-
-        for info in members:
-            safe_name = _safe_zip_name(info.filename)
-            ext = PurePosixPath(safe_name).suffix.lower()
-
-            if _is_ignored_member(info.filename):
-                continue
-
-            if not _is_safe_member(info.filename):
-                _add_skipped(
-                    skipped_files,
-                    f"{safe_name} (unsafe path)",
-                )
-                continue
-
-            if ext not in SOURCE_EXTENSIONS:
-                _add_skipped(
-                    skipped_files,
-                    f"{safe_name} (unsupported file type)",
-                )
-                continue
-
-            if len(results) >= MAX_ZIP_FILES:
-                _add_skipped(
-                    skipped_files,
-                    f"{safe_name} (file limit reached)",
-                )
-                continue
-
-            if total_size + info.file_size > MAX_ZIP_TOTAL_BYTES:
+            if not namelist:
                 raise HTTPException(
                     status_code=400,
-                    detail="ZIP source files exceed the 5MB total limit",
+                    detail="ZIP file does not contain readable source files",
                 )
 
-            raw = archive.read(info)
-            total_size += len(raw)
-
-            try:
-                code = raw.decode("utf-8")
-            except UnicodeDecodeError:
-                _add_skipped(
-                    skipped_files,
-                    f"{safe_name} (not UTF-8 text)",
+            if len(namelist) > 20:
+                raise HTTPException(
+                    status_code=400,
+                    detail="ZIP contains too many files (max 20)",
                 )
-                continue
 
-            if not code.strip():
-                _add_skipped(
-                    skipped_files,
-                    f"{safe_name} (empty file)",
+            results: List[Dict[str, Any]] = []
+            skipped_files: List[Dict[str, str]] = []
+            total_size = 0
+            t0 = time.perf_counter()
+
+            for member in namelist:
+                info = z.getinfo(member)
+                total_size += info.file_size
+
+                ext = ""
+                for suffix in sorted(SOURCE_EXTENSIONS.keys(), key=len, reverse=True):
+                    if member.lower().endswith(suffix):
+                        ext = suffix
+                        break
+
+                safe_name = member.split("/")[-1]
+
+                if not ext:
+                    skipped_files.append(
+                        {"filename": safe_name, "reason": "Unsupported extension"}
+                    )
+                    continue
+
+                if info.file_size > 500 * 1024:
+                    skipped_files.append(
+                        {"filename": safe_name, "reason": "File size exceeds 500KB"}
+                    )
+                    continue
+
+                try:
+                    raw = z.read(member)
+                    code = raw.decode("utf-8", errors="replace")
+                except Exception:
+                    skipped_files.append(
+                        {"filename": safe_name, "reason": "Could not decode file content"}
+                    )
+                    continue
+
+                analysis = full_analysis(
+                    code,
+                    SOURCE_EXTENSIONS[ext],
                 )
-                continue
+                language = analysis["explanation"]["language"]
 
-            analysis = full_analysis(
-                code,
-                SOURCE_EXTENSIONS[ext],
+                if language.lower() == "python":
+                    try:
+                        tree = ast.parse(code)
+                        detector = UnreachableCodeDetector()
+                        detector.visit(tree)
+
+                        for issue in detector.dead_code_issues:
+                            lines = code.splitlines()
+                            if 0 < issue["line"] <= len(lines):
+                                issue["code_snippet"] = lines[issue["line"] - 1].strip()
+
+                            if "suggestions" in analysis and "issues" in analysis["suggestions"]:
+                                analysis["suggestions"]["issues"].append(issue)
+                            elif "issues" in analysis:
+                                analysis["issues"].append(issue)
+                            else:
+                                if "suggestions" not in analysis:
+                                    analysis["suggestions"] = {}
+                                if "issues" not in analysis["suggestions"]:
+                                    analysis["suggestions"]["issues"] = []
+                                analysis["suggestions"]["issues"].append(issue)
+                    except SyntaxError:
+                        pass
+
+                results.append(
+                    {
+                        "filename": safe_name,
+                        "language": language,
+                        "size_bytes": len(raw),
+                        "analysis": analysis,
+                    }
+                )
+
+            if not results:
+                raise HTTPException(
+                    status_code=400,
+                    detail="ZIP file does not contain readable source files",
+                )
+
+            scores = [
+                item["analysis"]["suggestions"]["overall_score"]
+                for item in results
+                if "analysis" in item
+                and "suggestions" in item["analysis"]
+                and "overall_score" in item["analysis"]["suggestions"]
+            ]
+
+            overall_score = round(sum(scores) / len(scores)) if scores else 0
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+
+            summary = (
+                f"Analyzed {len(results)} file(s). "
+                f"Skipped {len(skipped_files)} file(s). "
+                f"Overall project score: {overall_score}/100."
             )
 
-            language = analysis["explanation"]["language"]
+            return {
+                "provider": "rule-based",
+                "model": "qyverix-engine-v3",
+                "file_count": len(results),
+                "total_size_bytes": total_size,
+                "overall_project_score": overall_score,
+                "grade": "A" if overall_score >= 80 else "B" if overall_score >= 60 else "C",
+                "summary": summary,
+                "files": results,
+                "skipped_files": skipped_files,
+                "analytic_time_ms": round(elapsed_ms, 2),
+            }
 
-            results.append(
-                {
-                    "filename": safe_name,
-                    "language": language,
-                    "size_bytes": len(raw),
-                    "analysis": analysis,
-                }
-            )
+    except zipfile.BadZipFile:
+        raise HTTPException(status_code=400, detail="Invalid ZIP archive")
+class UnreachableCodeDetector(ast.NodeVisitor):
+    def __init__(self):
+        self.unreachable_nodes = []
 
-    if not results:
-        raise HTTPException(
-            status_code=400,
-            detail="ZIP file does not contain readable source files",
-        )
+    def visit_FunctionDef(self, node: ast.FunctionDef):
+        has_returned = False
+        for child in node.body:
+            if has_returned:
+                self.unreachable_nodes.append(child)
+            if isinstance(child, (ast.Return, ast.Raise, ast.Break, ast.Continue)):
+                has_returned = True
+        self.generic_visit(node)
 
-    scores = [
-        item["analysis"]["suggestions"]["overall_score"]
-        for item in results
-    ]
-
-    overall_score = round(sum(scores) / len(scores))
-
-    elapsed_ms = (time.perf_counter() - t0) * 1000
-
-    summary = (
-        f"Analyzed {len(results)} file(s). "
-        f"Skipped {len(skipped_files)} file(s). "
-        f"Overall project score: {overall_score}/100."
-    )
-
-    return {
-        "provider": "rule-based",
-        "model": "qyverix-engine-v3",
-        "file_count": len(results),
-        "total_size_bytes": total_size,
-        "overall_project_score": overall_score,
-        "grade": _project_grade(overall_score),
-        "summary": summary,
-        "files": results,
-        "skipped_files": skipped_files,
-        "analysis_time_ms": round(elapsed_ms, 2),
-    }
+def analyze_unreachable_code(code_content: str) -> list:
+    """
+    Static analysis function to detect dead or unreachable Python code.
+    """
+    try:
+        tree = ast.parse(code_content)
+        detector = UnreachableCodeDetector()
+        detector.visit(tree)
+        
+        return [
+            {
+                "line": node.lineno,
+                "message": f"Unreachable code detected: {type(node).__name__} after a control flow statement."
+            }
+            for node in detector.unreachable_nodes
+        ]
+    except SyntaxError as e:
+        return [{"line": e.lineno, "message": f"Syntax error: {e.msg}"}]
+    
