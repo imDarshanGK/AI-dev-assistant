@@ -21,7 +21,10 @@ class LLMAnalysisClient:
 
     @property
     def enabled(self) -> bool:
-        return bool(settings.llm_enabled and self.api_key)
+        return bool(settings.llm_enabled and (self.api_key or settings.llm_providers))
+
+    _TRANSIENT_ERRORS = {429, 500, 502, 503, 504}
+    _PERMANENT_ERRORS = {401, 403}
 
     async def _chat_completion(
         self, messages: list[dict], temperature: float = 0.2
@@ -29,29 +32,67 @@ class LLMAnalysisClient:
         if not self.enabled:
             raise LLMAnalysisError("llm_disabled")
 
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": temperature,
-        }
+        providers = settings.llm_providers
+        if not providers:
+            raise LLMAnalysisError("no_providers_configured")
 
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
+        last_exc: Exception | None = None
 
-        url = f"{self.base_url}/chat/completions"
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
-                response = await client.post(url, headers=headers, json=payload)
-            response.raise_for_status()
-            data = response.json()
-            message = data["choices"][0]["message"]["content"].strip()
-            if not message:
-                raise LLMAnalysisError("empty_llm_response")
-            return message
-        except Exception as exc:
-            raise LLMAnalysisError(str(exc)) from exc
+        for provider in providers:
+            payload = {
+                "model": provider.model,
+                "messages": messages,
+                "temperature": temperature,
+            }
+            headers = {
+                "Authorization": f"Bearer {provider.api_key}",
+                "Content-Type": "application/json",
+            }
+            url = f"{provider.base_url}/chat/completions"
+
+            try:
+                async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+                    response = await client.post(url, headers=headers, json=payload)
+
+                if response.status_code in self._PERMANENT_ERRORS:
+                    logger.warning(
+                        "provider_auth_error provider=%s status=%s — skipping",
+                        provider.base_url, response.status_code,
+                    )
+                    last_exc = LLMAnalysisError(f"auth_error_{response.status_code}")
+                    continue
+
+                if response.status_code in self._TRANSIENT_ERRORS:
+                    logger.warning(
+                        "provider_transient_error provider=%s status=%s — trying next",
+                        provider.base_url, response.status_code,
+                    )
+                    last_exc = LLMAnalysisError(f"transient_error_{response.status_code}")
+                    continue
+
+                response.raise_for_status()
+                data = response.json()
+                message = data["choices"][0]["message"]["content"].strip()
+                if not message:
+                    raise LLMAnalysisError("empty_llm_response")
+                return message
+
+            except (httpx.TimeoutException, httpx.ConnectError) as exc:
+                logger.warning(
+                    "provider_network_error provider=%s error=%s — trying next",
+                    provider.base_url, str(exc),
+                )
+                last_exc = exc
+                continue
+
+            except LLMAnalysisError:
+                raise
+
+            except Exception as exc:
+                last_exc = exc
+                continue
+
+        raise LLMAnalysisError(f"all_providers_failed: {last_exc}") from last_exc
 
     @staticmethod
     def _extract_json(raw_text: str) -> dict:
