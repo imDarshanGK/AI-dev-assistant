@@ -57,6 +57,13 @@ class Suggestion(BaseModel):
     example: str | None = None
     priority: str
 
+class VulnerabilityResult(BaseModel):
+    cve_id: str
+    description: str
+    severity: str
+    published: str
+    package: str
+
 
 class ZipAnalyzeFileResult(BaseModel):
     filename: str
@@ -370,6 +377,7 @@ class SuggestionsResponse(BaseModel):
     overall_score: int
     grade: str
     next_step: str
+    dependencies: list[str] = Field(default_factory=list)
 
 class AnalyzeResponse(BaseModel):
     provider: str
@@ -378,3 +386,6 @@ class AnalyzeResponse(BaseModel):
     debugging: DebuggingResponse
     suggestions: SuggestionsResponse
     analysis_time_ms: float | None = None
+    vulnerabilities: list[VulnerabilityResult] = Field(default_factory=list)
+
+
