@@ -3,6 +3,7 @@
 from __future__ import annotations
 from pydantic import BaseModel, Field, field_validator, model_validator
 import json
+from datetime import datetime
 from typing import Any
 
 from .config import settings
@@ -185,6 +186,64 @@ class HistoryCreateRequest(BaseModel):
 class HistoryRecord(BaseModel):
     id: int
     action: str
+
+
+# ── Auth / Password Reset ────────────────────────────────────────────────────
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    user_id: int
+    email: str
+
+
+class UserProfileResponse(BaseModel):
+    user_id: int
+    email: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        if len(v) > 320:
+            raise ValueError("Email too long")
+        return v
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        if len(v) > 128:
+            raise ValueError("Password too long")
+        return v
+
+
+class PasswordResetResponse(BaseModel):
+    message: str
+
+
+# ── Share ─────────────────────────────────────────────────────────────────────
+class ShareCreateRequest(BaseModel):
     code: str
     result_json: str
     created_at: str

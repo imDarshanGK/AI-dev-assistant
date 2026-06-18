@@ -70,6 +70,11 @@ class Settings:
     llm_max_retries: int = _int_env("LLM_MAX_RETRIES", 3)
     llm_retry_backoff: float = _float_env("LLM_RETRY_BACKOFF", 1.0)
 
+    # ── Password Reset ──────────────────────────────────────────
+    reset_token_expire_minutes: int = _int_env("RESET_TOKEN_EXPIRE_MINUTES", 30)
+    reset_rate_limit_requests: int = _int_env("RESET_RATE_LIMIT_REQUESTS", 3)
+    reset_rate_limit_window_seconds: int = _int_env("RESET_RATE_LIMIT_WINDOW_SECONDS", 300)
+
     # ── Email / Digest ──────────────────────────────────────────
     smtp_host: str = os.getenv("SMTP_HOST", "")
     smtp_port: int = _int_env("SMTP_PORT", 587)

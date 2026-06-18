@@ -149,6 +149,7 @@ async def add_cache_header(request: Request, call_next):
 
 
 # ── Routers ───────────────────────────────────────────────────────────────────
+app.include_router(auth.router)
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
 app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
