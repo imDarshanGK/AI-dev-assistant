@@ -28,7 +28,7 @@ let favorites = JSON.parse(localStorage.getItem('qyverix_favorites') || '[]');
 let lastResult = '';
 
 // ── DOM refs ──
-const codeInput = document.getElementById('codeInput');
+const codeInput = document.getElementById('codeEditor');
 const runBtn = document.getElementById('runBtn');
 const runLabel = document.getElementById('runLabel');
 const outputBox = document.getElementById('outputBox');
@@ -102,15 +102,35 @@ codeInput.addEventListener('keydown', (e) => {
 
 // ── File upload ──
 document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
+
+function loadFile(file) {
   if (!file) return;
+
   const reader = new FileReader();
+
   reader.onload = (ev) => {
     codeInput.value = sanitizeClientCode(ev.target.result);
     codeInput.dispatchEvent(new Event('input'));
   };
+
   reader.readAsText(file);
+}
+
+fileInput.addEventListener('change', (e) => {
+  loadFile(e.target.files[0]);
+});
+
+document.body.addEventListener('dragover', (e) => {
+  e.preventDefault();
+});
+
+document.body.addEventListener('drop', (e) => {
+  e.preventDefault();
+
+  const file = e.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  loadFile(file);
 });
 
 // ── Clear ──
