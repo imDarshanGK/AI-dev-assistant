@@ -130,10 +130,14 @@ def bad_function():
 
 def test_suggestions_include_line_ranges():
     """Test that suggestions include line references."""
-    long_function = """
+    long_function = (
+        """
 def very_long_function():
     x = 1
-""" + "    y = 2\n" * 45 + "    return x + y"
+"""
+        + "    y = 2\n" * 45
+        + "    return x + y"
+    )
 
     response = run_suggestions(long_function, "Python")
 
