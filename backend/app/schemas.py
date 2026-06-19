@@ -1,7 +1,7 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 import json
 from typing import Any
 
@@ -79,17 +79,7 @@ class ZipAnalyzeResponse(BaseModel):
 
 
 class SubscribeRequest(BaseModel):
-    email: str
-
-    @field_validator("email")
-    @classmethod
-    def email_must_be_valid(cls, v: str) -> str:
-        v = v.strip().lower()
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Invalid email address")
-        if len(v) > 320:
-            raise ValueError("Email too long")
-        return v
+    email: EmailStr
 
 
 class SubscribeResponse(BaseModel):
