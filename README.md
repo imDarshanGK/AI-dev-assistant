@@ -246,6 +246,78 @@ All three analyses in one response with timing.
 
 ---
 
+### `POST /api/suggestions`
+
+AI-powered code **completion** and **improvement** suggestions. Sends the
+buffer (and optional cursor/context) to the configured AI provider, validates
+and safety-filters the response, and returns typed suggestions. When the LLM
+is disabled or fails, it transparently falls back to the offline rule-based
+engine, so the endpoint always responds.
+
+> Field names use this project's snake_case JSON convention. For editor
+> ergonomics the request also accepts the camelCase aliases `cursorPosition`,
+> `filePath`, and `surroundingCode`.
+
+**Request**
+
+```json
+{
+  "code": "def add(a, b):\n    return a / b\n",
+  "language": "python",
+  "cursorPosition": { "line": 1, "column": 4 },
+  "context": {
+    "filePath": "math.py",
+    "selection": "a / b",
+    "surroundingCode": "result = add(x, y)",
+    "intent": "guard against division by zero"
+  }
+}
+```
+
+| Field | Required | Notes |
+|---|---|---|
+| `code` | yes | Full buffer. 1–`MAX_CODE_CHARS` chars; truncated to `SUGGESTION_MAX_CODE_CHARS` before the model sees it. |
+| `language` | no | Language hint (`python`, `js`, `ts`, …). Auto-detected when omitted. |
+| `cursorPosition` | no | Zero-based `{ line, column }`. Drives completion placement. |
+| `context` | no | Optional `filePath`, `selection`, `surroundingCode`, and free-text `intent`. |
+
+**Response**
+
+```json
+{
+  "suggestions": [
+    {
+      "id": "sug-1",
+      "type": "completion",
+      "title": "Guard against zero divisor",
+      "detail": "Return None when b is 0 to avoid ZeroDivisionError.",
+      "apply_edit": {
+        "range": { "start_line": 1, "start_column": 4, "end_line": 1, "end_column": 4 },
+        "new_text": "if b == 0:\n    return None\n"
+      },
+      "confidence": 0.82
+    }
+  ],
+  "provider": "openai-compatible",
+  "model": "gpt-4o-mini",
+  "mode": "live-llm",
+  "usage": { "model": "gpt-4o-mini" }
+}
+```
+
+- `type` is `"completion"` (insert at cursor) or `"improvement"` (refactor/bug-risk hint).
+- `mode` is `"live-llm"` when an AI provider answered, or `"rule-based-fallback"` offline.
+- **Safety:** any suggestion containing hard-coded secrets, private keys, or
+  destructive shell commands (`rm -rf /`, fork bombs, `curl … | sh`, …) is
+  dropped, as is any edit larger than `SUGGESTION_MAX_EDIT_LINES`. Bad
+  suggestions are filtered out, never returned.
+
+Validation failures return `422` with field details; unexpected internal
+errors return a generic `500` without leaking provider internals. The endpoint
+is rate limited alongside the other analysis endpoints.
+
+---
+
 ### `POST /share/` and `GET /share/{id}`
 
 Create a share link for a saved analysis, then load it back by ID for seven days after creation.
@@ -470,8 +542,17 @@ The backend includes built-in resilience for LLM requests:
 | `LLM_BASE_URL` | `https://api.openai.com/v1` | LLM base URL |
 | `LLM_MODEL` | `gpt-4o-mini` | Model name |
 | `LLM_TIMEOUT_SECONDS` | `30` | Request timeout in seconds |
+| `SUGGESTION_MAX_CODE_CHARS` | `8000` | Max source chars forwarded per `/api/suggestions` request |
+| `SUGGESTION_MAX_RESULTS` | `6` | Max suggestions returned per request |
+| `SUGGESTION_MAX_EDIT_LINES` | `40` | Reject any single suggested edit larger than this |
+| `SUGGESTION_TEMPERATURE` | `0.2` | Sampling temperature for completion generation |
 
 Copy `.env.example` to `.env` and fill in values as needed.
+
+The `/api/suggestions` endpoint reuses the `LLM_*` provider settings above;
+the `SUGGESTION_*` variables only bound prompt size, result count, and edit
+size. With `LLM_ENABLED=false` it still works, returning rule-based
+improvement suggestions.
 
 ---
 
