@@ -1,4 +1,5 @@
 """Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
+
 from __future__ import annotations
 
 import asyncio
@@ -11,7 +12,14 @@ from pathlib import PurePosixPath
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 
-from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
+from ..sanitize import sanitize_code_input, sanitize_language_hint
+from ..schemas import (
+    AnalyzeResponse,
+    CodeRequest,
+    IncrementalAnalyzeRequest,
+    IncrementalAnalyzeResponse,
+    ZipAnalyzeResponse,
+)
 from ..services.cache import cache
 from ..services.code_assistant import (
     detect_language,
@@ -20,7 +28,8 @@ from ..services.code_assistant import (
     run_explanation,
     run_suggestions,
 )
-from ..sanitize import sanitize_code_input, sanitize_language_hint
+from ..services.incremental_analysis import build_incremental_plan
+
 router = APIRouter()
 
 _SSE_HEADERS = {
@@ -139,11 +148,7 @@ def _safe_zip_name(name: str) -> str:
 def _is_safe_member(name: str) -> bool:
     path = PurePosixPath(name.replace("\\", "/"))
     has_drive = bool(path.parts and path.parts[0].endswith(":"))
-    return (
-        not path.is_absolute()
-        and ".." not in path.parts
-        and not has_drive
-    )
+    return not path.is_absolute() and ".." not in path.parts and not has_drive
 
 
 def _is_ignored_member(name: str) -> bool:
@@ -175,11 +180,15 @@ async def analyze_stream(req: CodeRequest):
     response_class=StreamingResponse,
 )
 async def analyze_stream_get(
-    code: str = Query(..., min_length=1, max_length=50000, description="Source code to analyze"),
+    code: str = Query(
+        ..., min_length=1, max_length=50000, description="Source code to analyze"
+    ),
     language: str | None = Query(None, description="Optional language hint"),
 ):
     if not code.strip():
-        raise HTTPException(status_code=400, detail="code must not be empty or whitespace")
+        raise HTTPException(
+            status_code=400, detail="code must not be empty or whitespace"
+        )
     return StreamingResponse(
         _stream_analysis(code.strip(), language),
         media_type="text/event-stream",
@@ -206,6 +215,75 @@ async def analyze(req: CodeRequest, response: Response):
 
     response.headers["X-Cache"] = "MISS"
     return payload
+
+
+@router.post(
+    "/incremental/",
+    response_model=IncrementalAnalyzeResponse,
+    summary="Run incremental analysis for changed files only",
+)
+async def analyze_incremental(req: IncrementalAnalyzeRequest):
+    """Analyze only changed files or changed hunks from a previous version."""
+    t0 = time.perf_counter()
+
+    plans = build_incremental_plan(req.files)
+
+    results: list[dict] = []
+    analyzed_count = 0
+
+    for plan in plans:
+        if plan.skipped_reason or not plan.analysis_code:
+            results.append(
+                {
+                    "filename": plan.path,
+                    "previous_filename": plan.previous_path,
+                    "status": plan.status,
+                    "language": plan.language,
+                    "changed_line_ranges": plan.changed_line_ranges,
+                    "changed_line_count": plan.changed_line_count,
+                    "size_bytes": (
+                        len(plan.content.encode("utf-8")) if plan.content else 0
+                    ),
+                    "analysis": None,
+                    "skipped_reason": plan.skipped_reason,
+                }
+            )
+            continue
+
+        analysis = full_analysis(plan.analysis_code, plan.language)
+        analyzed_count += 1
+
+        results.append(
+            {
+                "filename": plan.path,
+                "previous_filename": plan.previous_path,
+                "status": plan.status,
+                "language": analysis["explanation"]["language"],
+                "changed_line_ranges": plan.changed_line_ranges,
+                "changed_line_count": plan.changed_line_count,
+                "size_bytes": len(plan.content.encode("utf-8")) if plan.content else 0,
+                "analysis": analysis,
+                "skipped_reason": None,
+            }
+        )
+
+    elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
+    skipped_count = len(results) - analyzed_count
+
+    return {
+        "provider": "rule-based",
+        "model": "qyverix-engine-v3",
+        "file_count": len(results),
+        "analyzed_file_count": analyzed_count,
+        "skipped_file_count": skipped_count,
+        "files": results,
+        "summary": (
+            f"Incremental analysis completed. "
+            f"Analyzed {analyzed_count} changed file(s), "
+            f"skipped {skipped_count} unchanged/deleted file(s)."
+        ),
+        "analysis_time_ms": elapsed_ms,
+    }
 
 
 @router.post(
@@ -268,10 +346,7 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
     total_size = 0
 
     with archive:
-        members = [
-            info for info in archive.infolist()
-            if not info.is_dir()
-        ]
+        members = [info for info in archive.infolist() if not info.is_dir()]
 
         if not members:
             raise HTTPException(
@@ -354,10 +429,7 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
             detail="ZIP file does not contain readable source files",
         )
 
-    scores = [
-        item["analysis"]["suggestions"]["overall_score"]
-        for item in results
-    ]
+    scores = [item["analysis"]["suggestions"]["overall_score"] for item in results]
 
     overall_score = round(sum(scores) / len(scores))
 
