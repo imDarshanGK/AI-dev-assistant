@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.database import Base, get_db
 from app.main import app as fastapi_app
 
-
 TEST_ENGINE = create_engine(
     "sqlite:///:memory:",
     connect_args={"check_same_thread": False},
@@ -98,12 +97,14 @@ def test_signup_duplicate_email_returns_409(client):
     duplicate_response = client.post("/auth/signup", json=payload)
     assert duplicate_response.status_code == 409
     assert "already exists" in duplicate_response.json()["detail"].lower()
+    assert duplicate_response.json()["error"] == "email_already_exists"
 
 
 def test_me_rejects_missing_and_invalid_token(client):
     missing_token_response = client.get("/auth/me")
     assert missing_token_response.status_code == 401
     assert "authentication required" in missing_token_response.json()["detail"].lower()
+    assert missing_token_response.json()["error"] == "authentication_required"
 
     invalid_token_response = client.get(
         "/auth/me",
@@ -111,3 +112,4 @@ def test_me_rejects_missing_and_invalid_token(client):
     )
     assert invalid_token_response.status_code == 401
     assert "invalid token" in invalid_token_response.json()["detail"].lower()
+    assert invalid_token_response.json()["error"] == "invalid_token"

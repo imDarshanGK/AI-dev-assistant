@@ -27,12 +27,9 @@ from app.sanitize import (
     sanitize_result_json,
     sanitize_text_input,
 )
-from security_payloads import (
-    ANSI_PAYLOAD,
-    SCRIPT_TAG as XSS_PAYLOAD,
-    XSS_WITH_NULL,
-    assert_no_raw_script_tag,
-)
+from security_payloads import ANSI_PAYLOAD
+from security_payloads import SCRIPT_TAG as XSS_PAYLOAD
+from security_payloads import XSS_WITH_NULL, assert_no_raw_script_tag
 
 client = TestClient(app_main.app)
 

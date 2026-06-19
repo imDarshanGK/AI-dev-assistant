@@ -30,7 +30,6 @@ from sqlalchemy import text
 from ..database import engine
 from ..schemas import LivenessResponse, ReadinessResponse
 
-
 router = APIRouter(prefix="/healthz", tags=["System"])
 
 

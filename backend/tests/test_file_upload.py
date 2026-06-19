@@ -1,9 +1,8 @@
 from io import BytesIO
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.main import app
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 
@@ -40,25 +39,12 @@ BLOCKED_FILES = [
 # TEST VALID FILES
 # =========================================================
 
-@pytest.mark.parametrize(
-    "filename,content,mime_type",
-    ALLOWED_FILES
-)
-def test_upload_allowed_files(
-    filename,
-    content,
-    mime_type
-):
+
+@pytest.mark.parametrize("filename,content,mime_type", ALLOWED_FILES)
+def test_upload_allowed_files(filename, content, mime_type):
 
     response = client.post(
-        "/upload/validate",
-        files={
-            "file": (
-                filename,
-                BytesIO(content),
-                mime_type
-            )
-        }
+        "/upload/validate", files={"file": (filename, BytesIO(content), mime_type)}
     )
 
     assert response.status_code == 200
@@ -73,36 +59,25 @@ def test_upload_allowed_files(
 # TEST BLOCKED EXTENSIONS
 # =========================================================
 
-@pytest.mark.parametrize(
-    "filename,content",
-    BLOCKED_FILES
-)
-def test_upload_blocked_files(
-    filename,
-    content
-):
+
+@pytest.mark.parametrize("filename,content", BLOCKED_FILES)
+def test_upload_blocked_files(filename, content):
 
     response = client.post(
         "/upload/validate",
-        files={
-            "file": (
-                filename,
-                BytesIO(content),
-                "application/octet-stream"
-            )
-        }
+        files={"file": (filename, BytesIO(content), "application/octet-stream")},
     )
 
     assert response.status_code == 415
-
     data = response.json()
-
     assert "Executable files are not allowed" in data["detail"]
+    assert data["error"] == "unsupported_file_type"
 
 
 # =========================================================
 # TEST INVALID MIME TYPE
 # =========================================================
+
 
 def test_invalid_mime_type():
 
@@ -112,57 +87,55 @@ def test_invalid_mime_type():
             "file": (
                 "test.py",
                 BytesIO(b"%PDF-1.4 fake pdf content"),
-                "application/pdf"
+                "application/pdf",
             )
-        }
+        },
     )
     print(response.json())
 
     assert response.status_code == 415
-
     data = response.json()
-
     assert "Invalid MIME type" in data["detail"]
+    assert data["error"] == "unsupported_file_type"
 
 
 # =========================================================
 # TEST DOUBLE EXTENSION
 # =========================================================
 
+
 def test_double_extension():
 
     response = client.post(
         "/upload/validate",
         files={
-            "file": (
-                "virus.exe.py",
-                BytesIO(b"print('infected')"),
-                "text/x-python"
-            )
-        }
+            "file": ("virus.exe.py", BytesIO(b"print('infected')"), "text/x-python")
+        },
     )
 
     assert response.status_code == 415
-
     data = response.json()
-
     assert "Executable files are not allowed" in data["detail"]
+    assert data["error"] == "unsupported_file_type"
 
 
 # =========================================================
 # TEST NO FILE
 # =========================================================
 
+
 def test_no_file_uploaded():
 
     response = client.post("/upload/validate")
 
     assert response.status_code in [400, 422]
+    assert response.json()["error"] in ("bad_request", "validation_error")
 
 
 # =========================================================
 # TEST LARGE FILE
 # =========================================================
+
 
 def test_large_file():
 
@@ -170,13 +143,8 @@ def test_large_file():
 
     response = client.post(
         "/upload/validate",
-        files={
-            "file": (
-                "large.txt",
-                BytesIO(large_content),
-                "text/plain"
-            )
-        }
+        files={"file": ("large.txt", BytesIO(large_content), "text/plain")},
     )
 
     assert response.status_code == 413
+    assert response.json()["error"] == "payload_too_large"

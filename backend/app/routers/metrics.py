@@ -16,7 +16,6 @@ from fastapi import APIRouter, HTTPException, Request, Response, status
 
 from ..observability import metrics_auth_token, metrics_enabled, render_metrics
 
-
 router = APIRouter()
 
 

@@ -4,8 +4,10 @@ Full-text search is powered by SQLite FTS5.
 """
 
 from __future__ import annotations
+
 import hashlib
 import os
+
 import aiosqlite
 
 DB_PATH = os.getenv("HISTORY_DB_PATH", "history.db")

@@ -21,7 +21,6 @@ import httpx
 import pytest
 
 
-
 def _make_llm_response(text: str) -> MagicMock:
     """Return a fake httpx.Response with an OpenAI-compatible JSON body."""
     resp = MagicMock()

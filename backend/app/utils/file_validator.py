@@ -1,13 +1,15 @@
-from pathlib import Path
 import logging
+from pathlib import Path
+
 import magic
 
 from .upload_config import (
     ALLOWED_EXTENSIONS,
     ALLOWED_MIME_TYPES,
     BLOCKED_EXTENSIONS,
-    UPLOAD_ERROR_MESSAGES
-    )
+    UPLOAD_ERROR_MESSAGES,
+)
+
 
 def get_file_extension(filename: str) -> str:
     return Path(filename).suffix.lower()
