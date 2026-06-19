@@ -26,9 +26,11 @@ from .routers import (
     suggestions,
     upload_file,
     user_data,
+    webhooks,
 )
 from .routers import health as health_router
 from .routers import metrics as metrics_router
+from .database import Base, engine
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
 from .observability import (
@@ -68,14 +70,15 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
     await database.init_db()
-    print("🚀 QyverixAI backend starting…")
+    print("QyverixAI backend starting...")
     # Static info gauge so dashboards can pin version / provider labels.
     initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
     start_scheduler()
     yield
     stop_scheduler()
-    logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
+    logging.getLogger(__name__).info("QyverixAI backend shutting down...")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -160,7 +163,9 @@ app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
-
+app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(webhooks.router,    prefix="/webhooks",    tags=["Webhooks"])
+app.include_router(auth.router)
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics
 app.include_router(health_router.router)
