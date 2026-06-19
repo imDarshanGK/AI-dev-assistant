@@ -21,7 +21,10 @@
 
 <br/>
 
-**[Live Demo](https://qyverixai.onrender.com)** &nbsp;·&nbsp; **[API Docs](https://qyverixai.onrender.com/docs)** &nbsp;·&nbsp; **[Contributing Guide](CONTRIBUTING.md)** &nbsp;·&nbsp; **[Good First Issues](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue)**
+**[Live Demo](https://qyverixai.onrender.com)** &nbsp;·&nbsp; **[API Docs](https://qyverixai.onrender.com/docs)** &nbsp;·&nbsp; **[Changelog](docs/CHANGELOG.md)** &nbsp;·&nbsp; **[Contributing Guide](CONTRIBUTING.md)** &nbsp;·&nbsp; **[Good First Issues](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue)**
+
+
+Read the release history and notable changes in the project changelog: **[docs/CHANGELOG.md](docs/CHANGELOG.md)**.
 
 <br/>
 
@@ -45,8 +48,11 @@ No account required. No API key needed. Works fully offline. Fully open source.
 
 ---
 
-## Preview 
+## Preview
+
+<!-- Add a screenshot of the live site here -->
 <!-- ![QyverixAI Preview](assets/preview.png) -->
+
 ---
 
 ## Features
@@ -91,7 +97,7 @@ No account required. No API key needed. Works fully offline. Fully open source.
 ### 1 - Clone
 
 ```bash
-git clone https://github.com/imDarshanGK/AI-dev-assistant.git
+git clone [https://github.com/imDarshanGK/AI-dev-assistant.git](https://github.com/imDarshanGK/AI-dev-assistant.git)
 cd AI-dev-assistant
 ```
 
@@ -314,34 +320,68 @@ Tests run automatically on every push and pull request via GitHub Actions across
 
 > **Note:** The free tier sleeps after 15 minutes of inactivity. The first request after sleep takes 30–60 seconds to wake up. This is expected.
 
-### Docker
+---
+## Docker Compose — Full Local Dev Environment
 
+Run the complete stack (backend + frontend + PostgreSQL) with a single command.
+
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed
+
+### 1. Clone the repo
 ```bash
-docker build -t qyverixai .
-docker run -p 8000:8000 qyverixai
+git clone [https://github.com/imDarshanGK/AI-dev-assistant.git](https://github.com/imDarshanGK/AI-dev-assistant.git)
+cd AI-dev-assistant
 ```
-### Docker Compose
 
-Run the complete local development environment:
+### 2. Set up environment variables
+```bash
+cp .env.example .env
+```
+Open `.env` and fill in the required values (see [Configuration](#configuration)).
+The database is pre-configured in `docker-compose.yml`:
+- **User:** `postgres`
+- **Password:** `postgres`
+- **Database:** `aidevdb`
 
+### 3. Start all services
 ```bash
 docker compose up --build
 ```
 
-Available services:
+This starts three services:
 
-- Frontend → http://localhost:3000
-- Backend API → http://localhost:8000
-- PostgreSQL → localhost:5432
+| Service  | URL                        | Description              |
+|----------|----------------------------|--------------------------|
+| Frontend | http://localhost:3000      | Nginx-served UI          |
+| Backend  | http://localhost:8000      | FastAPI + rule-based engine |
+| Database | localhost:5432             | PostgreSQL 16            |
 
-Stop containers:
+The backend includes a health check — wait for the log line `Application startup complete` before sending requests.
 
+### 4. Verify everything is running
+```bash
+# Check all containers are up
+docker compose ps
+
+# Hit the health endpoint
+curl http://localhost:8000/healthz/ready
+```
+
+You should see `{"status": "ok"}` (or a `degraded` breakdown if the DB isn't ready yet).
+
+### 5. Open the app
+Navigate to **http://localhost:3000**, set the API URL to `http://localhost:8000`, click **Ping** to confirm the green Connected status, then paste any code and click **Analyze Code**.
+
+### Stop containers
 ```bash
 docker compose down
 ```
 
----
-
+To also remove the database volume (wipes all stored data):
+```bash
+docker compose down -v
+```
 ## Observability
 
 QyverixAI exposes operational endpoints designed for container orchestration and Prometheus scraping.
@@ -404,7 +444,7 @@ QyverixAI works fully offline with its built-in rule-based engine. To enable ric
 ```env
 LLM_ENABLED=true
 LLM_API_KEY=your-key-here
-LLM_BASE_URL=https://api.openai.com/v1
+LLM_BASE_URL=[https://api.openai.com/v1](https://api.openai.com/v1)
 LLM_MODEL=gpt-4o-mini
 LLM_TIMEOUT_SECONDS=30
 ```
@@ -456,7 +496,7 @@ QyverixAI is a **GSSoC 2026** open source project. Contributors of all levels ar
 ```bash
 # 1. Fork the repo on GitHub
 # 2. Clone your fork
-git clone https://github.com/YOUR_USERNAME/AI-dev-assistant.git
+git clone [https://github.com/YOUR_USERNAME/AI-dev-assistant.git](https://github.com/YOUR_USERNAME/AI-dev-assistant.git)
 
 # 3. Create a branch
 git checkout -b feat/your-feature-name
