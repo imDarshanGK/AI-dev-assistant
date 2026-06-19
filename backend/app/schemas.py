@@ -15,7 +15,6 @@ from .schema_validators import (
     validate_stored_result_json,
 )
 
-
 <<<<<<< HEAD
 =======
 # ── Core request ──────────────────────────────────────────────────────────────
