@@ -720,6 +720,34 @@
     }
 
     .line-numbers {
+        padding: 16px 0 16px 12px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--text3);
+        user-select: none;
+        min-width: 44px;
+        text-align: right;
+        background: var(--bg3);
+        border-right: 1px solid var(--border);
+    }
+
+      #codeEditor {
+
+        width: 100%;
+        min-height: 300px;
+        max-height: 500px;
+        padding: 16px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--text);
+        background: transparent;
+        border: none;
+        outline: none;
+        resize: vertical;
+        tab-size: 2;
+}
       padding: 16px 0 16px 12px;
       font-family: var(--font-mono);
       font-size: 13px;
@@ -2985,6 +3013,22 @@ details.issue-card[open] {
         const chars = val.length;
         const nonBlank = val ? val.split('\n').filter(l => l.trim()).length : 0;
         charCount.textContent = val
+        ? getTranslation('char_count_format')
+            .replace('{chars}', chars.toLocaleString())
+            .replace('{lines}', lines)
+            .replace('{nonBlank}', nonBlank)
+        : getTranslation('char_count_initial');
+      const lineCount = Math.max(lines, 1);
+      lineNumbers.innerHTML = val
+        ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
+        : '1';
+
+  // Fix: clip line numbers to exactly match visible editor height
+      requestAnimationFrame(() => {
+        lineNumbers.style.height = editor.clientHeight + 'px';
+        lineNumbers.style.overflow = 'hidden';
+      });
+    }
           ? getTranslation('char_count_format')
               .replace('{chars}', chars.toLocaleString())
               .replace('{lines}', lines)
