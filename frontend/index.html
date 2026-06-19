@@ -2097,6 +2097,7 @@ details.issue-card[open] {
 }
 </style>
 <link rel="icon" href="data:,">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
   <div class="bg-orb bg-orb-1"></div>
@@ -2328,6 +2329,8 @@ details.issue-card[open] {
         <div id="resultActions" class="result-actions" style="display:none">
           <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
           <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
+          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF">📄</button>
+          <button class="icon-btn" id="export-md-btn" title="Export as Markdown">📝</button>
         </div>
 
       </div>
@@ -4216,6 +4219,83 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         a.click();
         URL.revokeObjectURL(a.href);
         toast(getTranslation('toast_report_downloaded'), 'success');
+      });
+
+      // 1. Export as Markdown
+      document.getElementById('export-md-btn').addEventListener('click', () => {
+        if (!currentResult) return alert("No report generated yet!");
+        
+        try {
+            const codeContent = typeof editor !== 'undefined' ? editor.value : '';
+            const rawText = buildReport(currentResult, codeContent);
+            const mdText = "```text\n" + rawText + "\n```";
+            
+            const blob = new Blob([mdText], { type: 'text/markdown' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `qyverixai-report-${Date.now()}.md`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            
+            if (typeof toast === 'function') toast('Downloaded as Markdown', 'success');
+        } catch (error) {
+            console.error("Markdown Error: ", error);
+            alert("Oops! Something went wrong generating the Markdown.");
+        }
+      });
+
+      // 2. Export as PDF
+      document.getElementById('export-pdf-btn').addEventListener('click', () => {
+        if (!currentResult) return alert("No report generated yet!");
+        
+        try {
+            const codeContent = typeof editor !== 'undefined' ? editor.value : '';
+            const rawText = buildReport(currentResult, codeContent);
+            
+            const lines = rawText.split('\n');
+            const linesPerPage = 45; 
+            
+            // Build a container in memory
+            const container = document.createElement('div');
+            container.style.width = '700px';
+            container.style.backgroundColor = '#ffffff';
+
+            for (let i = 0; i < lines.length; i += linesPerPage) {
+                const chunkText = lines.slice(i, i + linesPerPage).join('\n');
+                
+                const pageDiv = document.createElement('div');
+                pageDiv.style.fontFamily = 'monospace';
+                pageDiv.style.fontSize = '12px';
+                pageDiv.style.lineHeight = '1.5';
+                pageDiv.style.color = '#000000';
+                pageDiv.style.whiteSpace = 'pre-wrap';
+                pageDiv.innerText = chunkText === '' ? ' ' : chunkText;
+                
+                container.appendChild(pageDiv);
+                
+                if (i + linesPerPage < lines.length) {
+                    const pageBreak = document.createElement('div');
+                    pageBreak.className = 'html2pdf__page-break';
+                    container.appendChild(pageBreak);
+                }
+            }
+
+            const options = {
+              margin:       10,
+              filename:     `qyverixai-report-${Date.now()}.pdf`,
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2, scrollY: 0 }, 
+              jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(options).from(container).save().then(() => {
+              if (typeof toast === 'function') toast('Downloaded as PDF', 'success');
+            });
+            
+        } catch (error) {
+            console.error("PDF Error: ", error);
+            alert("Oops! Something went wrong generating the PDF.");
+        }
       });
 
       function buildReport(r, code) {
