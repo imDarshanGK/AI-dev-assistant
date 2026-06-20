@@ -35,8 +35,8 @@ from .observability import (
     initialise_app_info,
     prometheus_metrics_middleware,
 )
-
-from .schemas import HealthResponse
+from fastapi.openapi.utils import get_openapi
+from .schemas import CODE_REQUEST_EXAMPLES, HealthResponse
 
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
@@ -240,3 +240,44 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "Internal server error. Please try again."},
     )
+
+
+# Override OpenAPI generation to inject requestBody examples for analysis endpoints
+
+def _custom_openapi() -> dict:
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+
+    for path in ["/explanation/", "/debugging/", "/suggestions/", "/analyze/"]:
+        # Inject requestBody examples
+        try:
+            rb = openapi_schema["paths"][path]["post"]["requestBody"]
+            rb["content"]["application/json"]["examples"] = CODE_REQUEST_EXAMPLES
+        except Exception:
+            # ignore missing paths or unexpected shapes
+            pass
+
+        # If the response schema is a $ref, copy its component 'example' inline
+        try:
+            resp_schema = openapi_schema["paths"][path]["post"]["responses"]["200"]["content"]["application/json"]["schema"]
+            ref = resp_schema.get("$ref")
+            if ref and ref.startswith("#/components/schemas/"):
+                schema_name = ref.split("/")[-1]
+                comp_schema = openapi_schema.get("components", {}).get("schemas", {}).get(schema_name, {})
+                example = comp_schema.get("example")
+                if example is not None:
+                    resp_schema["example"] = example
+        except Exception:
+            pass
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = _custom_openapi

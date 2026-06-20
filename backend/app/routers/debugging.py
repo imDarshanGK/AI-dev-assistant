@@ -1,14 +1,16 @@
 """Debugging router — POST /debugging/"""
 
-from fastapi import APIRouter
-from ..schemas import CodeRequest, DebuggingResponse
+from fastapi import APIRouter, Body
+from ..schemas import CODE_REQUEST_EXAMPLES, CodeRequest, DebuggingResponse
 from ..services.code_assistant import detect_language, run_bug_detection
 
 router = APIRouter()
 
 
 @router.post("/", response_model=DebuggingResponse, summary="Detect bugs and issues")
-async def debug(req: CodeRequest):
+async def debug(
+    req: CodeRequest = Body(..., examples=CODE_REQUEST_EXAMPLES),
+):
     lang = detect_language(req.code, req.language)
     issues = run_bug_detection(req.code, lang)
     errors = sum(1 for i in issues if i["severity"] == "error")
