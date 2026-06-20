@@ -2068,8 +2068,12 @@ details.issue-card[open] {
   .nav-links .nav-link span{display:none}
   .hero{padding:50px 0 40px}
   .hero-sub{font-size:0.98rem}
-  .features-row{gap:8px;padding:16px 0 40px}
-  .feat-pill{padding:10px 14px;min-width:140px}
+  .features-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-width:400px;margin-inline:auto;padding:16px 0 40px}
+  .feat-pill{gap:7px;padding:6px 8px;min-width:0}
+  .feat-pill-icon{width:28px;height:28px;flex-shrink:0}
+  .feat-pill-info{min-width:0;overflow-wrap:break-word}
+  .feat-pill-info .feat-pill-title{font-size:0.76rem;line-height:1.25}
+  .feat-pill-info p{font-size:0.68rem;line-height:1.25}
   .workspace{gap:14px}
   .panel-header{padding:12px 14px}
   .mode-row{gap:6px;padding:10px 14px}
