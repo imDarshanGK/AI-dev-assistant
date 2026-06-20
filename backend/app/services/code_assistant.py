@@ -1,14 +1,16 @@
 """
 QyverixAI — Rule-Based Code Analysis Engine
-Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Rust.
+Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, GO, PHP and Rust.
 """
 
 from __future__ import annotations
+
 import ast
 import re
 import time
-from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+
+from .ast_analyzer import analyze as ast_analyze
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -51,6 +53,16 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"\bcout\s*<<",
         r"\bint\s+main\s*\(",
         r"::\w+",
+    ],
+    "Go": [
+        r"\bpackage\s+\w+",
+        r"\bfunc\s+\w+\s*\(",
+        r"\bdefer\s+",
+        r"\bgo\s+\w+\s*\(",
+        r"\bchan\s+\w+",
+        r"\berror\b",
+        r":=",
+        r"\brange\s+\w+",
     ],
     "Swift": [
         r"\bfunc\s+\w+\s*\(",
@@ -111,6 +123,8 @@ def detect_language(code: str, hint: str | None = None) -> str:
             "cpp": "C++",
             "c++": "C++",
             "cxx": "C++",
+            "go": "Go",
+            "golang": "Go",
             "swift": "Swift",
             "php": "PHP",
             "rust": "Rust",
@@ -238,9 +252,7 @@ def chat_fallback_reply(
         )
 
     if recent_history:
-        response_parts.append(
-            f"Recent chat context: {recent_history}."
-        )
+        response_parts.append(f"Recent chat context: {recent_history}.")
 
     return " ".join(response_parts)
 
@@ -260,7 +272,7 @@ class BugPattern:
             "TypeScript",
             "Java",
             "C++",
-            "PHP",
+            "GoPHP",
             "Rust",
         ]
     )
@@ -710,6 +722,31 @@ BUG_PATTERNS: list[BugPattern] = [
         "error",
         ["C++", "Java", "JavaScript", "TypeScript"],
     ),
+    # ── Go ──
+    BugPattern(
+        "Ignored Error",
+        r",\s*_\s*:=",
+        "Error return value is being ignored using blank identifier.",
+        "Handle the error explicitly: `result, err := ...; if err != nil { ... }`",
+        "warning",
+        ["Go"],
+    ),
+    BugPattern(
+        "fmt.Println in Production",
+        r"\bfmt\.Println\s*\(",
+        "fmt.Println left in production code.",
+        "Use a proper logging package like `log` or `zap` instead.",
+        "info",
+        ["Go"],
+    ),
+    BugPattern(
+        "Naked Return",
+        r"\breturn\s*$",
+        "Naked return in a named-return function reduces readability.",
+        "Return values explicitly for clarity.",
+        "info",
+        ["Go"],
+    ),
     # ── PHP ──
     BugPattern(
         "PHP MySQL Deprecated",
@@ -813,8 +850,8 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     Returns:
         A list of detected issues with metadata and suggestions.
     """
-    from .line_utils import format_code_snippet
     from .ast_analyzer import analyze_python_ast
+    from .line_utils import format_code_snippet
 
     lines = code.splitlines()
     found: list[dict] = []
@@ -826,8 +863,12 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
             if key not in seen:
                 seen.add(key)
                 line_idx = issue["line"] - 1
-                issue["code_snippet"] = lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
-                issue["code_context"] = format_code_snippet(code, [issue["line"]], context_lines=2)
+                issue["code_snippet"] = (
+                    lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
+                )
+                issue["code_context"] = format_code_snippet(
+                    code, [issue["line"]], context_lines=2
+                )
                 found.append(issue)
 
     for bp in BUG_PATTERNS:
@@ -887,10 +928,10 @@ def run_suggestions(code: str, language: str) -> dict:
     """
     """Enhanced suggestion engine with line number tracking."""
     from .line_utils import (
-        format_code_snippet,
-        find_lines_matching_pattern,
         find_function_lines,
+        find_lines_matching_pattern,
         find_undocumented_lines,
+        format_code_snippet,
     )
 
     suggestions: list[dict] = []
@@ -1052,15 +1093,17 @@ def run_suggestions(code: str, language: str) -> dict:
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
-            suggestions.append({
-                "category": "Observability",
-                "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
-                "line_number": print_lines[0],
-                "line_range": sample_print,
-                "code_context": format_code_snippet(code, sample_print),
-                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
-                "priority": "medium",
-            })
+            suggestions.append(
+                {
+                    "category": "Observability",
+                    "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
+                    "line_number": print_lines[0],
+                    "line_range": sample_print,
+                    "code_context": format_code_snippet(code, sample_print),
+                    "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
+                    "priority": "medium",
+                }
+            )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 8: Environment Variables (JS/TS)
@@ -1149,7 +1192,7 @@ def run_explanation(code: str, language: str) -> dict:
     )
 
     func_names = re.findall(
-        r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(",
+        r"def\s+(\w+)\s*\(|function\s+(\w+)\s*\(|\bfunc\s+(\w+)\s*\(|(\w+)\s*=\s*\(.*\)\s*=>|\bfn\s+(\w+)\s*\(",
         code,
     )
     funcs = [next(n for n in grp if n) for grp in func_names]
