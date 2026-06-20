@@ -1,0 +1,83 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-tests.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-tests.yml"
+
+jobs:
+  backend-tests:
+    name: Backend Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install libmagic
+        run: sudo apt-get update -qq && sudo apt-get install -y libmagic1 libmagic-dev
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Verify python-magic import
+        run: python -c "import magic; print(magic.__file__)"
+
+      - name: Run tests
+        env:
+          RATE_LIMIT_PER_MINUTE: 300
+        run: python -m pytest -v --tb=short
+
+  backend-lint:
+    name: Backend Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install Ruff
+        run: python -m pip install ruff
+
+      - name: Run Ruff
+        run: ruff check app --select E,F,W --ignore E501
