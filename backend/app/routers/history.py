@@ -3,6 +3,8 @@ History router — save, retrieve, search and delete analysis history entries.
 """
 
 from __future__ import annotations
+from typing import List, Optional
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -14,16 +16,16 @@ router = APIRouter()
 class HistorySaveRequest(BaseModel):
     code: str = Field(..., min_length=1, max_length=50000)
     language: str
-    score: int | None = None
-    issue_count: int | None = None
+    score: Optional[int] = None
+    issue_count: Optional[int] = None
 
 
 class HistoryEntry(BaseModel):
     id: int
     code_hash: str
     language: str
-    score: int | None
-    issue_count: int | None
+    score: Optional[int]
+    issue_count: Optional[int]
     timestamp: str
     code_preview: str
 
@@ -39,7 +41,7 @@ async def save_history(body: HistorySaveRequest):
     return {"id": entry_id, "status": "saved"}
 
 
-@router.get("/", response_model=list[HistoryEntry])
+@router.get("/", response_model=List[HistoryEntry])
 async def get_history(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
@@ -47,7 +49,7 @@ async def get_history(
     return await database.get_entries(limit=limit, offset=offset)
 
 
-@router.get("/search", response_model=list[HistoryEntry])
+@router.get("/search", response_model=List[HistoryEntry])
 async def search_history(
     q: str = Query(..., min_length=1),
     limit: int = Query(20, ge=1, le=100),

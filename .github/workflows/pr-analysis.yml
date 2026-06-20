@@ -148,7 +148,7 @@ jobs:
                   return "D"
               return "F"
 
-          def extract_issues(payload: dict) -> list[dict]:
+          def extract_issues(payload: dict) -> List[Dtr]:
               issues = payload.get("issues")
               if isinstance(issues, list):
                   return issues
@@ -175,7 +175,7 @@ jobs:
               )
               return f"- [{severity}] {line_text}: {message}"
 
-          results: list[dict] = []
+          results: List[Dtr] = []
 
           for filename in changed_files:
               file_path = Path(filename)

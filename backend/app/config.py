@@ -1,7 +1,7 @@
 import os
-
+from typing import Optional, List, Dict
 from dotenv import find_dotenv, load_dotenv
-
+from typing import Optional, List, Dict
 # Load .env from current directory or parent directories if present.
 load_dotenv(find_dotenv(filename=".env", usecwd=True), override=False)
 
@@ -53,8 +53,7 @@ class Settings:
     cache_enabled: bool = _bool_env("CACHE_ENABLED", True)
     cache_ttl_seconds: int = _int_env("CACHE_TTL_SECONDS", 300)
     cache_max_entries: int = _int_env("CACHE_MAX_ENTRIES", 100)
-    redis_url: str | None = os.getenv("REDIS_URL")
-    sentry_dsn: str | None = os.getenv("SENTRY_DSN")
+
     sentry_traces_sample_rate: float = _float_env("SENTRY_TRACES_SAMPLE_RATE", 0.0)
     enable_docs: bool = _bool_env("ENABLE_DOCS", False)
     public_root_info: bool = _bool_env("PUBLIC_ROOT_INFO", False)
@@ -63,7 +62,12 @@ class Settings:
     jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_minutes: int = _int_env("ACCESS_TOKEN_MINUTES", 720)
     llm_enabled: bool = _bool_env("LLM_ENABLED", False)
-    llm_api_key: str | None = os.getenv("LLM_API_KEY")
+
+    # ✅ FIXED INDENTATION (ALL SAME LEVEL)
+    redis_url: Optional[str] = os.getenv("REDIS_URL")
+    sentry_dsn: Optional[str] = os.getenv("SENTRY_DSN")
+    llm_api_key: Optional[str] = os.getenv("LLM_API_KEY")
+
     llm_base_url: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
     llm_model: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
     llm_timeout_seconds: int = _int_env("LLM_TIMEOUT_SECONDS", 30)

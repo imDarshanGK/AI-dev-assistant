@@ -10,7 +10,7 @@ import smtplib
 from urllib.parse import urlencode
 
 from sqlalchemy.orm import Session
-
+from typing import Optional, List, Dict
 from ..config import settings
 from ..models import QueryHistory, User
 
@@ -37,7 +37,7 @@ def _parse_score(result_json: str) -> int | None:
         return None
 
 
-def _most_common_bug(issues: list[dict]) -> str | None:
+def _most_common_bug(issues: List[Dtr]) -> Optional[str]:
     """Return the most frequent bug type from a list of debug issues."""
     from collections import Counter
 
@@ -91,7 +91,7 @@ def compute_subscriber_stats(db: Session, email: str) -> dict | None:
     total = len(this_week)
     languages: set[str] = set()
     scores: list[int] = []
-    all_issues: list[dict] = []
+    all_issues: List[Dtr] = []
 
     for h in this_week:
         try:

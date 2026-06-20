@@ -4,6 +4,7 @@ import logging
 import time
 from collections import OrderedDict
 from threading import Lock
+from typing import Optional, Dict, Tuple
 
 from ..config import settings
 
@@ -12,7 +13,8 @@ logger = logging.getLogger("ai_assistant.api")
 
 class AppCache:
     def __init__(self):
-        self._memory_store: OrderedDict[str, tuple[float, dict]] = OrderedDict()
+        # FIXED TYPE HINT
+        self._memory_store: OrderedDict[str, Tuple[float, Dict]] = OrderedDict()
         self._memory_lock = Lock()
         self._redis_client = None
         self._backend = "memory"
@@ -34,7 +36,8 @@ class AppCache:
         digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
         return f"ai-assistant:v2:{namespace}:{digest}"
 
-    def get(self, namespace: str, code: str) -> dict | None:
+    # 🔥 FIXED HERE
+    def get(self, namespace: str, code: str) -> Optional[Dict]:
         if not settings.cache_enabled:
             return None
 
@@ -61,7 +64,7 @@ class AppCache:
             self._memory_store.move_to_end(key)
             return payload
 
-    def set(self, namespace: str, code: str, payload: dict) -> None:
+    def set(self, namespace: str, code: str, payload: Dict) -> None:
         if not settings.cache_enabled:
             return
 
