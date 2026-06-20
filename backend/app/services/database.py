@@ -101,11 +101,7 @@ async def search_entries(q: str, limit: int = 20) -> list[dict]:
 
 async def delete_entry(entry_id: int) -> bool:
     async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute(
-            "DELETE FROM history WHERE id = ?", (entry_id,)
-        )
-        await db.execute(
-            "DELETE FROM fts_history WHERE rowid = ?", (entry_id,)
-        )
+        cursor = await db.execute("DELETE FROM history WHERE id = ?", (entry_id,))
+        await db.execute("DELETE FROM fts_history WHERE rowid = ?", (entry_id,))
         await db.commit()
         return cursor.rowcount > 0

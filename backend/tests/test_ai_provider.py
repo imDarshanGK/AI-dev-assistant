@@ -13,13 +13,14 @@ No real API calls are made — fully offline using unittest.mock.
 Run: cd backend && pytest tests/test_ai_provider.py -v
 """
 
+import shutil
+from pathlib import Path
 import importlib
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
 
 
 def _make_llm_response(text: str) -> MagicMock:
@@ -35,15 +36,15 @@ def _make_llm_response(text: str) -> MagicMock:
 def _make_error_response(status_code: int = 500) -> MagicMock:
     """Return a fake httpx.Response whose raise_for_status() raises."""
     resp = MagicMock()
-    resp.status_code = status_code  
-    
+    resp.status_code = status_code
+
     mock_response = MagicMock()
-    mock_response.status_code = status_code  
-    
+    mock_response.status_code = status_code
+
     resp.raise_for_status.side_effect = httpx.HTTPStatusError(
         message=f"HTTP {status_code}",
         request=MagicMock(),
-        response=mock_response, 
+        response=mock_response,
     )
     return resp
 
@@ -64,10 +65,9 @@ def _reload_module(env: dict):
     """Reload ai_provider so module-level env vars are re-evaluated."""
     with patch.dict(os.environ, env, clear=False):
         import app.services.ai_provider as mod
+
         importlib.reload(mod)
         return mod
-
-
 
 
 @pytest.fixture()
@@ -106,8 +106,30 @@ def ollama_env():
     }
 
 
-class TestIsEnabled:
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """Wipe the dev cache and disable it so cached responses never interfere."""
+    # Clear any leftover cache files
+    for d in [Path(".test_ai_cache"), Path(".ai_cache")]:
+        if d.exists():
+            shutil.rmtree(d)
 
+    # Disable the cache entirely for ai_provider tests
+    from app.services import ai_cache_proxy
+
+    original_enabled = ai_cache_proxy._ENABLED
+    ai_cache_proxy._ENABLED = False  # ← force cache OFF for every test
+
+    yield
+
+    # Restore and clean up after test
+    ai_cache_proxy._ENABLED = original_enabled
+    for d in [Path(".test_ai_cache"), Path(".ai_cache")]:
+        if d.exists():
+            shutil.rmtree(d)
+
+
+class TestIsEnabled:
     def test_true_when_enabled_and_key_present(self, enabled_env):
         mod = _reload_module(enabled_env)
         assert mod.is_enabled() is True
@@ -126,7 +148,6 @@ class TestIsEnabled:
 
 
 class TestCallLlmFallback:
-
     @pytest.mark.asyncio
     async def test_returns_none_when_disabled(self, enabled_env):
         mod = _reload_module({**enabled_env, "LLM_ENABLED": "false"})
@@ -147,7 +168,6 @@ class TestCallLlmFallback:
 
 
 class TestCallLlmSuccess:
-
     @pytest.mark.asyncio
     async def test_openai_returns_stripped_content(self, enabled_env):
         mod = _reload_module(enabled_env)
@@ -199,8 +219,8 @@ class TestCallLlmSuccess:
             patcher.stop()
         assert result == ""
 
-class TestCallLlmPayload:
 
+class TestCallLlmPayload:
     @pytest.mark.asyncio
     async def test_sends_correct_model_and_messages(self, enabled_env):
         mod = _reload_module(enabled_env)
@@ -267,8 +287,8 @@ class TestCallLlmPayload:
         url_called = mock_client.post.call_args[0][0]
         assert url_called == "http://localhost:11434/v1/chat/completions"
 
-class TestCallLlmErrors:
 
+class TestCallLlmErrors:
     @pytest.mark.asyncio
     async def test_returns_none_on_500_error(self, enabled_env):
         mod = _reload_module(enabled_env)
@@ -316,7 +336,9 @@ class TestCallLlmErrors:
     async def test_returns_none_on_network_error(self, enabled_env):
         mod = _reload_module(enabled_env)
         mock_client = AsyncMock()
-        mock_client.post = AsyncMock(side_effect=httpx.ConnectError("connection refused"))
+        mock_client.post = AsyncMock(
+            side_effect=httpx.ConnectError("connection refused")
+        )
 
         with patch("app.services.ai_provider.httpx.AsyncClient") as MockCls:
             MockCls.return_value.__aenter__ = AsyncMock(return_value=mock_client)

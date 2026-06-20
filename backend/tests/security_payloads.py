@@ -17,8 +17,8 @@ XSS_PAYLOADS = [
     "<script>alert(String.fromCharCode(88,83,83))</script>",
     '<img src=x onerror="alert(1)">',
     "<img src=x onerror=alert('xss')>",
-    '<svg/onload=alert(1)>',
-    '<svg><script>alert(1)</script></svg>',
+    "<svg/onload=alert(1)>",
+    "<svg><script>alert(1)</script></svg>",
     "<body onload=alert('xss')>",
     "<iframe src=\"javascript:alert('xss')\"></iframe>",
 ]
@@ -29,7 +29,7 @@ TEMPLATE_INJECTION_PAYLOADS = [
     "#{7*7}",
     "<%= 7*7 %>",
     "${{7*7}}",
-    "priority-high\" onmouseover=\"alert(1)",
+    'priority-high" onmouseover="alert(1)',
 ]
 
 ENCODED_PAYLOADS = [
@@ -45,7 +45,7 @@ STORED_HISTORY_PAYLOADS = [
         "id": "1');alert(1);//",
         "code": SCRIPT_TAG,
         "preview": '<img src=x onerror="alert(1)">',
-        "lang": '<svg/onload=alert(1)>',
+        "lang": "<svg/onload=alert(1)>",
         "ts": "${alert(1)}",
     },
     {
