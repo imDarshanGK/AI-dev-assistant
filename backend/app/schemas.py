@@ -378,3 +378,18 @@ class AnalyzeResponse(BaseModel):
     debugging: DebuggingResponse
     suggestions: SuggestionsResponse
     analysis_time_ms: float | None = None
+# ── Metrics Aggregate ─────────────────────────────────────────────────────────
+class SubsystemStatus(BaseModel):
+    """Status of a single subsystem returned by /metrics/aggregate."""
+    status: str          # "ok" | "degraded" | "unknown"
+    elapsed_ms: float | None = None
+    detail: str | None = None
+
+
+class AggregateMetricsResponse(BaseModel):
+    """Combined health + metrics snapshot for dashboard consumption."""
+    overall: str                              # "ok" | "degraded"
+    version: str
+    subsystems: dict[str, SubsystemStatus]
+    prometheus_enabled: bool
+    timestamp: str

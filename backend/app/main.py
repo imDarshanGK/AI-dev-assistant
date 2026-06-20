@@ -29,6 +29,7 @@ from .routers import (
 )
 from .routers import health as health_router
 from .routers import metrics as metrics_router
+from .routers import aggregate as aggregate_router
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
 from .observability import (
@@ -165,6 +166,7 @@ app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)
+app.include_router(aggregate_router.router)
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
