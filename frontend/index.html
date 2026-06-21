@@ -1045,7 +1045,35 @@
     .issue-card:hover {
       transform: translateX(3px)
     }
+  .collapsible-summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  list-style: none;
+  font-size: 0.78rem;
+}
 
+.collapsible-summary::-webkit-details-marker {
+  display: none;
+}
+.collapsible-summary::before {
+  content: "▶";
+  margin-right: 8px;
+  font-size: 12px;
+}
+
+details[open] > .collapsible-summary::before {
+  content: "▼";
+}
+.issue-content {
+  margin-top: 12px;
+}
+
+details.issue-card[open] {
+  border-left-width: 5px;
+}
     @keyframes cardIn {
       from {
         opacity: 0;
@@ -1501,8 +1529,8 @@
     }
 
     .suggest-title {
-      font-size: 0.88rem;
-      font-weight: 600
+      font-size: 0.78rem;
+      font-weight: 500
     }
 
     .suggest-desc {
@@ -3766,16 +3794,32 @@
     </div>`;
 
         const cards = dbg.issues.map((issue, i) => `
-    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
+  <details class="issue-card ${issue.severity}"
+           style="animation-delay:${i * 0.05}s">
+
+    <summary class="collapsible-summary">
+      <span>${issue.type}</span>
+      ${issue.line
+        ? `<span class="issue-line">Line ${issue.line}</span>`
+        : ''}
+    </summary>
+
+    <div class="issue-content">
       <div class="issue-header">
         <span class="issue-badge">${issue.severity}</span>
-        <span class="issue-type">${issue.type}</span>
-        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', issue.line)}</span>` : ''}
       </div>
+
       <div class="issue-desc">${issue.description}</div>
-      ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
+
+      ${issue.code_snippet
+        ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>`
+        : ''}
+
       <div class="issue-fix">${issue.suggestion}</div>
-    </div>`).join('');
+    </div>
+
+  </details>
+`).join('');
 
         el.innerHTML = statBar + cards;
       }
@@ -4012,15 +4056,22 @@
               }
             }
 
-            return `
-      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
-        <div class="suggest-header">
-          <span class="suggest-cat">${s.category}</span>
-          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', s.priority)}</span>
-        </div>
-        <div class="suggest-desc">${s.description}</div>
-        ${exampleHtml}
-      </div>`;
+          return `
+  <details class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s">
+
+    <summary class="collapsible-summary">
+      <span>${s.category}</span>
+      <span style="font-size:0.7rem;color:var(--text3)">
+        ${getTranslation('suggest_priority').replace('{priority}', s.priority)}
+      </span>
+    </summary>
+
+    <div class="issue-content">
+      <div class="suggest-desc">${s.description}</div>
+      ${exampleHtml}
+    </div>
+
+  </details>`;
           }).join('');
 
         el.innerHTML = ring + cards;
