@@ -69,6 +69,14 @@ async def request_size_limit_middleware(request: Request, call_next):
                 )
         except ValueError:
             pass
+    elif request.headers.get("transfer-encoding", "").lower() == "chunked":
+        return JSONResponse(
+            status_code=411,
+            content={
+                "error": "length_required",
+                "detail": "Chunked encoding is not supported. Content-Length header is required to prevent unbounded payload attacks.",
+            },
+        )
 
     return await call_next(request)
 
