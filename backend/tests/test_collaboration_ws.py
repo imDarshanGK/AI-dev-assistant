@@ -1,9 +1,8 @@
 """Tests for real-time collaboration WebSocket sessions."""
 
-from fastapi.testclient import TestClient
-
 from app import main as app_main
 from app.routers.collaboration import manager
+from fastapi.testclient import TestClient
 
 client = TestClient(app_main.app)
 
@@ -13,7 +12,9 @@ def setup_function():
 
 
 def test_collaboration_join_returns_session_state():
-    with client.websocket_connect("/collaboration/ws/session-a?name=Alice") as websocket:
+    with client.websocket_connect(
+        "/collaboration/ws/session-a?name=Alice"
+    ) as websocket:
         state = websocket.receive_json()
 
         assert state["type"] == "session_state"
@@ -143,12 +144,17 @@ def test_collaboration_broadcasts_comments():
             assert update["type"] == "comment_added"
             assert update["comment"]["line"] == 2
             assert update["comment"]["author"] == "Alice"
-            assert update["comment"]["text"] == "Check this condition before running analysis."
+            assert (
+                update["comment"]["text"]
+                == "Check this condition before running analysis."
+            )
             assert len(update["comments"]) == 1
 
 
 def test_collaboration_ping_returns_pong():
-    with client.websocket_connect("/collaboration/ws/session-f?name=Alice") as websocket:
+    with client.websocket_connect(
+        "/collaboration/ws/session-f?name=Alice"
+    ) as websocket:
         websocket.receive_json()
         websocket.receive_json()
 
