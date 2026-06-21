@@ -139,6 +139,7 @@ def _get_snippet(code: str, line: int) -> str:
         return lines[line-1].strip()[:120]
     return ""
 
+
 def _make_issue(type, line, description, suggestion, severity, snippet):
     return {
         "type": type,
@@ -149,6 +150,7 @@ def _make_issue(type, line, description, suggestion, severity, snippet):
         "snippet": snippet,
         "code_context": ""
     }
+
 
 def detect_unreachable_code(tree, code):
     issues = []
@@ -174,6 +176,7 @@ def detect_unreachable_code(tree, code):
                 if isinstance(stmt, terminal):
                     terminal_line = getattr(stmt, "lineno", None)
     return issues
+
 
 def detect_unused_imports(tree, code):
     issues = []
@@ -214,6 +217,7 @@ def detect_unused_imports(tree, code):
             ))
     return issues
 
+
 def detect_unused_arguments(tree, code):
     issues = []
 
@@ -243,6 +247,7 @@ def detect_unused_arguments(tree, code):
                 ))
 
     return issues
+
 
 def _count_returns_shallow(stmts):
     """Count returns without descending into nested functions."""
@@ -282,6 +287,7 @@ def detect_too_many_returns(tree, code):
 
     return issues
 
+
 def detect_deep_nesting(tree, code):
     issues = []
     nesting_types = (ast.If, ast.For, ast.While, ast.With, ast.Try)
@@ -302,6 +308,7 @@ def detect_deep_nesting(tree, code):
 
     walk(tree, 0)
     return issues
+
 
 def analyze(source: str) -> list[dict]:
     tree = ast.parse(source)
