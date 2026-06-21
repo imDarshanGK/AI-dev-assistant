@@ -1847,6 +1847,45 @@ details.issue-card[open] {
       border-color: var(--red);
       color: var(--red)
     }
+    .history-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px 0;
+}
+
+#historySearch {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text1);
+  font-size: 0.78rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+#historySearch:focus {
+  border-color: var(--accent);
+}
+
+.btn-clear-search {
+  padding: 4px 8px;
+  border-radius: var(--r2);
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: none;
+}
+
+.btn-clear-search:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
 
     .list-empty {
       display: flex;
@@ -2422,6 +2461,10 @@ details.issue-card[open] {
           <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
           <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
+        <div class="history-search-wrap">
+          <input type="text" id="historySearch" placeholder="Search history..." aria-label="Search history">
+          <button id="clearSearchBtn" class="btn-clear-search" aria-label="Clear search">✕</button>
+        </div>
         <div class="history-list" id="historyList" aria-live="polite">
           <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
         </div>
@@ -2436,10 +2479,6 @@ details.issue-card[open] {
         </div>
       </div>
     </div>
-
-  </div><!-- /app -->
-
-
     <!-- ── FOOTER ─────────────────────────────────────────────────── -->
     <footer>
       <div class="app" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:space-between;">
@@ -4064,16 +4103,28 @@ details.issue-card[open] {
       }
 
       function renderHistory() {
+        const query = (document.getElementById('historySearch')?.value || '').toLowerCase();
+        const filtered = history.filter(h =>
+          (h.lang || '').toLowerCase().includes(query) ||
+          (h.preview || '').toLowerCase().includes(query)
+        );
+
         if (!history.length) {
           historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
-        historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
-      <span class="history-lang">${h.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(h.preview)}…</span>
-      <span class="history-meta">${h.ts}</span>
-    </div>`).join('');
+      
+        if (!filtered.length) {
+          historyList.innerHTML = '<div class="list-empty">No results found.</div>';
+          return;
+        }
+
+        historyList.innerHTML = filtered.map(h => `
+          <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+            <span class="history-lang">${h.lang || '?'}</span>
+            <span class="history-thumb">${escHtml(h.preview)}…</span>
+            <span class="history-meta">${h.ts}</span>
+          </div>`).join('');
       }
 
       document.getElementById('clearHistoryBtn').addEventListener('click', () => {
@@ -4153,6 +4204,19 @@ details.issue-card[open] {
       }
 
       window.loadEntry = loadEntry;
+
+
+      document.getElementById('historySearch').addEventListener('input', function() {
+        const clearBtn = document.getElementById('clearSearchBtn');
+        clearBtn.style.display = this.value ? 'block' : 'none';
+        renderHistory();
+      });
+
+      document.getElementById('clearSearchBtn').addEventListener('click', function() {
+        document.getElementById('historySearch').value = '';
+        this.style.display = 'none';
+        renderHistory();
+      });
 
       /* ═══════════════════════════════════════════════════════════════
          FAVORITES
@@ -4449,6 +4513,7 @@ int main() {
         }
       });
     </script>
+  </div>
 </body>
 
 </html>
