@@ -751,3 +751,15 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+
+def test_analyze_concurrent_calls_idempotent(client):
+    """Regression test: rapid duplicate analyze calls should not crash."""
+    payload = {"code": "x = 1", "language": "python"}
+    
+    r1 = client.post("/analyze/", json=payload)
+    r2 = client.post("/analyze/", json=payload)
+    
+    assert r1.status_code == 200
+    assert r2.status_code == 200
+    assert r1.json()["explanation"]["summary"] == r2.json()["explanation"]["summary"]
+    
