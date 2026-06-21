@@ -755,3 +755,4 @@ def test_analyze_concurrent_calls_idempotent(client):
     assert r1.status_code == 200
     assert r2.status_code == 200
     assert r1.json()["explanation"]["summary"] == r2.json()["explanation"]["summary"]
+
