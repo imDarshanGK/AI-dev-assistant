@@ -1,9 +1,11 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator, model_validator
+
 import json
 from typing import Any
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .config import settings
 from .schema_validators import (
@@ -13,6 +15,7 @@ from .schema_validators import (
     validate_stored_result_json,
 )
 
+
 class CodeRequest(BaseModel):
     code: str
     language: str | None = None
@@ -21,7 +24,7 @@ class CodeRequest(BaseModel):
         "json_schema_extra": {
             "example": {
                 "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2",
-                "language": "python"
+                "language": "python",
             }
         }
     }
@@ -55,7 +58,7 @@ class Issue(BaseModel):
                 "suggestion": "Ensure the divisor is not zero.",
                 "severity": "error",
                 "code_snippet": "result = 10 / 0",
-                "code_context": "2: def divide(a):\n3:     # division by zero\n4:     result = 10 / 0"
+                "code_context": "2: def divide(a):\n3:     # division by zero\n4:     result = 10 / 0",
             }
         }
     }
@@ -81,7 +84,7 @@ class DebuggingResponse(BaseModel):
                         "suggestion": "Ensure the divisor is not zero.",
                         "severity": "error",
                         "code_snippet": "result = 10 / 0",
-                        "code_context": "2: def divide(a):\n3:     # division by zero\n4:     result = 10 / 0"
+                        "code_context": "2: def divide(a):\n3:     # division by zero\n4:     result = 10 / 0",
                     }
                 ],
                 "summary": "Found 1 issue(s): 1 error(s), 0 warning(s), 0 info.",
@@ -89,7 +92,7 @@ class DebuggingResponse(BaseModel):
                 "error_count": 1,
                 "warning_count": 0,
                 "info_count": 0,
-                "code": "def divide(a):\n    # division by zero\n    result = 10 / 0"
+                "code": "def divide(a):\n    # division by zero\n    result = 10 / 0",
             }
         }
     }
@@ -112,8 +115,8 @@ class Suggestion(BaseModel):
                 "line_number": 1,
                 "line_range": [1],
                 "code_context": "1: def calculate_area(radius):\n2:     import math",
-                "example": "\"\"\"Calculate the area of a circle given radius r.\"\"\"",
-                "priority": "medium"
+                "example": '"""Calculate the area of a circle given radius r."""',
+                "priority": "medium",
             }
         }
     }
@@ -145,7 +148,7 @@ class ZipAnalyzeFileResult(BaseModel):
                         "function_count": 1,
                         "class_count": 0,
                         "cyclomatic_complexity": 1,
-                        "complexity_risk": "low"
+                        "complexity_risk": "low",
                     },
                     "debugging": {
                         "issues": [],
@@ -154,16 +157,16 @@ class ZipAnalyzeFileResult(BaseModel):
                         "error_count": 0,
                         "warning_count": 0,
                         "info_count": 0,
-                        "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2"
+                        "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2",
                     },
                     "suggestions": {
                         "suggestions": [],
                         "overall_score": 100,
                         "grade": "A",
-                        "next_step": "Excellent code! Consider adding integration tests."
+                        "next_step": "Excellent code! Consider adding integration tests.",
                     },
-                    "analysis_time_ms": 5.67
-                }
+                    "analysis_time_ms": 5.67,
+                },
             }
         }
     }
@@ -210,7 +213,7 @@ class ZipAnalyzeResponse(BaseModel):
                                 "function_count": 1,
                                 "class_count": 0,
                                 "cyclomatic_complexity": 1,
-                                "complexity_risk": "low"
+                                "complexity_risk": "low",
                             },
                             "debugging": {
                                 "issues": [],
@@ -219,20 +222,20 @@ class ZipAnalyzeResponse(BaseModel):
                                 "error_count": 0,
                                 "warning_count": 0,
                                 "info_count": 0,
-                                "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2"
+                                "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2",
                             },
                             "suggestions": {
                                 "suggestions": [],
                                 "overall_score": 100,
                                 "grade": "A",
-                                "next_step": "Excellent code! Consider adding integration tests."
+                                "next_step": "Excellent code! Consider adding integration tests.",
                             },
-                            "analysis_time_ms": 5.67
-                        }
+                            "analysis_time_ms": 5.67,
+                        },
                     }
                 ],
                 "skipped_files": [],
-                "analysis_time_ms": 15.42
+                "analysis_time_ms": 15.42,
             }
         }
     }
@@ -400,6 +403,7 @@ class ReadinessResponse(BaseModel):
     status: str
     checks: dict[str, dict[str, Any]]
 
+
 class ShareCreateRequest(BaseModel):
     action: str = Field("share", min_length=3, max_length=50)
     code: str = Field(..., min_length=1, max_length=settings.max_code_chars)
@@ -534,14 +538,14 @@ class ExplanationResponse(BaseModel):
                     "Written in **Python** — 3 non-blank lines of code.",
                     "Defines 1 function(s): `calculate_area`.",
                     "Imports 1 module(s) — external dependencies present.",
-                    "Contains conditional logic — branching control flow."
+                    "Contains conditional logic — branching control flow.",
                 ],
                 "complexity": "Beginner",
                 "line_count": 3,
                 "function_count": 1,
                 "class_count": 0,
                 "cyclomatic_complexity": 1,
-                "complexity_risk": "low"
+                "complexity_risk": "low",
             }
         }
     }
@@ -563,13 +567,13 @@ class SuggestionsResponse(BaseModel):
                         "line_number": 1,
                         "line_range": [1],
                         "code_context": "1: def calculate_area(radius):\n2:     import math",
-                        "example": "\"\"\"Calculate the area of a circle given radius r.\"\"\"",
-                        "priority": "medium"
+                        "example": '"""Calculate the area of a circle given radius r."""',
+                        "priority": "medium",
                     }
                 ],
                 "overall_score": 93,
                 "grade": "A",
-                "next_step": "Excellent code! Address the medium-priority items next."
+                "next_step": "Excellent code! Address the medium-priority items next.",
             }
         }
     }
@@ -594,14 +598,14 @@ class AnalyzeResponse(BaseModel):
                     "key_points": [
                         "Written in **Python** — 3 non-blank lines of code.",
                         "Defines 1 function(s): `calculate_area`.",
-                        "Imports 1 module(s) — external dependencies present."
+                        "Imports 1 module(s) — external dependencies present.",
                     ],
                     "complexity": "Beginner",
                     "line_count": 3,
                     "function_count": 1,
                     "class_count": 0,
                     "cyclomatic_complexity": 1,
-                    "complexity_risk": "low"
+                    "complexity_risk": "low",
                 },
                 "debugging": {
                     "issues": [],
@@ -610,7 +614,7 @@ class AnalyzeResponse(BaseModel):
                     "error_count": 0,
                     "warning_count": 0,
                     "info_count": 0,
-                    "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2"
+                    "code": "def calculate_area(radius):\n    import math\n    return math.pi * radius ** 2",
                 },
                 "suggestions": {
                     "suggestions": [
@@ -620,15 +624,15 @@ class AnalyzeResponse(BaseModel):
                             "line_number": 1,
                             "line_range": [1],
                             "code_context": "1: def calculate_area(radius):\n2:     import math",
-                            "example": "\"\"\"Calculate the area of a circle given radius r.\"\"\"",
-                            "priority": "medium"
+                            "example": '"""Calculate the area of a circle given radius r."""',
+                            "priority": "medium",
                         }
                     ],
                     "overall_score": 93,
                     "grade": "A",
-                    "next_step": "Excellent code! Address the medium-priority items next."
+                    "next_step": "Excellent code! Address the medium-priority items next.",
                 },
-                "analysis_time_ms": 12.34
+                "analysis_time_ms": 12.34,
             }
         }
     }
