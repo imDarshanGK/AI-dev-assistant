@@ -17,25 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .middleware import error_classification_middleware
 from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import (
-    analyze,
-    auth,
-    chat,
-    collaboration,
-    debugging,
-    explanation,
-    history,
-    share,
-    subscribe,
-    suggestions,
-    upload_file,
-    user_data,
-)
-from .routers import health as health_router
-from .routers import metrics as metrics_router
-from .schemas import HealthResponse
-from .services import database
-from .services.scheduler import start_scheduler, stop_scheduler
+from .routers import analyze, auth, chat, collaboration, debugging, explanation
 from .routers import health as health_router
 from .routers import history
 from .routers import metrics as metrics_router

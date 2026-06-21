@@ -194,7 +194,9 @@ class CollaborationManager:
 
         if not isinstance(code, str):
             if socket is not None:
-                await socket.send_json({"type": "error", "detail": "code must be a string"})
+                await socket.send_json(
+                    {"type": "error", "detail": "code must be a string"}
+                )
             return
 
         if len(code) > MAX_CODE_CHARS:
@@ -277,7 +279,9 @@ class CollaborationManager:
 
         if not text:
             if socket is not None:
-                await socket.send_json({"type": "error", "detail": "comment text is required"})
+                await socket.send_json(
+                    {"type": "error", "detail": "comment text is required"}
+                )
             return
 
         if len(text) > MAX_COMMENT_CHARS:
