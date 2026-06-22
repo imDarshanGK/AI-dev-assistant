@@ -651,6 +651,7 @@
     .editor-wrap {
       position: relative;
       display: flex;
+      width: 100%;
       transition: border-color var(--transition);
     }
 
@@ -720,6 +721,7 @@
     }
 
     .line-numbers {
+      flex: 0 0 44px;
       padding: 16px 0 16px 12px;
       font-family: var(--font-mono);
       font-size: 13px;
@@ -739,6 +741,9 @@
 
     #codeEditor {
       width: 100%;
+      flex: 1 1 auto;
+      min-width: 0;
+      box-sizing: border-box;
       min-height: 300px;
       max-height: 500px;
       overflow-y: auto;
@@ -2112,6 +2117,7 @@ details.issue-card[open] {
   .features-row{gap:8px;padding:16px 0 40px}
   .feat-pill{padding:10px 14px;min-width:140px}
   .workspace{gap:14px}
+  #workspace > .panel{grid-column:1 !important;min-width:0}
   .panel-header{padding:12px 14px}
   .mode-row{gap:6px;padding:10px 14px}
   .mode-btn{padding:8px 4px;font-size:0.74rem}
@@ -2132,7 +2138,6 @@ details.issue-card[open] {
 @media(max-width:400px){
   .app{padding:0 14px 60px}
   .hero h1{font-size:1.9rem}
-  .feat-pill-info p{display:none}
   .lang-tab{padding:7px 10px;font-size:0.72rem}
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
@@ -2630,10 +2635,10 @@ details.issue-card[open] {
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
             <div class="mode-row" role="tablist" aria-label="Mode selector">
-              <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
-              <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
-              <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
-              <button class="mode-btn" data-mode="suggest" aria-pressed="false">Improve</button>
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
             </div>
           </div>
         </div>
