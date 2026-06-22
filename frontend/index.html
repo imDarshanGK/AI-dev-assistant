@@ -652,6 +652,7 @@
     .editor-wrap {
       position: relative;
       display: flex;
+      width: 100%;
       transition: border-color var(--transition);
     }
 
@@ -721,6 +722,7 @@
     }
 
     .line-numbers {
+      flex: 0 0 44px;
       padding: 16px 0 16px 12px;
       font-family: var(--font-mono);
       font-size: 13px;
@@ -740,6 +742,9 @@
 
     #codeEditor {
       width: 100%;
+      flex: 1 1 auto;
+      min-width: 0;
+      box-sizing: border-box;
       min-height: 300px;
       max-height: 500px;
       overflow-y: auto;
@@ -1833,6 +1838,47 @@ details.issue-card[open] {
       flex-shrink: 0;
     }
 
+    .history-score {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .history-score.score-good {
+      background: rgba(34, 212, 123, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(34, 212, 123, 0.25);
+    }
+    .history-score.score-warn {
+      background: rgba(245, 200, 66, 0.15);
+      color: var(--yellow);
+      border: 1px solid rgba(245, 200, 66, 0.25);
+    }
+    .history-score.score-bad {
+      background: rgba(242, 87, 87, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(242, 87, 87, 0.25);
+    }
+
+    .history-issues {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .history-issues.issues-clean {
+      background: rgba(34, 212, 123, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(34, 212, 123, 0.25);
+    }
+    .history-issues.issues-exist {
+      background: rgba(242, 87, 87, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(242, 87, 87, 0.25);
+    }
+
     .btn-clear {
       padding: 6px 14px;
       border-radius: var(--r2);
@@ -2072,6 +2118,7 @@ details.issue-card[open] {
   .features-row{gap:8px;padding:16px 0 40px}
   .feat-pill{padding:10px 14px;min-width:140px}
   .workspace{gap:14px}
+  #workspace > .panel{grid-column:1 !important;min-width:0}
   .panel-header{padding:12px 14px}
   .mode-row{gap:6px;padding:10px 14px}
   .mode-btn{padding:8px 4px;font-size:0.74rem}
@@ -2092,7 +2139,6 @@ details.issue-card[open] {
 @media(max-width:400px){
   .app{padding:0 14px 60px}
   .hero h1{font-size:1.9rem}
-  .feat-pill-info p{display:none}
   .lang-tab{padding:7px 10px;font-size:0.72rem}
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
@@ -2383,10 +2429,10 @@ details.issue-card[open] {
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
             <div class="mode-row" role="tablist" aria-label="Mode selector">
-              <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
-              <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
-              <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
-              <button class="mode-btn" data-mode="suggest" aria-pressed="false">Improve</button>
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
             </div>
           </div>
         </div>
@@ -2496,8 +2542,26 @@ details.issue-card[open] {
           <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
           <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
+        <div class="history-controls-row" style="display:flex; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 0.72rem; align-items:center; flex-wrap:wrap;">
+          <span style="color:var(--text3);" data-i18n="history_sort_label">Sort:</span>
+          <select id="historySortSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+            <option value="timestamp" data-i18n="history_sort_date">Date</option>
+            <option value="score" data-i18n="history_sort_score">Quality Score</option>
+            <option value="issue_count" data-i18n="history_sort_bugs">Bugs Scanned</option>
+          </select>
+          <span style="color:var(--text3); margin-left: 8px;" data-i18n="history_order_label">Order:</span>
+          <select id="historyOrderSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+            <option value="desc" data-i18n="history_order_desc">Desc</option>
+            <option value="asc" data-i18n="history_order_asc">Asc</option>
+          </select>
+        </div>
         <div class="history-list" id="historyList" aria-live="polite">
           <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
+        </div>
+        <div class="history-pagination-row" id="historyPagination" style="display:flex; justify-content:space-between; align-items:center; padding:8px 16px; border-top:1px solid var(--border); font-size:0.75rem;">
+          <button id="btnPrevHistory" class="btn-clear" style="padding:4px 10px; font-size:0.7rem;" disabled>&laquo; Prev</button>
+          <span id="historyPageNum" style="color:var(--text2); font-weight:600;">Page 1</span>
+          <button id="btnNextHistory" class="btn-clear" style="padding:4px 10px; font-size:0.7rem;" disabled>Next &raquo;</button>
         </div>
       </div>
       <div class="panel">
@@ -2604,6 +2668,13 @@ details.issue-card[open] {
           history_title: "Query History",
           favorites_title: "Saved Favorites",
           empty_history: "No history yet. Run your first analysis.",
+          history_sort_label: "Sort:",
+          history_sort_date: "Date",
+          history_sort_score: "Quality Score",
+          history_sort_bugs: "Bugs Scanned",
+          history_order_label: "Order:",
+          history_order_desc: "Desc",
+          history_order_asc: "Asc",
           empty_favorites: "No favorites saved yet.",
           btn_clear: "Clear",
           footer_license: "MIT License",
@@ -2701,6 +2772,13 @@ details.issue-card[open] {
           history_title: "வினவல் வரலாறு",
           favorites_title: "சேமிக்கப்பட்ட பிடித்தவை",
           empty_history: "இன்னும் வரலாறு இல்லை. உங்கள் முதல் பகுப்பாய்வை இயக்கவும்.",
+          history_sort_label: "வரிசைப்படுத்து:",
+          history_sort_date: "தேதி",
+          history_sort_score: "தர மதிப்பெண்",
+          history_sort_bugs: "கண்டறியப்பட்ட பிழைகள்",
+          history_order_label: "வரிசை:",
+          history_order_desc: "இறங்குவரிசை",
+          history_order_asc: "ஏறுவரிசை",
           empty_favorites: "இன்னும் பிடித்தவை எதுவும் சேமிக்கப்படவில்லை.",
           btn_clear: "அழி",
           footer_license: "எம்ஐடி உரிமம் (MIT License)",
@@ -2798,6 +2876,13 @@ details.issue-card[open] {
           history_title: "क्वेरी इतिहास",
           favorites_title: "सहेजे गए पसंदीदा",
           empty_history: "अभी तक कोई इतिहास नहीं है। अपना पहला विश्लेषण चलाएं।",
+          history_sort_label: "क्रमबद्ध करें:",
+          history_sort_date: "तारीख",
+          history_sort_score: "गुणवत्ता स्कोर",
+          history_sort_bugs: "स्कैन किए गए कीड़े",
+          history_order_label: "क्रम:",
+          history_order_desc: "अवरोही",
+          history_order_asc: "आरोही",
           empty_favorites: "अभी तक कोई पसंदीदा सहेजा नहीं गया है।",
           btn_clear: "साफ करें",
           footer_license: "एमआईटी लाइसेंस (MIT License)",
@@ -2895,6 +2980,13 @@ details.issue-card[open] {
           history_title: "Historique des requêtes",
           favorites_title: "Favoris enregistrés",
           empty_history: "Aucun historique pour le moment. Lancez votre première analyse.",
+          history_sort_label: "Trier par :",
+          history_sort_date: "Date",
+          history_sort_score: "Score de qualité",
+          history_sort_bugs: "Bugs détectés",
+          history_order_label: "Ordre :",
+          history_order_desc: "Décroissant",
+          history_order_asc: "Croissant",
           empty_favorites: "Aucun favori enregistré pour le moment.",
           btn_clear: "Effacer",
           footer_license: "Licence MIT",
@@ -3043,7 +3135,7 @@ details.issue-card[open] {
         syncApiStatusText();
 
         updateEditor();
-        renderHistory();
+        fetchHistory();
         renderFavorites();
         if (currentResult) {
           renderResults(currentResult, editor.value);
@@ -4119,52 +4211,264 @@ details.issue-card[open] {
       }
 
       /* ═══════════════════════════════════════════════════════════════
-         HISTORY
+         HISTORY (Paginated & Sorted)
       ═══════════════════════════════════════════════════════════════ */
-      function addToHistory(code, result) {
-        const lang = result.explanation?.language || result.debugging?.language||result.suggestions?.language||selectedLang;
-        const entry = {
+      let historyOffset = 0;
+      const historyLimit = 10;
+      let historyTotal = 0;
+      let historySortBy = 'timestamp';
+      let historyOrder = 'desc';
+
+      async function addToHistory(code, result) {
+        const lang = result.explanation?.language || result.debugging?.language || result.suggestions?.language || selectedLang;
+        
+        let issue_count = 0;
+        if (result.debugging?.issues) {
+          issue_count = result.debugging.issues.length;
+        } else if (result.files) {
+          issue_count = result.files.reduce((acc, f) => acc + (f.analysis?.debugging?.issues?.length || 0), 0);
+        }
+
+        // 1. Always save locally as a fallback
+        const localEntry = {
           id: Date.now(),
           code,
           result,
           lang,
-          ts: new Date().toLocaleTimeString(),
+          ts: new Date().toISOString(),
           preview: code.slice(0, 60).replace(/\n/g, ' '),
+          score: result.suggestions?.overall_score ?? result.overall_project_score ?? null,
+          issue_count: issue_count
         };
-        history.unshift(entry);
-        if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-        localStorage.setItem('qyx_history', JSON.stringify(history));
+        let localHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+        localHistory.unshift(localEntry);
+        if (localHistory.length > MAX_HISTORY) localHistory = localHistory.slice(0, MAX_HISTORY);
+        localStorage.setItem('qyx_history', JSON.stringify(localHistory));
+
+        // 2. Save to backend if connected
+        const apiBase = getApiBase();
+        try {
+          const score = result.suggestions?.overall_score ?? result.overall_project_score ?? null;
+          await fetch(`${apiBase}/history/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code,
+              language: lang,
+              score,
+              issue_count,
+              result_json: JSON.stringify(result)
+            })
+          });
+          historyOffset = 0;
+          await fetchHistory();
+        } catch (err) {
+          loadLocalHistory();
+        }
+      }
+
+      async function fetchHistory() {
+        const apiBase = getApiBase();
+        try {
+          const res = await fetch(`${apiBase}/history/?limit=${historyLimit}&offset=${historyOffset}&sort_by=${historySortBy}&order=${historyOrder}`);
+          if (res.ok) {
+            const data = await res.json();
+            history = data.items;
+            historyTotal = data.meta.total;
+            renderHistory();
+            updatePaginationUI();
+            return;
+          }
+        } catch (err) {
+          // Fallback to local storage on fetch error
+        }
+        loadLocalHistory();
+      }
+
+      function loadLocalHistory() {
+        let localHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+        
+        // Sort local history
+        localHistory.sort((a, b) => {
+          let valA, valB;
+          if (historySortBy === 'score') {
+            valA = a.score !== undefined ? a.score : (a.result?.suggestions?.overall_score || a.result?.overall_project_score || null);
+            valB = b.score !== undefined ? b.score : (b.result?.suggestions?.overall_score || b.result?.overall_project_score || null);
+            if (valA === null || valA === undefined) valA = -1;
+            if (valB === null || valB === undefined) valB = -1;
+          } else if (historySortBy === 'issue_count') {
+            if (a.issue_count !== undefined) {
+              valA = a.issue_count;
+            } else if (a.result) {
+              valA = a.result.debugging?.issues?.length || (a.result.files ? a.result.files.reduce((acc, f) => acc + (f.analysis?.debugging?.issues?.length || 0), 0) : 0);
+            } else {
+              valA = 0;
+            }
+            if (b.issue_count !== undefined) {
+              valB = b.issue_count;
+            } else if (b.result) {
+              valB = b.result.debugging?.issues?.length || (b.result.files ? b.result.files.reduce((acc, f) => acc + (f.analysis?.debugging?.issues?.length || 0), 0) : 0);
+            } else {
+              valB = 0;
+            }
+          } else {
+            valA = a.id || 0;
+            valB = b.id || 0;
+          }
+          
+          if (valA < valB) return historyOrder === 'asc' ? -1 : 1;
+          if (valA > valB) return historyOrder === 'asc' ? 1 : -1;
+          return b.id - a.id; // stable tie-breaker
+        });
+
+        historyTotal = localHistory.length;
+        history = localHistory.slice(historyOffset, historyOffset + historyLimit);
+        
         renderHistory();
+        updatePaginationUI();
       }
 
       function renderHistory() {
-        if (!history.length) {
-          historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
+        const listContainer = document.getElementById('historyList');
+        if (!listContainer) return;
+
+        if (!history || !history.length) {
+          listContainer.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
-        historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
-      <span class="history-lang">${h.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(h.preview)}…</span>
-      <span class="history-meta">${h.ts}</span>
-    </div>`).join('');
+
+        listContainer.innerHTML = history.map(h => {
+          const lang = h.language || h.lang || '?';
+          const preview = h.code_preview || h.preview || '';
+          
+          let displayTime = h.timestamp || h.ts || '';
+          if (displayTime.includes('T') || displayTime.includes('-')) {
+            try {
+              let isoStr = displayTime;
+              if (!isoStr.endsWith('Z') && !isoStr.includes('T')) {
+                isoStr = isoStr.replace(' ', 'T') + 'Z';
+              }
+              const d = new Date(isoStr);
+              const day = String(d.getDate()).padStart(2, '0');
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const year = d.getFullYear();
+              const hours = String(d.getHours()).padStart(2, '0');
+              const minutes = String(d.getMinutes()).padStart(2, '0');
+              const seconds = String(d.getSeconds()).padStart(2, '0');
+              displayTime = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+            } catch (e) {}
+          }
+
+          const score = h.score !== undefined ? h.score : (h.result?.suggestions?.overall_score || h.result?.overall_project_score || null);
+          let issueCount = 0;
+          if (h.issue_count !== undefined) {
+            issueCount = h.issue_count;
+          } else if (h.result) {
+            if (h.result.debugging?.issues) {
+              issueCount = h.result.debugging.issues.length;
+            } else if (h.result.files) {
+              issueCount = h.result.files.reduce((acc, f) => acc + (f.analysis?.debugging?.issues?.length || 0), 0);
+            }
+          }
+
+          let scoreClass = 'score-bad';
+          if (score >= 80) scoreClass = 'score-good';
+          else if (score >= 60) scoreClass = 'score-warn';
+          const scoreHtml = score !== null ? `<span class="history-score ${scoreClass}">Score: ${score}%</span>` : '';
+
+          let issuesClass = issueCount === 0 ? 'issues-clean' : 'issues-exist';
+          const issuesHtml = `<span class="history-issues ${issuesClass}">${issueCount} ${issueCount === 1 ? 'issue' : 'issues'}</span>`;
+
+          const label = getTranslation('history_entry_label')
+            .replace('{lang}', lang)
+            .replace('{time}', displayTime);
+
+          return `
+            <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${label}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+              <span class="history-lang">${lang}</span>
+              <span class="history-thumb">${escHtml(preview)}…</span>
+              <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
+                ${scoreHtml}
+                ${issuesHtml}
+              </div>
+              <span class="history-meta">${displayTime}</span>
+            </div>`;
+        }).join('');
       }
 
-      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      function updatePaginationUI() {
+        const btnPrev = document.getElementById('btnPrevHistory');
+        const btnNext = document.getElementById('btnNextHistory');
+        const pageNum = document.getElementById('historyPageNum');
+        if (!btnPrev || !btnNext || !pageNum) return;
+
+        const currentPage = Math.floor(historyOffset / historyLimit) + 1;
+        const totalPages = Math.max(Math.ceil(historyTotal / historyLimit), 1);
+        pageNum.textContent = `Page ${currentPage} of ${totalPages}`;
+
+        btnPrev.disabled = historyOffset <= 0;
+        btnNext.disabled = historyOffset + historyLimit >= historyTotal;
+      }
+
+      document.getElementById('btnPrevHistory')?.addEventListener('click', () => {
+        if (historyOffset > 0) {
+          historyOffset = Math.max(0, historyOffset - historyLimit);
+          fetchHistory();
+        }
+      });
+
+      document.getElementById('btnNextHistory')?.addEventListener('click', () => {
+        if (historyOffset + historyLimit < historyTotal) {
+          historyOffset += historyLimit;
+          fetchHistory();
+        }
+      });
+
+      document.getElementById('historySortSelect')?.addEventListener('change', e => {
+        historySortBy = e.target.value;
+        historyOffset = 0;
+        fetchHistory();
+      });
+
+      document.getElementById('historyOrderSelect')?.addEventListener('change', e => {
+        historyOrder = e.target.value;
+        historyOffset = 0;
+        fetchHistory();
+      });
+
+      document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
 
-        history = [];
+        const apiBase = getApiBase();
+        try {
+          await fetch(`${apiBase}/history/`, { method: 'DELETE' });
+        } catch (err) {}
+
         localStorage.removeItem('qyx_history');
-        renderHistory();
+        historyOffset = 0;
+        await fetchHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
-      document.getElementById('downloadJsonBtn').addEventListener('click', () => {
-        if (!history || history.length === 0) {
+      async function getHistoryForDownload() {
+        const apiBase = getApiBase();
+        try {
+          const res = await fetch(`${apiBase}/history/?limit=1000`);
+          if (res.ok) {
+            const data = await res.json();
+            return data.items;
+          }
+        } catch (e) {}
+        return JSON.parse(localStorage.getItem('qyx_history') || '[]');
+      }
+
+      document.getElementById('downloadJsonBtn').addEventListener('click', async () => {
+        const downloadItems = await getHistoryForDownload();
+        if (!downloadItems || downloadItems.length === 0) {
           toast('No history to download', 'info');
           return;
         }
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(downloadItems, null, 2));
         const dlNode = document.createElement('a');
         dlNode.setAttribute("href", dataStr);
         dlNode.setAttribute("download", "history.json");
@@ -4174,17 +4478,18 @@ details.issue-card[open] {
         toast('Downloaded history.json', 'success');
       });
 
-      document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-        if (!history || history.length === 0) {
+      document.getElementById('downloadCsvBtn').addEventListener('click', async () => {
+        const downloadItems = await getHistoryForDownload();
+        if (!downloadItems || downloadItems.length === 0) {
           toast('No history to download', 'info');
           return;
         }
 
-        const headers = Object.keys(history[0]);
+        const headers = Object.keys(downloadItems[0]);
         const csvRows = [];
         csvRows.push(headers.join(','));
 
-        for (const row of history) {
+        for (const row of downloadItems) {
           const values = headers.map(header => {
             let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
             val = val.replace(/"/g, '""');
@@ -4202,6 +4507,7 @@ details.issue-card[open] {
         dlNode.remove();
         toast('Downloaded history.csv', 'success');
       });
+
       function normalizeSavedEntryId(id) {
         const normalizedId = Number(id);
         return Number.isNaN(normalizedId) ? null : normalizedId;
@@ -4219,9 +4525,27 @@ details.issue-card[open] {
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
 
-      function loadEntry(id) {
+      async function loadEntry(id) {
         const normalizedId = normalizeSavedEntryId(id);
         if (normalizedId === null) return;
+
+        const apiBase = getApiBase();
+        try {
+          const res = await fetch(`${apiBase}/history/${normalizedId}`);
+          if (res.ok) {
+            const entry = await res.json();
+            const hydrated = {
+              code: entry.code || '',
+              lang: entry.language || 'python',
+              result: entry.result_json ? JSON.parse(entry.result_json) : null
+            };
+            restoreSavedEntry(hydrated);
+            return;
+          }
+        } catch (err) {}
+
+        // Fallback to local
+        const history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
         const entry = history.find(h => h.id === normalizedId);
         restoreSavedEntry(entry);
       }
@@ -4238,7 +4562,7 @@ details.issue-card[open] {
           code: editor.value,
           result: currentResult,
           lang: currentResult.explanation?.language || selectedLang,
-          ts: new Date().toLocaleDateString(),
+          ts: new Date().toISOString(),
           preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
         };
         favorites.unshift(entry);
@@ -4253,12 +4577,58 @@ details.issue-card[open] {
           favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
           return;
         }
-        favList.innerHTML = favorites.map(f => `
-    <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${getTranslation('favorite_entry_label').replace('{lang}', f.lang || '?').replace('{time}', f.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
-      <span class="history-lang">${f.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(f.preview)}…</span>
-      <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-    </div>`).join('');
+        favList.innerHTML = favorites.map(f => {
+          const score = f.result?.suggestions?.overall_score || f.result?.overall_project_score || null;
+          let issueCount = 0;
+          if (f.result) {
+            if (f.result.debugging?.issues) {
+              issueCount = f.result.debugging.issues.length;
+            } else if (f.result.files) {
+              issueCount = f.result.files.reduce((acc, file) => acc + (file.analysis?.debugging?.issues?.length || 0), 0);
+            }
+          }
+          
+          let displayTime = f.ts || '';
+          if (displayTime.includes('T') || displayTime.includes('-')) {
+            try {
+              let isoStr = displayTime;
+              if (!isoStr.endsWith('Z') && !isoStr.includes('T')) {
+                isoStr = isoStr.replace(' ', 'T') + 'Z';
+              }
+              const d = new Date(isoStr);
+              const day = String(d.getDate()).padStart(2, '0');
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const year = d.getFullYear();
+              const hours = String(d.getHours()).padStart(2, '0');
+              const minutes = String(d.getMinutes()).padStart(2, '0');
+              const seconds = String(d.getSeconds()).padStart(2, '0');
+              displayTime = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+            } catch (e) {}
+          }
+
+          let scoreClass = 'score-bad';
+          if (score >= 80) scoreClass = 'score-good';
+          else if (score >= 60) scoreClass = 'score-warn';
+          const scoreHtml = score !== null ? `<span class="history-score ${scoreClass}">Score: ${score}%</span>` : '';
+
+          let issuesClass = issueCount === 0 ? 'issues-clean' : 'issues-exist';
+          const issuesHtml = `<span class="history-issues ${issuesClass}">${issueCount} ${issueCount === 1 ? 'issue' : 'issues'}</span>`;
+
+          const label = getTranslation('favorite_entry_label')
+            .replace('{lang}', f.lang || '?')
+            .replace('{time}', displayTime);
+
+          return `
+            <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${label}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
+              <span class="history-lang">${f.lang || '?'}</span>
+              <span class="history-thumb">${escHtml(f.preview)}…</span>
+              <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
+                ${scoreHtml}
+                ${issuesHtml}
+              </div>
+              <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+            </div>`;
+        }).join('');
       }
 
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
@@ -4480,7 +4850,7 @@ int main() {
       setAppLanguage(appLang);
       syncApiStatusText();
 
-      renderHistory();
+      fetchHistory();
       renderFavorites();
 
       // Save API URL
