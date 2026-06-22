@@ -5,7 +5,6 @@ All notable changes to QyverixAI are documented in this file.
 ## [Unreleased]
 
 ### Added
-- Added Markdown and PDF export options for analysis reports (#748)
 - Added a dedicated changelog page in `docs/CHANGELOG.md`.
 - Added changelog guidance for contributors and PR authors.
 
