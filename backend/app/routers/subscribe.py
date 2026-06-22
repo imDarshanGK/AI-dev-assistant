@@ -76,7 +76,7 @@ def unsubscribe(body: UnsubscribeRequest, db: Session = Depends(get_db)):
         )
 
     if sub.unsubscribe_token != body.token:
-        raise HTTPException(status_code=403, detail="Invalid unsubscribe token.")
+        raise HTTPException(status_code=403, detail="Invalid or expired unsubscribe token. Please request a new unsubscribe link.")
 
     sub.is_active = False
     db.commit()

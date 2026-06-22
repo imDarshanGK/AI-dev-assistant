@@ -110,4 +110,5 @@ def test_me_rejects_missing_and_invalid_token(client):
         headers={"Authorization": "Bearer not-a-real-token"},
     )
     assert invalid_token_response.status_code == 401
-    assert "invalid token" in invalid_token_response.json()["detail"].lower()
+    assert "invalid" in invalid_token_response.json()["detail"].lower()
+    assert "token" in invalid_token_response.json()["detail"].lower()

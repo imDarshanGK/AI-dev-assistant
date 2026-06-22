@@ -41,7 +41,7 @@ async def metrics(request: Request) -> Response:
         if provided != required_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="invalid metrics token",
+                detail="Invalid or missing metrics token. Please provide a valid token to access metrics.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 

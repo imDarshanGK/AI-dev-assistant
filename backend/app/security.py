@@ -54,20 +54,20 @@ def get_current_user(
 ) -> User:
     if credentials is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required. Please provide a valid API key in the Authorization header."
         )
 
     try:
         user_id = decode_access_token(credentials.credentials)
     except Exception:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication token. The token provided is malformed or unrecognized."
         )
 
     user = db.get(User, user_id)
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed. No user associated with the provided token was found."
         )
 
     return user
