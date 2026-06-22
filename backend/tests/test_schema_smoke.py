@@ -239,10 +239,12 @@ def test_history_db_init():
 def test_history_save_and_retrieve():
     """save_entry() and get_entries() must round-trip a record."""
     asyncio.run(_hist_db_module.init_db())
-    row_id = asyncio.run(_hist_db_module.save_entry("print('smoke')", "python", 95, 1))
+    row_id = asyncio.run(
+        _hist_db_module.save_entry(1, "print('smoke')", "python", 95, 1)
+    )
     assert isinstance(row_id, int) and row_id > 0
 
-    entries = asyncio.run(_hist_db_module.get_entries(limit=10))
+    entries = asyncio.run(_hist_db_module.get_entries(user_id=1, limit=10))
     assert any(e["language"] == "python" for e in entries)
 
 
@@ -250,9 +252,11 @@ def test_history_fts5_search():
     """FTS5 MATCH query must return rows containing the search term."""
     asyncio.run(_hist_db_module.init_db())
     asyncio.run(
-        _hist_db_module.save_entry("def unique_smoke_fn(): pass", "python", 80, 0)
+        _hist_db_module.save_entry(1, "def unique_smoke_fn(): pass", "python", 80, 0)
     )
-    results = asyncio.run(_hist_db_module.search_entries("unique_smoke_fn"))
+    results = asyncio.run(
+        _hist_db_module.search_entries(user_id=1, q="unique_smoke_fn")
+    )
     assert any("unique_smoke_fn" in e["code_preview"] for e in results)
 
 
@@ -260,7 +264,7 @@ def test_history_delete():
     """delete_entry() must remove a record and return True."""
     asyncio.run(_hist_db_module.init_db())
     row_id = asyncio.run(
-        _hist_db_module.save_entry("to_be_deleted = True", "python", 50, 3)
+        _hist_db_module.save_entry(1, "to_be_deleted = True", "python", 50, 3)
     )
-    deleted = asyncio.run(_hist_db_module.delete_entry(row_id))
+    deleted = asyncio.run(_hist_db_module.delete_entry(row_id, user_id=1))
     assert deleted is True
