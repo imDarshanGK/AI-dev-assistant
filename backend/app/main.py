@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .logging_config import configure_logging
+from .middleware import error_classification_middleware
 from .observability import initialise_app_info, prometheus_metrics_middleware
 from .routers import analyze, auth, chat, debugging, explanation
 from .routers import health as health_router
@@ -95,6 +96,7 @@ app.add_middleware(
 # METRICS_ENABLED is false, so installing it unconditionally costs nothing
 # operationally and lets operators flip the flag without a restart.
 app.middleware("http")(prometheus_metrics_middleware)
+app.middleware("http")(error_classification_middleware)
 
 
 @app.middleware("http")
