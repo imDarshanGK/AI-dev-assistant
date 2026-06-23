@@ -423,6 +423,16 @@ class UserProfileResponse(BaseModel):
     )
 
 
+class MessageResponse(BaseModel):
+    """Generic success message returned by actions without a richer payload."""
+
+    message: str = Field(
+        ...,
+        description="Human-readable description of the action's outcome.",
+        example="Logged out; token revoked.",
+    )
+
+
 # ── Health ────────────────────────────────────────────────────────────────────
 class HealthResponse(BaseModel):
     """Generic health / status response."""
