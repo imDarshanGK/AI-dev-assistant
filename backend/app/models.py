@@ -17,6 +17,23 @@ class User(Base):
         DateTime, default=lambda: datetime.now(UTC)
     )
 
+    deletion_status: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        default="active",
+        server_default="active",
+        index=True,
+    )
+    deletion_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+    deletion_scheduled_for: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+        index=True,
+    )
+
     histories = relationship(
         "QueryHistory", back_populates="user", cascade="all, delete-orphan"
     )
@@ -54,6 +71,21 @@ class FavoriteResult(Base):
     )
 
     user = relationship("User", back_populates="favorites")
+
+
+class UserDataPurgeAudit(Base):
+    __tablename__ = "user_data_purge_audit"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id_hash: Mapped[str] = mapped_column(String(128), index=True)
+    email_hash: Mapped[str] = mapped_column(String(128), index=True)
+    history_deleted: Mapped[int] = mapped_column(Integer, default=0)
+    favorites_deleted: Mapped[int] = mapped_column(Integer, default=0)
+    requested_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(UTC)
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="completed")
 
 
 class DigestSubscription(Base):
