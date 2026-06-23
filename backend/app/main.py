@@ -18,7 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from .logging_config import configure_logging
 
 from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import analyze, auth, chat, debugging, explanation
+from .routers import analyze, auth, chat, collaboration, debugging, explanation
 from .routers import health as health_router
 from .routers import history
 from .routers import metrics as metrics_router
@@ -220,6 +220,11 @@ app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
+app.include_router(
+    collaboration.router,
+    prefix="/collaboration",
+    tags=["Collaboration"],
+)
 
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)
@@ -252,9 +257,8 @@ async def root():
             "/chat/",
             "/user/",
             "/analyze/zip/",
-            "/subscribe/",
-            "/share/",
             "/history/",
+            "/collaboration/ws/{session_id}",
         ],
     }
 
@@ -289,6 +293,7 @@ async def health_check():
             "/user/",
             "/analyze/zip/",
             "/history/",
+            "/collaboration/ws/{session_id}",
         ],
     }
 
