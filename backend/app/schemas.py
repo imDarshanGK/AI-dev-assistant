@@ -352,6 +352,21 @@ class SignupRequest(BaseModel):
         example="supersecret123",
     )
 
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        return v
+
 
 class LoginRequest(BaseModel):
     """Request body for user login."""
@@ -427,21 +442,6 @@ class HealthResponse(BaseModel):
         example=["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
     )
 
-
-    @field_validator("email")
-    @classmethod
-    def email_must_be_valid(cls, v: str) -> str:
-        v = v.strip().lower()
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Invalid email address")
-        return v
-
-    @field_validator("password")
-    @classmethod
-    def password_min_length(cls, v: str) -> str:
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters long")
-        return v
 
 class LivenessResponse(BaseModel):
     """Liveness probe response — emitted only when the process can answer HTTP."""
@@ -649,22 +649,6 @@ class FavoriteRecord(BaseModel):
 
 
 # ── Share ─────────────────────────────────────────────────────────────────────
-class LivenessResponse(BaseModel):
-    """Minimal liveness response — emitted only when the process can answer."""
-
-    status: str  # always "ok" when this response is returned
-
-
-class ReadinessResponse(BaseModel):
-    """Readiness response with a per-dependency breakdown.
-
-    ``status`` is ``"ok"`` only when every entry in ``checks`` has ``ok=True``.
-    Each ``checks`` entry contains at minimum ``ok`` (bool) and ``elapsed_ms``
-    (float), plus an optional ``error`` field when the check failed.
-    """
-
-    status: str
-    checks: dict[str, dict[str, Any]]
 
 
 class ShareCreateRequest(BaseModel):
@@ -850,39 +834,6 @@ class ChatMessageRequest(BaseModel):
 
 
 class ChatMessageResponse(BaseModel):
-    provider: str
-    model: str
-    mode: str
-    reply: str
-
-
-# ── Explanation / Debugging / Suggestions response models ───────────────────
-class ExplanationResponse(BaseModel):
-    language: str
-    summary: str
-    key_points: list[str]
-    complexity: str
-    line_count: int
-    function_count: int
-    class_count: int
-    cyclomatic_complexity: int
-    complexity_risk: str
-
-
-class SuggestionsResponse(BaseModel):
-    suggestions: list[Suggestion]
-    overall_score: int
-    grade: str
-    next_step: str
-
-
-class AnalyzeResponse(BaseModel):
-    provider: str
-    model: str
-    explanation: ExplanationResponse
-    debugging: DebuggingResponse
-    suggestions: SuggestionsResponse
-    analysis_time_ms: float | None = None
     """Extended chat response with provider and mode metadata."""
 
     provider: str = Field(
