@@ -12,6 +12,11 @@ All notable changes to QyverixAI are documented in this file.
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.
 
+### Fixed
+- Hardcoded Secret detector now flags camelCase and CONSTANT_CASE credential
+  identifiers (e.g. `apiKey`, `authToken`, `secretKey`, `API_KEY`), not just
+  literal snake_case names, across all supported languages (#1107).
+
 ### Security
 - Hardened authentication against token replay: access tokens now carry a
   unique `jti`, and revoked tokens (e.g. after logout) are rejected via a
