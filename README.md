@@ -635,6 +635,21 @@ A drop-in Prometheus scrape config is provided at [`deploy/prometheus/scrape-con
 
 ---
 
+### System diagnostics
+
+`GET /diag` returns a small JSON snapshot of process/system **memory, CPU, and queue depth** for quick troubleshooting. It is locked down by default: disabled unless `DIAG_ENABLED=true`, and even then it refuses to serve unless an admin token and/or an IP allowlist is configured. A request is authorised by a matching bearer token **or** an allowlisted client IP. The output is intentionally minimal and never includes environment variables, secrets, or request contents.
+
+| Variable | Default | Description |
+|---|---|---|
+| `DIAG_ENABLED` | `false` | Master switch. While disabled the endpoint returns `404`. |
+| `DIAG_AUTH_TOKEN` | — | Admin bearer token. When set, `Authorization: Bearer <token>` grants access. |
+| `DIAG_IP_ALLOWLIST` | — | Comma-separated IPs/CIDRs allowed to access (e.g. `10.0.0.0/8,127.0.0.1`). |
+| `DIAG_TRUST_FORWARDED_FOR` | `false` | Trust the left-most `X-Forwarded-For` entry for the allowlist check. Only enable behind a trusted proxy. |
+
+See [`docs/admin.md`](docs/admin.md) for the full request/response reference.
+
+---
+
 ## Optional LLM Integration
 
 QyverixAI works fully offline with its built-in rule-based engine. To enable richer AI-powered analysis and a live AI chat at `/chat`, add these environment variables:

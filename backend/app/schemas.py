@@ -487,6 +487,32 @@ class ReadinessResponse(BaseModel):
     )
 
 
+class DiagnosticsResponse(BaseModel):
+    """Diagnostics payload for the protected `/diag` endpoint.
+
+    Intentionally limited to non-sensitive operational signals: process and
+    system memory, CPU, and queue depth. It never includes environment
+    variables, secrets, connection strings, tokens, or request contents.
+
+    Attributes:
+        status: Always `ok` when a response is returned.
+        timestamp: ISO-8601 UTC time the snapshot was taken.
+        uptime_seconds: Best-effort process uptime in seconds.
+        process: Per-process memory and CPU usage.
+        system: Host-level CPU and memory usage.
+        queue: Queue-depth signals (in-flight requests, pending jobs).
+        runtime: Interpreter and platform metadata.
+    """
+
+    status: str
+    timestamp: str
+    uptime_seconds: float
+    process: dict[str, Any]
+    system: dict[str, Any]
+    queue: dict[str, Any]
+    runtime: dict[str, Any]
+
+
 # ── Subscribe ─────────────────────────────────────────────────────────────────
 class SubscribeRequest(BaseModel):
     """Request body for newsletter subscription."""
