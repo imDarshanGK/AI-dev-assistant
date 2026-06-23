@@ -117,6 +117,7 @@ class TestGetCurrentUser:
 
         with pytest.raises(HTTPException) as exc:
             import asyncio
+
             asyncio.run(_call())
         assert exc.value.status_code == 401
         assert "Authentication required" in exc.value.detail
@@ -135,6 +136,7 @@ class TestGetCurrentUser:
 
         with pytest.raises(HTTPException) as exc:
             import asyncio
+
             asyncio.run(_call())
         assert exc.value.status_code == 401
         assert "Invalid token" in exc.value.detail
@@ -153,6 +155,7 @@ class TestGetCurrentUser:
 
         with pytest.raises(HTTPException) as exc:
             import asyncio
+
             asyncio.run(_call())
         assert exc.value.status_code == 401
         assert "User not found" in exc.value.detail
@@ -170,6 +173,7 @@ class TestGetCurrentUser:
             return get_current_user(credentials=fake_creds, db=db)
 
         import asyncio
+
         result = asyncio.run(_call())
         assert result is fake_user
         db.get.assert_called_once()
