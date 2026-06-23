@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .logging_config import configure_logging
-from .middleware import error_classification_middleware
+
 from .observability import initialise_app_info, prometheus_metrics_middleware
 from .routers import analyze, auth, chat, debugging, explanation
 from .routers import health as health_router
