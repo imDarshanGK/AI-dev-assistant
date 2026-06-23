@@ -69,6 +69,7 @@ The entire frontend is `frontend/index.html` — one self-contained file. No bui
 ### 📖 Documentation
 - Fix typos, improve clarity, add examples
 - Update the README if you add/change a feature
+- Add changelog entries for user-facing changes and fixes in `docs/CHANGELOG.md`
 - Add docstrings to functions that lack them
 
 ### 🧪 Tests
@@ -85,6 +86,22 @@ The entire frontend is `frontend/index.html` — one self-contained file. No bui
 - **Docstrings**: All public functions and classes need docstrings.
 - **Tests**: Every new feature or bug fix needs a corresponding test.
 - **No secrets**: Never commit API keys, passwords, or credentials.
+
+---
+
+## Large Files Policy
+
+CI automatically rejects PRs that contain files larger than **5 MB**. This keeps the repo lean and CI fast.
+
+### What to do if your PR fails
+
+- Check which files triggered the failure in the CI logs
+- Remove the oversized files from the commit
+- For large assets (screenshots, datasets, binaries), use **Git LFS** or an external hosting service and link to them in the README
+
+### Configure exceptions
+
+If you believe a file legitimately needs to exceed 5 MB (e.g., a bundled model or a large screenshot), add an exception to the check by modifying the comparison in `.github/workflows/check-large-files.yml`.
 
 ---
 
@@ -130,8 +147,10 @@ Before opening a PR, confirm:
 - [ ] New feature has at least one test
 - [ ] Code has type hints and docstrings
 - [ ] README updated if behavior changed
+- [ ] `docs/CHANGELOG.md` updated if this PR introduces user-facing changes or fixes
 - [ ] Branch is up-to-date with `main`
 - [ ] PR description explains *what* and *why*
+- [ ] No files exceed 5 MB (checked by CI)
 
 ---
 ## PR Process Examples
