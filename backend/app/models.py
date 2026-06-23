@@ -1,6 +1,13 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Index,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -26,6 +33,13 @@ class User(Base):
 
 class QueryHistory(Base):
     __tablename__ = "query_history"
+    __table_args__ = (
+        Index(
+        "idx_query_history_user_created",
+        "user_id",
+        "created_at",
+    ),
+)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
@@ -41,6 +55,13 @@ class QueryHistory(Base):
 
 class FavoriteResult(Base):
     __tablename__ = "favorite_results"
+    __table_args__ = (
+        Index(
+        "idx_favorite_results_user_created",
+        "user_id",
+        "created_at",
+    ),
+)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
@@ -57,6 +78,13 @@ class FavoriteResult(Base):
 
 class DigestSubscription(Base):
     __tablename__ = "digest_subscriptions"
+    __table_args__ = (
+        Index(
+        "idx_digest_subscriptions_active_email",
+        "is_active",
+        "email",
+    ),
+)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
