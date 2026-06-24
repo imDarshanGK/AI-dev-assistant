@@ -9,6 +9,7 @@ import re
 import time
 from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+from .profiler import profile, profile_block
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -803,6 +804,7 @@ BUG_PATTERNS: list[BugPattern] = [
 ]
 
 
+@profile
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
 
@@ -863,11 +865,12 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
     if language == "Python":
         try:
-            for issue in ast_analyze(code):
-                key = f"{issue['type']}:{issue['line']}"
-                if key not in seen:
-                    seen.add(key)
-                    found.append(issue)
+            with profile_block("ast_analyze"):
+                for issue in ast_analyze(code):
+                    key = f"{issue['type']}:{issue['line']}"
+                    if key not in seen:
+                        seen.add(key)
+                        found.append(issue)
         except SyntaxError:
             pass
 
@@ -875,6 +878,7 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
 
 # ── Suggestion Engine ──────────────────────────────────────────────────────────
+@profile
 def run_suggestions(code: str, language: str) -> dict:
     """Generate improvement suggestions for the provided source code.
 
@@ -1362,6 +1366,7 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
 
 
 # ── Combined ───────────────────────────────────────────────────────────────────
+@profile
 def full_analysis(code: str, language_hint: str | None = None) -> dict:
     """Run the complete analysis pipeline for the provided source code.
 
