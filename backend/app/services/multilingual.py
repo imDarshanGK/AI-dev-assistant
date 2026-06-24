@@ -196,20 +196,19 @@ def get_system_prompt(ai_language: str | None = None) -> str:
             "\nLANGUAGE INSTRUCTION:\nYou MUST respond ENTIRELY in {language_name} ({language_native})."
             "\nThis applies to ALL parts of your response without exception:"
             "\n- Explanations, bug descriptions, improvement suggestions"
-            "\n- Section headers (e.g. translate \"Bugs Found\" → equivalent in {language_name})"
+            '\n- Section headers (e.g. translate "Bugs Found" → equivalent in {language_name})'
             "\n- Any labels, notes, or commentary you generate"
             "\n\nDo NOT mix languages. Do NOT default to English at any point."
             "\n\nException: Keep code-specific terms like `return`, `null`, `TypeError`,"
             "\nvariable names, and function names in English — they are language-agnostic."
             "\n\nIf you cannot respond fully in {language_name}, explicitly say so"
             "\nin {language_name} first, then fall back to English.",
-            ""
+            "",
         )
 
     language_name, language_native = LANGUAGE_MAP[ai_language]
     return SYSTEM_PROMPT_TEMPLATE.format(
-        language_name=language_name,
-        language_native=language_native
+        language_name=language_name, language_native=language_native
     )
 
 

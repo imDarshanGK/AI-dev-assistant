@@ -238,9 +238,7 @@ def chat_fallback_reply(
         )
 
     if recent_history:
-        response_parts.append(
-            f"Recent chat context: {recent_history}."
-        )
+        response_parts.append(f"Recent chat context: {recent_history}.")
 
     return " ".join(response_parts)
 
@@ -826,8 +824,12 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
             if key not in seen:
                 seen.add(key)
                 line_idx = issue["line"] - 1
-                issue["code_snippet"] = lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
-                issue["code_context"] = format_code_snippet(code, [issue["line"]], context_lines=2)
+                issue["code_snippet"] = (
+                    lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
+                )
+                issue["code_context"] = format_code_snippet(
+                    code, [issue["line"]], context_lines=2
+                )
                 found.append(issue)
 
     for bp in BUG_PATTERNS:
@@ -961,7 +963,9 @@ def run_suggestions(code: str, language: str, ai_language: str | None = None) ->
         suggestions.append(
             {
                 "category": translate_key("readability", ai_language),
-                "description": translate_key("magic_numbers", ai_language).format(count=len(magic_lines)),
+                "description": translate_key("magic_numbers", ai_language).format(
+                    count=len(magic_lines)
+                ),
                 "line_number": magic_lines[0],
                 "line_range": sample_magic_lines,
                 "code_context": format_code_snippet(code, sample_magic_lines),
@@ -991,7 +995,9 @@ def run_suggestions(code: str, language: str, ai_language: str | None = None) ->
             suggestions.append(
                 {
                     "category": translate_key("error_handling", ai_language),
-                    "description": translate_key("io_operations", ai_language).format(count=len(risky_lines)),
+                    "description": translate_key("io_operations", ai_language).format(
+                        count=len(risky_lines)
+                    ),
                     "line_number": risky_lines[0],
                     "line_range": sample_risky,
                     "code_context": format_code_snippet(code, sample_risky),
@@ -1054,15 +1060,17 @@ def run_suggestions(code: str, language: str, ai_language: str | None = None) ->
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
-            suggestions.append({
-                "category": translate_key("logging", ai_language),
-                "description": translate_key("no_logging", ai_language),
-                "line_number": print_lines[0],
-                "line_range": sample_print,
-                "code_context": format_code_snippet(code, sample_print),
-                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
-                "priority": "medium",
-            })
+            suggestions.append(
+                {
+                    "category": translate_key("logging", ai_language),
+                    "description": translate_key("no_logging", ai_language),
+                    "line_number": print_lines[0],
+                    "line_range": sample_print,
+                    "code_context": format_code_snippet(code, sample_print),
+                    "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
+                    "priority": "medium",
+                }
+            )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 8: Environment Variables (JS/TS)
@@ -1188,18 +1196,26 @@ def run_explanation(code: str, language: str, ai_language: str | None = None) ->
             f"{translate_key('imports_modules', ai_language)} {import_count} {translate_key('external_dependencies', ai_language)}"
         )
     if has_loops:
-        key_points.append(translate_key('contains_loops', ai_language))
+        key_points.append(translate_key("contains_loops", ai_language))
     if has_conditions:
-        key_points.append(translate_key('contains_conditionals', ai_language))
+        key_points.append(translate_key("contains_conditionals", ai_language))
     if has_recursion:
-        key_points.append(translate_key('recursive_call', ai_language))
+        key_points.append(translate_key("recursive_call", ai_language))
 
     # Summary by complexity
     summaries = {
-        "Beginner": translate_key('beginner', ai_language).format(language=language, lines=len(non_blank)),
-        "Intermediate": translate_key('intermediate', ai_language).format(language=language, funcs=len(funcs)),
-        "Advanced": translate_key('advanced', ai_language).format(language=language, classes=len(class_names), funcs=len(funcs)),
-        "Expert": translate_key('expert', ai_language).format(language=language, lines=len(lines)),
+        "Beginner": translate_key("beginner", ai_language).format(
+            language=language, lines=len(non_blank)
+        ),
+        "Intermediate": translate_key("intermediate", ai_language).format(
+            language=language, funcs=len(funcs)
+        ),
+        "Advanced": translate_key("advanced", ai_language).format(
+            language=language, classes=len(class_names), funcs=len(funcs)
+        ),
+        "Expert": translate_key("expert", ai_language).format(
+            language=language, lines=len(lines)
+        ),
     }
 
     return {
@@ -1364,7 +1380,9 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
 
 
 # ── Combined ───────────────────────────────────────────────────────────────────
-def full_analysis(code: str, language_hint: str | None = None, ai_language: str | None = None) -> dict:
+def full_analysis(
+    code: str, language_hint: str | None = None, ai_language: str | None = None
+) -> dict:
     """Run the complete analysis pipeline for the provided source code.
 
     Args:

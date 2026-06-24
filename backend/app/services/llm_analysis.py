@@ -24,7 +24,10 @@ class LLMAnalysisClient:
         return bool(settings.llm_enabled and self.api_key)
 
     async def _chat_completion(
-        self, messages: list[dict], temperature: float = 0.2, system_prompt: str | None = None
+        self,
+        messages: list[dict],
+        temperature: float = 0.2,
+        system_prompt: str | None = None,
     ) -> str:
         if not self.enabled:
             raise LLMAnalysisError("llm_disabled")

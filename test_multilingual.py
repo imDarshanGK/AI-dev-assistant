@@ -2,9 +2,10 @@
 """Quick test of multilingual support."""
 
 import sys
-sys.path.insert(0, 'backend')
 
-from app.services.multilingual import get_system_prompt, LANGUAGE_MAP
+sys.path.insert(0, "backend")
+
+from app.services.multilingual import get_system_prompt, LANGUAGE_MAP  # noqa: E402
 
 print("Testing multilingual support...")
 print()

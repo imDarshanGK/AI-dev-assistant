@@ -1,4 +1,5 @@
 """Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
+
 from __future__ import annotations
 
 import asyncio
@@ -67,7 +68,9 @@ SOURCE_EXTENSIONS = {
 }
 
 
-async def _stream_analysis(code: str, language_hint: str | None, ai_language: str | None = None):
+async def _stream_analysis(
+    code: str, language_hint: str | None, ai_language: str | None = None
+):
     """Async generator that yields SSE chunks for each analysis section."""
     t0 = time.perf_counter()
     language = detect_language(code, language_hint)
@@ -137,11 +140,7 @@ def _safe_zip_name(name: str) -> str:
 def _is_safe_member(name: str) -> bool:
     path = PurePosixPath(name.replace("\\", "/"))
     has_drive = bool(path.parts and path.parts[0].endswith(":"))
-    return (
-        not path.is_absolute()
-        and ".." not in path.parts
-        and not has_drive
-    )
+    return not path.is_absolute() and ".." not in path.parts and not has_drive
 
 
 def _is_ignored_member(name: str) -> bool:
@@ -173,12 +172,18 @@ async def analyze_stream(req: CodeRequest):
     response_class=StreamingResponse,
 )
 async def analyze_stream_get(
-    code: str = Query(..., min_length=1, max_length=50000, description="Source code to analyze"),
+    code: str = Query(
+        ..., min_length=1, max_length=50000, description="Source code to analyze"
+    ),
     language: str | None = Query(None, description="Optional language hint"),
-    ai_language: str | None = Query(None, description="Optional UI language code (en, ta, hi, fr)"),
+    ai_language: str | None = Query(
+        None, description="Optional UI language code (en, ta, hi, fr)"
+    ),
 ):
     if not code.strip():
-        raise HTTPException(status_code=400, detail="code must not be empty or whitespace")
+        raise HTTPException(
+            status_code=400, detail="code must not be empty or whitespace"
+        )
     return StreamingResponse(
         _stream_analysis(code.strip(), language, ai_language),
         media_type="text/event-stream",
@@ -267,10 +272,7 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
     total_size = 0
 
     with archive:
-        members = [
-            info for info in archive.infolist()
-            if not info.is_dir()
-        ]
+        members = [info for info in archive.infolist() if not info.is_dir()]
 
         if not members:
             raise HTTPException(
@@ -353,10 +355,7 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
             detail="ZIP file does not contain readable source files",
         )
 
-    scores = [
-        item["analysis"]["suggestions"]["overall_score"]
-        for item in results
-    ]
+    scores = [item["analysis"]["suggestions"]["overall_score"] for item in results]
 
     overall_score = round(sum(scores) / len(scores))
 
