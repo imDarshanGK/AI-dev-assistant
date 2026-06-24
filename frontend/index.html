@@ -759,6 +759,37 @@
       tab-size: 2;
     }
 
+    /* Language Selector — Issue #768 */
+.language-selector-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 18px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+.language-selector-wrapper label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+.language-selector-wrapper select {
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.language-selector-wrapper select:focus {
+  border-color: var(--accent);
+}
     .editor-footer {
       display: flex;
       align-items: center;
@@ -2633,6 +2664,18 @@ details.issue-card[open] {
             <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
           </div>
           <div class="line-numbers" id="lineNumbers">1</div>
+          <!-- Language Selector Dropdown — Issue #768 -->
+              <div class="language-selector-wrapper">
+                <label for="language-select">Language:</label>
+                <select id="language-select">
+                  <option value="auto">🔍 Auto-detect</option>
+                  <option value="python">Python</option>
+                  <option value="javascript">JavaScript</option>
+                  <option value="java">Java</option>
+                  <option value="typescript">TypeScript</option>
+                  <option value="cpp">C++</option>
+                </select>
+              </div>
           <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
         </div>
 
@@ -3784,6 +3827,7 @@ details.issue-card[open] {
 
       async function doAnalyze() {
         const code = editor.value.trim();
+        const selectedLang = document.getElementById('language-select').value === 'auto' ? null : document.getElementById('language-select').value;
         if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
 
         const base = getApiBase();
