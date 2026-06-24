@@ -62,4 +62,5 @@ async def export_jsonl(req: CodeRequest):
     return StreamingResponse(
         _stream_jsonl(req.code, req.language),
         media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
