@@ -2114,8 +2114,12 @@ details.issue-card[open] {
   .nav-links .nav-link span{display:none}
   .hero{padding:50px 0 40px}
   .hero-sub{font-size:0.98rem}
-  .features-row{gap:8px;padding:16px 0 40px}
-  .feat-pill{padding:10px 14px;min-width:140px}
+  .features-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-width:400px;margin-inline:auto;padding:16px 0 40px}
+  .feat-pill{gap:7px;padding:6px 8px;min-width:0}
+  .feat-pill-icon{width:28px;height:28px;flex-shrink:0}
+  .feat-pill-info{min-width:0;overflow-wrap:break-word}
+  .feat-pill-info .feat-pill-title{font-size:0.76rem;line-height:1.25}
+  .feat-pill-info p{font-size:0.68rem;line-height:1.25}
   .workspace{gap:14px}
   #workspace > .panel{grid-column:1 !important;min-width:0}
   .panel-header{padding:12px 14px}
@@ -2141,8 +2145,289 @@ details.issue-card[open] {
   .lang-tab{padding:7px 10px;font-size:0.72rem}
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
+
+/* ── Live Collaboration ── */
+.collab-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  background: var(--bg3);
+  color: var(--text2);
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.collab-toolbar-btn:hover,
+.collab-toolbar-btn[aria-expanded="true"] {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(91, 156, 246, 0.1);
+}
+
+.collab-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text3);
+}
+
+.collab-status-dot.connected {
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(34, 212, 123, 0.12);
+}
+
+.collab-user-count {
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text3);
+  text-align: center;
+}
+
+.collab-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1090;
+  background: rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(2px);
+}
+
+.collab-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1100;
+  width: min(390px, 92vw);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 18px;
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  box-shadow: -18px 0 45px rgba(0, 0, 0, 0.25);
+  transform: translateX(105%);
+  visibility: hidden;
+  transition: transform 0.24s ease, visibility 0.24s ease;
+}
+
+.collab-drawer.open {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.collab-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.collab-drawer-header h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-disp);
+  font-size: 1rem;
+}
+
+.collab-drawer-header p {
+  margin: 0;
+  color: var(--text3);
+  font-size: 0.75rem;
+}
+
+.collab-close-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+}
+
+.collab-close-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.collab-drawer-section {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.collab-section-heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.collab-panel-top,
+.collab-comment-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.collab-comment-row {
+  margin-top: 10px;
+}
+
+.collab-drawer input {
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+}
+
+.collab-drawer button {
+  padding: 9px 12px;
+  border-radius: var(--r2);
+  border: 1px solid var(--border2);
+  background: rgba(91, 156, 246, 0.12);
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.collab-drawer button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.collab-drawer button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.collab-status {
+  margin-top: 8px;
+  font-size: 0.74rem;
+  color: var(--text2);
+}
+
+.collab-notice {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(245, 146, 62, 0.4);
+  border-radius: var(--r2);
+  background: rgba(245, 146, 62, 0.12);
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.collab-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.collab-user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+
+.collab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.collab-comments {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.collab-comment {
+  padding: 8px;
+  border-radius: var(--r2);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  font-size: 0.76rem;
+  color: var(--text2);
+}
+
+.collab-comment strong {
+  color: var(--text);
+}
+
+.collab-line-input {
+  max-width: 100%;
+}
+
+.collab-editor-shell {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.collab-editor-shell textarea {
+  width: 100%;
+  height: 100%;
+}
+
+.remote-cursor-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.remote-cursor {
+  position: absolute;
+  width: 2px;
+  height: 22px;
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.remote-cursor-label {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  max-width: 130px;
+  padding: 2px 5px;
+  border-radius: 4px 4px 4px 0;
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 </style>
 <link rel="icon" href="data:,">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
   <div class="bg-orb bg-orb-1"></div>
@@ -2374,6 +2659,8 @@ details.issue-card[open] {
         <div id="resultActions" class="result-actions" style="display:none">
           <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
           <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
+          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF">📄</button>
+          <button class="icon-btn" id="export-md-btn" title="Export as Markdown">📝</button>
         </div>
 
       </div>
@@ -4588,6 +4875,83 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         toast(getTranslation('toast_report_downloaded'), 'success');
       });
 
+      // 1. Export as Markdown
+      document.getElementById('export-md-btn').addEventListener('click', () => {
+        if (!currentResult) return alert("No report generated yet!");
+        
+        try {
+            const codeContent = typeof editor !== 'undefined' ? editor.value : '';
+            const rawText = buildReport(currentResult, codeContent);
+            const mdText = "```text\n" + rawText + "\n```";
+            
+            const blob = new Blob([mdText], { type: 'text/markdown' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `qyverixai-report-${Date.now()}.md`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            
+            if (typeof toast === 'function') toast('Downloaded as Markdown', 'success');
+        } catch (error) {
+            console.error("Markdown Error: ", error);
+            alert("Oops! Something went wrong generating the Markdown.");
+        }
+      });
+
+      // 2. Export as PDF
+      document.getElementById('export-pdf-btn').addEventListener('click', () => {
+        if (!currentResult) return alert("No report generated yet!");
+        
+        try {
+            const codeContent = typeof editor !== 'undefined' ? editor.value : '';
+            const rawText = buildReport(currentResult, codeContent);
+            
+            const lines = rawText.split('\n');
+            const linesPerPage = 45; 
+            
+            // Build a container in memory
+            const container = document.createElement('div');
+            container.style.width = '700px';
+            container.style.backgroundColor = '#ffffff';
+
+            for (let i = 0; i < lines.length; i += linesPerPage) {
+                const chunkText = lines.slice(i, i + linesPerPage).join('\n');
+                
+                const pageDiv = document.createElement('div');
+                pageDiv.style.fontFamily = 'monospace';
+                pageDiv.style.fontSize = '12px';
+                pageDiv.style.lineHeight = '1.5';
+                pageDiv.style.color = '#000000';
+                pageDiv.style.whiteSpace = 'pre-wrap';
+                pageDiv.innerText = chunkText === '' ? ' ' : chunkText;
+                
+                container.appendChild(pageDiv);
+                
+                if (i + linesPerPage < lines.length) {
+                    const pageBreak = document.createElement('div');
+                    pageBreak.className = 'html2pdf__page-break';
+                    container.appendChild(pageBreak);
+                }
+            }
+
+            const options = {
+              margin:       10,
+              filename:     `qyverixai-report-${Date.now()}.pdf`,
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2, scrollY: 0 }, 
+              jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(options).from(container).save().then(() => {
+              if (typeof toast === 'function') toast('Downloaded as PDF', 'success');
+            });
+            
+        } catch (error) {
+            console.error("PDF Error: ", error);
+            alert("Oops! Something went wrong generating the PDF.");
+        }
+      });
+
       function buildReport(r, code) {
         if (r.files) {
           const lines = ['QyverixAI Project ZIP Analysis', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, `Files: ${r.file_count}`, `Overall Score: ${r.overall_project_score}/100 (${r.grade})`, r.summary, ''];
@@ -4819,6 +5183,601 @@ int main() {
         }
       });
     </script>
+
+<script>
+(function () {
+  const editor = document.querySelector('#codeEditor');
+  if (!editor) return;
+
+  let socket = null;
+  let currentSessionId = '';
+  let clientId = '';
+  let version = 0;
+ let collaborators = [];
+  let suppressNextInput = false;
+  let debounceTimer = null;
+
+    const editorPanel = editor.closest('.panel') || editor.parentElement;
+
+  const toolbarButton = document.createElement('button');
+  toolbarButton.type = 'button';
+  toolbarButton.id = 'collabToggleBtn';
+  toolbarButton.className = 'collab-toolbar-btn';
+  toolbarButton.setAttribute('aria-controls', 'collabDrawer');
+  toolbarButton.setAttribute('aria-expanded', 'false');
+  toolbarButton.title = 'Open live collaboration';
+  toolbarButton.innerHTML = `
+    <span id="collabToolbarDot" class="collab-status-dot"></span>
+    <span>Collaborate</span>
+    <span id="collabToolbarCount" class="collab-user-count">0</span>
+  `;
+
+  const editorHeader =
+    editorPanel.querySelector('.panel-header') ||
+    editorPanel.querySelector('.editor-panel-header') ||
+    editorPanel.querySelector('.panel-head') ||
+    editorPanel.firstElementChild;
+
+  const editorActions =
+    editorHeader?.querySelector('.panel-actions') ||
+    editorHeader?.querySelector('.actions') ||
+    editorHeader;
+
+  if (editorActions) {
+    editorActions.appendChild(toolbarButton);
+  } else {
+    editorPanel.insertBefore(toolbarButton, editorPanel.firstChild);
+  }
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'collabBackdrop';
+  backdrop.className = 'collab-backdrop';
+  backdrop.hidden = true;
+  document.body.appendChild(backdrop);
+
+  const panel = document.createElement('aside');
+  panel.id = 'collabDrawer';
+  panel.className = 'collab-drawer';
+  panel.setAttribute('aria-labelledby', 'collabDrawerTitle');
+  panel.setAttribute('aria-hidden', 'true');
+  panel.innerHTML = `
+    <div class="collab-drawer-header">
+      <div>
+        <h2 id="collabDrawerTitle">Live Collaboration</h2>
+        <p id="collabDrawerStatus">Not connected</p>
+      </div>
+      <button id="collabCloseBtn" class="collab-close-btn" type="button" aria-label="Close collaboration panel">✕</button>
+    </div>
+
+    <div id="collabNotice" class="collab-notice" role="status" aria-live="polite" hidden></div>
+
+    <div class="collab-drawer-section">
+      <div class="collab-section-heading">
+        <span>Session</span>
+      </div>
+      <div class="collab-panel-top">
+        <input id="collabName" placeholder="Your name" value="Your name" />
+        <input id="collabSession" placeholder="Session ID e.g. review-676" />
+        <button id="collabJoinBtn" type="button">Join Live</button>
+        <button id="collabLeaveBtn" type="button" disabled>Leave</button>
+      </div>
+      <div id="collabStatus" class="collab-status">Live collaboration is not connected.</div>
+    </div>
+
+    <section class="collab-drawer-section">
+      <div class="collab-section-heading">
+        <span>Active users</span>
+        <span id="collabDrawerCount">0</span>
+      </div>
+      <div id="collabUsers" class="collab-users"></div>
+    </section>
+
+    <section class="collab-drawer-section">
+      <div class="collab-section-heading">
+        <span>Review comments</span>
+      </div>
+      <div class="collab-comment-row">
+        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1" />
+        <input id="collabCommentText" placeholder="Add a live review comment..." />
+        <button id="collabCommentBtn" type="button" disabled>Comment</button>
+      </div>
+      <div id="collabComments" class="collab-comments"></div>
+    </section>
+  `;
+  document.body.appendChild(panel);
+
+  const nameInput = panel.querySelector('#collabName');
+  const sessionInput = panel.querySelector('#collabSession');
+  const joinBtn = panel.querySelector('#collabJoinBtn');
+  const leaveBtn = panel.querySelector('#collabLeaveBtn');
+  const statusEl = panel.querySelector('#collabStatus');
+  const usersEl = panel.querySelector('#collabUsers');
+  const lineInput = panel.querySelector('#collabLine');
+  const commentText = panel.querySelector('#collabCommentText');
+  const commentBtn = panel.querySelector('#collabCommentBtn');
+  const commentsEl = panel.querySelector('#collabComments');
+  const closeBtn = panel.querySelector('#collabCloseBtn');
+  const drawerStatusEl = panel.querySelector('#collabDrawerStatus');
+  const noticeEl = panel.querySelector('#collabNotice');
+  const toolbarDot = toolbarButton.querySelector('#collabToolbarDot');
+  const toolbarCount = toolbarButton.querySelector('#collabToolbarCount');
+  const drawerCount = panel.querySelector('#collabDrawerCount');
+
+  function setDrawerOpen(isOpen) {
+    panel.classList.toggle('open', isOpen);
+    panel.setAttribute('aria-hidden', String(!isOpen));
+    toolbarButton.setAttribute('aria-expanded', String(isOpen));
+    backdrop.hidden = !isOpen;
+
+    if (isOpen) {
+      closeBtn.focus();
+    }
+  }
+
+  toolbarButton.addEventListener('click', () => {
+    setDrawerOpen(!panel.classList.contains('open'));
+  });
+
+  closeBtn.addEventListener('click', () => {
+    setDrawerOpen(false);
+  });
+
+  backdrop.addEventListener('click', () => {
+    setDrawerOpen(false);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && panel.classList.contains('open')) {
+      setDrawerOpen(false);
+    }
+  });
+
+  const editorShell = document.createElement('div');
+  editorShell.className = 'collab-editor-shell';
+  const remoteCursorLayer = document.createElement('div');
+  remoteCursorLayer.id = 'remoteCursorLayer';
+  remoteCursorLayer.className = 'remote-cursor-layer';
+  remoteCursorLayer.setAttribute('aria-hidden', 'true');
+
+  editor.parentElement.insertBefore(editorShell, editor);
+  editorShell.appendChild(editor);
+  editorShell.appendChild(remoteCursorLayer);
+
+
+  function getApiBase() {
+  const saved = localStorage.getItem('qyx_apiUrl');
+  if (saved) return saved.replace(/\/$/, '');
+
+  if (location.pathname.startsWith('/app')) {
+    return location.origin;
+  }
+
+  return 'http://localhost:8000';
+}
+
+  function getWsBase() {
+    return getApiBase().replace(/^http/, 'ws');
+  }
+
+  function setStatus(text) {
+    statusEl.textContent = text;
+  }
+
+  function selectedLanguage() {
+    const activeTab = document.querySelector('.lang-tab.active');
+    return activeTab ? activeTab.dataset.lang || activeTab.textContent.trim().toLowerCase() : 'python';
+  }
+
+  function getCursorPayload() {
+    const value = editor.value || '';
+    const index = editor.selectionStart || 0;
+    const before = value.slice(0, index);
+    const lines = before.split('\n');
+
+    return {
+      line: lines.length,
+      column: lines[lines.length - 1].length + 1,
+      selectionStart: editor.selectionStart || 0,
+      selectionEnd: editor.selectionEnd || editor.selectionStart || 0
+    };
+  }
+
+  function send(payload) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify(payload));
+  }
+
+  function updateConnectionUi(isConnected) {
+    toolbarDot.classList.toggle('connected', isConnected);
+    drawerStatusEl.textContent = isConnected
+      ? `Connected to session "${currentSessionId}".`
+      : 'Not connected';
+  }
+
+  function updateUserCounts() {
+    const count = collaborators.length;
+    toolbarCount.textContent = String(count);
+    drawerCount.textContent = String(count);
+  }
+
+  let noticeTimer = null;
+
+  function showNotice(message, duration = 5000) {
+    noticeEl.textContent = message;
+    noticeEl.hidden = false;
+
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => {
+      noticeEl.hidden = true;
+      noticeEl.textContent = '';
+    }, duration);
+  }
+
+  function renderUsers(users) {
+    usersEl.innerHTML = '';
+
+    users.forEach((user) => {
+      const cursor = user.cursor
+        ? ` · L${user.cursor.line}:C${user.cursor.column}`
+        : '';
+
+      const pill = document.createElement('div');
+      pill.className = 'collab-user-pill';
+      pill.innerHTML = `
+        <span class="collab-dot" style="background:${user.color}"></span>
+        <span>${escapeHtml(user.name)}${cursor}</span>
+      `;
+      usersEl.appendChild(pill);
+    });
+
+    updateUserCounts();
+    renderRemoteCursors();
+  }
+
+  function renderComments(comments) {
+    commentsEl.innerHTML = '';
+
+    comments.forEach((comment) => {
+      const item = document.createElement('div');
+      item.className = 'collab-comment';
+      item.innerHTML = `
+        <strong style="color:${comment.color}">${escapeHtml(comment.author)}</strong>
+        on line <strong>${comment.line}</strong>: ${escapeHtml(comment.text)}
+      `;
+      commentsEl.appendChild(item);
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function getTextareaCaretCoordinates(textarea, position) {
+    const mirror = document.createElement('div');
+    const computed = window.getComputedStyle(textarea);
+
+    const copiedProperties = [
+      'boxSizing',
+      'width',
+      'height',
+      'overflowX',
+      'overflowY',
+      'borderTopWidth',
+      'borderRightWidth',
+      'borderBottomWidth',
+      'borderLeftWidth',
+      'paddingTop',
+      'paddingRight',
+      'paddingBottom',
+      'paddingLeft',
+      'fontStyle',
+      'fontVariant',
+      'fontWeight',
+      'fontStretch',
+      'fontSize',
+      'lineHeight',
+      'fontFamily',
+      'letterSpacing',
+      'textTransform',
+      'textAlign',
+      'textIndent',
+      'tabSize',
+      'wordSpacing'
+    ];
+
+    mirror.style.position = 'absolute';
+    mirror.style.visibility = 'hidden';
+    mirror.style.whiteSpace = 'pre-wrap';
+    mirror.style.overflowWrap = 'break-word';
+    mirror.style.top = '0';
+    mirror.style.left = '-9999px';
+
+    copiedProperties.forEach((property) => {
+      mirror.style[property] = computed[property];
+    });
+
+    mirror.textContent = textarea.value.substring(0, position);
+
+    const marker = document.createElement('span');
+    marker.textContent = textarea.value.substring(position, position + 1) || '\u200b';
+
+    mirror.appendChild(marker);
+    document.body.appendChild(mirror);
+
+    const coordinates = {
+      left: marker.offsetLeft - textarea.scrollLeft,
+      top: marker.offsetTop - textarea.scrollTop
+    };
+
+    mirror.remove();
+    return coordinates;
+  }
+
+  function renderRemoteCursors() {
+    remoteCursorLayer.innerHTML = '';
+
+    collaborators.forEach((user) => {
+      if (
+        user.id === clientId ||
+        !user.cursor ||
+        !Number.isInteger(user.cursor.selectionEnd)
+      ) {
+        return;
+      }
+
+      const position = Math.min(user.cursor.selectionEnd, editor.value.length);
+      const coordinates = getTextareaCaretCoordinates(editor, position);
+      const color = user.color || '#5b9cf6';
+
+      const cursor = document.createElement('div');
+      cursor.className = 'remote-cursor';
+      cursor.style.left = `${coordinates.left}px`;
+      cursor.style.top = `${coordinates.top}px`;
+      cursor.style.backgroundColor = color;
+
+      const label = document.createElement('span');
+      label.className = 'remote-cursor-label';
+      label.textContent = user.name || 'Collaborator';
+      label.style.backgroundColor = color;
+
+      cursor.appendChild(label);
+      remoteCursorLayer.appendChild(cursor);
+    });
+  }
+
+  function applyRemoteCode(message) {
+    suppressNextInput = true;
+    editor.value = message.code || '';
+    version = message.version || version;
+
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+
+    window.setTimeout(() => {
+      suppressNextInput = false;
+    }, 0);
+  }
+
+  function handleMessage(message) {
+    if (message.type === 'session_state') {
+  clientId = message.clientId;
+  version = message.version || 0;
+  collaborators = message.users || [];
+
+  if (message.code) {
+    applyRemoteCode(message);
+  }
+
+  renderUsers(collaborators);
+  renderComments(message.comments || []);
+  updateConnectionUi(true);
+  setStatus(`Connected to session "${message.sessionId}" as ${clientId}.`);
+  return;
+}
+
+    if (message.type === 'presence_update') {
+  collaborators = message.users || [];
+  renderUsers(collaborators);
+  return;
+}
+
+    if (message.type === 'code_update') {
+  version = message.version || version;
+
+  if (message.senderId === clientId) {
+    setStatus(`Your edit was synced as v${version}.`);
+    return;
+  }
+
+  applyRemoteCode(message);
+  renderRemoteCursors();
+  setStatus(`Synced live update v${version}.`);
+  return;
+}
+
+    if (message.type === 'cursor_update') {
+      if (!message.user) {
+        return;
+      }
+
+      const existingIndex = collaborators.findIndex(
+        (user) => user.id === message.user.id
+      );
+
+  if (existingIndex >= 0) {
+    collaborators[existingIndex] = message.user;
+  } else {
+    collaborators.push(message.user);
+  }
+
+  renderUsers(collaborators);
+  return;
+}
+
+    if (message.type === 'comment_added') {
+      renderComments(message.comments || []);
+      return;
+    }
+
+    if (message.type === 'sync_required') {
+  applyRemoteCode(message);
+  collaborators = message.users || [];
+  renderUsers(collaborators);
+  renderComments(message.comments || []);
+  renderRemoteCursors();
+  const conflictMessage =
+    'Conflict detected: your local edit was behind the room version, so the latest room state was restored.';
+
+  setStatus(conflictMessage);
+  showNotice(conflictMessage);
+  setDrawerOpen(true);
+
+  return;
+}
+
+    if (message.type === 'pong') {
+      setStatus(`Connected to session "${currentSessionId}".`);
+      return;
+    }
+
+    if (message.type === 'error') {
+      setStatus(`Collaboration error: ${message.detail}`);
+    }
+  }
+
+  function connect() {
+    const session = sessionInput.value.trim();
+    const name = nameInput.value.trim() || 'Anonymous';
+
+    if (!session) {
+      setStatus('Enter a session ID before joining.');
+      return;
+    }
+
+    if (socket) {
+      socket.close();
+    }
+
+    currentSessionId = session;
+
+    const url = `${getWsBase()}/collaboration/ws/${encodeURIComponent(session)}?name=${encodeURIComponent(name)}`;
+    socket = new WebSocket(url);
+
+    socket.addEventListener('open', () => {
+      joinBtn.disabled = true;
+      leaveBtn.disabled = false;
+      commentBtn.disabled = false;
+      setStatus(`Connected to "${session}".`);
+      updateConnectionUi(true);
+
+      send({
+        type: 'code_update',
+        code: editor.value || '',
+        language: selectedLanguage(),
+        version
+      });
+    });
+
+    socket.addEventListener('message', (event) => {
+      try {
+        handleMessage(JSON.parse(event.data));
+      } catch {
+        setStatus('Received an invalid collaboration message.');
+      }
+    });
+
+    socket.addEventListener('close', () => {
+      joinBtn.disabled = false;
+      leaveBtn.disabled = true;
+      commentBtn.disabled = true;
+      setStatus('Live collaboration disconnected.');
+      updateConnectionUi(false);
+      collaborators = [];
+      renderUsers(collaborators);
+      renderRemoteCursors();
+    });
+
+    socket.addEventListener('error', () => {
+      setStatus('Could not connect to live collaboration WebSocket.');
+    });
+  }
+
+  function disconnect() {
+    if (socket) {
+      socket.close();
+      socket = null;
+    }
+  }
+
+  editor.addEventListener('input', () => {
+    if (suppressNextInput) return;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      send({
+        type: 'code_update',
+        code: editor.value || '',
+        language: selectedLanguage(),
+        version
+      });
+    }, 250);
+      send({
+        type: 'cursor_update',
+        cursor: getCursorPayload()
+      });
+  });
+
+  editor.addEventListener('keyup', () => {
+    send({
+      type: 'cursor_update',
+      cursor: getCursorPayload()
+    });
+  });
+
+  editor.addEventListener('click', () => {
+    send({
+      type: 'cursor_update',
+      cursor: getCursorPayload()
+    });
+  });
+
+    editor.addEventListener('select', () => {
+    send({
+      type: 'cursor_update',
+      cursor: getCursorPayload()
+    });
+  });
+
+  editor.addEventListener('scroll', renderRemoteCursors);
+  window.addEventListener('resize', renderRemoteCursors);
+
+  commentBtn.addEventListener('click', () => {
+    const text = commentText.value.trim();
+    if (!text) return;
+
+    send({
+      type: 'comment_added',
+      line: Number(lineInput.value || 1),
+      text
+    });
+
+    commentText.value = '';
+  });
+
+  joinBtn.addEventListener('click', connect);
+  leaveBtn.addEventListener('click', disconnect);
+
+  setInterval(() => {
+    send({ type: 'ping' });
+  }, 25000);
+})();
+</script>
+
 </body>
 
 </html>
