@@ -4,8 +4,10 @@ Full-text search is powered by SQLite FTS5.
 """
 
 from __future__ import annotations
+
 import hashlib
 import os
+
 import aiosqlite
 
 DB_PATH = os.getenv("HISTORY_DB_PATH", "history.db")
@@ -13,7 +15,8 @@ DB_PATH = os.getenv("HISTORY_DB_PATH", "history.db")
 
 async def init_db() -> None:
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("""
+        await db.execute(
+            """
             CREATE TABLE IF NOT EXISTS history (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 code_hash   TEXT NOT NULL,
@@ -21,13 +24,26 @@ async def init_db() -> None:
                 score       INTEGER,
                 issue_count INTEGER,
                 timestamp   TEXT NOT NULL DEFAULT (datetime('now')),
-                code_preview TEXT NOT NULL
+                code_preview TEXT NOT NULL,
+                code        TEXT,
+                result_json TEXT
             )
-        """)
-        await db.execute("""
+        """
+        )
+        try:
+            await db.execute("ALTER TABLE history ADD COLUMN code TEXT")
+        except Exception:
+            pass
+        try:
+            await db.execute("ALTER TABLE history ADD COLUMN result_json TEXT")
+        except Exception:
+            pass
+        await db.execute(
+            """
             CREATE VIRTUAL TABLE IF NOT EXISTS fts_history
             USING fts5(code_preview, content=history, content_rowid=id)
-        """)
+        """
+        )
         await db.execute(
             "CREATE INDEX IF NOT EXISTS idx_timestamp ON history(timestamp DESC)"
         )
@@ -43,16 +59,17 @@ async def save_entry(
     language: str,
     score: int | None,
     issue_count: int | None,
+    result_json: str | None = None,
 ) -> int:
     code_hash = hash_code(code)
     preview = code.strip()[:120].replace("\n", " ")
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute(
             """
-            INSERT INTO history (code_hash, language, score, issue_count, code_preview)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO history (code_hash, language, score, issue_count, code_preview, code, result_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (code_hash, language, score, issue_count, preview),
+            (code_hash, language, score, issue_count, preview, code, result_json),
         )
         row_id = cursor.lastrowid
         await db.execute(
@@ -63,18 +80,32 @@ async def save_entry(
         return row_id
 
 
-async def get_entries(limit: int = 20, offset: int = 0) -> list[dict]:
+async def count_entries() -> int:
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("SELECT COUNT(*) FROM history")
+        row = await cursor.fetchone()
+        return row[0] if row else 0
+
+
+async def get_entries(
+    limit: int = 20, offset: int = 0, sort_by: str = "timestamp", order: str = "desc"
+) -> list[dict]:
+    allowed_sort_columns = {"timestamp", "score", "issue_count", "id"}
+    allowed_orders = {"asc", "desc"}
+    if sort_by not in allowed_sort_columns:
+        sort_by = "timestamp"
+    if order.lower() not in allowed_orders:
+        order = "desc"
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
-        cursor = await db.execute(
-            """
+        query = f"""
             SELECT id, code_hash, language, score, issue_count, timestamp, code_preview
             FROM history
-            ORDER BY timestamp DESC
+            ORDER BY {sort_by} {order}, id DESC
             LIMIT ? OFFSET ?
-            """,
-            (limit, offset),
-        )
+        """
+
+        cursor = await db.execute(query, (limit, offset))
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]
 
@@ -105,3 +136,26 @@ async def delete_entry(entry_id: int) -> bool:
         await db.execute("DELETE FROM fts_history WHERE rowid = ?", (entry_id,))
         await db.commit()
         return cursor.rowcount > 0
+
+
+async def get_entry(entry_id: int) -> dict | None:
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute(
+            """
+            SELECT id, code_hash, language, score, issue_count, timestamp, code_preview, code, result_json
+            FROM history
+            WHERE id = ?
+            """,
+            (entry_id,),
+        )
+        row = await cursor.fetchone()
+        return dict(row) if row else None
+
+
+async def clear_entries() -> int:
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("DELETE FROM history")
+        await db.execute("DELETE FROM fts_history")
+        await db.commit()
+        return cursor.rowcount
