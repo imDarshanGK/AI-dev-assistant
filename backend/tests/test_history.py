@@ -7,9 +7,12 @@ import os
 import sys
 import tempfile
 
+import pytest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.main import app
+from app.security import get_current_user
 from app.services import database
 from fastapi.testclient import TestClient
 
@@ -18,6 +21,27 @@ _tmp.close()
 database.DB_PATH = _tmp.name
 
 asyncio.run(database.init_db())
+
+
+class _StubUser:
+    """Lightweight stand-in for an authenticated user in history tests."""
+
+    def __init__(self, user_id: int):
+        self.id = user_id
+
+
+# History routes now require authentication. Override the dependency so the
+# suite runs as a fixed user, then switch users where isolation is tested.
+def _override_current_user():
+    return _StubUser(1)
+
+
+@pytest.fixture(autouse=True)
+def _auth_as_default_user():
+    app.dependency_overrides[get_current_user] = _override_current_user
+    yield
+    app.dependency_overrides.pop(get_current_user, None)
+
 
 client = TestClient(app, raise_server_exceptions=True)
 
@@ -179,3 +203,50 @@ def test_clear_all_history():
 
     get_r = client.get("/history/")
     assert get_r.json()["meta"]["total"] == 0
+
+
+def test_history_requires_authentication():
+    app.dependency_overrides.pop(get_current_user, None)
+    try:
+        r = client.get("/history/")
+        assert r.status_code == 401
+        r = client.post("/history/", json={"code": "x", "language": "Python"})
+        assert r.status_code == 401
+    finally:
+        app.dependency_overrides[get_current_user] = _override_current_user
+
+
+def test_history_is_isolated_per_user():
+    # Clear any existing entries for the default user.
+    client.delete("/history/")
+
+    # User 1 saves an entry.
+    save_r = client.post(
+        "/history/",
+        json={"code": "user one secret code", "language": "Python"},
+    )
+    assert save_r.status_code == 201
+    user_one_entry_id = save_r.json()["id"]
+
+    # Switch to user 2 and confirm none of user 1's history is visible.
+    app.dependency_overrides[get_current_user] = lambda: _StubUser(2)
+    try:
+        list_r = client.get("/history/")
+        assert list_r.status_code == 200
+        assert list_r.json()["meta"]["total"] == 0
+
+        detail_r = client.get(f"/history/{user_one_entry_id}")
+        assert detail_r.status_code == 404
+
+        search_r = client.get("/history/search?q=secret")
+        assert search_r.status_code == 200
+        assert search_r.json() == []
+
+        delete_r = client.delete(f"/history/{user_one_entry_id}")
+        assert delete_r.status_code == 404
+    finally:
+        app.dependency_overrides[get_current_user] = _override_current_user
+
+    # User 1 still sees their own entry.
+    own_r = client.get(f"/history/{user_one_entry_id}")
+    assert own_r.status_code == 200

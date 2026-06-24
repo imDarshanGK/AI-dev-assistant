@@ -4,9 +4,11 @@ History router — save, retrieve, search and delete analysis history entries.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from ..models import User
+from ..security import get_current_user
 from ..services import database
 
 router = APIRouter()
@@ -56,8 +58,12 @@ class HistoryResponse(BaseModel):
 
 
 @router.post("/", response_model=dict, status_code=201)
-async def save_history(body: HistorySaveRequest):
+async def save_history(
+    body: HistorySaveRequest,
+    current_user: User = Depends(get_current_user),
+):
     entry_id = await database.save_entry(
+        user_id=current_user.id,
         code=body.code,
         language=body.language,
         score=body.score,
@@ -71,8 +77,9 @@ async def save_history(body: HistorySaveRequest):
 async def search_history(
     q: str = Query(..., min_length=1),
     limit: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
 ):
-    return await database.search_entries(q=q, limit=limit)
+    return await database.search_entries(user_id=current_user.id, q=q, limit=limit)
 
 
 @router.get("/", response_model=HistoryResponse)
@@ -81,10 +88,15 @@ async def get_history(
     offset: int = Query(0, ge=0),
     sort_by: str = Query("timestamp", pattern="^(timestamp|score|issue_count|id)$"),
     order: str = Query("desc", pattern="^(asc|desc)$"),
+    current_user: User = Depends(get_current_user),
 ):
-    total = await database.count_entries()
+    total = await database.count_entries(user_id=current_user.id)
     items = await database.get_entries(
-        limit=limit, offset=offset, sort_by=sort_by, order=order
+        user_id=current_user.id,
+        limit=limit,
+        offset=offset,
+        sort_by=sort_by,
+        order=order,
     )
     return {
         "items": items,
@@ -99,22 +111,28 @@ async def get_history(
 
 
 @router.get("/{entry_id}", response_model=HistoryDetailResponse)
-async def get_history_entry(entry_id: int):
-    entry = await database.get_entry(entry_id)
+async def get_history_entry(
+    entry_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    entry = await database.get_entry(entry_id, user_id=current_user.id)
     if not entry:
         raise HTTPException(status_code=404, detail="History entry not found.")
     return entry
 
 
 @router.delete("/", response_model=dict)
-async def clear_history():
-    await database.clear_entries()
+async def clear_history(current_user: User = Depends(get_current_user)):
+    await database.clear_entries(user_id=current_user.id)
     return {"status": "cleared"}
 
 
 @router.delete("/{entry_id}", response_model=dict)
-async def delete_history(entry_id: int):
-    deleted = await database.delete_entry(entry_id)
+async def delete_history(
+    entry_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    deleted = await database.delete_entry(entry_id, user_id=current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail="History entry not found.")
     return {"id": entry_id, "status": "deleted"}
