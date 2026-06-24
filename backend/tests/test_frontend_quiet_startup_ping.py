@@ -13,7 +13,10 @@ def test_ping_api_defaults_to_quiet_mode():
 
 def test_manual_ping_button_enables_notifications():
     assert "const pingBtn = document.getElementById('pingBtn');" in FRONTEND_HTML
-    assert "if (pingBtn) pingBtn.addEventListener('click', () => pingApi({ notify: true }));" in FRONTEND_HTML
+    assert (
+        "if (pingBtn) pingBtn.addEventListener('click', () => pingApi({ notify: true }));"
+        in FRONTEND_HTML
+    )
 
 
 def test_success_toast_only_fires_for_manual_ping():
