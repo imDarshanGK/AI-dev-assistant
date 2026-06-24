@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import analyze, auth, chat, collaboration, debugging, explanation
+from .routers import analyze, auth, chat, collaboration, debugging, explanation, export
 from .routers import health as health_router
 from .routers import history
 from .routers import metrics as metrics_router
@@ -173,6 +173,7 @@ async def add_process_time_header(request: Request, call_next):
         "/debugging/",
         "/suggestions/",
         "/analyze/",
+        "/export/jsonl",
     ):
         remaining = check_rate_limit(ip)
         if remaining < 0:
@@ -210,6 +211,7 @@ app.include_router(explanation.router, prefix="/explanation", tags=["Explanation
 app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+app.include_router(export.router, prefix="/export", tags=["Export"])
 app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
 app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(auth.router)

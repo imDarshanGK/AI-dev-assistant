@@ -734,3 +734,29 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+
+
+# ── JSONL Export ──────────────────────────────────────────────────────────────
+def test_export_jsonl_returns_ndjson_content_type():
+    r = client.post("/export/jsonl", json={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    assert "application/x-ndjson" in r.headers.get("content-type", "")
+
+
+def test_export_jsonl_emits_three_lines():
+    r = client.post("/export/jsonl", json={"code": PYTHON_BUGGY})
+    assert r.status_code == 200
+    lines = [ln for ln in r.text.split("\n") if ln.strip()]
+    parsed = [json.loads(ln) for ln in lines]
+    types = [obj["type"] for obj in parsed]
+    assert types == ["explanation", "debugging", "suggestions"]
+
+
+def test_export_jsonl_empty_code_rejected():
+    r = client.post("/export/jsonl", json={"code": "  "})
+    assert r.status_code == 422
+
+
+def test_export_jsonl_missing_code_rejected():
+    r = client.post("/export/jsonl", json={})
+    assert r.status_code == 422
