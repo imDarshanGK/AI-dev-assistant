@@ -7,6 +7,7 @@ from __future__ import annotations
 import ast
 import re
 import time
+import uuid
 from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
 
@@ -851,6 +852,7 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
                 found.append(
                     {
+                        "id": f"fnd_{uuid.uuid4().hex[:12]}",
                         "type": bp.name,
                         "line": i,
                         "description": description,
@@ -867,6 +869,8 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                 key = f"{issue['type']}:{issue['line']}"
                 if key not in seen:
                     seen.add(key)
+                    if "id" not in issue:
+                        issue["id"] = f"fnd_{uuid.uuid4().hex[:12]}"
                     found.append(issue)
         except SyntaxError:
             pass
@@ -1218,6 +1222,7 @@ class Issue:
     type: str
     line: int | None
     description: str
+    id: str | None = None
     suggestion: str | None = None
     severity: str | None = None
     code_snippet: str | None = None

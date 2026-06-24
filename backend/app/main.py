@@ -18,6 +18,7 @@ from .routers import (
     analyze,
     auth,
     chat,
+    comments,
     debugging,
     explanation,
     history,
@@ -160,6 +161,7 @@ app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+app.include_router(comments.router)
 
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics

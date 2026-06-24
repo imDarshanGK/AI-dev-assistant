@@ -1,7 +1,8 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator, model_validator
+from datetime import datetime
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 import json
 from typing import Any
 
@@ -29,6 +30,10 @@ class CodeRequest(BaseModel):
 
 
 class Issue(BaseModel):
+    id: str = Field(
+        ...,
+        description="Unique identifier for the finding"
+    )
     type: str
     line: int | None
     description: str
@@ -378,3 +383,21 @@ class AnalyzeResponse(BaseModel):
     debugging: DebuggingResponse
     suggestions: SuggestionsResponse
     analysis_time_ms: float | None = None
+
+class CommentCreate(BaseModel):
+    text: str = Field(
+        ..., 
+        min_length=1, max_length=1000)
+    author: str = Field("Anonymous", max_length=50)
+    parent_id: int | None = None
+
+class CommentResponse(BaseModel):
+    id: int
+    share_id: str
+    finding_id: str
+    parent_id: int | None = None
+    author: str
+    text: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
