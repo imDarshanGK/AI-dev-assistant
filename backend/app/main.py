@@ -33,7 +33,20 @@ from .database import Base, engine
 
 from .schemas import HealthResponse
 
-
+from .routers import (
+    analyze,
+    auth,
+    chat,
+    debugging,
+    explanation,
+    history,
+    playground,
+    share,
+    subscribe,
+    suggestions,
+    upload_file,
+    user_data,
+)
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
 RATE_LIMIT_WINDOW_SECONDS = 60
@@ -142,6 +155,7 @@ app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions
 app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
 app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
 app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(playground.router, prefix="/playground", tags=["Playground"])
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)

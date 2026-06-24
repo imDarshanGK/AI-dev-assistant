@@ -10,7 +10,6 @@ def _int_env(name: str, default: int) -> int:
     raw_value = os.getenv(name)
     if raw_value is None:
         return default
-
     try:
         value = int(raw_value)
         if value <= 0:
@@ -24,7 +23,6 @@ def _float_env(name: str, default: float) -> float:
     raw_value = os.getenv(name)
     if raw_value is None:
         return default
-
     try:
         value = float(raw_value)
         if value < 0:
@@ -69,6 +67,7 @@ class Settings:
     llm_timeout_seconds: int = _int_env("LLM_TIMEOUT_SECONDS", 30)
     llm_max_retries: int = _int_env("LLM_MAX_RETRIES", 3)
     llm_retry_backoff: float = _float_env("LLM_RETRY_BACKOFF", 1.0)
+    mock_provider_enabled: bool = _bool_env("MOCK_PROVIDER", True)
 
     # ── Email / Digest ──────────────────────────────────────────
     smtp_host: str = os.getenv("SMTP_HOST", "")

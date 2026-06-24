@@ -1,6 +1,10 @@
 from pathlib import Path
 import logging
-import magic
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
 
 from .upload_config import (
     ALLOWED_EXTENSIONS,
@@ -45,6 +49,8 @@ def validate_file_extension(filename: str) -> None:
     return extension
 
 def detect_mime_type(file_content: bytes) -> str:
+    if not MAGIC_AVAILABLE:
+        return "application/octet-stream"
     mime = magic.Magic(mime=True)
     return mime.from_buffer(file_content)
 
@@ -52,7 +58,7 @@ def validate_mime_type(ext:str, filecontent:bytes) -> None:
     detected_mime = detect_mime_type(filecontent)
     logger = logging.getLogger(__name__)
     logger.debug("Detected MIME Type: %s", detected_mime)
-    if detected_mime not in ALLOWED_MIME_TYPES[ext]:
+    if MAGIC_AVAILABLE and detected_mime not in ALLOWED_MIME_TYPES[ext]:
         raise ValueError(
             f"{UPLOAD_ERROR_MESSAGES['invalid_mime']}"
             f"Detected MIME Type : {detected_mime}"
