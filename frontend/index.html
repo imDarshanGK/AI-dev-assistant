@@ -721,24 +721,21 @@
     }
 
     .line-numbers {
-      flex: 0 0 44px;
-      padding: 16px 0 16px 12px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.7;
-      color: var(--text3);
-      user-select: none;
-      min-width: 44px;
-      text-align: right;
-      background: var(--bg3);
-      border-right: 1px solid var(--border);
-      overflow: hidden;
-      pointer-events: none;
-      min-height: 300px;
-      max-height: 500px;
-      height: 100%;
-      }
-
+  flex: 0 0 44px;
+  padding: 16px 8px; /* Sabhi taraf se symmetric padding taaki text center-aligned rahe */
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text3);
+  user-select: none;
+  min-width: 44px;
+  text-align: right;
+  background: var(--bg3);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  pointer-events: none;
+  align-self: stretch; /* Ye line-numbers ko poore editor ki height ke barabar stretch rakhega */
+}
     #codeEditor {
       width: 100%;
       flex: 1 1 auto;
