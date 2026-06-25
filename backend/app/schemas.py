@@ -352,6 +352,21 @@ class SignupRequest(BaseModel):
         example="supersecret123",
     )
 
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        return v
+
 
 class LoginRequest(BaseModel):
     """Request body for user login."""
@@ -405,6 +420,16 @@ class UserProfileResponse(BaseModel):
         ...,
         description="The authenticated user's email address.",
         example="dev@example.com",
+    )
+
+
+class MessageResponse(BaseModel):
+    """Generic success message returned by actions without a richer payload."""
+
+    message: str = Field(
+        ...,
+        description="Human-readable description of the action's outcome.",
+        example="Logged out; token revoked.",
     )
 
 
