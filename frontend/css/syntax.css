@@ -1,0 +1,44 @@
+/* ── Syntax Highlighted Code Blocks ── */
+.issue-snippet pre,
+.suggest-example pre {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.issue-snippet pre code,
+.suggest-example pre code {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  border-radius: 6px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  white-space: pre;
+  background: var(--bg) !important;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .issue-snippet pre code,
+[data-theme="dark"] .suggest-example pre code {
+  background: #1a1d23 !important;
+}
+
+[data-theme="light"] .issue-snippet pre code,
+[data-theme="light"] .suggest-example pre code {
+  background: #f6f8fa !important;
+}
+
+/* Language badge on code blocks */
+.issue-snippet {
+  position: relative;
+}
+
+/* Scrollable on mobile */
+@media (max-width: 600px) {
+  .issue-snippet pre code,
+  .suggest-example pre code {
+    font-size: 0.7rem;
+  }
+}
