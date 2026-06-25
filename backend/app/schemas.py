@@ -182,7 +182,12 @@ class ExplanationResponse(BaseModel):
             "Automatically computed complexity badge. "
             "Contains: level ('easy'|'medium'|'hard'), label ('🟢 Easy'|…), score (int), tooltip (str)."
         ),
-        example={"level": "easy", "label": "🟢 Easy", "score": 12, "tooltip": "beginner-level code"},
+        example={
+            "level": "easy",
+            "label": "🟢 Easy",
+            "score": 12,
+            "tooltip": "beginner-level code",
+        },
     )
 
 
@@ -288,7 +293,12 @@ class AnalyzeResponse(BaseModel):
             "Automatically computed complexity badge for the full analysis. "
             "Contains: level ('easy'|'medium'|'hard'), label ('🟢 Easy'|…), score (int), tooltip (str)."
         ),
-        example={"level": "medium", "label": "🟡 Medium", "score": 42, "tooltip": "Based on: intermediate-level code, 2 warning(s)"},
+        example={
+            "level": "medium",
+            "label": "🟡 Medium",
+            "score": 42,
+            "tooltip": "Based on: intermediate-level code, 2 warning(s)",
+        },
     )
 
 

@@ -60,7 +60,9 @@ def _score_explanation(explanation: dict) -> tuple[int, list[str]]:
         reasons.append(f"{lines} lines")
 
     # 4. Structural complexity (functions + classes)
-    structs = (explanation.get("function_count") or 0) + (explanation.get("class_count") or 0)
+    structs = (explanation.get("function_count") or 0) + (
+        explanation.get("class_count") or 0
+    )
     if structs > 10:
         score += 15
     elif structs > 4:
