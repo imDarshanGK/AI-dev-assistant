@@ -12,6 +12,7 @@ from pathlib import PurePosixPath
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 
+from ..sanitize import sanitize_code_input, sanitize_language_hint
 from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
 from ..services.cache import cache
 from ..services.code_assistant import (
@@ -69,7 +70,9 @@ SOURCE_EXTENSIONS = {
 
 
 async def _stream_analysis(code: str, language_hint: str | None):
-    """Async generator that yields SSE chunks for each analysis section."""
+    code = sanitize_code_input(code)
+    language_hint = sanitize_language_hint(language_hint)
+
     t0 = time.perf_counter()
     language = detect_language(code, language_hint)
 
@@ -265,6 +268,7 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
     results: list[dict] = []
     skipped_files: list[str] = []
     total_size = 0
+    MAX_PER_FILE_BYTES = 2 * 1024 * 1024  # 2MB per file
 
     with archive:
         members = [info for info in archive.infolist() if not info.is_dir()]
@@ -303,14 +307,22 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                 )
                 continue
 
-            if total_size + info.file_size > MAX_ZIP_TOTAL_BYTES:
+            raw = archive.read(info)
+            decompressed_size = len(raw)
+
+            if decompressed_size > MAX_PER_FILE_BYTES:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"File '{safe_name}' exceeds 2MB limit after decompression",
+                )
+
+            if total_size + decompressed_size > MAX_ZIP_TOTAL_BYTES:
                 raise HTTPException(
                     status_code=400,
                     detail="ZIP source files exceed the 5MB total limit",
                 )
 
-            raw = archive.read(info)
-            total_size += len(raw)
+            total_size += decompressed_size
 
             try:
                 code = raw.decode("utf-8")

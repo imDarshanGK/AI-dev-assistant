@@ -15,6 +15,18 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+<<<<<<< HEAD
+=======
+from .observability import initialise_app_info, prometheus_metrics_middleware
+from .routers import analyze, auth, chat, collaboration, debugging, explanation
+from .routers import health as health_router
+from .routers import history
+from .routers import metrics as metrics_router
+from .routers import share, subscribe, suggestions, upload_file, user_data
+from .schemas import HealthResponse
+from .services import database
+from .services.scheduler import start_scheduler, stop_scheduler
+>>>>>>> 577be15ab1d4f8575aec9dee493312ebb795c220
 from .database import Base, engine
 from .routers import (
     analyze,
@@ -65,8 +77,9 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 async def lifespan(app: FastAPI):
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
-    logging.getLogger(__name__).info("🚀 QyverixAI backend starting…")
-    Base.metadata.create_all(bind=engine)
+    initialise_app_info(
+        version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
+    )
     start_scheduler()
     yield
     stop_scheduler()
@@ -76,11 +89,85 @@ async def lifespan(app: FastAPI):
 # ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="QyverixAI",
-    description="AI-powered developer assistant — code explanation, debugging, and improvement.",
+    description="""
+## AI-Powered Developer Assistant
+
+Paste any code snippet and instantly receive three analyses:
+
+- 🔍 **Explain** — language detection, plain-English summary, complexity estimate, function and class inventory
+- 🐛 **Debug** — 40+ static-analysis pattern checks across 5 languages with exact line numbers, code snippets, and fix suggestions
+- ✨ **Improve** — documentation gaps, error handling, type safety — plus a **0–100 quality score** and letter grade **A–F**
+
+**No account required. No API key needed. Works fully offline.**
+
+---
+
+### Supported Languages
+`Python` · `JavaScript` · `TypeScript` · `Java` · `C++`
+
+### Rate Limiting
+Analysis endpoints are limited to **30 requests / minute per IP** (configurable via `RATE_LIMIT_PER_MINUTE`).
+Responses include `X-RateLimit-Limit` and `X-RateLimit-Remaining` headers.
+A `429` response includes a `Retry-After` header indicating seconds to wait.
+
+### Authentication
+Protected endpoints use **JWT Bearer tokens**.
+Obtain a token via `POST /auth/login` and pass it as `Authorization: Bearer <token>`.
+    """,
     version="3.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
+    contact={
+        "name": "Darshan G K",
+        "url": "https://github.com/imDarshanGK/AI-dev-assistant",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+    openapi_tags=[
+        {
+            "name": "Explanation",
+            "description": "Plain-English breakdown of what a piece of code does — language, summary, complexity, and structure.",
+        },
+        {
+            "name": "Debugging",
+            "description": "Static-analysis bug detection across 5 languages. Returns exact line numbers, code snippets, and fix suggestions.",
+        },
+        {
+            "name": "Suggestions",
+            "description": "Improvement recommendations covering docs, error handling, type safety, and testing — with a 0–100 quality score and A–F grade.",
+        },
+        {
+            "name": "Full Analysis",
+            "description": "Runs Explanation + Debugging + Suggestions in a single request with combined timing metrics.",
+        },
+        {
+            "name": "Auth",
+            "description": "User signup, login, and current-user profile (`/auth/signup`, `/auth/login`, `/auth/me`).",
+        },
+        {
+            "name": "Share",
+            "description": "Create short-lived share links (7-day TTL) for any analysis result and load them back by ID.",
+        },
+        {
+            "name": "History",
+            "description": "Per-user analysis history — stores the last 50 analyses. Requires authentication.",
+        },
+        {
+            "name": "Upload File",
+            "description": "Drag-and-drop or programmatic file upload. Accepts `.py`, `.js`, `.ts`, `.java`, `.cpp`.",
+        },
+        {
+            "name": "Subscription",
+            "description": "Email newsletter subscription and unsubscription.",
+        },
+        {
+            "name": "System",
+            "description": "Root info, legacy health check, and ping endpoints.",
+        },
+    ],
 )
 
 # ── Middleware ────────────────────────────────────────────────────────────────
@@ -92,6 +179,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.middleware("http")(prometheus_metrics_middleware)
 
 
 @app.middleware("http")
@@ -133,10 +222,8 @@ async def add_process_time_header(request: Request, call_next):
 @app.middleware("http")
 async def add_cache_header(request: Request, call_next):
     response = await call_next(request)
-
     if request.url.path == "/analyze/" and request.method == "POST":
         response.headers.setdefault("X-Cache", "MISS")
-
     return response
 
 
@@ -156,7 +243,13 @@ app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
-@app.get("/", response_model=HealthResponse, tags=["System"])
+@app.get(
+    "/",
+    response_model=HealthResponse,
+    tags=["System"],
+    summary="API root — service info",
+    description="Returns the current API version, status, and a list of all available endpoint paths.",
+)
 async def root():
     return {
         "status": "ok",
@@ -176,15 +269,22 @@ async def root():
             "/chat/",
             "/user/",
             "/analyze/zip/",
-            "/analyze/zip/",
-            "/subscribe/",
-            "/share/",
             "/history/",
+            "/collaboration/ws/{session_id}",
         ],
     }
 
 
-@app.get("/health", response_model=HealthResponse, tags=["System"])
+@app.get(
+    "/health",
+    response_model=HealthResponse,
+    tags=["System"],
+    summary="Legacy health check",
+    description=(
+        "Retained for backwards compatibility. Returns a simple `ok` status. "
+        "For production liveness/readiness probes use `/healthz/live` and `/healthz/ready` instead."
+    ),
+)
 async def health_check():
     return {
         "status": "ok",
@@ -204,15 +304,18 @@ async def health_check():
             "/chat/",
             "/user/",
             "/analyze/zip/",
-            "/analyze/zip/",
-            "/subscribe/",
-            "/share/",
             "/history/",
+            "/collaboration/ws/{session_id}",
         ],
     }
 
 
-@app.get("/ping", tags=["System"])
+@app.get(
+    "/ping",
+    tags=["System"],
+    summary="Ping — connection test",
+    description='Lightweight endpoint to verify the server is reachable. Returns `{"message": "pong"}`.',
+)
 async def ping():
     return {"message": "pong"}
 
