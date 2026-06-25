@@ -1783,6 +1783,68 @@ details.issue-card[open] {
       }
     }
 
+    .analytics-panel{
+      margin-bottom:16px;
+    }
+
+    .analytics-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:16px;
+    padding:16px;
+    }
+
+    .analytics-card{
+    background:transparent;
+    border:none;
+    padding:8px 0;
+    }
+
+    .analytics-card span{
+    display:block;
+    font-size:.72rem;
+    font-weight:600;
+    margin-bottom:2px;
+    color:var(--text3);
+    }
+
+    .analytics-value{
+    margin:0;
+    font-family:var(--font-ui);
+    font-size:1rem;
+    font-weight:600;
+    line-height:1.2;
+    color:var(--text);
+    }
+
+    .analytics-summary{
+    padding:14px 18px;
+    font-family:var(--font-disp);
+    font-size:.82rem;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--text2);
+
+    display:flex;
+    align-items:center;
+    }
+
+    .analytics-summary::-webkit-details-marker{
+        display:none;
+    }
+
+    .analytics-summary::after{
+        content:"▼";
+        margin-left:auto;
+        font-size:.8rem;
+        opacity:.7;
+    }
+
+    details:not([open]) .analytics-summary::after{
+        content:"▶";
+    }
+
     .history-list,
     .fav-list {
       padding: 16px;
@@ -2745,6 +2807,42 @@ details.issue-card[open] {
         </div>
       </div>
     </div>
+
+    <!-- ── ANALYTICS DASHBOARD ───────────────────────────────────── -->
+
+    <details class="panel analytics-panel">
+
+      <summary class="panel-header analytics-summary">
+          <span class="panel-title">
+              Analytics Dashboard
+          </span>
+      </summary>
+
+      <div class="analytics-grid">
+
+          <div class="analytics-card">
+              <span>Total Analyses</span>
+              <p id="analyticsTotal" class="analytics-value">0</p>
+          </div>
+
+          <div class="analytics-card">
+              <span>Top Language</span>
+              <p id="analyticsLanguage" class="analytics-value">-</p>
+          </div>
+
+          <div class="analytics-card">
+              <span>Average Score</span>
+              <p id="analyticsScore" class="analytics-value">0</p>
+          </div>
+
+          <div class="analytics-card">
+              <span>Total Issues</span>
+              <p id="analyticsIssues" class="analytics-value">0</p>
+          </div>
+
+      </div>
+
+    </details>
 
     <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
     <div class="bottom-grid">
@@ -4423,6 +4521,59 @@ details.issue-card[open] {
         currentResult = null;
       }
 
+      function renderAnalytics() {
+        const total = history.length;
+
+        document.getElementById('analyticsTotal').textContent = total;
+
+        if (!total) {
+          document.getElementById('analyticsLanguage').textContent = '-';
+          document.getElementById('analyticsScore').textContent = '0';
+          document.getElementById('analyticsIssues').textContent = '0';
+          return;
+        }
+
+        const languageCounts = {};
+        let totalScore = 0;
+        let totalIssues = 0;
+        let scoreCount = 0;
+        let issueCount = 0;
+
+        history.forEach(entry => {
+          const lang = entry.lang || 'Unknown';
+
+          languageCounts[lang] = (languageCounts[lang] || 0) + 1;
+
+          const score =
+            entry.result?.suggestions?.quality_score ??
+            entry.result?.quality_score;
+
+          if (typeof score === 'number') {
+            totalScore += score;
+            scoreCount++;
+          }
+
+          const issues =
+            entry.result?.debugging?.issues?.length ?? 0;
+
+          totalIssues += issues;
+          issueCount++;
+        });
+
+        const topLanguage =
+          Object.entries(languageCounts)
+            .sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+
+        document.getElementById('analyticsLanguage').textContent =
+          topLanguage;
+
+        document.getElementById('analyticsScore').textContent =
+          scoreCount ? (totalScore / scoreCount).toFixed(1) : '0';
+
+        document.getElementById('analyticsIssues').textContent =
+          issueCount ? (totalIssues / issueCount).toFixed(1) : '0';
+      }
+
       /* ═══════════════════════════════════════════════════════════════
          HISTORY (Paginated & Sorted)
       ═══════════════════════════════════════════════════════════════ */
@@ -4538,6 +4689,7 @@ details.issue-card[open] {
         history = localHistory.slice(historyOffset, historyOffset + historyLimit);
         
         renderHistory();
+        renderAnalytics();
         updatePaginationUI();
       }
 
@@ -4658,6 +4810,8 @@ details.issue-card[open] {
         } catch (err) {}
 
         localStorage.removeItem('qyx_history');
+        renderHistory();
+        renderAnalytics();
         historyOffset = 0;
         await fetchHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
@@ -5140,8 +5294,11 @@ int main() {
       setAppLanguage(appLang);
       syncApiStatusText();
 
+      loadTheme();
       fetchHistory();
       renderFavorites();
+      renderAnalytics();
+      updateEditor();
 
       // Save API URL
       if (apiUrlInput) {
