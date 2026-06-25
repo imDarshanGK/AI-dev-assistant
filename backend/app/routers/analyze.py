@@ -22,6 +22,7 @@ from ..services.code_assistant import (
     run_explanation,
     run_suggestions,
 )
+from ..services.issue_complexity import compute_issue_complexity
 
 router = APIRouter()
 
@@ -113,11 +114,17 @@ async def _stream_analysis(code: str, language_hint: str | None):
     await asyncio.sleep(0)
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
+    issue_complexity = compute_issue_complexity(
+        explanation=explanation,
+        debugging=debugging,
+        suggestions=suggestions,
+    )
     done_payload = {
         "type": "done",
         "provider": "rule-based",
         "model": "qyverix-engine-v3",
         "analysis_time_ms": elapsed_ms,
+        "issue_complexity": issue_complexity,
     }
     yield f"data: {json.dumps(done_payload)}\n\n"
 
@@ -203,6 +210,13 @@ async def analyze(req: CodeRequest, response: Response):
         return cached_payload
 
     payload = full_analysis(req.code, req.language)
+
+    # Attach issue complexity badge
+    payload["issue_complexity"] = compute_issue_complexity(
+        explanation=payload.get("explanation"),
+        debugging=payload.get("debugging"),
+        suggestions=payload.get("suggestions"),
+    )
 
     cache.set("analyze:v1", cache_input, payload)
 
