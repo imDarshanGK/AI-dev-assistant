@@ -50,6 +50,7 @@ class Settings:
     max_request_bytes: int = _int_env("MAX_REQUEST_BYTES", 1048576)
     rate_limit_requests: int = _int_env("RATE_LIMIT_REQUESTS", 120)
     rate_limit_window_seconds: int = _int_env("RATE_LIMIT_WINDOW_SECONDS", 60)
+    trust_proxy_headers: bool = _bool_env("TRUST_PROXY_HEADERS", False)
     cache_enabled: bool = _bool_env("CACHE_ENABLED", True)
     cache_ttl_seconds: int = _int_env("CACHE_TTL_SECONDS", 300)
     cache_max_entries: int = _int_env("CACHE_MAX_ENTRIES", 100)
