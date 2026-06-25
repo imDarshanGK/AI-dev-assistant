@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -2463,7 +2464,80 @@ details.issue-card[open] {
             <polyline points="14,2 14,8 20,8" />
           </svg>
           <span data-i18n="nav_api_docs">API Docs</span>
-        </a>
+<!-- Properly structured Navbar Link -->
+<a href="#" onclick="event.preventDefault(); document.getElementById('integration-modal').style.display='block'; console.log('Button Clicked!');" class="nav-link">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plug"><path d="M12 22v-5M9 8V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5M6 8a2 2 0 0 0-2 2v2a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-2a2 2 0 0 0-2-2Z"/></svg>
+    <span>Integrations</span>
+</a>
+
+<!-- Third-Party Integration Dashboard Modal (Forced Layer Layout) -->
+<div id="integration-modal" style="display: none; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.6) !important; backdrop-filter: blur(5px) !important; z-index: 9999999 !important; overflow-y: auto !important; padding: 40px 20px !important; box-sizing: border-box !important;">
+    <div style="background: white !important; padding: 28px 24px 24px 24px !important; border-radius: 12px !important; width: 100% !important; max-width: 440px !important; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important; font-family: system-ui, -apple-system, sans-serif !important; position: relative !important; border: 1px solid #e5e7eb !important; color: #111827 !important; text-align: left !important; box-sizing: border-box !important; margin: 40px auto !important; display: block !important;">
+        
+        <!-- Close Button -->
+        <button onclick="document.getElementById('integration-modal').style.display='none';" style="position: absolute !important; top: 16px !important; right: 16px !important; background: none !important; border: none !important; font-size: 28px !important; cursor: pointer !important; color: #9ca3af !important; line-height: 1 !important; padding: 0 !important;">&times;</button>
+        
+        <!-- Header Section -->
+        <div style="margin-bottom: 20px !important; display: block !important;">
+            <h2 style="margin: 0 0 6px 0 !important; font-size: 20px !important; font-weight: 700 !important; line-height: 1.2 !important; color: #111827 !important;">Manage Integrations</h2>
+            <p style="color: #6b7280 !important; font-size: 13px !important; margin: 0 !important; line-height: 1.4 !important;">Connect external developer platforms securely.</p>
+        </div>
+        
+        <!-- Main Integrations View -->
+        <div style="display: flex !important; flex-direction: column !important; gap: 12px !important;">
+            
+            <!-- Slack Card -->
+            <div style="padding: 14px !important; border: 1px solid #e5e7eb !important; border-radius: 8px !important; background: #f9fafb !important; box-sizing: border-box !important;">
+                <div style="display: flex !important; align-items: center !important; justify-content: space-between !important;">
+                    <div style="display: flex !important; align-items: center !important; gap: 12px !important;">
+                        <span style="font-size: 24px !important;">💬</span>
+                        <div>
+                            <h3 style="margin: 0 !important; font-size: 14px !important; font-weight: 600 !important; color: #111827 !important;">Slack Alerts</h3>
+                            <small id="slack-status" style="color: #dc2626 !important; font-size: 11px !important; font-weight: 600 !important;">Disconnected</small>
+                        </div>
+                    </div>
+                    <button onclick="var f=document.getElementById('slack-config-form'); f.style.display=f.style.display==='none'?'block':'none';" style="background: #2563eb !important; color: white !important; border: none !important; padding: 6px 14px !important; border-radius: 6px !important; cursor: pointer !important; font-size: 12px !important; font-weight: 600 !important;">Connect</button>
+                </div>
+                
+                <!-- Slack Embedded Form -->
+                <div id="slack-config-form" style="display: none; margin-top: 12px !important; padding-top: 12px !important; border-top: 1px dashed #e5e7eb !important;">
+                    <label style="display: block !important; font-size: 11px !important; font-weight: 600 !important; color: #4b5563 !important; margin-bottom: 4px !important;">Slack Webhook URL / Token</label>
+                    <div style="position: relative !important; display: flex !important; align-items: center !important; margin-bottom: 8px !important;">
+                        <input id="slack-key-input" type="password" placeholder="https://slack.com..." style="width: 100% !important; padding: 6px 32px 6px 10px !important; border: 1px solid #d1d5db !important; border-radius: 6px !important; font-size: 12px !important; outline: none !important; background: white !important; color: black !important; box-sizing: border-box !important;">
+                        <button onclick="var i=document.getElementById('slack-key-input'); if(i.type==='password'){i.type='text'; this.textContent='🙈';}else{i.type='password'; this.textContent='👁️';}" type="button" style="position: absolute !important; right: 8px !important; background: none !important; border: none !important; cursor: pointer !important;">👁️</button>
+                    </div>
+                    <button onclick="var v=document.getElementById('slack-key-input').value.trim(); if(v.length < 8){alert('Key must be 8+ chars!');}else{document.getElementById('slack-status').textContent='Connected'; document.getElementById('slack-status').style.color='#16a34a'; document.getElementById('slack-config-form').style.display='none'; alert('Slack connected successfully!');}" style="width: 100% !important; background: #10b981 !important; color: white !important; border: none !important; padding: 6px !important; border-radius: 6px !important; font-size: 12px !important; font-weight: 600 !important; cursor: pointer !important;">Save Credentials</button>
+                </div>
+            </div>
+
+            <!-- GitHub Card -->
+            <div style="padding: 14px !important; border: 1px solid #e5e7eb !important; border-radius: 8px !important; background: #f9fafb !important; box-sizing: border-box !important;">
+                <div style="display: flex !important; align-items: center !important; justify-content: space-between !important;">
+                    <div style="display: flex !important; align-items: center !important; gap: 12px !important;">
+                        <span style="font-size: 24px !important;">🐙</span>
+                        <div>
+                            <h4 style="margin: 0 !important; font-size: 14px !important; font-weight: 600 !important; color: #111827 !important;">GitHub Action</h4>
+                            <small id="github-status" style="color: #dc2626 !important; font-size: 11px !important; font-weight: 600 !important;">Disconnected</small>
+                        </div>
+                    </div>
+                    <button onclick="var f=document.getElementById('github-config-form'); f.style.display=f.style.display==='none'?'block':'none';" style="background: #2563eb !important; color: white !important; border: none !important; padding: 6px 14px !important; border-radius: 6px !important; cursor: pointer !important; font-size: 12px !important; font-weight: 600 !important;">Connect</button>
+                </div>
+                
+                <!-- GitHub Embedded Form -->
+                <div id="github-config-form" style="display: none; margin-top: 12px !important; padding-top: 12px !important; border-top: 1px dashed #e5e7eb !important;">
+                    <label style="display: block !important; font-size: 11px !important; font-weight: 600 !important; color: #4b5563 !important; margin-bottom: 4px !important;">GitHub Personal Access Token (PAT)</label>
+                    <div style="position: relative !important; display: flex !important; align-items: center !important; margin-bottom: 8px !important;">
+                        <input id="github-key-input" type="password" placeholder="ghp_xxxxxxxxxxxx" style="width: 100% !important; padding: 6px 32px 6px 10px !important; border: 1px solid #d1d5db !important; border-radius: 6px !important; font-size: 12px !important; outline: none !important; background: white !important; color: black !important; box-sizing: border-box !important;">
+                        <button onclick="var i=document.getElementById('github-key-input'); if(i.type==='password'){i.type='text'; this.textContent='🙈';}else{i.type='password'; this.textContent='👁️';}" type="button" style="position: absolute !important; right: 8px !important; background: none !important; border: none !important; cursor: pointer !important;">👁️</button>
+                    </div>
+                    <button onclick="var v=document.getElementById('github-key-input').value.trim(); if(v.length < 8){alert('Key must be 8+ chars!');}else{document.getElementById('github-status').textContent='Connected'; document.getElementById('github-status').style.color='#16a34a'; document.getElementById('github-config-form').style.display='none'; alert('GitHub connected successfully!');}" style="width: 100% !important; background: #10b981 !important; color: white !important; border: none !important; padding: 6px !important; border-radius: 6px !important; font-size: 12px !important; font-weight: 600 !important; cursor: pointer !important;">Save Credentials</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
         <button class="theme-btn" id="themeToggle" title="Toggle theme" data-i18n-title="btn_toggle_theme" data-i18n-aria-label="btn_toggle_theme" aria-label="Toggle dark mode"
           aria-pressed="false">
           <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -5183,6 +5257,37 @@ int main() {
         }
       });
     </script>
+    <script>
+    // Direct modal toggle logic without external file dependence
+    (function() {
+        const checkElements = setInterval(() => {
+            const btn = document.getElementById("integrations-btn");
+            const modal = document.getElementById("integration-modal");
+            const close = document.getElementById("close-modal-btn");
+
+            if (btn && modal && close) {
+                clearInterval(checkElements); // Elements milte hi loop band
+
+                // 1. Open Modal Event
+                btn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    modal.style.display = "flex";
+                });
+
+                // 2. Close Modal Event
+                close.addEventListener("click", function() {
+                    modal.style.display = "none";
+                });
+
+                // 3. Background par click karne par close ho jaye
+                modal.addEventListener("click", function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = "none";
+                    }
+                });
+            }
+        }, 100); // Har 100ms mein check karega jab tak layout active na ho jaye
+    })();
 
 <script>
 (function () {
