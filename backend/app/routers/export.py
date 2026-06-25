@@ -8,7 +8,12 @@ from fastapi.responses import StreamingResponse
 
 from ..sanitize import sanitize_code_input, sanitize_language_hint
 from ..schemas import CodeRequest
-from ..services.code_assistant import detect_language, run_bug_detection, run_explanation, run_suggestions
+from ..services.code_assistant import (
+    detect_language,
+    run_bug_detection,
+    run_explanation,
+    run_suggestions,
+)
 
 router = APIRouter()
 
