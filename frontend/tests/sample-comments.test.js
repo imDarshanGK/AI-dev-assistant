@@ -1,9 +1,8 @@
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
+import assert from 'assert';
+import fs from 'fs';
+import path from 'path';
 
-const indexHtml = fs.readFileSync(path.resolve(__dirname, '..', 'index.html'), 'utf8');
-
+const indexHtml = fs.readFileSync(new URL('../index.html', import.meta.url).pathname, 'utf8');
 const expectedHeaders = {
   python: '# Python Sample',
   javascript: '// JavaScript Sample',

@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..database import get_db
-from ..security import get_current_user
 from ..models import User
-from ..services.mock_provider import call_mock_llm
+from ..security import get_current_user
 from ..services.ai_provider import call_llm, is_enabled
+from ..services.mock_provider import call_mock_llm
 
 router = APIRouter()
 
