@@ -1,6 +1,6 @@
 """
-QyverixAI — Backend API
-FastAPI application with advanced middleware, rate limiting, and full analysis engine.
+QyverixAI – Backend API
+...
 """
 
 import logging
@@ -9,21 +9,35 @@ import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
 
-from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import analyze, auth, chat, collaboration, debugging, explanation
-from .routers import health as health_router
-from .routers import history
-from .routers import metrics as metrics_router
-from .routers import share, subscribe, suggestions, upload_file, user_data
-from .schemas import HealthResponse
-from .services import database
-from .services.scheduler import start_scheduler, stop_scheduler
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
+
+from fastapi import FastAPI, Request  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.middleware.gzip import GZipMiddleware  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+
+from .observability import (  # noqa: E402
+    initialise_app_info,
+    prometheus_metrics_middleware,
+)
+from .routers import (  # noqa: E402
+    analyze,
+    auth,
+    chat,
+    collaboration,
+    debugging,
+    explanation,
+)  # noqa: E402
+from .routers import health as health_router  # noqa: E402
+from .routers import history  # noqa: E402
+from .routers import metrics as metrics_router  # noqa: E402
+from .routers import share, subscribe, suggestions, upload_file, user_data  # noqa: E402
+from .schemas import HealthResponse  # noqa: E402
+from .services import database  # noqa: E402
+from .services.scheduler import start_scheduler, stop_scheduler  # noqa: E402
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
@@ -56,6 +70,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 async def lifespan(app: FastAPI):
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
+    # Static info gauge so dashboards can pin version / provider labels.
     initialise_app_info(
         version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
     )
@@ -168,6 +183,7 @@ async def add_process_time_header(request: Request, call_next):
     ip = request.client.host if request.client else "unknown"
     remaining = RATE_LIMIT
 
+    # Apply rate limiting to analysis endpoints only
     if request.url.path in (
         "/explanation/",
         "/debugging/",

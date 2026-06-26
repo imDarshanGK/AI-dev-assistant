@@ -70,6 +70,7 @@ class Settings:
     llm_timeout_seconds: int = _int_env("LLM_TIMEOUT_SECONDS", 30)
     llm_max_retries: int = _int_env("LLM_MAX_RETRIES", 3)
     llm_retry_backoff: float = _float_env("LLM_RETRY_BACKOFF", 1.0)
+    llm_verbose: bool = _bool_env("LLM_VERBOSE", False)
 
     # ── Email / Digest ──────────────────────────────────────────
     smtp_host: str = os.getenv("SMTP_HOST", "")

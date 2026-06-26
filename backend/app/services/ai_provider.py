@@ -14,13 +14,15 @@ import httpx
 
 logger = logging.getLogger("ai_provider")
 
-LLM_ENABLED  = os.getenv("LLM_ENABLED", "false").lower() == "true"
-LLM_API_KEY  = os.getenv("LLM_API_KEY", "")
+LLM_ENABLED = os.getenv("LLM_ENABLED", "false").lower() == "true"
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
-LLM_MODEL    = os.getenv("LLM_MODEL", "gpt-4o-mini")
-LLM_TIMEOUT  = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
+LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
+LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
 LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))
 LLM_RETRY_BACKOFF = float(os.getenv("LLM_RETRY_BACKOFF", "1.0"))
+LLM_VERBOSE = os.getenv("LLM_VERBOSE", "false").lower() == "true"
+
 
 def _get_provider_name(base_url: str) -> str:
     parsed = urlparse(base_url)
@@ -34,6 +36,7 @@ def _get_provider_name(base_url: str) -> str:
     elif "localhost" in hostname or "127.0.0.1" in hostname:
         return "ollama"
     return "unknown"
+
 
 async def call_llm(system: str, user: str) -> str | None:
     """Return LLM text response or None if disabled/error."""
@@ -55,6 +58,18 @@ async def call_llm(system: str, user: str) -> str | None:
         "max_tokens": 1024,
     }
 
+    if LLM_VERBOSE:
+        logger.debug(
+            "LLM request payload",
+            extra={
+                "provider": provider_name,
+                "model": LLM_MODEL,
+                "message_count": len(payload["messages"]),
+                "system_prompt_length": len(system),
+                "user_prompt_length": len(user),
+            },
+        )
+
     for attempt in range(LLM_MAX_RETRIES + 1):
         start_time = time.time()
         try:
@@ -73,9 +88,22 @@ async def call_llm(system: str, user: str) -> str | None:
                         "provider": provider_name,
                         "attempt": attempt + 1,
                         "latency_ms": latency_ms,
-                    }
+                    },
                 )
-                return data["choices"][0]["message"]["content"].strip()
+                result = data["choices"][0]["message"]["content"].strip()
+                if LLM_VERBOSE:
+                    logger.debug(
+                        "LLM response received",
+                        extra={
+                            "provider": provider_name,
+                            "latency_ms": latency_ms,
+                            "response_length": len(result),
+                            "finish_reason": data["choices"][0].get(
+                                "finish_reason", "unknown"
+                            ),
+                        },
+                    )
+                return result
 
         except httpx.HTTPStatusError as e:
             latency_ms = int((time.time() - start_time) * 1000)
@@ -88,10 +116,9 @@ async def call_llm(system: str, user: str) -> str | None:
                         "attempt": attempt + 1,
                         "latency_ms": latency_ms,
                         "failure_type": "http_error",
-                    }
+                    },
                 )
             else:
-                # 4xx error (not 429), don't retry
                 logger.error(
                     f"LLM client error ({status_code})",
                     extra={
@@ -100,13 +127,17 @@ async def call_llm(system: str, user: str) -> str | None:
                         "latency_ms": latency_ms,
                         "failure_type": "client_error",
                         "retry_suggestion": "Check API key and request format. Fallback available.",
-                    }
+                    },
                 )
                 return None
 
         except httpx.RequestError as e:
             latency_ms = int((time.time() - start_time) * 1000)
-            failure_type = "timeout" if isinstance(e, httpx.TimeoutException) else "connection_error"
+            failure_type = (
+                "timeout"
+                if isinstance(e, httpx.TimeoutException)
+                else "connection_error"
+            )
             logger.warning(
                 f"LLM request failed: {e.__class__.__name__}",
                 extra={
@@ -114,8 +145,9 @@ async def call_llm(system: str, user: str) -> str | None:
                     "attempt": attempt + 1,
                     "latency_ms": latency_ms,
                     "failure_type": failure_type,
-                }
+                },
             )
+
         except Exception as e:
             latency_ms = int((time.time() - start_time) * 1000)
             logger.error(
@@ -125,12 +157,12 @@ async def call_llm(system: str, user: str) -> str | None:
                     "attempt": attempt + 1,
                     "latency_ms": latency_ms,
                     "failure_type": "unexpected_error",
-                }
+                },
             )
             return None
 
         if attempt < LLM_MAX_RETRIES:
-            sleep_time = LLM_RETRY_BACKOFF * (2 ** attempt)
+            sleep_time = LLM_RETRY_BACKOFF * (2**attempt)
             await asyncio.sleep(sleep_time)
 
     logger.error(
@@ -142,9 +174,10 @@ async def call_llm(system: str, user: str) -> str | None:
             "failure_type": "retries_exhausted",
             "retry_suggestion": "Please retry in a few seconds or switch providers.",
             "fallback_available": True,
-        }
+        },
     )
     return None
+
 
 def is_enabled() -> bool:
     return LLM_ENABLED and bool(LLM_API_KEY)
