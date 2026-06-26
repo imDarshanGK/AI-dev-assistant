@@ -18,8 +18,11 @@ client = TestClient(app_main.app)
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
+
 def load_fixture(filename: str) -> str:
     return (FIXTURES_DIR / filename).read_text(encoding="utf-8")
+
+
 @pytest.fixture(autouse=True)
 def reset_rate_limit_state():
     app_main._request_counts.clear()

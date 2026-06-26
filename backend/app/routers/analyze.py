@@ -72,8 +72,6 @@ SOURCE_EXTENSIONS = {
 async def _stream_analysis(
     code: str, language_hint: str | None, ai_language: str | None = None
 ):
-    """Async generator that yields SSE chunks for each analysis section."""
-async def _stream_analysis(code: str, language_hint: str | None):
     code = sanitize_code_input(code)
     language_hint = sanitize_language_hint(language_hint)
 

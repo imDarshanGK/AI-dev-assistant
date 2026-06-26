@@ -663,7 +663,6 @@ class FavoriteRecord(BaseModel):
 # ── Share ─────────────────────────────────────────────────────────────────────
 
 
-
 class ShareCreateRequest(BaseModel):
     """Request body for creating a shareable analysis link."""
 
@@ -851,29 +850,3 @@ class ChatMessageResponse(BaseModel):
 
 
 # ── Explanation / Debugging / Suggestions response models ───────────────────
-class ExplanationResponse(BaseModel):
-    language: str
-    summary: str
-    key_points: list[str]
-    complexity: str
-    line_count: int
-    function_count: int
-    class_count: int
-    cyclomatic_complexity: int
-    complexity_risk: str
-
-
-class SuggestionsResponse(BaseModel):
-    suggestions: list[Suggestion]
-    overall_score: int
-    grade: str
-    next_step: str
-
-
-class AnalyzeResponse(BaseModel):
-    provider: str
-    model: str
-    explanation: ExplanationResponse
-    debugging: DebuggingResponse
-    suggestions: SuggestionsResponse
-    analysis_time_ms: float | None = None
