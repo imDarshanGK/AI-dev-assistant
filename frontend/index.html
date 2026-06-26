@@ -651,6 +651,7 @@
     .editor-wrap {
       position: relative;
       display: flex;
+      width: 100%;
       transition: border-color var(--transition);
     }
 
@@ -720,6 +721,7 @@
     }
 
     .line-numbers {
+      flex: 0 0 44px;
       padding: 16px 0 16px 12px;
       font-family: var(--font-mono);
       font-size: 13px;
@@ -739,6 +741,9 @@
 
     #codeEditor {
       width: 100%;
+      flex: 1 1 auto;
+      min-width: 0;
+      box-sizing: border-box;
       min-height: 300px;
       max-height: 500px;
       overflow-y: auto;
@@ -1045,7 +1050,35 @@
     .issue-card:hover {
       transform: translateX(3px)
     }
+  .collapsible-summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  list-style: none;
+  font-size: 0.78rem;
+}
 
+.collapsible-summary::-webkit-details-marker {
+  display: none;
+}
+.collapsible-summary::before {
+  content: "▶";
+  margin-right: 8px;
+  font-size: 12px;
+}
+
+details[open] > .collapsible-summary::before {
+  content: "▼";
+}
+.issue-content {
+  margin-top: 12px;
+}
+
+details.issue-card[open] {
+  border-left-width: 5px;
+}
     @keyframes cardIn {
       from {
         opacity: 0;
@@ -1501,8 +1534,8 @@
     }
 
     .suggest-title {
-      font-size: 0.88rem;
-      font-weight: 600
+      font-size: 0.78rem;
+      font-weight: 500
     }
 
     .suggest-desc {
@@ -1804,6 +1837,47 @@
       flex-shrink: 0;
     }
 
+    .history-score {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .history-score.score-good {
+      background: rgba(34, 212, 123, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(34, 212, 123, 0.25);
+    }
+    .history-score.score-warn {
+      background: rgba(245, 200, 66, 0.15);
+      color: var(--yellow);
+      border: 1px solid rgba(245, 200, 66, 0.25);
+    }
+    .history-score.score-bad {
+      background: rgba(242, 87, 87, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(242, 87, 87, 0.25);
+    }
+
+    .history-issues {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .history-issues.issues-clean {
+      background: rgba(34, 212, 123, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(34, 212, 123, 0.25);
+    }
+    .history-issues.issues-exist {
+      background: rgba(242, 87, 87, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(242, 87, 87, 0.25);
+    }
+
     .btn-clear {
       padding: 6px 14px;
       border-radius: var(--r2);
@@ -2040,9 +2114,14 @@
   .nav-links .nav-link span{display:none}
   .hero{padding:50px 0 40px}
   .hero-sub{font-size:0.98rem}
-  .features-row{gap:8px;padding:16px 0 40px}
-  .feat-pill{padding:10px 14px;min-width:140px}
+  .features-row{display:flex;flex-direction:column;gap:8px;max-width:340px;margin-inline:auto;padding:16px 0 40px}
+  .feat-pill{gap:10px;padding:10px 14px;min-width:0}
+  .feat-pill-icon{width:32px;height:32px;flex-shrink:0}
+  .feat-pill-info{min-width:0;overflow-wrap:break-word}
+  .feat-pill-info .feat-pill-title{font-size:0.82rem;line-height:1.25}
+  .feat-pill-info p{font-size:0.74rem;line-height:1.25}
   .workspace{gap:14px}
+  #workspace > .panel{grid-column:1 !important;min-width:0}
   .panel-header{padding:12px 14px}
   .mode-row{gap:6px;padding:10px 14px}
   .mode-btn{padding:8px 4px;font-size:0.74rem}
@@ -2063,12 +2142,292 @@
 @media(max-width:400px){
   .app{padding:0 14px 60px}
   .hero h1{font-size:1.9rem}
-  .feat-pill-info p{display:none}
   .lang-tab{padding:7px 10px;font-size:0.72rem}
   .result-tab{padding:9px 12px;font-size:0.75rem}
 }
+
+/* ── Live Collaboration ── */
+.collab-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  background: var(--bg3);
+  color: var(--text2);
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.collab-toolbar-btn:hover,
+.collab-toolbar-btn[aria-expanded="true"] {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(91, 156, 246, 0.1);
+}
+
+.collab-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text3);
+}
+
+.collab-status-dot.connected {
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(34, 212, 123, 0.12);
+}
+
+.collab-user-count {
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text3);
+  text-align: center;
+}
+
+.collab-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1090;
+  background: rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(2px);
+}
+
+.collab-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1100;
+  width: min(390px, 92vw);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 18px;
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  box-shadow: -18px 0 45px rgba(0, 0, 0, 0.25);
+  transform: translateX(105%);
+  visibility: hidden;
+  transition: transform 0.24s ease, visibility 0.24s ease;
+}
+
+.collab-drawer.open {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.collab-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.collab-drawer-header h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-disp);
+  font-size: 1rem;
+}
+
+.collab-drawer-header p {
+  margin: 0;
+  color: var(--text3);
+  font-size: 0.75rem;
+}
+
+.collab-close-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+}
+
+.collab-close-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.collab-drawer-section {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.collab-section-heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.collab-panel-top,
+.collab-comment-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.collab-comment-row {
+  margin-top: 10px;
+}
+
+.collab-drawer input {
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+}
+
+.collab-drawer button {
+  padding: 9px 12px;
+  border-radius: var(--r2);
+  border: 1px solid var(--border2);
+  background: rgba(91, 156, 246, 0.12);
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.collab-drawer button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.collab-drawer button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.collab-status {
+  margin-top: 8px;
+  font-size: 0.74rem;
+  color: var(--text2);
+}
+
+.collab-notice {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(245, 146, 62, 0.4);
+  border-radius: var(--r2);
+  background: rgba(245, 146, 62, 0.12);
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.collab-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.collab-user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+
+.collab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.collab-comments {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.collab-comment {
+  padding: 8px;
+  border-radius: var(--r2);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  font-size: 0.76rem;
+  color: var(--text2);
+}
+
+.collab-comment strong {
+  color: var(--text);
+}
+
+.collab-line-input {
+  max-width: 100%;
+}
+
+.collab-editor-shell {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.collab-editor-shell textarea {
+  width: 100%;
+  height: 100%;
+}
+
+.remote-cursor-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.remote-cursor {
+  position: absolute;
+  width: 2px;
+  height: 22px;
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.remote-cursor-label {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  max-width: 130px;
+  padding: 2px 5px;
+  border-radius: 4px 4px 4px 0;
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 </style>
 <link rel="icon" href="data:,">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
   <div class="bg-orb bg-orb-1"></div>
@@ -2281,10 +2640,10 @@
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
             <div class="mode-row" role="tablist" aria-label="Mode selector">
-              <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
-              <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
-              <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
-              <button class="mode-btn" data-mode="suggest" aria-pressed="false">Improve</button>
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
             </div>
           </div>
         </div>
@@ -2300,6 +2659,8 @@
         <div id="resultActions" class="result-actions" style="display:none">
           <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
           <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
+          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF">📄</button>
+          <button class="icon-btn" id="export-md-btn" title="Export as Markdown">📝</button>
         </div>
 
       </div>
@@ -2394,8 +2755,26 @@
           <button class="btn-clear" id="downloadJsonBtn" aria-label="Download history as JSON">Download JSON</button>
           <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
+        <div class="history-controls-row" style="display:flex; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 0.72rem; align-items:center; flex-wrap:wrap;">
+          <span style="color:var(--text3);" data-i18n="history_sort_label">Sort:</span>
+          <select id="historySortSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+            <option value="timestamp" data-i18n="history_sort_date">Date</option>
+            <option value="score" data-i18n="history_sort_score">Quality Score</option>
+            <option value="issue_count" data-i18n="history_sort_bugs">Bugs Scanned</option>
+          </select>
+          <span style="color:var(--text3); margin-left: 8px;" data-i18n="history_order_label">Order:</span>
+          <select id="historyOrderSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+            <option value="desc" data-i18n="history_order_desc">Desc</option>
+            <option value="asc" data-i18n="history_order_asc">Asc</option>
+          </select>
+        </div>
         <div class="history-list" id="historyList" aria-live="polite">
           <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
+        </div>
+        <div class="history-pagination-row" id="historyPagination" style="display:flex; justify-content:space-between; align-items:center; padding:8px 16px; border-top:1px solid var(--border); font-size:0.75rem;">
+          <button id="btnPrevHistory" class="btn-clear" style="padding:4px 10px; font-size:0.7rem;" disabled>&laquo; Prev</button>
+          <span id="historyPageNum" style="color:var(--text2); font-weight:600;">Page 1</span>
+          <button id="btnNextHistory" class="btn-clear" style="padding:4px 10px; font-size:0.7rem;" disabled>Next &raquo;</button>
         </div>
       </div>
       <div class="panel">
@@ -2502,6 +2881,13 @@
           history_title: "Query History",
           favorites_title: "Saved Favorites",
           empty_history: "No history yet. Run your first analysis.",
+          history_sort_label: "Sort:",
+          history_sort_date: "Date",
+          history_sort_score: "Quality Score",
+          history_sort_bugs: "Bugs Scanned",
+          history_order_label: "Order:",
+          history_order_desc: "Desc",
+          history_order_asc: "Asc",
           empty_favorites: "No favorites saved yet.",
           btn_clear: "Clear",
           footer_license: "MIT License",
@@ -2599,6 +2985,13 @@
           history_title: "வினவல் வரலாறு",
           favorites_title: "சேமிக்கப்பட்ட பிடித்தவை",
           empty_history: "இன்னும் வரலாறு இல்லை. உங்கள் முதல் பகுப்பாய்வை இயக்கவும்.",
+          history_sort_label: "வரிசைப்படுத்து:",
+          history_sort_date: "தேதி",
+          history_sort_score: "தர மதிப்பெண்",
+          history_sort_bugs: "கண்டறியப்பட்ட பிழைகள்",
+          history_order_label: "வரிசை:",
+          history_order_desc: "இறங்குவரிசை",
+          history_order_asc: "ஏறுவரிசை",
           empty_favorites: "இன்னும் பிடித்தவை எதுவும் சேமிக்கப்படவில்லை.",
           btn_clear: "அழி",
           footer_license: "எம்ஐடி உரிமம் (MIT License)",
@@ -2696,6 +3089,13 @@
           history_title: "क्वेरी इतिहास",
           favorites_title: "सहेजे गए पसंदीदा",
           empty_history: "अभी तक कोई इतिहास नहीं है। अपना पहला विश्लेषण चलाएं।",
+          history_sort_label: "क्रमबद्ध करें:",
+          history_sort_date: "तारीख",
+          history_sort_score: "गुणवत्ता स्कोर",
+          history_sort_bugs: "स्कैन किए गए कीड़े",
+          history_order_label: "क्रम:",
+          history_order_desc: "अवरोही",
+          history_order_asc: "आरोही",
           empty_favorites: "अभी तक कोई पसंदीदा सहेजा नहीं गया है।",
           btn_clear: "साफ करें",
           footer_license: "एमआईटी लाइसेंस (MIT License)",
@@ -2793,6 +3193,13 @@
           history_title: "Historique des requêtes",
           favorites_title: "Favoris enregistrés",
           empty_history: "Aucun historique pour le moment. Lancez votre première analyse.",
+          history_sort_label: "Trier par :",
+          history_sort_date: "Date",
+          history_sort_score: "Score de qualité",
+          history_sort_bugs: "Bugs détectés",
+          history_order_label: "Ordre :",
+          history_order_desc: "Décroissant",
+          history_order_asc: "Croissant",
           empty_favorites: "Aucun favori enregistré pour le moment.",
           btn_clear: "Effacer",
           footer_license: "Licence MIT",
@@ -2941,7 +3348,7 @@
         syncApiStatusText();
 
         updateEditor();
-        renderHistory();
+        fetchHistory();
         renderFavorites();
         if (currentResult) {
           renderResults(currentResult, editor.value);
@@ -3668,16 +4075,32 @@
     </div>`;
 
         const cards = dbg.issues.map((issue, i) => `
-    <div class="issue-card ${issue.severity}" style="animation-delay:${i * 0.05}s" tabindex="0">
+  <details class="issue-card ${issue.severity}"
+           style="animation-delay:${i * 0.05}s">
+
+    <summary class="collapsible-summary">
+      <span>${issue.type}</span>
+      ${issue.line
+        ? `<span class="issue-line">Line ${issue.line}</span>`
+        : ''}
+    </summary>
+
+    <div class="issue-content">
       <div class="issue-header">
         <span class="issue-badge">${issue.severity}</span>
-        <span class="issue-type">${issue.type}</span>
-        ${issue.line ? `<span class="issue-line">${getTranslation('debug_line').replace('{line}', issue.line)}</span>` : ''}
       </div>
+
       <div class="issue-desc">${issue.description}</div>
-      ${issue.code_snippet ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>` : ''}
+
+      ${issue.code_snippet
+        ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>`
+        : ''}
+
       <div class="issue-fix">${issue.suggestion}</div>
-    </div>`).join('');
+    </div>
+
+  </details>
+`).join('');
 
         el.innerHTML = statBar + cards;
       }
@@ -3914,15 +4337,22 @@
               }
             }
 
-            return `
-      <div class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s" tabindex="0">
-        <div class="suggest-header">
-          <span class="suggest-cat">${s.category}</span>
-          <span style="font-size:0.7rem;color:var(--text3);margin-left:auto">${getTranslation('suggest_priority').replace('{priority}', s.priority)}</span>
-        </div>
-        <div class="suggest-desc">${s.description}</div>
-        ${exampleHtml}
-      </div>`;
+          return `
+  <details class="suggest-card priority-${s.priority}" style="animation-delay:${i * 0.05}s">
+
+    <summary class="collapsible-summary">
+      <span>${s.category}</span>
+      <span style="font-size:0.7rem;color:var(--text3)">
+        ${getTranslation('suggest_priority').replace('{priority}', s.priority)}
+      </span>
+    </summary>
+
+    <div class="issue-content">
+      <div class="suggest-desc">${s.description}</div>
+      ${exampleHtml}
+    </div>
+
+  </details>`;
           }).join('');
 
         el.innerHTML = ring + cards;
@@ -3994,52 +4424,264 @@
       }
 
       /* ═══════════════════════════════════════════════════════════════
-         HISTORY
+         HISTORY (Paginated & Sorted)
       ═══════════════════════════════════════════════════════════════ */
-      function addToHistory(code, result) {
-        const lang = result.explanation?.language || result.debugging?.language||result.suggestions?.language||selectedLang;
-        const entry = {
+      let historyOffset = 0;
+      const historyLimit = 5;
+      let historyTotal = 0;
+      let historySortBy = 'timestamp';
+      let historyOrder = 'desc';
+
+      async function addToHistory(code, result) {
+        const lang = result.explanation?.language || result.debugging?.language || result.suggestions?.language || selectedLang;
+        
+        let issue_count = 0;
+        if (result.debugging?.issues) {
+          issue_count = result.debugging.issues.length;
+        } else if (result.files) {
+          issue_count = result.files.reduce((acc, f) => acc + (f.analysis?.debugging?.issues?.length || 0), 0);
+        }
+
+        // 1. Always save locally as a fallback
+        const localEntry = {
           id: Date.now(),
           code,
           result,
           lang,
-          ts: new Date().toLocaleTimeString(),
+          ts: new Date().toISOString(),
           preview: code.slice(0, 60).replace(/\n/g, ' '),
+          score: result.suggestions?.overall_score ?? result.overall_project_score ?? null,
+          issue_count: issue_count
         };
-        history.unshift(entry);
-        if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-        localStorage.setItem('qyx_history', JSON.stringify(history));
+        let localHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+        localHistory.unshift(localEntry);
+        if (localHistory.length > MAX_HISTORY) localHistory = localHistory.slice(0, MAX_HISTORY);
+        localStorage.setItem('qyx_history', JSON.stringify(localHistory));
+
+        // 2. Save to backend if connected
+        const apiBase = getApiBase();
+        try {
+          const score = result.suggestions?.overall_score ?? result.overall_project_score ?? null;
+          await fetch(`${apiBase}/history/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code,
+              language: lang,
+              score,
+              issue_count,
+              result_json: JSON.stringify(result)
+            })
+          });
+          historyOffset = 0;
+          await fetchHistory();
+        } catch (err) {
+          loadLocalHistory();
+        }
+      }
+
+      async function fetchHistory() {
+        const apiBase = getApiBase();
+        try {
+          const res = await fetch(`${apiBase}/history/?limit=${historyLimit}&offset=${historyOffset}&sort_by=${historySortBy}&order=${historyOrder}`);
+          if (res.ok) {
+            const data = await res.json();
+            history = data.items;
+            historyTotal = data.meta.total;
+            renderHistory();
+            updatePaginationUI();
+            return;
+          }
+        } catch (err) {
+          // Fallback to local storage on fetch error
+        }
+        loadLocalHistory();
+      }
+
+      function loadLocalHistory() {
+        let localHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+        
+        // Sort local history
+        localHistory.sort((a, b) => {
+          let valA, valB;
+          if (historySortBy === 'score') {
+            valA = a.score !== undefined ? a.score : (a.result?.suggestions?.overall_score || a.result?.overall_project_score || null);
+            valB = b.score !== undefined ? b.score : (b.result?.suggestions?.overall_score || b.result?.overall_project_score || null);
+            if (valA === null || valA === undefined) valA = -1;
+            if (valB === null || valB === undefined) valB = -1;
+          } else if (historySortBy === 'issue_count') {
+            if (a.issue_count !== undefined) {
+              valA = a.issue_count;
+            } else if (a.result) {
+              valA = a.result.debugging?.issues?.length || (a.result.files ? a.result.files.reduce((acc, f) => acc + (f.analysis?.debugging?.issues?.length || 0), 0) : 0);
+            } else {
+              valA = 0;
+            }
+            if (b.issue_count !== undefined) {
+              valB = b.issue_count;
+            } else if (b.result) {
+              valB = b.result.debugging?.issues?.length || (b.result.files ? b.result.files.reduce((acc, f) => acc + (f.analysis?.debugging?.issues?.length || 0), 0) : 0);
+            } else {
+              valB = 0;
+            }
+          } else {
+            valA = a.id || 0;
+            valB = b.id || 0;
+          }
+          
+          if (valA < valB) return historyOrder === 'asc' ? -1 : 1;
+          if (valA > valB) return historyOrder === 'asc' ? 1 : -1;
+          return b.id - a.id; // stable tie-breaker
+        });
+
+        historyTotal = localHistory.length;
+        history = localHistory.slice(historyOffset, historyOffset + historyLimit);
+        
         renderHistory();
+        updatePaginationUI();
       }
 
       function renderHistory() {
-        if (!history.length) {
-          historyList.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
+        const listContainer = document.getElementById('historyList');
+        if (!listContainer) return;
+
+        if (!history || !history.length) {
+          listContainer.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
-        historyList.innerHTML = history.map(h => `
-    <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${getTranslation('history_entry_label').replace('{lang}', h.lang || '?').replace('{time}', h.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
-      <span class="history-lang">${h.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(h.preview)}…</span>
-      <span class="history-meta">${h.ts}</span>
-    </div>`).join('');
+
+        listContainer.innerHTML = history.map(h => {
+          const lang = h.language || h.lang || '?';
+          const preview = h.code_preview || h.preview || '';
+          
+          let displayTime = h.timestamp || h.ts || '';
+          if (displayTime.includes('T') || displayTime.includes('-')) {
+            try {
+              let isoStr = displayTime;
+              if (!isoStr.endsWith('Z') && !isoStr.includes('T')) {
+                isoStr = isoStr.replace(' ', 'T') + 'Z';
+              }
+              const d = new Date(isoStr);
+              const day = String(d.getDate()).padStart(2, '0');
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const year = d.getFullYear();
+              const hours = String(d.getHours()).padStart(2, '0');
+              const minutes = String(d.getMinutes()).padStart(2, '0');
+              const seconds = String(d.getSeconds()).padStart(2, '0');
+              displayTime = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+            } catch (e) {}
+          }
+
+          const score = h.score !== undefined ? h.score : (h.result?.suggestions?.overall_score || h.result?.overall_project_score || null);
+          let issueCount = 0;
+          if (h.issue_count !== undefined) {
+            issueCount = h.issue_count;
+          } else if (h.result) {
+            if (h.result.debugging?.issues) {
+              issueCount = h.result.debugging.issues.length;
+            } else if (h.result.files) {
+              issueCount = h.result.files.reduce((acc, f) => acc + (f.analysis?.debugging?.issues?.length || 0), 0);
+            }
+          }
+
+          let scoreClass = 'score-bad';
+          if (score >= 80) scoreClass = 'score-good';
+          else if (score >= 60) scoreClass = 'score-warn';
+          const scoreHtml = score !== null ? `<span class="history-score ${scoreClass}">Score: ${score}%</span>` : '';
+
+          let issuesClass = issueCount === 0 ? 'issues-clean' : 'issues-exist';
+          const issuesHtml = `<span class="history-issues ${issuesClass}">${issueCount} ${issueCount === 1 ? 'issue' : 'issues'}</span>`;
+
+          const label = getTranslation('history_entry_label')
+            .replace('{lang}', lang)
+            .replace('{time}', displayTime);
+
+          return `
+            <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${label}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
+              <span class="history-lang">${lang}</span>
+              <span class="history-thumb">${escHtml(preview)}…</span>
+              <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
+                ${scoreHtml}
+                ${issuesHtml}
+              </div>
+              <span class="history-meta">${displayTime}</span>
+            </div>`;
+        }).join('');
       }
 
-      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      function updatePaginationUI() {
+        const btnPrev = document.getElementById('btnPrevHistory');
+        const btnNext = document.getElementById('btnNextHistory');
+        const pageNum = document.getElementById('historyPageNum');
+        if (!btnPrev || !btnNext || !pageNum) return;
+
+        const currentPage = Math.floor(historyOffset / historyLimit) + 1;
+        const totalPages = Math.max(Math.ceil(historyTotal / historyLimit), 1);
+        pageNum.textContent = `Page ${currentPage} of ${totalPages}`;
+
+        btnPrev.disabled = historyOffset <= 0;
+        btnNext.disabled = historyOffset + historyLimit >= historyTotal;
+      }
+
+      document.getElementById('btnPrevHistory')?.addEventListener('click', () => {
+        if (historyOffset > 0) {
+          historyOffset = Math.max(0, historyOffset - historyLimit);
+          fetchHistory();
+        }
+      });
+
+      document.getElementById('btnNextHistory')?.addEventListener('click', () => {
+        if (historyOffset + historyLimit < historyTotal) {
+          historyOffset += historyLimit;
+          fetchHistory();
+        }
+      });
+
+      document.getElementById('historySortSelect')?.addEventListener('change', e => {
+        historySortBy = e.target.value;
+        historyOffset = 0;
+        fetchHistory();
+      });
+
+      document.getElementById('historyOrderSelect')?.addEventListener('change', e => {
+        historyOrder = e.target.value;
+        historyOffset = 0;
+        fetchHistory();
+      });
+
+      document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
 
-        history = [];
+        const apiBase = getApiBase();
+        try {
+          await fetch(`${apiBase}/history/`, { method: 'DELETE' });
+        } catch (err) {}
+
         localStorage.removeItem('qyx_history');
-        renderHistory();
+        historyOffset = 0;
+        await fetchHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
-      document.getElementById('downloadJsonBtn').addEventListener('click', () => {
-        if (!history || history.length === 0) {
+      async function getHistoryForDownload() {
+        const apiBase = getApiBase();
+        try {
+          const res = await fetch(`${apiBase}/history/?limit=1000`);
+          if (res.ok) {
+            const data = await res.json();
+            return data.items;
+          }
+        } catch (e) {}
+        return JSON.parse(localStorage.getItem('qyx_history') || '[]');
+      }
+
+      document.getElementById('downloadJsonBtn').addEventListener('click', async () => {
+        const downloadItems = await getHistoryForDownload();
+        if (!downloadItems || downloadItems.length === 0) {
           toast('No history to download', 'info');
           return;
         }
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(downloadItems, null, 2));
         const dlNode = document.createElement('a');
         dlNode.setAttribute("href", dataStr);
         dlNode.setAttribute("download", "history.json");
@@ -4049,17 +4691,18 @@
         toast('Downloaded history.json', 'success');
       });
 
-      document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-        if (!history || history.length === 0) {
+      document.getElementById('downloadCsvBtn').addEventListener('click', async () => {
+        const downloadItems = await getHistoryForDownload();
+        if (!downloadItems || downloadItems.length === 0) {
           toast('No history to download', 'info');
           return;
         }
 
-        const headers = Object.keys(history[0]);
+        const headers = Object.keys(downloadItems[0]);
         const csvRows = [];
         csvRows.push(headers.join(','));
 
-        for (const row of history) {
+        for (const row of downloadItems) {
           const values = headers.map(header => {
             let val = row[header] === null || row[header] === undefined ? '' : String(row[header]);
             val = val.replace(/"/g, '""');
@@ -4077,6 +4720,7 @@
         dlNode.remove();
         toast('Downloaded history.csv', 'success');
       });
+
       function normalizeSavedEntryId(id) {
         const normalizedId = Number(id);
         return Number.isNaN(normalizedId) ? null : normalizedId;
@@ -4094,9 +4738,27 @@
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
       }
 
-      function loadEntry(id) {
+      async function loadEntry(id) {
         const normalizedId = normalizeSavedEntryId(id);
         if (normalizedId === null) return;
+
+        const apiBase = getApiBase();
+        try {
+          const res = await fetch(`${apiBase}/history/${normalizedId}`);
+          if (res.ok) {
+            const entry = await res.json();
+            const hydrated = {
+              code: entry.code || '',
+              lang: entry.language || 'python',
+              result: entry.result_json ? JSON.parse(entry.result_json) : null
+            };
+            restoreSavedEntry(hydrated);
+            return;
+          }
+        } catch (err) {}
+
+        // Fallback to local
+        const history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
         const entry = history.find(h => h.id === normalizedId);
         restoreSavedEntry(entry);
       }
@@ -4113,7 +4775,7 @@
           code: editor.value,
           result: currentResult,
           lang: currentResult.explanation?.language || selectedLang,
-          ts: new Date().toLocaleDateString(),
+          ts: new Date().toISOString(),
           preview: editor.value.slice(0, 60).replace(/\n/g, ' '),
         };
         favorites.unshift(entry);
@@ -4128,12 +4790,58 @@
           favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
           return;
         }
-        favList.innerHTML = favorites.map(f => `
-    <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${getTranslation('favorite_entry_label').replace('{lang}', f.lang || '?').replace('{time}', f.ts)}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
-      <span class="history-lang">${f.lang || '?'}</span>
-      <span class="history-thumb">${escHtml(f.preview)}…</span>
-      <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-    </div>`).join('');
+        favList.innerHTML = favorites.map(f => {
+          const score = f.result?.suggestions?.overall_score || f.result?.overall_project_score || null;
+          let issueCount = 0;
+          if (f.result) {
+            if (f.result.debugging?.issues) {
+              issueCount = f.result.debugging.issues.length;
+            } else if (f.result.files) {
+              issueCount = f.result.files.reduce((acc, file) => acc + (file.analysis?.debugging?.issues?.length || 0), 0);
+            }
+          }
+          
+          let displayTime = f.ts || '';
+          if (displayTime.includes('T') || displayTime.includes('-')) {
+            try {
+              let isoStr = displayTime;
+              if (!isoStr.endsWith('Z') && !isoStr.includes('T')) {
+                isoStr = isoStr.replace(' ', 'T') + 'Z';
+              }
+              const d = new Date(isoStr);
+              const day = String(d.getDate()).padStart(2, '0');
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const year = d.getFullYear();
+              const hours = String(d.getHours()).padStart(2, '0');
+              const minutes = String(d.getMinutes()).padStart(2, '0');
+              const seconds = String(d.getSeconds()).padStart(2, '0');
+              displayTime = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+            } catch (e) {}
+          }
+
+          let scoreClass = 'score-bad';
+          if (score >= 80) scoreClass = 'score-good';
+          else if (score >= 60) scoreClass = 'score-warn';
+          const scoreHtml = score !== null ? `<span class="history-score ${scoreClass}">Score: ${score}%</span>` : '';
+
+          let issuesClass = issueCount === 0 ? 'issues-clean' : 'issues-exist';
+          const issuesHtml = `<span class="history-issues ${issuesClass}">${issueCount} ${issueCount === 1 ? 'issue' : 'issues'}</span>`;
+
+          const label = getTranslation('favorite_entry_label')
+            .replace('{lang}', f.lang || '?')
+            .replace('{time}', displayTime);
+
+          return `
+            <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${label}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
+              <span class="history-lang">${f.lang || '?'}</span>
+              <span class="history-thumb">${escHtml(f.preview)}…</span>
+              <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
+                ${scoreHtml}
+                ${issuesHtml}
+              </div>
+              <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+            </div>`;
+        }).join('');
       }
 
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
@@ -4165,6 +4873,83 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         a.click();
         URL.revokeObjectURL(a.href);
         toast(getTranslation('toast_report_downloaded'), 'success');
+      });
+
+      // 1. Export as Markdown
+      document.getElementById('export-md-btn').addEventListener('click', () => {
+        if (!currentResult) return alert("No report generated yet!");
+        
+        try {
+            const codeContent = typeof editor !== 'undefined' ? editor.value : '';
+            const rawText = buildReport(currentResult, codeContent);
+            const mdText = "```text\n" + rawText + "\n```";
+            
+            const blob = new Blob([mdText], { type: 'text/markdown' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `qyverixai-report-${Date.now()}.md`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            
+            if (typeof toast === 'function') toast('Downloaded as Markdown', 'success');
+        } catch (error) {
+            console.error("Markdown Error: ", error);
+            alert("Oops! Something went wrong generating the Markdown.");
+        }
+      });
+
+      // 2. Export as PDF
+      document.getElementById('export-pdf-btn').addEventListener('click', () => {
+        if (!currentResult) return alert("No report generated yet!");
+        
+        try {
+            const codeContent = typeof editor !== 'undefined' ? editor.value : '';
+            const rawText = buildReport(currentResult, codeContent);
+            
+            const lines = rawText.split('\n');
+            const linesPerPage = 45; 
+            
+            // Build a container in memory
+            const container = document.createElement('div');
+            container.style.width = '700px';
+            container.style.backgroundColor = '#ffffff';
+
+            for (let i = 0; i < lines.length; i += linesPerPage) {
+                const chunkText = lines.slice(i, i + linesPerPage).join('\n');
+                
+                const pageDiv = document.createElement('div');
+                pageDiv.style.fontFamily = 'monospace';
+                pageDiv.style.fontSize = '12px';
+                pageDiv.style.lineHeight = '1.5';
+                pageDiv.style.color = '#000000';
+                pageDiv.style.whiteSpace = 'pre-wrap';
+                pageDiv.innerText = chunkText === '' ? ' ' : chunkText;
+                
+                container.appendChild(pageDiv);
+                
+                if (i + linesPerPage < lines.length) {
+                    const pageBreak = document.createElement('div');
+                    pageBreak.className = 'html2pdf__page-break';
+                    container.appendChild(pageBreak);
+                }
+            }
+
+            const options = {
+              margin:       10,
+              filename:     `qyverixai-report-${Date.now()}.pdf`,
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2, scrollY: 0 }, 
+              jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(options).from(container).save().then(() => {
+              if (typeof toast === 'function') toast('Downloaded as PDF', 'success');
+            });
+            
+        } catch (error) {
+            console.error("PDF Error: ", error);
+            alert("Oops! Something went wrong generating the PDF.");
+        }
       });
 
       function buildReport(r, code) {
@@ -4355,7 +5140,7 @@ int main() {
       setAppLanguage(appLang);
       syncApiStatusText();
 
-      renderHistory();
+      fetchHistory();
       renderFavorites();
 
       // Save API URL
@@ -4398,6 +5183,601 @@ int main() {
         }
       });
     </script>
+
+<script>
+(function () {
+  const editor = document.querySelector('#codeEditor');
+  if (!editor) return;
+
+  let socket = null;
+  let currentSessionId = '';
+  let clientId = '';
+  let version = 0;
+ let collaborators = [];
+  let suppressNextInput = false;
+  let debounceTimer = null;
+
+    const editorPanel = editor.closest('.panel') || editor.parentElement;
+
+  const toolbarButton = document.createElement('button');
+  toolbarButton.type = 'button';
+  toolbarButton.id = 'collabToggleBtn';
+  toolbarButton.className = 'collab-toolbar-btn';
+  toolbarButton.setAttribute('aria-controls', 'collabDrawer');
+  toolbarButton.setAttribute('aria-expanded', 'false');
+  toolbarButton.title = 'Open live collaboration';
+  toolbarButton.innerHTML = `
+    <span id="collabToolbarDot" class="collab-status-dot"></span>
+    <span>Collaborate</span>
+    <span id="collabToolbarCount" class="collab-user-count">0</span>
+  `;
+
+  const editorHeader =
+    editorPanel.querySelector('.panel-header') ||
+    editorPanel.querySelector('.editor-panel-header') ||
+    editorPanel.querySelector('.panel-head') ||
+    editorPanel.firstElementChild;
+
+  const editorActions =
+    editorHeader?.querySelector('.panel-actions') ||
+    editorHeader?.querySelector('.actions') ||
+    editorHeader;
+
+  if (editorActions) {
+    editorActions.appendChild(toolbarButton);
+  } else {
+    editorPanel.insertBefore(toolbarButton, editorPanel.firstChild);
+  }
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'collabBackdrop';
+  backdrop.className = 'collab-backdrop';
+  backdrop.hidden = true;
+  document.body.appendChild(backdrop);
+
+  const panel = document.createElement('aside');
+  panel.id = 'collabDrawer';
+  panel.className = 'collab-drawer';
+  panel.setAttribute('aria-labelledby', 'collabDrawerTitle');
+  panel.setAttribute('aria-hidden', 'true');
+  panel.innerHTML = `
+    <div class="collab-drawer-header">
+      <div>
+        <h2 id="collabDrawerTitle">Live Collaboration</h2>
+        <p id="collabDrawerStatus">Not connected</p>
+      </div>
+      <button id="collabCloseBtn" class="collab-close-btn" type="button" aria-label="Close collaboration panel">✕</button>
+    </div>
+
+    <div id="collabNotice" class="collab-notice" role="status" aria-live="polite" hidden></div>
+
+    <div class="collab-drawer-section">
+      <div class="collab-section-heading">
+        <span>Session</span>
+      </div>
+      <div class="collab-panel-top">
+        <input id="collabName" placeholder="Your name" value="Your name" />
+        <input id="collabSession" placeholder="Session ID e.g. review-676" />
+        <button id="collabJoinBtn" type="button">Join Live</button>
+        <button id="collabLeaveBtn" type="button" disabled>Leave</button>
+      </div>
+      <div id="collabStatus" class="collab-status">Live collaboration is not connected.</div>
+    </div>
+
+    <section class="collab-drawer-section">
+      <div class="collab-section-heading">
+        <span>Active users</span>
+        <span id="collabDrawerCount">0</span>
+      </div>
+      <div id="collabUsers" class="collab-users"></div>
+    </section>
+
+    <section class="collab-drawer-section">
+      <div class="collab-section-heading">
+        <span>Review comments</span>
+      </div>
+      <div class="collab-comment-row">
+        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1" />
+        <input id="collabCommentText" placeholder="Add a live review comment..." />
+        <button id="collabCommentBtn" type="button" disabled>Comment</button>
+      </div>
+      <div id="collabComments" class="collab-comments"></div>
+    </section>
+  `;
+  document.body.appendChild(panel);
+
+  const nameInput = panel.querySelector('#collabName');
+  const sessionInput = panel.querySelector('#collabSession');
+  const joinBtn = panel.querySelector('#collabJoinBtn');
+  const leaveBtn = panel.querySelector('#collabLeaveBtn');
+  const statusEl = panel.querySelector('#collabStatus');
+  const usersEl = panel.querySelector('#collabUsers');
+  const lineInput = panel.querySelector('#collabLine');
+  const commentText = panel.querySelector('#collabCommentText');
+  const commentBtn = panel.querySelector('#collabCommentBtn');
+  const commentsEl = panel.querySelector('#collabComments');
+  const closeBtn = panel.querySelector('#collabCloseBtn');
+  const drawerStatusEl = panel.querySelector('#collabDrawerStatus');
+  const noticeEl = panel.querySelector('#collabNotice');
+  const toolbarDot = toolbarButton.querySelector('#collabToolbarDot');
+  const toolbarCount = toolbarButton.querySelector('#collabToolbarCount');
+  const drawerCount = panel.querySelector('#collabDrawerCount');
+
+  function setDrawerOpen(isOpen) {
+    panel.classList.toggle('open', isOpen);
+    panel.setAttribute('aria-hidden', String(!isOpen));
+    toolbarButton.setAttribute('aria-expanded', String(isOpen));
+    backdrop.hidden = !isOpen;
+
+    if (isOpen) {
+      closeBtn.focus();
+    }
+  }
+
+  toolbarButton.addEventListener('click', () => {
+    setDrawerOpen(!panel.classList.contains('open'));
+  });
+
+  closeBtn.addEventListener('click', () => {
+    setDrawerOpen(false);
+  });
+
+  backdrop.addEventListener('click', () => {
+    setDrawerOpen(false);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && panel.classList.contains('open')) {
+      setDrawerOpen(false);
+    }
+  });
+
+  const editorShell = document.createElement('div');
+  editorShell.className = 'collab-editor-shell';
+  const remoteCursorLayer = document.createElement('div');
+  remoteCursorLayer.id = 'remoteCursorLayer';
+  remoteCursorLayer.className = 'remote-cursor-layer';
+  remoteCursorLayer.setAttribute('aria-hidden', 'true');
+
+  editor.parentElement.insertBefore(editorShell, editor);
+  editorShell.appendChild(editor);
+  editorShell.appendChild(remoteCursorLayer);
+
+
+  function getApiBase() {
+  const saved = localStorage.getItem('qyx_apiUrl');
+  if (saved) return saved.replace(/\/$/, '');
+
+  if (location.pathname.startsWith('/app')) {
+    return location.origin;
+  }
+
+  return 'http://localhost:8000';
+}
+
+  function getWsBase() {
+    return getApiBase().replace(/^http/, 'ws');
+  }
+
+  function setStatus(text) {
+    statusEl.textContent = text;
+  }
+
+  function selectedLanguage() {
+    const activeTab = document.querySelector('.lang-tab.active');
+    return activeTab ? activeTab.dataset.lang || activeTab.textContent.trim().toLowerCase() : 'python';
+  }
+
+  function getCursorPayload() {
+    const value = editor.value || '';
+    const index = editor.selectionStart || 0;
+    const before = value.slice(0, index);
+    const lines = before.split('\n');
+
+    return {
+      line: lines.length,
+      column: lines[lines.length - 1].length + 1,
+      selectionStart: editor.selectionStart || 0,
+      selectionEnd: editor.selectionEnd || editor.selectionStart || 0
+    };
+  }
+
+  function send(payload) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify(payload));
+  }
+
+  function updateConnectionUi(isConnected) {
+    toolbarDot.classList.toggle('connected', isConnected);
+    drawerStatusEl.textContent = isConnected
+      ? `Connected to session "${currentSessionId}".`
+      : 'Not connected';
+  }
+
+  function updateUserCounts() {
+    const count = collaborators.length;
+    toolbarCount.textContent = String(count);
+    drawerCount.textContent = String(count);
+  }
+
+  let noticeTimer = null;
+
+  function showNotice(message, duration = 5000) {
+    noticeEl.textContent = message;
+    noticeEl.hidden = false;
+
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => {
+      noticeEl.hidden = true;
+      noticeEl.textContent = '';
+    }, duration);
+  }
+
+  function renderUsers(users) {
+    usersEl.innerHTML = '';
+
+    users.forEach((user) => {
+      const cursor = user.cursor
+        ? ` · L${user.cursor.line}:C${user.cursor.column}`
+        : '';
+
+      const pill = document.createElement('div');
+      pill.className = 'collab-user-pill';
+      pill.innerHTML = `
+        <span class="collab-dot" style="background:${user.color}"></span>
+        <span>${escapeHtml(user.name)}${cursor}</span>
+      `;
+      usersEl.appendChild(pill);
+    });
+
+    updateUserCounts();
+    renderRemoteCursors();
+  }
+
+  function renderComments(comments) {
+    commentsEl.innerHTML = '';
+
+    comments.forEach((comment) => {
+      const item = document.createElement('div');
+      item.className = 'collab-comment';
+      item.innerHTML = `
+        <strong style="color:${comment.color}">${escapeHtml(comment.author)}</strong>
+        on line <strong>${comment.line}</strong>: ${escapeHtml(comment.text)}
+      `;
+      commentsEl.appendChild(item);
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function getTextareaCaretCoordinates(textarea, position) {
+    const mirror = document.createElement('div');
+    const computed = window.getComputedStyle(textarea);
+
+    const copiedProperties = [
+      'boxSizing',
+      'width',
+      'height',
+      'overflowX',
+      'overflowY',
+      'borderTopWidth',
+      'borderRightWidth',
+      'borderBottomWidth',
+      'borderLeftWidth',
+      'paddingTop',
+      'paddingRight',
+      'paddingBottom',
+      'paddingLeft',
+      'fontStyle',
+      'fontVariant',
+      'fontWeight',
+      'fontStretch',
+      'fontSize',
+      'lineHeight',
+      'fontFamily',
+      'letterSpacing',
+      'textTransform',
+      'textAlign',
+      'textIndent',
+      'tabSize',
+      'wordSpacing'
+    ];
+
+    mirror.style.position = 'absolute';
+    mirror.style.visibility = 'hidden';
+    mirror.style.whiteSpace = 'pre-wrap';
+    mirror.style.overflowWrap = 'break-word';
+    mirror.style.top = '0';
+    mirror.style.left = '-9999px';
+
+    copiedProperties.forEach((property) => {
+      mirror.style[property] = computed[property];
+    });
+
+    mirror.textContent = textarea.value.substring(0, position);
+
+    const marker = document.createElement('span');
+    marker.textContent = textarea.value.substring(position, position + 1) || '\u200b';
+
+    mirror.appendChild(marker);
+    document.body.appendChild(mirror);
+
+    const coordinates = {
+      left: marker.offsetLeft - textarea.scrollLeft,
+      top: marker.offsetTop - textarea.scrollTop
+    };
+
+    mirror.remove();
+    return coordinates;
+  }
+
+  function renderRemoteCursors() {
+    remoteCursorLayer.innerHTML = '';
+
+    collaborators.forEach((user) => {
+      if (
+        user.id === clientId ||
+        !user.cursor ||
+        !Number.isInteger(user.cursor.selectionEnd)
+      ) {
+        return;
+      }
+
+      const position = Math.min(user.cursor.selectionEnd, editor.value.length);
+      const coordinates = getTextareaCaretCoordinates(editor, position);
+      const color = user.color || '#5b9cf6';
+
+      const cursor = document.createElement('div');
+      cursor.className = 'remote-cursor';
+      cursor.style.left = `${coordinates.left}px`;
+      cursor.style.top = `${coordinates.top}px`;
+      cursor.style.backgroundColor = color;
+
+      const label = document.createElement('span');
+      label.className = 'remote-cursor-label';
+      label.textContent = user.name || 'Collaborator';
+      label.style.backgroundColor = color;
+
+      cursor.appendChild(label);
+      remoteCursorLayer.appendChild(cursor);
+    });
+  }
+
+  function applyRemoteCode(message) {
+    suppressNextInput = true;
+    editor.value = message.code || '';
+    version = message.version || version;
+
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+
+    window.setTimeout(() => {
+      suppressNextInput = false;
+    }, 0);
+  }
+
+  function handleMessage(message) {
+    if (message.type === 'session_state') {
+  clientId = message.clientId;
+  version = message.version || 0;
+  collaborators = message.users || [];
+
+  if (message.code) {
+    applyRemoteCode(message);
+  }
+
+  renderUsers(collaborators);
+  renderComments(message.comments || []);
+  updateConnectionUi(true);
+  setStatus(`Connected to session "${message.sessionId}" as ${clientId}.`);
+  return;
+}
+
+    if (message.type === 'presence_update') {
+  collaborators = message.users || [];
+  renderUsers(collaborators);
+  return;
+}
+
+    if (message.type === 'code_update') {
+  version = message.version || version;
+
+  if (message.senderId === clientId) {
+    setStatus(`Your edit was synced as v${version}.`);
+    return;
+  }
+
+  applyRemoteCode(message);
+  renderRemoteCursors();
+  setStatus(`Synced live update v${version}.`);
+  return;
+}
+
+    if (message.type === 'cursor_update') {
+      if (!message.user) {
+        return;
+      }
+
+      const existingIndex = collaborators.findIndex(
+        (user) => user.id === message.user.id
+      );
+
+  if (existingIndex >= 0) {
+    collaborators[existingIndex] = message.user;
+  } else {
+    collaborators.push(message.user);
+  }
+
+  renderUsers(collaborators);
+  return;
+}
+
+    if (message.type === 'comment_added') {
+      renderComments(message.comments || []);
+      return;
+    }
+
+    if (message.type === 'sync_required') {
+  applyRemoteCode(message);
+  collaborators = message.users || [];
+  renderUsers(collaborators);
+  renderComments(message.comments || []);
+  renderRemoteCursors();
+  const conflictMessage =
+    'Conflict detected: your local edit was behind the room version, so the latest room state was restored.';
+
+  setStatus(conflictMessage);
+  showNotice(conflictMessage);
+  setDrawerOpen(true);
+
+  return;
+}
+
+    if (message.type === 'pong') {
+      setStatus(`Connected to session "${currentSessionId}".`);
+      return;
+    }
+
+    if (message.type === 'error') {
+      setStatus(`Collaboration error: ${message.detail}`);
+    }
+  }
+
+  function connect() {
+    const session = sessionInput.value.trim();
+    const name = nameInput.value.trim() || 'Anonymous';
+
+    if (!session) {
+      setStatus('Enter a session ID before joining.');
+      return;
+    }
+
+    if (socket) {
+      socket.close();
+    }
+
+    currentSessionId = session;
+
+    const url = `${getWsBase()}/collaboration/ws/${encodeURIComponent(session)}?name=${encodeURIComponent(name)}`;
+    socket = new WebSocket(url);
+
+    socket.addEventListener('open', () => {
+      joinBtn.disabled = true;
+      leaveBtn.disabled = false;
+      commentBtn.disabled = false;
+      setStatus(`Connected to "${session}".`);
+      updateConnectionUi(true);
+
+      send({
+        type: 'code_update',
+        code: editor.value || '',
+        language: selectedLanguage(),
+        version
+      });
+    });
+
+    socket.addEventListener('message', (event) => {
+      try {
+        handleMessage(JSON.parse(event.data));
+      } catch {
+        setStatus('Received an invalid collaboration message.');
+      }
+    });
+
+    socket.addEventListener('close', () => {
+      joinBtn.disabled = false;
+      leaveBtn.disabled = true;
+      commentBtn.disabled = true;
+      setStatus('Live collaboration disconnected.');
+      updateConnectionUi(false);
+      collaborators = [];
+      renderUsers(collaborators);
+      renderRemoteCursors();
+    });
+
+    socket.addEventListener('error', () => {
+      setStatus('Could not connect to live collaboration WebSocket.');
+    });
+  }
+
+  function disconnect() {
+    if (socket) {
+      socket.close();
+      socket = null;
+    }
+  }
+
+  editor.addEventListener('input', () => {
+    if (suppressNextInput) return;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      send({
+        type: 'code_update',
+        code: editor.value || '',
+        language: selectedLanguage(),
+        version
+      });
+    }, 250);
+      send({
+        type: 'cursor_update',
+        cursor: getCursorPayload()
+      });
+  });
+
+  editor.addEventListener('keyup', () => {
+    send({
+      type: 'cursor_update',
+      cursor: getCursorPayload()
+    });
+  });
+
+  editor.addEventListener('click', () => {
+    send({
+      type: 'cursor_update',
+      cursor: getCursorPayload()
+    });
+  });
+
+    editor.addEventListener('select', () => {
+    send({
+      type: 'cursor_update',
+      cursor: getCursorPayload()
+    });
+  });
+
+  editor.addEventListener('scroll', renderRemoteCursors);
+  window.addEventListener('resize', renderRemoteCursors);
+
+  commentBtn.addEventListener('click', () => {
+    const text = commentText.value.trim();
+    if (!text) return;
+
+    send({
+      type: 'comment_added',
+      line: Number(lineInput.value || 1),
+      text
+    });
+
+    commentText.value = '';
+  });
+
+  joinBtn.addEventListener('click', connect);
+  leaveBtn.addEventListener('click', disconnect);
+
+  setInterval(() => {
+    send({ type: 'ping' });
+  }, 25000);
+})();
+</script>
+
 </body>
 
 </html>
