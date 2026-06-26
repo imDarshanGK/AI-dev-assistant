@@ -155,3 +155,6 @@ async def clear_entries() -> int:
         await db.execute("DELETE FROM fts_history")
         await db.commit()
         return cursor.rowcount
+
+
+# trigger reformat
