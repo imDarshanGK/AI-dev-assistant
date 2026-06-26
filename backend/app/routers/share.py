@@ -6,7 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import SharedSnippet
+from ..security import get_current_user
+from ..models import SharedSnippet, User
 from ..schemas import ShareCreateRequest, ShareRecord
 
 router = APIRouter(prefix="/share", tags=["Share"])
@@ -107,3 +108,30 @@ def get_share(token: str, db: Session = Depends(get_db)):
         result=json.loads(record.result_json),
         created_at=created_at.isoformat(),
     )
+
+
+@router.delete("/{token}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_share(
+    token: str, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Deletes a shared analysis result. 
+    Requires the user to be logged in.
+    """
+    # 1. Find the castle (the share)
+    record = db.execute(select(SharedSnippet).where(SharedSnippet.token == token)).scalar_one_or_none()
+    
+    # 2. If it doesn't exist, tell them it's already gone!
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Shared result not found"
+        )
+    
+    # 3. Smash the castle! (Delete it)
+    db.delete(record)
+    db.commit()
+    
+    return None
