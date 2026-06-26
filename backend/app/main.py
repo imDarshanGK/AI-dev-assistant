@@ -3,20 +3,21 @@ QyverixAI – Backend API
 ...
 """
 
-
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
-import time
 import os
-from collections import defaultdict
-import logging
-from contextlib import asynccontextmanager
 from dotenv import load_dotenv
+
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
-from .routers import (
+
+from fastapi import FastAPI, Request  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.middleware.gzip import GZipMiddleware  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+import time  # noqa: E402
+from collections import defaultdict  # noqa: E402
+import logging  # noqa: E402
+from contextlib import asynccontextmanager  # noqa: E402
+from .routers import (  # noqa: E402
     analyze,
     auth,
     chat,
@@ -29,17 +30,16 @@ from .routers import (
     upload_file,
     user_data,
 )
-from .routers import health as health_router
-from .routers import metrics as metrics_router
-from .services import database
-from .services.scheduler import start_scheduler, stop_scheduler
-from .observability import (
+from .routers import health as health_router  # noqa: E402
+from .routers import metrics as metrics_router  # noqa: E402
+from .services import database  # noqa: E402
+from .services.scheduler import start_scheduler, stop_scheduler  # noqa: E402
+from .observability import (  # noqa: E402
     initialise_app_info,
     prometheus_metrics_middleware,
 )
 
-from .schemas import HealthResponse
-
+from .schemas import HealthResponse  # noqa: E402
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
@@ -73,7 +73,9 @@ async def lifespan(app: FastAPI):
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
     # Static info gauge so dashboards can pin version / provider labels.
-    initialise_app_info(version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based"))
+    initialise_app_info(
+        version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
+    )
     start_scheduler()
     yield
     stop_scheduler()
@@ -116,7 +118,12 @@ async def add_process_time_header(request: Request, call_next):
     remaining = RATE_LIMIT
 
     # Apply rate limiting to analysis endpoints only
-    if request.url.path in ("/explanation/", "/debugging/", "/suggestions/", "/analyze/"):
+    if request.url.path in (
+        "/explanation/",
+        "/debugging/",
+        "/suggestions/",
+        "/analyze/",
+    ):
         remaining = check_rate_limit(ip)
         if remaining < 0:
             elapsed = (time.perf_counter() - start) * 1000
@@ -152,16 +159,16 @@ async def add_cache_header(request: Request, call_next):
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
-app.include_router(debugging.router,   prefix="/debugging",   tags=["Debugging"])
+app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
-app.include_router(analyze.router,     prefix="/analyze",     tags=["Full Analysis"])
-app.include_router(subscribe.router,   prefix="/subscribe",   tags=["Subscription"])
-app.include_router(history.router,     prefix="/history",     tags=["History"])
+app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
+app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
-app.include_router(upload_file.router, prefix="/upload",      tags=['Upload File'] )
+app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
 
 
 # Operational endpoints: /healthz/live, /healthz/ready, /metrics
