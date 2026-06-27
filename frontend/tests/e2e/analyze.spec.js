@@ -40,7 +40,11 @@ test('drag-and-drop upload auto-selects the detected language tab', async ({ pag
     return transfer;
   });
 
+
   await page.locator('#editorWrap').dispatchEvent('drop', { dataTransfer });
+
+  await page.locator('.editor-wrap').dispatchEvent('drop', { dataTransfer });
+
 
   await expect(editor).toHaveValue('const answer: number = 42;\n');
   await expect(activeTab).toHaveAttribute('data-lang', 'typescript');
