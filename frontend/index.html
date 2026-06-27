@@ -4095,9 +4095,14 @@ details.issue-card[open] {
 
       <div class="issue-desc">${issue.description}</div>
 
-    ${issue.code_snippet
-  ? `<div class="issue-snippet"><pre><code class="language-${selectedLang}">${escHtml(issue.code_snippet)}</code></pre></div>`
-  : ''}
+    ${issue.code_snippet ? `
+      <div class="issue-snippet">
+        <div class="snippet-header">
+          <span class="snippet-lang-badge">${selectedLang}</span>
+          <button class="snippet-copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(issue.code_snippet)}).then(()=>{this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button>
+        </div>
+        <pre><code class="language-${selectedLang}">${escHtml(issue.code_snippet)}</code></pre>
+      </div>` : ''}
 
       <div class="issue-fix">${issue.suggestion}</div>
     </div>

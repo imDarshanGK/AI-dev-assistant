@@ -42,3 +42,41 @@
     font-size: 0.7rem;
   }
 }
+.snippet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  border-radius: 6px 6px 0 0;
+}
+
+.snippet-lang-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.snippet-copy-btn {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: none;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.snippet-copy-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.issue-snippet pre code {
+  border-radius: 0 0 6px 6px;
+}
