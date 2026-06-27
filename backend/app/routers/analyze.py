@@ -255,6 +255,8 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
             detail="Uploaded ZIP file is empty",
         )
 
+    buffer.seek(0)  # reset cursor after chunked write; without this ZipFile reads from EOF
+
     try:
         archive = zipfile.ZipFile(buffer)
     except zipfile.BadZipFile as exc:
