@@ -4,6 +4,7 @@ import os
 import sys
 
 import pytest
+from app.token_denylist import token_denylist
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

@@ -6,6 +6,8 @@ FastAPI application with advanced middleware, rate limiting, and full analysis e
 import logging
 import os
 import time
+from app.observability import initialise_app_info
+from app.observability import prometheus_metrics_middleware
 from collections import defaultdict
 from contextlib import asynccontextmanager
 
@@ -15,19 +17,6 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-<<<<<<< HEAD
-=======
-from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import analyze, auth, chat, collaboration, debugging, explanation
-from .routers import health as health_router
-from .routers import history
-from .routers import metrics as metrics_router
-from .routers import share, subscribe, suggestions, upload_file, user_data
-from .schemas import HealthResponse
-from .services import database
-from .services.scheduler import start_scheduler, stop_scheduler
->>>>>>> 577be15ab1d4f8575aec9dee493312ebb795c220
-from .database import Base, engine
 from .routers import (
     analyze,
     auth,

@@ -20,6 +20,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
+from app.services import ai_provider
 
 
 @pytest.fixture(autouse=True)
@@ -34,14 +35,13 @@ def setup_ai_provider():
 @pytest.mark.asyncio
 async def test_call_llm_success():
     mock_response = MagicMock()
-    mock_response.status_code = status_code  
-    
-    resp.raise_for_status.side_effect = httpx.HTTPStatusError(
-        message=f"HTTP {status_code}",
-        request=MagicMock(),
-        response=mock_response, 
-    )
-    return resp
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "choices": [{"message": {"content": "Hello!"}}]
+    }
+    with patch("httpx.AsyncClient.post", return_value=mock_response):
+        result = await ai_provider.call_llm("system", "user")
+        assert result == "Hello!"
 
 
 def _patch_httpx(mock_response: MagicMock):
@@ -60,10 +60,9 @@ def _reload_module(env: dict):
     """Reload ai_provider so module-level env vars are re-evaluated."""
     with patch.dict(os.environ, env, clear=False):
         import app.services.ai_provider as mod
+
         importlib.reload(mod)
         return mod
-
-
 
 
 @pytest.fixture()
@@ -78,10 +77,8 @@ def enabled_env():
     }
 
 
-
 @pytest.mark.asyncio
 async def test_call_llm_timeout_retries():
-    # Raise TimeoutException 2 times, then succeed
     mock_response = MagicMock()
     mock_response.json.return_value = {
         "choices": [{"message": {"content": "Success after timeout"}}]
@@ -101,16 +98,15 @@ async def test_call_llm_timeout_retries():
 
 @pytest.mark.asyncio
 async def test_call_llm_timeout_exhausted():
-    side_effects = [httpx.TimeoutException("Timeout")] * 3  # MAX_RETRIES + 1
+    side_effects = [httpx.TimeoutException("Timeout")] * 3
 
-    with patch("httpx.AsyncClient.post", side_effect=side_effects) as mock_post:
+    with patch("httpx.AsyncClient.post", side_effect=side_effects):
         result = await ai_provider.call_llm("system", "user")
         assert result is None
 
 
 @pytest.mark.asyncio
 async def test_call_llm_http_5xx_retries():
-    # 500 error should be retried
     mock_error_response = MagicMock()
     mock_error_response.status_code = 500
     error = httpx.HTTPStatusError(
@@ -132,21 +128,19 @@ async def test_call_llm_http_5xx_retries():
 
 @pytest.mark.asyncio
 async def test_call_llm_http_400_no_retry():
-    # 400 error should not be retried
     mock_error_response = MagicMock()
     mock_error_response.status_code = 400
     error = httpx.HTTPStatusError(
         "400 Error", request=MagicMock(), response=mock_error_response
     )
 
-    with patch("httpx.AsyncClient.post", side_effect=error) as mock_post:
+    with patch("httpx.AsyncClient.post", side_effect=error):
         result = await ai_provider.call_llm("system", "user")
         assert result is None
 
 
 @pytest.mark.asyncio
 async def test_call_llm_http_429_retries():
-    # 429 rate limit should be retried
     mock_error_response = MagicMock()
     mock_error_response.status_code = 429
     error = httpx.HTTPStatusError(
