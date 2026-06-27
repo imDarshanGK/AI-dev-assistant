@@ -8,6 +8,7 @@ All notable changes to QyverixAI are documented in this file.
 - Added a dedicated changelog page in `docs/CHANGELOG.md`.
 - Added changelog guidance for contributors and PR authors.
 - Added `POST /auth/logout` to revoke the caller's access token.
+- Add static analysis and code suggestions for PHP, Rust, and Kotlin languages, including security, type safety, error handling, readability, and performance patterns (fixes #702).
 
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.
