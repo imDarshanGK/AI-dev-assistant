@@ -16,6 +16,7 @@ All notable changes to QyverixAI are documented in this file.
 - Hardened authentication against token replay: access tokens now carry a
   unique `jti`, and revoked tokens (e.g. after logout) are rejected via a
   server-side denylist until they expire.
+- Sanitize search query input parameter q in GET /history/search to prevent SQLite FTS5 query syntax injection errors and potential internal implementation leakage.
 
 ## [3.0.0] - 2026-06-06
 
