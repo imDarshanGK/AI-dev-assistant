@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 from app import database
 from app.database import Base
 from app.main import app
 from app.models import SharedSnippet
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 
 def _configure_test_db(monkeypatch, tmp_path):
@@ -97,8 +96,8 @@ def test_expired_share_returns_404(monkeypatch, tmp_path):
 
 def test_delete_share_unauthorized(monkeypatch, tmp_path):
     _configure_test_db(monkeypatch, tmp_path)
-    from fastapi.testclient import TestClient
     from app.main import app
+    from fastapi.testclient import TestClient
 
     client = TestClient(app)
 
@@ -119,8 +118,8 @@ def test_delete_share_unauthorized(monkeypatch, tmp_path):
 
 def test_delete_share_authorized(monkeypatch, tmp_path):
     _configure_test_db(monkeypatch, tmp_path)
-    from fastapi.testclient import TestClient
     from app.main import app
+    from fastapi.testclient import TestClient
 
     client = TestClient(app)
 
@@ -133,8 +132,8 @@ def test_delete_share_authorized(monkeypatch, tmp_path):
     share_id = create_resp.json()["id"]
 
     # 2. Bribe the bouncer! (Mock a logged-in user)
-    from app.security import get_current_user
     from app.models import User
+    from app.security import get_current_user
 
     def mock_user():
         return User(id=999, email="leader@neural-knights.com")

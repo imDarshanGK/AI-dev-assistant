@@ -6,9 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..security import get_current_user
 from ..models import SharedSnippet, User
 from ..schemas import ShareCreateRequest, ShareRecord
+from ..security import get_current_user
 
 router = APIRouter(prefix="/share", tags=["Share"])
 
@@ -121,7 +121,7 @@ def get_share(token: str, db: Session = Depends(get_db)):
         )
 
     # expire shares older than 7 days — normalize tzinfo if necessary
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta, timezone
 
     created_at = record.created_at
     if created_at.tzinfo is None:
