@@ -4,7 +4,7 @@ import sys
 import os
 
 # Add backend to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../backend"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
 from app.services.code_assistant import run_bug_detection, run_suggestions
 from app.services.line_utils import (
@@ -130,10 +130,12 @@ def bad_function():
 
 def test_suggestions_include_line_ranges():
     """Test that suggestions include line references."""
-    long_function = """
-def very_long_function():
-    x = 1
-""" + "    y = 2\n" * 45 + "    return x + y"
+    long_function = (
+        "def very_long_function():\n"
+        "    x = 1\n"
+        + ("    y = 2\n" * 45)
+        + "    return x + y"
+    )
 
     response = run_suggestions(long_function, "Python")
 
