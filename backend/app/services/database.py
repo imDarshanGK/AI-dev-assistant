@@ -30,6 +30,7 @@ async def init_db() -> None:
             )
         """
         )
+
         try:
             await db.execute("ALTER TABLE history ADD COLUMN code TEXT")
         except Exception:
@@ -38,6 +39,7 @@ async def init_db() -> None:
             await db.execute("ALTER TABLE history ADD COLUMN result_json TEXT")
         except Exception:
             pass
+
         await db.execute(
             """
             CREATE VIRTUAL TABLE IF NOT EXISTS fts_history
@@ -134,6 +136,7 @@ async def delete_entry(entry_id: int) -> bool:
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute("DELETE FROM history WHERE id = ?", (entry_id,))
         await db.execute("DELETE FROM fts_history WHERE rowid = ?", (entry_id,))
+
         await db.commit()
         return cursor.rowcount > 0
 
@@ -157,5 +160,6 @@ async def clear_entries() -> int:
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute("DELETE FROM history")
         await db.execute("DELETE FROM fts_history")
+
         await db.commit()
         return cursor.rowcount

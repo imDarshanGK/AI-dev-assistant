@@ -14,7 +14,7 @@ from .schema_validators import (
 )
 
 
-# ── Core request ──────────────────────────────────────────────────────────────
+
 class CodeRequest(BaseModel):
     """Request body accepted by all analysis endpoints."""
 
@@ -661,6 +661,7 @@ class FavoriteRecord(BaseModel):
 # ── Share ─────────────────────────────────────────────────────────────────────
 
 
+
 class ShareCreateRequest(BaseModel):
     """Request body for creating a shareable analysis link."""
 
@@ -844,6 +845,41 @@ class ChatMessageRequest(BaseModel):
 
 
 class ChatMessageResponse(BaseModel):
+
+    provider: str
+    model: str
+    mode: str
+    reply: str
+
+
+# ── Explanation / Debugging / Suggestions response models ───────────────────
+class ExplanationResponse(BaseModel):
+    language: str
+    summary: str
+    key_points: list[str]
+    complexity: str
+    line_count: int
+    function_count: int
+    class_count: int
+    cyclomatic_complexity: int
+    complexity_risk: str
+
+
+class SuggestionsResponse(BaseModel):
+    suggestions: list[Suggestion]
+    overall_score: int
+    grade: str
+    next_step: str
+
+
+class AnalyzeResponse(BaseModel):
+    provider: str
+    model: str
+    explanation: ExplanationResponse
+    debugging: DebuggingResponse
+    suggestions: SuggestionsResponse
+    analysis_time_ms: float | None = None
+
     """Extended chat response with provider and mode metadata."""
 
     provider: str = Field(
@@ -860,3 +896,4 @@ class ChatMessageResponse(BaseModel):
         description="The assistant's reply.",
         example="A ZeroDivisionError occurs when you divide by zero.",
     )
+

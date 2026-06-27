@@ -2808,10 +2808,11 @@ details.issue-card[open] {
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
-                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
+                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);">
             <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
-          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
+          <div id="digestFeedback" style="margin-top:6px;font-size:0.75rem;display:none;align-items:center;gap:6px;animation:toastIn 0.2s ease;"></div>
+          <p id="digestDesc" style="margin:6px 0 0;font-size:0.7rem;color:var(--text2);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
       </div>
     </footer>
@@ -3400,7 +3401,7 @@ details.issue-card[open] {
       function getApiBase() {
         const configuredBase = ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || '').trim();
         if (configuredBase) return configuredBase.replace(/\/$/, '');
-        return window.location.protocol === 'file:' ? REMOTE_API_BASE : LOCAL_API_BASE;
+        return window.location.protocol === 'file:' ? REMOTE_API_BASE : window.location.origin;
       }
 
       function getApiFallbackBase(base) {
@@ -5155,33 +5156,80 @@ int main() {
       /* ═══════════════════════════════════════════════════════════════
          DIGEST SUBSCRIBE
       ═══════════════════════════════════════════════════════════════ */
-      document.getElementById('digestForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('digestEmail').value.trim();
-        const btn = document.getElementById('digestBtn');
-        btn.disabled = true;
-        btn.textContent = 'Subscribing…';
-        const base = getApiBase();
-        try {
-          const r = await fetch(`${base}/subscribe/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email }),
-          });
-          const data = await r.json();
-          if (r.ok) {
-            toast(data.message, 'success');
-            document.getElementById('digestEmail').value = '';
-          } else {
-            toast(data.detail || 'Subscription failed', 'error');
+      const digestForm = document.getElementById('digestForm');
+      const digestEmail = document.getElementById('digestEmail');
+      const digestBtn = document.getElementById('digestBtn');
+      const digestFeedback = document.getElementById('digestFeedback');
+      const digestDesc = document.getElementById('digestDesc');
+
+      if (digestEmail) {
+        digestEmail.addEventListener('input', () => {
+          if (digestFeedback) digestFeedback.style.display = 'none';
+          if (digestDesc) digestDesc.style.display = 'block';
+        });
+      }
+
+      if (digestForm) {
+        digestForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const email = digestEmail.value.trim();
+          digestBtn.disabled = true;
+          digestBtn.textContent = 'Subscribing…';
+          
+          if (digestFeedback) {
+            digestFeedback.style.display = 'none';
+            digestFeedback.innerHTML = '';
           }
-        } catch {
-          toast('Could not reach the server.', 'error');
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Subscribe';
-        }
-      });
+          if (digestDesc) digestDesc.style.display = 'block';
+
+          const base = getApiBase();
+          try {
+            const r = await fetch(`${base}/subscribe/`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email }),
+            });
+            const data = await r.json();
+            if (r.ok) {
+              toast(data.message, 'success');
+              digestEmail.value = '';
+              if (digestFeedback) {
+                digestFeedback.innerHTML = `<span style="color:var(--green);display:flex;align-items:center;gap:4px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg>
+                  ${escHtml(data.message)}
+                </span>`;
+                digestFeedback.style.display = 'flex';
+                if (digestDesc) digestDesc.style.display = 'none';
+              }
+            } else {
+              const errorMsg = data.detail || 'Subscription failed';
+              toast(errorMsg, 'error');
+              if (digestFeedback) {
+                digestFeedback.innerHTML = `<span style="color:var(--red);display:flex;align-items:center;gap:4px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  ${escHtml(errorMsg)}
+                </span>`;
+                digestFeedback.style.display = 'flex';
+                if (digestDesc) digestDesc.style.display = 'none';
+              }
+            }
+          } catch {
+            const errMsg = 'Could not reach the server.';
+            toast(errMsg, 'error');
+            if (digestFeedback) {
+              digestFeedback.innerHTML = `<span style="color:var(--red);display:flex;align-items:center;gap:4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                ${escHtml(errMsg)}
+              </span>`;
+              digestFeedback.style.display = 'flex';
+              if (digestDesc) digestDesc.style.display = 'none';
+            }
+          } finally {
+            digestBtn.disabled = false;
+            digestBtn.textContent = 'Subscribe';
+          }
+        });
+      }
     </script>
 
 <script>
