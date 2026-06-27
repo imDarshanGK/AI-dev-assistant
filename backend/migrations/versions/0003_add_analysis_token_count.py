@@ -5,9 +5,11 @@ Revises: 0002
 Create Date: 2026-06-27
 
 """
+
 from typing import Sequence, Union
-from alembic import op
+
 import sqlalchemy as sa
+from alembic import op
 
 revision: str = "0003"
 down_revision: Union[str, None] = "0002"
@@ -16,9 +18,18 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column("query_history", sa.Column("token_count", sa.Integer(), nullable=True, default=0))
-    op.add_column("query_history", sa.Column("is_public", sa.Boolean(), nullable=False, server_default="0"))
-    op.add_column("query_history", sa.Column("view_count", sa.Integer(), nullable=False, server_default="0"))
+    op.add_column(
+        "query_history",
+        sa.Column("token_count", sa.Integer(), nullable=True, default=0),
+    )
+    op.add_column(
+        "query_history",
+        sa.Column("is_public", sa.Boolean(), nullable=False, server_default="0"),
+    )
+    op.add_column(
+        "query_history",
+        sa.Column("view_count", sa.Integer(), nullable=False, server_default="0"),
+    )
 
 
 def downgrade() -> None:

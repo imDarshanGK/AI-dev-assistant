@@ -2,13 +2,13 @@
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from app.database import Base
 from app import models  # noqa: F401 - registers all ORM models
+from app.database import Base
 
 config = context.config
 
