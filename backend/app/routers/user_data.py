@@ -100,7 +100,7 @@ def delete_history(
             status_code=status.HTTP_404_NOT_FOUND, detail="History record not found"
         )
 
-    db.execute(delete(QueryHistory).where(QueryHistory.id == history_id))
+    db.delete(record)
     db.commit()
     return {"status": "deleted", "history_id": history_id}
 
@@ -203,7 +203,7 @@ def delete_favorite(
             status_code=status.HTTP_404_NOT_FOUND, detail="Favorite not found"
         )
 
-    db.execute(delete(FavoriteResult).where(FavoriteResult.id == favorite_id))
+    db.delete(record)
     db.commit()
     return {"status": "deleted", "favorite_id": favorite_id}
 
