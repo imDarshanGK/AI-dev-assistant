@@ -2114,12 +2114,12 @@ details.issue-card[open] {
   .nav-links .nav-link span{display:none}
   .hero{padding:50px 0 40px}
   .hero-sub{font-size:0.98rem}
-  .features-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-width:400px;margin-inline:auto;padding:16px 0 40px}
-  .feat-pill{gap:7px;padding:6px 8px;min-width:0}
-  .feat-pill-icon{width:28px;height:28px;flex-shrink:0}
+  .features-row{display:flex;flex-direction:column;gap:8px;max-width:340px;margin-inline:auto;padding:16px 0 40px}
+  .feat-pill{gap:10px;padding:10px 14px;min-width:0}
+  .feat-pill-icon{width:32px;height:32px;flex-shrink:0}
   .feat-pill-info{min-width:0;overflow-wrap:break-word}
-  .feat-pill-info .feat-pill-title{font-size:0.76rem;line-height:1.25}
-  .feat-pill-info p{font-size:0.68rem;line-height:1.25}
+  .feat-pill-info .feat-pill-title{font-size:0.82rem;line-height:1.25}
+  .feat-pill-info p{font-size:0.74rem;line-height:1.25}
   .workspace{gap:14px}
   #workspace > .panel{grid-column:1 !important;min-width:0}
   .panel-header{padding:12px 14px}
@@ -4427,7 +4427,7 @@ details.issue-card[open] {
          HISTORY (Paginated & Sorted)
       ═══════════════════════════════════════════════════════════════ */
       let historyOffset = 0;
-      const historyLimit = 10;
+      const historyLimit = 5;
       let historyTotal = 0;
       let historySortBy = 'timestamp';
       let historyOrder = 'desc';
