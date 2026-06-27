@@ -74,11 +74,16 @@ class SharedSnippet(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True, index=True
+    )
     code: Mapped[str] = mapped_column(Text)
     result_json: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
     )
+
+    owner = relationship("User", foreign_keys=[user_id])
 
 
 class AuditLog(Base):
