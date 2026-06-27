@@ -27,7 +27,7 @@ All notable changes to QyverixAI are documented in this file.
 - Documentation and contribution guidance for GSSoC 2026 contributors.
 
 ### Fixed
-- N/A
+- Render shimmer loading placeholders immediately when code analysis begins, providing clear visual feedback during API request latency (fixes #700).
 
 ### Security
 - N/A
