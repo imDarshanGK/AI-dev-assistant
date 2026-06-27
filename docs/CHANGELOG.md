@@ -16,6 +16,7 @@ All notable changes to QyverixAI are documented in this file.
 - Hardened authentication against token replay: access tokens now carry a
   unique `jti`, and revoked tokens (e.g. after logout) are rejected via a
   server-side denylist until they expire.
+- Prevent resource exhaustion by adding size constraints (max_length=200) and truncation rules on search query parameter q in GET /history/search.
 
 ## [3.0.0] - 2026-06-06
 
