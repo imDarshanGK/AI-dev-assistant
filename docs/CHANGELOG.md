@@ -16,6 +16,7 @@ All notable changes to QyverixAI are documented in this file.
 - Hardened authentication against token replay: access tokens now carry a
   unique `jti`, and revoked tokens (e.g. after logout) are rejected via a
   server-side denylist until they expire.
+- Secure authentication endpoints by enforcing sliding-window rate limiting (5 attempts per minute per IP) on signup and login POST requests, preventing brute-force and credential-stuffing attacks.
 
 ## [3.0.0] - 2026-06-06
 
