@@ -34,20 +34,32 @@ def _send_weekly_digests() -> None:
             return
 
         sent = 0
+        failed = 0
         for sub in subs:
-            stats = compute_subscriber_stats(db, sub.email)
-            if not stats:
-                log.debug("No stats for %s, skipping", sub.email)
-                continue
-            ok = send_digest(stats, sub.unsubscribe_token)
-            if ok:
-                sub.last_sent_at = datetime.now(UTC)
-                sent += 1
-            else:
-                log.warning("Failed to deliver digest to %s", sub.email)
+            try:
+                stats = compute_subscriber_stats(db, sub.email)
+                if not stats:
+                    log.debug("No stats for %s, skipping", sub.email)
+                    continue
+                ok = send_digest(stats, sub.unsubscribe_token)
+                if ok:
+                    sub.last_sent_at = datetime.now(UTC)
+                    db.commit()
+                    sent += 1
+                else:
+                    log.warning("Failed to deliver digest to %s", sub.email)
+                    failed += 1
+            except Exception:
+                db.rollback()
+                log.exception("Error processing digest for %s — skipping", sub.email)
+                failed += 1
 
-        db.commit()
-        log.info("Weekly digest sent to %d/%d subscribers", sent, len(subs))
+        log.info(
+            "Weekly digest run complete: %d sent, %d failed, %d total",
+            sent,
+            failed,
+            len(subs),
+        )
     except Exception:
         log.exception("Error in weekly digest job")
     finally:
