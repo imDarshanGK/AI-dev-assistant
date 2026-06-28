@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
-
 from ..services import database
 
 router = APIRouter()
@@ -18,6 +17,8 @@ class HistorySaveRequest(BaseModel):
     score: int | None = None
     issue_count: int | None = None
     result_json: str | None = None
+    tags: str | None = None
+    user_id: str | None = None
 
 
 class HistoryEntry(BaseModel):
@@ -53,6 +54,8 @@ class PaginationMeta(BaseModel):
 class HistoryResponse(BaseModel):
     items: list[HistoryEntry]
     meta: PaginationMeta
+    tags: str | None = None
+    user_id: str | None = None
 
 
 @router.post("/", response_model=dict, status_code=201)
@@ -63,16 +66,47 @@ async def save_history(body: HistorySaveRequest):
         score=body.score,
         issue_count=body.issue_count,
         result_json=body.result_json,
+        tags=body.tags,
+        user_id=body.user_id,
     )
     return {"id": entry_id, "status": "saved"}
 
-
-@router.get("/search", response_model=list[HistoryEntry])
+@router.get("/search", response_model=HistoryResponse)
 async def search_history(
-    q: str = Query(..., min_length=1),
+    q: str = Query("", min_length=0),
+    language: str | None = None,
+    start_date: str | None = Query(None),
+    end_date: str | None = Query(None),
     limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    tags: str | None = None,
+    user_id: str | None = None,
 ):
-    return await database.search_entries(q=q, limit=limit)
+    if not any([q, language, start_date, end_date, tags, user_id]):
+        raise HTTPException(
+            status_code=400, detail="At least one search filter must be provided."
+        )
+    items, total = await database.search_entries(
+        q=q,
+        language=language,
+        start_date=start_date,
+        end_date=end_date,
+        limit=limit,
+        offset=offset,
+        tags=tags,
+        user_id=user_id,
+    )
+
+    return {
+    "items": items,
+    "meta": {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "sort_by": "timestamp",
+        "order": "desc",
+    },
+}
 
 
 @router.get("/", response_model=HistoryResponse)
