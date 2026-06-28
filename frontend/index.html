@@ -1809,7 +1809,32 @@ details.issue-card[open] {
       background: var(--bg3);
       border-color: var(--border2);
     }
-
+    
+/* Delete button */
+    .delete-btn {
+      border: none;
+      outline: none;
+      box-shadow: none;
+      background: transparent;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 4px;
+      margin-left: 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+    .delete-btn:focus,
+    .delete-btn:focus-visible {
+      outline: none;
+      box-shadow: none;
+    }
+    .delete-btn:hover { color: #ef4444; background: rgba(239, 68, 68, 0.12);
+    }
+    .delete-btn svg { width: 16px; height: 16px;
+    }
     .history-thumb {
       font-family: var(--font-mono);
       font-size: 0.72rem;
@@ -3422,6 +3447,7 @@ details.issue-card[open] {
           return { response, baseUsed: normalizedBase, fallbackUsed: false };
         } catch (err) {
           const fallbackBase = getApiFallbackBase(normalizedBase);
+
           if (!fallbackBase) throw err;
           const response = await fetch(`${fallbackBase}${path}`, options);
           return { response, baseUsed: fallbackBase, fallbackUsed: true };
@@ -3816,7 +3842,6 @@ details.issue-card[open] {
               const err = await res.json().catch(() => ({}));
               throw new Error(err.detail || `HTTP ${res.status}`);
             }
-
             const data = await res.json();
             currentResult = data;
             renderZipResults(data);
@@ -3871,6 +3896,7 @@ details.issue-card[open] {
 
         } catch (err) {
           toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
+         
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');
@@ -4498,6 +4524,22 @@ details.issue-card[open] {
         loadLocalHistory();
       }
 
+      async function confirmDeleteHistory(id) {
+
+        if(!confirm("Delete this history entry?")) return;
+        const apiBase = getApiBase();
+
+        const res = await fetch(`${apiBase}/history/${id}`,{
+          method: "DELETE"
+        });
+
+        if(res.ok) {
+          fetchHistory();
+        } else {
+          toast("Failed to delete entry","error");
+        }
+      }
+
       function loadLocalHistory() {
         let localHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
         
@@ -4605,6 +4647,28 @@ details.issue-card[open] {
                 ${issuesHtml}
               </div>
               <span class="history-meta">${displayTime}</span>
+              <button
+              class="delete-btn"
+              onclick="event.stopPropagation(); confirmDeleteHistory('${h.id}')"
+              title="Delete entry"
+              aria-label="Delete entry">
+              <svg 
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox=" 0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+              </svg>
+              </button>
             </div>`;
         }).join('');
       }
@@ -4840,8 +4904,40 @@ details.issue-card[open] {
                 ${issuesHtml}
               </div>
               <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+              <button class="delete-btn" onclick="event.stopPropagation(); confirmDeleteFavorite('${f.id}')"
+              title="Delete favorite" aria-label="Delete favorite">
+              <svg 
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox=" 0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+              </svg>
+              </button>
             </div>`;
         }).join('');
+      }
+
+      async function confirmDeleteFavorite(id) {
+        if(!confirm("Delete this favorite?")) return;
+
+        const normalizedId = Number(id);
+
+        favorites = favorites.filter(f => f.id !== normalizedId);
+        localStorage.setItem("qyx_favorites",
+        JSON.stringify(favorites));
+
+        renderFavorites();
+
       }
 
 document.getElementById('clearFavsBtn').addEventListener('click', () => {
