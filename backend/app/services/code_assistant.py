@@ -9,6 +9,9 @@ import re
 import time
 from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+# --- TRACING SETUP ---
+from opentelemetry import trace
+tracer = trace.get_tracer(__name__)
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -1364,48 +1367,56 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
 # ── Combined ───────────────────────────────────────────────────────────────────
 def full_analysis(code: str, language_hint: str | None = None) -> dict:
     """Run the complete analysis pipeline for the provided source code.
-
+    
     Args:
         code: The source code to analyse.
         language_hint: Optional language override hint.
-
+        
     Returns:
         Combined explanation, debugging, and suggestion analysis results.
     """
+    # 1. We wrap the whole master process in one big tracker! ⏱️
+    with tracer.start_as_current_span("full_analysis_pipeline"):
+        t0 = time.perf_counter()
+        language = detect_language(code, language_hint)
 
-    t0 = time.perf_counter()
-    language = detect_language(code, language_hint)
+        # 2. Track the explanation AI 🧠
+        with tracer.start_as_current_span("run_explanation"):
+            explanation = run_explanation(code, language)
 
-    explanation = run_explanation(code, language)
+        # 3. Track the bug finding AI 🐛
+        with tracer.start_as_current_span("run_bug_detection"):
+            raw_issues = run_bug_detection(code, language)
+            
+        errors = [i for i in raw_issues if i["severity"] == "error"]
+        warnings = [i for i in raw_issues if i["severity"] == "warning"]
+        infos = [i for i in raw_issues if i["severity"] == "info"]
+        issue_summary = (
+            f"Found {len(raw_issues)} issue(s): {len(errors)} error(s), {len(warnings)} warning(s), {len(infos)} info."
+            if raw_issues
+            else "✅ No issues detected!"
+        )
+        debugging = {
+            "issues": raw_issues,
+            "summary": issue_summary,
+            "clean": len(raw_issues) == 0,
+            "error_count": len(errors),
+            "warning_count": len(warnings),
+            "info_count": len(infos),
+            "code": code,
+        }
 
-    raw_issues = run_bug_detection(code, language)
-    errors = [i for i in raw_issues if i["severity"] == "error"]
-    warnings = [i for i in raw_issues if i["severity"] == "warning"]
-    infos = [i for i in raw_issues if i["severity"] == "info"]
-    issue_summary = (
-        f"Found {len(raw_issues)} issue(s): {len(errors)} error(s), {len(warnings)} warning(s), {len(infos)} info."
-        if raw_issues
-        else "✅ No issues detected!"
-    )
-    debugging = {
-        "issues": raw_issues,
-        "summary": issue_summary,
-        "clean": len(raw_issues) == 0,
-        "error_count": len(errors),
-        "warning_count": len(warnings),
-        "info_count": len(infos),
-        "code": code,
-    }
+        # 4. Track the suggestions AI ✨
+        with tracer.start_as_current_span("run_suggestions"):
+            sugg = run_suggestions(code, language)
 
-    sugg = run_suggestions(code, language)
+        elapsed_ms = (time.perf_counter() - t0) * 1000
 
-    elapsed_ms = (time.perf_counter() - t0) * 1000
-
-    return {
-        "provider": "rule-based",
-        "model": "qyverix-engine-v3",
-        "explanation": explanation,
-        "debugging": debugging,
-        "suggestions": sugg,
-        "analysis_time_ms": round(elapsed_ms, 2),
-    }
+        return {
+            "provider": "rule-based",
+            "model": "qyverix-engine-v3",
+            "explanation": explanation,
+            "debugging": debugging,
+            "suggestions": sugg,
+            "analysis_time_ms": round(elapsed_ms, 2),
+        }
