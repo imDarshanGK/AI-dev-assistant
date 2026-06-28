@@ -734,3 +734,21 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+
+
+# ── Test Generator ────────────────────────────────────────────────────────────
+def test_generate_tests_endpoint():
+    payload = {
+        "code": "def add(a, b):\n    return a + b",
+        "language": "python",
+        "framework": "pytest",
+        "mock_external_calls": False
+    }
+    r = client.post("/api/generate-tests", json=payload)
+    assert r.status_code == 200
+    data = r.json()
+    assert "test_code" in data
+    assert data["framework"] == "pytest"
+    assert "summary" in data
+    assert "num_test_cases" in data["summary"]
+

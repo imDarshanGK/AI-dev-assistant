@@ -20,7 +20,7 @@ from .routers import analyze, auth, chat, debugging, explanation
 from .routers import health as health_router
 from .routers import history
 from .routers import metrics as metrics_router
-from .routers import share, subscribe, suggestions, upload_file, user_data
+from .routers import share, subscribe, suggestions, upload_file, user_data, test_generator
 from .schemas import HealthResponse
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
@@ -55,14 +55,14 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
-    print("🚀 QyverixAI backend starting…")
+    print("[INFO] QyverixAI backend starting...")
     initialise_app_info(
         version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
     )
     start_scheduler()
     yield
     stop_scheduler()
-    logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
+    logging.getLogger(__name__).info("QyverixAI backend shutting down...")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -173,6 +173,8 @@ async def add_process_time_header(request: Request, call_next):
         "/debugging/",
         "/suggestions/",
         "/analyze/",
+        "/api/generate-tests",
+        "/api/generate-tests/",
     ):
         remaining = check_rate_limit(ip)
         if remaining < 0:
@@ -212,6 +214,7 @@ app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions
 app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
 app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
 app.include_router(history.router, prefix="/history", tags=["History"])
+app.include_router(test_generator.router, prefix="/api/generate-tests", tags=["Test Generator"])
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
@@ -243,14 +246,13 @@ async def root():
             "/debugging/",
             "/suggestions/",
             "/analyze/",
+            "/api/generate-tests",
             "/subscribe/",
             "/share/",
             "/auth/",
             "/chat/",
             "/user/",
             "/analyze/zip/",
-            "/subscribe/",
-            "/share/",
             "/history/",
         ],
     }
@@ -279,6 +281,7 @@ async def health_check():
             "/debugging/",
             "/suggestions/",
             "/analyze/",
+            "/api/generate-tests",
             "/subscribe/",
             "/share/",
             "/auth/",

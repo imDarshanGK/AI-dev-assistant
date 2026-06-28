@@ -2351,6 +2351,22 @@ details.issue-card[open] {
           <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
         </div>
 
+        <!-- Test Generator options (hidden by default) -->
+        <div id="testGenSettings" style="display:none; align-items:center; gap:12px; padding:10px 18px; border-top:1px solid var(--border); font-size:0.8rem; background:var(--bg3); flex-wrap:wrap;">
+          <label style="color:var(--text2); font-weight:600;">Framework:</label>
+          <select id="testFramework" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
+            <option value="pytest">Pytest (Python)</option>
+            <option value="unittest">Unittest (Python)</option>
+            <option value="jest">Jest (JS/TS)</option>
+            <option value="junit">JUnit 5 (Java)</option>
+            <option value="gtest">Google Test (C++)</option>
+          </select>
+          <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; color:var(--text2);">
+            <input type="checkbox" id="mockExternalCalls" style="cursor:pointer;" />
+            <span>Mock external calls</span>
+          </label>
+        </div>
+
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
@@ -2359,6 +2375,7 @@ details.issue-card[open] {
               <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain">Explain</button>
               <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
               <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
+              <button class="mode-btn" data-mode="testgen" aria-pressed="false" data-i18n="mode_testgen">Test Gen</button>
             </div>
           </div>
         </div>
@@ -2400,6 +2417,11 @@ details.issue-card[open] {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
             <span data-i18n="tab_improve">Improve</span>
             <span class="tab-badge" id="suggestBadge"></span>
+          </button>
+          <button class="result-tab" id="tab-testgen" data-rtab="testgen" role="tab" aria-selected="false" aria-controls="pane-testgen" style="display:none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span data-i18n="mode_testgen">Test Gen</span>
+            <span class="tab-badge" id="testgenBadge"></span>
           </button>
         </div>
         <div class="result-content">
@@ -2447,6 +2469,18 @@ details.issue-card[open] {
               <p data-i18n="empty_suggest_desc">Run analysis to get improvement ideas</p>
             </div>
             <div id="suggestResult" style="display:none"></div>
+          </div>
+          <!-- Test Gen Pane -->
+          <div class="result-pane" id="pane-testgen" role="tabpanel" tabindex="0" aria-labelledby="tab-testgen">
+            <div class="empty-state" id="emptyTestgen">
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg></div>
+              <p class="empty-title" data-i18n="empty_testgen_title">No tests generated yet</p>
+              <p data-i18n="empty_testgen_desc">Select Test Gen mode and click Analyze to generate unit tests</p>
+            </div>
+            <div id="testgenResult" style="display:none"></div>
           </div>
         </div>
 
@@ -2591,6 +2625,9 @@ details.issue-card[open] {
           empty_debug_desc: "Run analysis to detect issues in your code",
           empty_suggest_title: "No suggestions yet",
           empty_suggest_desc: "Run analysis to get improvement ideas",
+          mode_testgen: "Test Gen",
+          empty_testgen_title: "No tests generated yet",
+          empty_testgen_desc: "Select Test Gen mode and click Analyze to generate unit tests",
           history_title: "Query History",
           favorites_title: "Saved Favorites",
           empty_history: "No history yet. Run your first analysis.",
@@ -2695,6 +2732,9 @@ details.issue-card[open] {
           empty_debug_desc: "உங்கள் குறியீட்டில் உள்ள சிக்கல்களைக் கண்டறிய பகுப்பாய்வை இயக்கவும்",
           empty_suggest_title: "இன்னும் பரிந்துரைகள் இல்லை",
           empty_suggest_desc: "மேம்பாட்டு யோசனைகளைப் பெற பகுப்பாய்வை இயக்கவும்",
+          mode_testgen: "சோதனை ஜெனரேட்டர்",
+          empty_testgen_title: "இன்னும் சோதனைகள் உருவாக்கப்படவில்லை",
+          empty_testgen_desc: "சோதனை ஜென் பயன்முறையைத் தேர்ந்தெடுத்து, சோதனைகளை உருவாக்க பகுப்பாய் என்பதைக் கிளிக் செய்யவும்",
           history_title: "வினவல் வரலாறு",
           favorites_title: "சேமிக்கப்பட்ட பிடித்தவை",
           empty_history: "இன்னும் வரலாறு இல்லை. உங்கள் முதல் பகுப்பாய்வை இயக்கவும்.",
@@ -2799,6 +2839,9 @@ details.issue-card[open] {
           empty_debug_desc: "अपने कोड में समस्याओं का पता लगाने के लिए विश्लेषण चलाएं",
           empty_suggest_title: "अभी तक कोई सुझाव नहीं",
           empty_suggest_desc: "सुधार के विचार प्राप्त करने के लिए विश्लेषण चलाएं",
+          mode_testgen: "टेस्ट जेनरेटर",
+          empty_testgen_title: "अभी तक कोई परीक्षण उत्पन्न नहीं हुआ",
+          empty_testgen_desc: "टेस्ट जेन मोड का चयन करें और परीक्षण उत्पन्न करने के लिए विश्लेषण पर क्लिक करें",
           history_title: "क्वेरी इतिहास",
           favorites_title: "सहेजे गए पसंदीदा",
           empty_history: "अभी तक कोई इतिहास नहीं है। अपना पहला विश्लेषण चलाएं।",
@@ -2903,6 +2946,9 @@ details.issue-card[open] {
           empty_debug_desc: "Exécutez l'analyse pour détecter les problèmes dans votre code",
           empty_suggest_title: "Aucune suggestion pour le moment",
           empty_suggest_desc: "Exécutez l'analyse pour obtenir des idées d'amélioration",
+          mode_testgen: "Générateur de tests",
+          empty_testgen_title: "Aucun test généré pour le moment",
+          empty_testgen_desc: "Sélectionnez le mode Générateur de tests et cliquez sur Analyser pour générer des tests unitaires",
           history_title: "Historique des requêtes",
           favorites_title: "Favoris enregistrés",
           empty_history: "Aucun historique pour le moment. Lancez votre première analyse.",
@@ -3388,6 +3434,19 @@ details.issue-card[open] {
           t.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
 
+        // Auto-select framework for the language
+        const fwMap = {
+          python: 'pytest',
+          javascript: 'jest',
+          typescript: 'jest',
+          java: 'junit',
+          cpp: 'gtest'
+        };
+        const fwSelect = document.getElementById('testFramework');
+        if (fwSelect && fwMap[lang]) {
+          fwSelect.value = fwMap[lang];
+        }
+
         // 2. Check if the editor currently contains one of the samples
         const currentCode = editor.value.trim();
         const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
@@ -3415,6 +3474,17 @@ details.issue-card[open] {
           });
           b.classList.add('active');
           b.setAttribute('aria-pressed', 'true');
+
+          // Toggle UI settings for Test Generator
+          const testSettings = document.getElementById('testGenSettings');
+          const tabTestGen = document.getElementById('tab-testgen');
+          if (selectedMode === 'testgen') {
+            if (testSettings) testSettings.style.display = 'flex';
+            if (tabTestGen) tabTestGen.style.display = 'inline-flex';
+          } else {
+            if (testSettings) testSettings.style.display = 'none';
+            if (tabTestGen) tabTestGen.style.display = 'none';
+          }
         });
       });
 
@@ -3505,6 +3575,7 @@ details.issue-card[open] {
           explain: '/explanation/',
           debug: '/debugging/',
           suggest: '/suggestions/',
+          testgen: '/api/generate-tests',
         };
         const endpoint = endpointMap[selectedMode] || '/analyze/';
 
@@ -3543,10 +3614,22 @@ details.issue-card[open] {
             return;
           }
 
+          let payload;
+          if (selectedMode === 'testgen') {
+            payload = {
+              code,
+              language: selectedLang,
+              framework: document.getElementById('testFramework').value,
+              mock_external_calls: document.getElementById('mockExternalCalls').checked
+            };
+          } else {
+            payload = { code, language: selectedLang };
+          }
+
           const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, language: selectedLang }),
+            body: JSON.stringify(payload),
             signal: AbortSignal.timeout(30000),
           });
           if (fallbackUsed) {
@@ -3567,8 +3650,10 @@ details.issue-card[open] {
             result = { explanation: data, debugging: null, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
           } else if (selectedMode === 'debug') {
             result = { explanation: null, debugging: data, suggestions: null, provider: 'rule-based', analysis_time_ms: null };
-          } else {
+          } else if (selectedMode === 'suggest') {
             result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
+          } else if (selectedMode === 'testgen') {
+            result = { testgen: data, explanation: null, debugging: null, suggestions: null, provider: 'llm', analysis_time_ms: null };
           }
 
           currentResult = result;
@@ -3602,9 +3687,10 @@ details.issue-card[open] {
         if (result.explanation) renderExplain(result.explanation);
         if (result.debugging) renderDebug(result.debugging);
         if (result.suggestions) renderSuggest(result.suggestions);
+        if (result.testgen) renderTestGen(result.testgen);
 
         // Auto-switch to relevant tab
-        const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
+        const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest', testgen: 'testgen' };
         const targetTab = tabOrder[selectedMode] || 'explain';
         document.querySelector(`[data-rtab="${targetTab}"]`).click();
       }
@@ -4102,32 +4188,102 @@ details.issue-card[open] {
         });
       }
 
+      function renderTestGen(data) {
+        document.getElementById('emptyTestgen').style.display = 'none';
+        const el = document.getElementById('testgenResult');
+        el.style.display = 'block';
+        document.getElementById('testgenBadge').textContent = data.summary.num_test_cases;
+
+        const scenarios = (data.summary.scenarios_covered || [])
+          .map(s => `<li>${escHtml(s)}</li>`)
+          .join('');
+
+        const mocks = (data.summary.mocked_dependencies || [])
+          .map(m => `<li>${escHtml(m)}</li>`)
+          .join('');
+
+        const mocksSection = data.summary.mocked_dependencies && data.summary.mocked_dependencies.length > 0
+          ? `
+          <div class="result-section" style="margin-top:16px;">
+            <h4>Mocked Dependencies</h4>
+            <ul class="key-points">${mocks}</ul>
+          </div>`
+          : '';
+
+        el.innerHTML = `
+          <div class="score-ring-wrap" style="margin-bottom:16px;">
+            <div class="score-info">
+              <h3>Test Generation Summary</h3>
+              <p>Generated <strong>${data.summary.num_test_cases}</strong> test cases using <strong>${escHtml(data.framework)}</strong>.</p>
+            </div>
+          </div>
+          <div class="result-section">
+            <h4>Scenarios Covered</h4>
+            <ul class="key-points">${scenarios}</ul>
+          </div>
+          ${mocksSection}
+          <div class="result-section" style="margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <h4>Generated Test Code</h4>
+              <button class="btn btn-secondary" id="copyTestCodeBtn" style="padding:4px 10px; font-size:0.75rem; display:flex; align-items:center; gap:4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy Code
+              </button>
+            </div>
+            <pre style="font-family:var(--font-mono); font-size:12px; background:var(--bg); border:1px solid var(--border); padding:12px; border-radius:6px; overflow-x:auto; color:var(--text); white-space:pre; max-height:400px;">${escHtml(data.test_code)}</pre>
+          </div>
+        `;
+
+        // Wire copy button
+        const copyBtn = document.getElementById('copyTestCodeBtn');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(data.test_code).then(() => {
+              copyBtn.textContent = '\u2713 Copied!';
+              copyBtn.style.background = 'rgba(34,212,123,0.25)';
+              setTimeout(() => {
+                copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Code`;
+                copyBtn.style.background = '';
+              }, 2000);
+            }).catch(() => toast('Copy failed', 'error'));
+          });
+        }
+      }
+
+
       /* ═══════════════════════════════════════════════════════════════
          SHIMMER LOADING
       ═══════════════════════════════════════════════════════════════ */
       function showShimmers() {
         const shims = '<div class="shimmer-card"></div>'.repeat(3);
-        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+        ['explainResult', 'debugResult', 'suggestResult', 'testgenResult'].forEach(id => {
           const el = document.getElementById(id);
-          el.style.display = 'block';
-          el.innerHTML = shims;
+          if (el) {
+            el.style.display = 'block';
+            el.innerHTML = shims;
+          }
         });
-        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
-          document.getElementById(id).style.display = 'none';
+        ['emptyExplain', 'emptyDebug', 'emptySuggest', 'emptyTestgen'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
         });
       }
 
       function resetResults() {
-        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+        ['explainResult', 'debugResult', 'suggestResult', 'testgenResult'].forEach(id => {
           const el = document.getElementById(id);
-          el.style.display = 'none';
-          el.innerHTML = '';
+          if (el) {
+            el.style.display = 'none';
+            el.innerHTML = '';
+          }
         });
-        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
-          document.getElementById(id).style.display = 'flex';
+        ['emptyExplain', 'emptyDebug', 'emptySuggest', 'emptyTestgen'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'flex';
         });
-        ['explainBadge', 'debugBadge', 'suggestBadge'].forEach(id => {
-          document.getElementById(id).textContent = '';
+        ['explainBadge', 'debugBadge', 'suggestBadge', 'testgenBadge'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = '';
         });
         resultActions.style.display = 'none';
         document.getElementById('engineBar').style.display = 'none';
@@ -4578,6 +4734,26 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
       ═══════════════════════════════════════════════════════════════ */
       document.getElementById('downloadBtn').addEventListener('click', () => {
         if (!currentResult) return;
+        if (selectedMode === 'testgen' && currentResult.testgen) {
+          const testCode = currentResult.testgen.test_code;
+          const framework = (currentResult.testgen.framework || 'pytest').toLowerCase();
+          let filename = 'test_suite.py';
+          if (framework.includes('jest')) {
+            filename = 'suite.test.js';
+          } else if (framework.includes('junit')) {
+            filename = 'TestSuite.java';
+          } else if (framework.includes('gtest') || framework.includes('google')) {
+            filename = 'test_suite.cpp';
+          }
+          const blob = new Blob([testCode], { type: 'text/plain' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(a.href);
+          toast('Test file downloaded', 'success');
+          return;
+        }
         const text = buildReport(currentResult, editor.value);
         const blob = new Blob([text], { type: 'text/plain' });
         const a = document.createElement('a');
@@ -4589,6 +4765,9 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
       });
 
       function buildReport(r, code) {
+        if (r.testgen) {
+          return `QyverixAI Generated Unit Test Suite\nDate: ${new Date().toLocaleString()}\nFramework: ${r.testgen.framework}\n\n${r.testgen.test_code}`;
+        }
         if (r.files) {
           const lines = ['QyverixAI Project ZIP Analysis', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, `Files: ${r.file_count}`, `Overall Score: ${r.overall_project_score}/100 (${r.grade})`, r.summary, ''];
           r.files.forEach(file => {
