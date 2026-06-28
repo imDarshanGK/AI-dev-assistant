@@ -66,6 +66,7 @@
     *,
     *::before,
     *::after {
+      box-shadow: border-box;
       box-sizing: border-box;
       margin: 0;
       padding: 0
@@ -323,14 +324,12 @@
       background: var(--bg2);
     }
 
-
-
     /* ═══════════════════════════════════════════════════════════════
-    HERO
+   HERO
 ═══════════════════════════════════════════════════════════════ */
     .hero {
-      position: relative; /* Contain the absolute positioned children patterns */
-      overflow: hidden;   /* Mask clipping edges perfectly */
+      position: relative;
+      overflow: hidden;
       text-align: center;
       padding: 64px 0 48px;
       animation: heroEnter 0.7s ease both;
@@ -476,7 +475,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
-    FEATURE PILLS ROW
+   FEATURE PILLS ROW
 ═══════════════════════════════════════════════════════════════ */
     .features-row {
       display: flex;
@@ -539,7 +538,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
-    WORKSPACE
+   WORKSPACE
 ═══════════════════════════════════════════════════════════════ */
     .workspace {
       display: grid;
@@ -917,7 +916,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
-    RESULTS PANEL
+   RESULTS PANEL
 ═══════════════════════════════════════════════════════════════ */
     .result-tabs {
       display: flex;
@@ -1429,82 +1428,16 @@
       align-items: center;
       gap: 8px 12px;
       padding: 12px 14px;
-      list-style: none
+      list-style: none;
     }
 
     .zip-file-card summary::-webkit-details-marker {
-      display: none
-    }
-
-    .zip-file-card summary::before {
-      content: ">";
-      color: var(--text3);
-      font-size: 0.75rem;
-      transition: transform 0.18s ease
-    }
-
-    .zip-file-card[open] summary::before {
-      transform: rotate(90deg)
-    }
-
-    .zip-file-name {
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      color: var(--text)
-    }
-
-    .zip-file-meta {
-      color: var(--text3);
-      font-size: 0.74rem;
-      margin-left: auto
-    }
-
-    .zip-file-body {
-      padding: 14px;
-      border-top: 1px solid var(--border);
-      background: var(--bg2)
+      display: none;
     }
   </style>
 </head>
 
 <body>
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
+  </body>
 
-  <div class="app">
-    <nav>
-      <a href="#" class="nav-logo">
-        <div class="logo-hex">&lt;/&gt;</div>
-        QyverixAI
-      </a>
-      <div class="nav-links">
-        <button class="nav-link">Features</button>
-        <button class="nav-link">API Docs</button>
-        <button class="theme-btn" id="themeToggle" aria-label="Toggle visual appearance theme">🌓</button>
-      </div>
-    </nav>
-
-    <section class="hero">
-      <div class="hero-dev-background" style="
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          opacity: 0.03;
-          pointer-events: none;
-          z-index: 0;
-          background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Ctext x='15' y='35' font-family='monospace' font-size='11' fill='%23888888'%3E&amp;lt;/&amp;gt;%3C/text%3E%3Ctext x='75' y='85' font-family='monospace' font-size='10' fill='%23888888'%3E%1B[31m%3C/text%3E%3Cline x1='20' y1='100' x2='50' y2='100' stroke='%23888888' stroke-width='1' stroke-dasharray='3,3'/%3E%3C/svg%3E&quot;);
-      "></div>
-      <div class="hero-badge">
-        <span class="badge-dot"></span>
-        GSSoC 2026 Welcome Vector
-      </div>
-      <h1>Debug. Understand. <br><em>Ship faster.</em></h1>
-      <p class="hero-sub">An open-source AI-powered developer assistant that detects bugs, explains complex structures, and gives layout solutions seamlessly.</p>
-      
-      <div class="hero-cta">
-        <a href="#workspace" class="btn btn-primary">Open Workspace</a>
-        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="btn btn-secondary">Star on GitHub</a>
-      </div>
-    </section>
+</html>
