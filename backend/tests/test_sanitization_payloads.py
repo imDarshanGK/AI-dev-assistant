@@ -17,15 +17,6 @@ from pydantic import ValidationError
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.dirname(__file__))
 
-from app import main as app_main
-from app.sanitize import sanitize_code_input, sanitize_result_json, sanitize_text_input
-from app.schemas import (
-    ChatMessageRequest,
-    ChatRequest,
-    FavoriteCreateRequest,
-    HistoryCreateRequest,
-    ShareCreateRequest,
-)
 from security_payloads import (
     ANALYSIS_ENDPOINTS,
     ENCODED_PAYLOADS,
@@ -36,6 +27,16 @@ from security_payloads import (
     XSS_PAYLOADS,
     assert_json_serializable_plain_text,
     assert_server_generated_text_safe,
+)
+
+from app import main as app_main
+from app.sanitize import sanitize_code_input, sanitize_result_json, sanitize_text_input
+from app.schemas import (
+    ChatMessageRequest,
+    ChatRequest,
+    FavoriteCreateRequest,
+    HistoryCreateRequest,
+    ShareCreateRequest,
 )
 
 client = TestClient(app_main.app)

@@ -21,18 +21,16 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.dirname(__file__))
 
+from security_payloads import ANSI_PAYLOAD
+from security_payloads import SCRIPT_TAG as XSS_PAYLOAD
+from security_payloads import XSS_WITH_NULL, assert_no_raw_script_tag
+
 from app import main as app_main
 from app.sanitize import (
     sanitize_code_input,
     sanitize_language_hint,
     sanitize_result_json,
     sanitize_text_input,
-)
-from security_payloads import (
-    ANSI_PAYLOAD,
-    SCRIPT_TAG as XSS_PAYLOAD,
-    XSS_WITH_NULL,
-    assert_no_raw_script_tag,
 )
 
 client = TestClient(app_main.app)
