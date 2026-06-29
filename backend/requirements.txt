@@ -17,3 +17,7 @@ prometheus-client>=0.20.0
 # formatting tools (also used by CI)
 black==24.10.0
 isort==5.13.2
+
+# Optional but recommended: enables rich process/system stats on /diag.
+# The endpoint degrades gracefully to stdlib-only metrics if it is absent.
+psutil>=5.9.0
