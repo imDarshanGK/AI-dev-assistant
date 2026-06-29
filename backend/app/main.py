@@ -20,7 +20,14 @@ from .routers import analyze, auth, chat, debugging, explanation
 from .routers import health as health_router
 from .routers import history
 from .routers import metrics as metrics_router
-from .routers import share, subscribe, suggestions, upload_file, user_data, test_generator
+from .routers import (
+    share,
+    subscribe,
+    suggestions,
+    test_generator,
+    upload_file,
+    user_data,
+)
 from .schemas import HealthResponse
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
@@ -214,7 +221,9 @@ app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions
 app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
 app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
 app.include_router(history.router, prefix="/history", tags=["History"])
-app.include_router(test_generator.router, prefix="/api/generate-tests", tags=["Test Generator"])
+app.include_router(
+    test_generator.router, prefix="/api/generate-tests", tags=["Test Generator"]
+)
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)

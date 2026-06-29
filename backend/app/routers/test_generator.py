@@ -18,7 +18,7 @@ router = APIRouter()
 async def generate_tests(req: TestGenerationRequest):
     try:
         lang = detect_language(req.code, req.language)
-        
+
         # Determine framework default if not specified
         framework = req.framework
         if not framework:

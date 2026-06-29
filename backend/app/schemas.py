@@ -876,9 +876,19 @@ class TestGenerationRequest(BaseModel):
 class TestSummary(BaseModel):
     __test__ = False
 
-    num_test_cases: int = Field(..., description="Number of test cases generated.", example=3)
-    scenarios_covered: list[str] = Field(..., description="List of test scenarios covered.", example=["Happy path", "Division by zero"])
-    mocked_dependencies: list[str] = Field(..., description="List of mocked variables/modules.", example=["Database client"])
+    num_test_cases: int = Field(
+        ..., description="Number of test cases generated.", example=3
+    )
+    scenarios_covered: list[str] = Field(
+        ...,
+        description="List of test scenarios covered.",
+        example=["Happy path", "Division by zero"],
+    )
+    mocked_dependencies: list[str] = Field(
+        ...,
+        description="List of mocked variables/modules.",
+        example=["Database client"],
+    )
 
 
 class TestGenerationResponse(BaseModel):
@@ -886,8 +896,12 @@ class TestGenerationResponse(BaseModel):
 
     __test__ = False
 
-    test_code: str = Field(..., description="Run-ready unit test code.", example="def test_divide(): ...")
-    framework: str = Field(..., description="The framework used for generating tests.", example="pytest")
-    summary: TestSummary = Field(..., description="Summary details of the generated tests.")
-
-
+    test_code: str = Field(
+        ..., description="Run-ready unit test code.", example="def test_divide(): ..."
+    )
+    framework: str = Field(
+        ..., description="The framework used for generating tests.", example="pytest"
+    )
+    summary: TestSummary = Field(
+        ..., description="Summary details of the generated tests."
+    )

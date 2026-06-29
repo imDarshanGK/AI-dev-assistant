@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 
 import httpx
 
@@ -197,7 +197,9 @@ class LLMAnalysisClient:
                 "framework": framework or "pytest",
                 "summary": {
                     "num_test_cases": 1,
-                    "scenarios_covered": ["Fallback template placeholder (LLM Disabled)"],
+                    "scenarios_covered": [
+                        "Fallback template placeholder (LLM Disabled)"
+                    ],
                     "mocked_dependencies": [],
                 },
             }
