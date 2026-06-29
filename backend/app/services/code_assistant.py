@@ -1420,3 +1420,4 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
             "suggestions": sugg,
             "analysis_time_ms": round(elapsed_ms, 2),
         }
+    
