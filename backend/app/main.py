@@ -20,7 +20,7 @@ from .routers import admin, analyze, auth, chat, collaboration, debugging, expla
 from .routers import health as health_router
 from .routers import history
 from .routers import metrics as metrics_router
-from .routers import share, subscribe, suggestions, upload_file, user_data
+from .routers import scheduler, share, subscribe, suggestions, upload_file, user_data
 from .schemas import HealthResponse
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
@@ -227,6 +227,7 @@ app.include_router(
     prefix="/collaboration",
     tags=["Collaboration"],
 )
+app.include_router(scheduler.router)
 
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)

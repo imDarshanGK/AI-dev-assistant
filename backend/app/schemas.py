@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -585,6 +586,32 @@ class UnsubscribeRequest(BaseModel):
         description="Unsubscribe token sent in the confirmation email.",
         example="abc123token",
     )
+
+
+# ── Analysis Scheduler ────────────────────────────────────────────────────────
+class AnalysisScheduleCreate(BaseModel):
+    cron_expression: str
+    analysis_type: str
+    target_repo: str
+
+    @field_validator("cron_expression")
+    @classmethod
+    def validate_cron(cls, v: str) -> str:
+        parts = v.split()
+        if len(parts) != 5:
+            raise ValueError("Cron expression must have 5 parts")
+        return v
+
+
+class AnalysisScheduleResponse(BaseModel):
+    id: int
+    user_id: int
+    cron_expression: str
+    analysis_type: str
+    target_repo: str
+    is_active: bool
+    created_at: datetime
+    last_run_at: datetime | None = None
 
 
 # ── History ───────────────────────────────────────────────────────────────────
