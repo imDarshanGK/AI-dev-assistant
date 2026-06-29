@@ -145,7 +145,7 @@ def test_search_no_results():
 
 def test_search_history_syntax_injection():
     # Test double quote query does not crash (returns 200 instead of 500)
-    r = client.get("/history/search?q=\"")
+    r = client.get('/history/search?q="')
     assert r.status_code == 200
     assert r.json() == []
 

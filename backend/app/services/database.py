@@ -115,7 +115,7 @@ async def search_entries(q: str, limit: int = 20) -> list[dict]:
     q = q[:200]
 
     # Sanitize FTS5 query to prevent syntax injection errors
-    clean_q = q.replace('"', ' ')
+    clean_q = q.replace('"', " ")
     words = [f'"{w}"' for w in clean_q.split() if w]
     if not words:
         return []
