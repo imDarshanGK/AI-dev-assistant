@@ -109,9 +109,9 @@ def assert_server_generated_text_safe(data: dict | list) -> None:
                 return
             lower = obj.lower()
             for pattern in _DANGEROUS_SERVER_PATTERNS:
-                assert pattern not in lower, (
-                    f"Dangerous pattern {pattern!r} in server field {parent_key!r}: {obj!r}"
-                )
+                assert (
+                    pattern not in lower
+                ), f"Dangerous pattern {pattern!r} in server field {parent_key!r}: {obj!r}"
         elif isinstance(obj, dict):
             for key, value in obj.items():
                 walk(value, key)

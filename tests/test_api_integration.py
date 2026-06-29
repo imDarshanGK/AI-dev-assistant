@@ -37,9 +37,9 @@ def bad_function():
     # Verify issues have line numbers
     for issue in data["issues"]:
         assert "line" in issue, "Issue should have line number"
-        assert issue["line"] is not None or len(data["issues"]) == 0, (
-            "Line should be present if issues exist"
-        )
+        assert (
+            issue["line"] is not None or len(data["issues"]) == 0
+        ), "Line should be present if issues exist"
 
     print("✅ test_debugging_endpoint_with_line_numbers PASSED\n")
 
@@ -130,9 +130,9 @@ def test_context_in_response():
             assert "code_context" in issue, "Issue should have code_context"
             if issue["code_context"]:
                 assert ">>>" in issue["code_context"], "Context should have markers"
-                assert "eval" in issue["code_context"], (
-                    "Context should contain the problematic code"
-                )
+                assert (
+                    "eval" in issue["code_context"]
+                ), "Context should contain the problematic code"
 
     print("✅ test_context_in_response PASSED\n")
 
@@ -155,14 +155,14 @@ line5
     for issue in data["issues"]:
         if issue["type"] == "Eval Usage":
             # eval should be on line 3
-            assert issue["line"] == 3, (
-                f"Expected eval on line 3, got line {issue['line']}"
-            )
+            assert (
+                issue["line"] == 3
+            ), f"Expected eval on line 3, got line {issue['line']}"
         elif issue["type"] == "Bare Except":
             # except should be on line 5
-            assert issue["line"] == 5, (
-                f"Expected except on line 5, got line {issue['line']}"
-            )
+            assert (
+                issue["line"] == 5
+            ), f"Expected except on line 5, got line {issue['line']}"
 
     print("✅ test_line_numbers_are_correct PASSED\n")
 

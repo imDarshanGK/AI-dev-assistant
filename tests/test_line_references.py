@@ -47,9 +47,9 @@ z = eval("2+2")
 
     # Should find eval on lines 2 and 4
     assert len(eval_lines) >= 1, "Should find at least one eval"
-    assert all(isinstance(line, int) for line in eval_lines), (
-        "Line numbers should be integers"
-    )
+    assert all(
+        isinstance(line, int) for line in eval_lines
+    ), "Line numbers should be integers"
     assert all(line >= 1 for line in eval_lines), "Line numbers should be 1-based"
 
     print("✅ test_find_lines_matching_pattern PASSED")
@@ -74,9 +74,9 @@ def function_two():
         assert "start_line" in func, "Function should have start_line"
         assert "end_line" in func, "Function should have end_line"
         assert "length" in func, "Function should have length"
-        assert func["start_line"] <= func["end_line"], (
-            "Start line should be <= end line"
-        )
+        assert (
+            func["start_line"] <= func["end_line"]
+        ), "Start line should be <= end line"
         assert func["length"] > 0, "Function length should be positive"
 
     print("✅ test_find_function_lines_python PASSED")
@@ -94,9 +94,9 @@ def test_find_undocumented_lines():
 
     # Should find undocumented code (no comments explaining logic)
     assert len(undocumented) > 0, "Should find undocumented lines"
-    assert all(isinstance(line, int) for line in undocumented), (
-        "Line numbers should be integers"
-    )
+    assert all(
+        isinstance(line, int) for line in undocumented
+    ), "Line numbers should be integers"
 
     print("✅ test_find_undocumented_lines PASSED")
 
@@ -155,18 +155,18 @@ def very_long_function():
 
             # Verify structure
             if suggestion.get("line_number"):
-                assert isinstance(suggestion["line_number"], int), (
-                    "line_number should be int"
-                )
+                assert isinstance(
+                    suggestion["line_number"], int
+                ), "line_number should be int"
                 assert suggestion["line_number"] > 0, "line_number should be positive"
 
             if suggestion.get("line_range"):
-                assert isinstance(suggestion["line_range"], list), (
-                    "line_range should be list"
-                )
-                assert all(isinstance(num, int) for num in suggestion["line_range"]), (
-                    "line_range items should be ints"
-                )
+                assert isinstance(
+                    suggestion["line_range"], list
+                ), "line_range should be list"
+                assert all(
+                    isinstance(num, int) for num in suggestion["line_range"]
+                ), "line_range items should be ints"
 
     # Should have at least one suggestion with line references
     assert has_line_refs, "No suggestions contained line references"
@@ -193,9 +193,9 @@ BUFFER = 512
         print(f"Magic suggestion: {sugg}")
 
         # Verify it has line tracking
-        assert sugg["line_number"] is not None or sugg["line_range"] is not None, (
-            "Magic numbers suggestion should have line references"
-        )
+        assert (
+            sugg["line_number"] is not None or sugg["line_range"] is not None
+        ), "Magic numbers suggestion should have line references"
 
     print("✅ test_magic_numbers_detection_with_lines PASSED")
 
@@ -221,9 +221,9 @@ def foo():
         print(f"Documentation suggestion: {sugg}")
 
         # Verify it has line tracking
-        assert sugg["line_number"] is not None or sugg["line_range"] is not None, (
-            "Documentation suggestion should have line references"
-        )
+        assert (
+            sugg["line_number"] is not None or sugg["line_range"] is not None
+        ), "Documentation suggestion should have line references"
 
     print("✅ test_documentation_quality_with_lines PASSED")
 
@@ -272,9 +272,9 @@ fifth"""
 
         # Verify eval is on line 4
         if issue["type"] == "Eval Usage":
-            assert issue["line"] == 4, (
-                f"eval() should be on line 4, but found on line {issue['line']}"
-            )
+            assert (
+                issue["line"] == 4
+            ), f"eval() should be on line 4, but found on line {issue['line']}"
 
     print("✅ test_line_numbers_are_one_based PASSED")
 
