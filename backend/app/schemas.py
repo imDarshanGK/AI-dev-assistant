@@ -14,7 +14,6 @@ from .schema_validators import (
 )
 
 
-# ── Core request ──────────────────────────────────────────────────────────────
 class CodeRequest(BaseModel):
     """Request body accepted by all analysis endpoints."""
 
