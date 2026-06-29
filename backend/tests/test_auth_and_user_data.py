@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.database import Base, get_db
 from app.main import app
+from app.rate_limit import auth_rate_limiter
 
 # Use a separate SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_app.db"
@@ -41,6 +42,13 @@ def setup_db():
 
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    auth_rate_limiter.clear()
+    yield
+    auth_rate_limiter.clear()
 
 
 def test_auth_and_user_data_flow():

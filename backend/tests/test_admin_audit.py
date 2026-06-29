@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.database import Base, get_db
 from app.main import app
 from app.models import AuditLog, User
+from app.rate_limit import auth_rate_limiter
 from app.services.audit import REDACTED, redact
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_admin_audit.db"
@@ -41,6 +42,13 @@ def setup_db():
 
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    auth_rate_limiter.clear()
+    yield
+    auth_rate_limiter.clear()
 
 
 def _signup(email: str) -> dict:

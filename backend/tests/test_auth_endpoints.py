@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.database import Base, get_db
 from app.main import app as fastapi_app
+from app.rate_limit import auth_rate_limiter
 from app.security import decode_token
 from app.token_denylist import token_denylist
 
@@ -58,6 +59,13 @@ def _reset_denylist():
     token_denylist.clear()
     yield
     token_denylist.clear()
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    auth_rate_limiter.clear()
+    yield
+    auth_rate_limiter.clear()
 
 
 def test_auth_routes_are_exposed_in_openapi(client):
@@ -193,3 +201,24 @@ def test_revoking_one_token_leaves_other_sessions_valid(client):
         ).status_code
         == 200
     )
+
+
+def test_auth_endpoints_rate_limiting(client):
+    # Reset limit tracker
+    auth_rate_limiter.clear()
+
+    # Perform 5 requests (the limit is 5)
+    for i in range(5):
+        r = client.post(
+            "/auth/login",
+            json={"email": "nonexistent@example.com", "password": "wrongpass"},
+        )
+        assert r.status_code == 401
+
+    # The 6th request must trigger rate limiting (429)
+    r = client.post(
+        "/auth/login",
+        json={"email": "nonexistent@example.com", "password": "wrong"},
+    )
+    assert r.status_code == 429
+    assert "too many requests" in r.json()["detail"].lower()

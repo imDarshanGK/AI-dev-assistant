@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import User
+from ..rate_limit import auth_rate_limiter
 from ..schemas import (
     AuthResponse,
     LoginRequest,
@@ -27,7 +28,9 @@ from ..token_denylist import token_denylist
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/signup", response_model=AuthResponse)
+@router.post(
+    "/signup", response_model=AuthResponse, dependencies=[Depends(auth_rate_limiter)]
+)
 def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     existing = db.execute(
         select(User).where(User.email == payload.email.lower().strip())
@@ -49,7 +52,9 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     return AuthResponse(access_token=token, user_id=user.id, email=user.email)
 
 
-@router.post("/login", response_model=AuthResponse)
+@router.post(
+    "/login", response_model=AuthResponse, dependencies=[Depends(auth_rate_limiter)]
+)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     user = db.execute(
         select(User).where(User.email == payload.email.lower().strip())
