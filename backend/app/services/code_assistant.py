@@ -9,8 +9,10 @@ import re
 import time
 from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+
 # --- TRACING SETUP ---
 from opentelemetry import trace
+
 tracer = trace.get_tracer(__name__)
 
 # ── Language Detection ─────────────────────────────────────────────────────────
@@ -241,9 +243,7 @@ def chat_fallback_reply(
         )
 
     if recent_history:
-        response_parts.append(
-            f"Recent chat context: {recent_history}."
-        )
+        response_parts.append(f"Recent chat context: {recent_history}.")
 
     return " ".join(response_parts)
 
@@ -829,8 +829,12 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
             if key not in seen:
                 seen.add(key)
                 line_idx = issue["line"] - 1
-                issue["code_snippet"] = lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
-                issue["code_context"] = format_code_snippet(code, [issue["line"]], context_lines=2)
+                issue["code_snippet"] = (
+                    lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
+                )
+                issue["code_context"] = format_code_snippet(
+                    code, [issue["line"]], context_lines=2
+                )
                 found.append(issue)
 
     for bp in BUG_PATTERNS:
@@ -1055,15 +1059,17 @@ def run_suggestions(code: str, language: str) -> dict:
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
-            suggestions.append({
-                "category": "Observability",
-                "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
-                "line_number": print_lines[0],
-                "line_range": sample_print,
-                "code_context": format_code_snippet(code, sample_print),
-                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
-                "priority": "medium",
-            })
+            suggestions.append(
+                {
+                    "category": "Observability",
+                    "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
+                    "line_number": print_lines[0],
+                    "line_range": sample_print,
+                    "code_context": format_code_snippet(code, sample_print),
+                    "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
+                    "priority": "medium",
+                }
+            )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 8: Environment Variables (JS/TS)
@@ -1367,11 +1373,11 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
 # ── Combined ───────────────────────────────────────────────────────────────────
 def full_analysis(code: str, language_hint: str | None = None) -> dict:
     """Run the complete analysis pipeline for the provided source code.
-    
+
     Args:
         code: The source code to analyse.
         language_hint: Optional language override hint.
-        
+
     Returns:
         Combined explanation, debugging, and suggestion analysis results.
     """
@@ -1387,7 +1393,7 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         # 3. Track the bug finding AI 🐛
         with tracer.start_as_current_span("run_bug_detection"):
             raw_issues = run_bug_detection(code, language)
-            
+
         errors = [i for i in raw_issues if i["severity"] == "error"]
         warnings = [i for i in raw_issues if i["severity"] == "warning"]
         infos = [i for i in raw_issues if i["severity"] == "info"]
@@ -1420,4 +1426,3 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
             "suggestions": sugg,
             "analysis_time_ms": round(elapsed_ms, 2),
         }
-    

@@ -17,7 +17,6 @@ from fastapi.staticfiles import StaticFiles
 # --- TRACING IMPORTS ---
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from tracing import setup_tracing
-import os
 
 from .observability import initialise_app_info, prometheus_metrics_middleware
 from .routers import analyze, auth, chat, collaboration, debugging, explanation
