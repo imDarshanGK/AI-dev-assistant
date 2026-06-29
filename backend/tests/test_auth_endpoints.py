@@ -211,7 +211,7 @@ def test_auth_endpoints_rate_limiting(client):
     for i in range(5):
         r = client.post(
             "/auth/login",
-        json={"email": "nonexistent@example.com", "password": "wrongpass"},
+            json={"email": "nonexistent@example.com", "password": "wrongpass"},
         )
         assert r.status_code == 401
 
