@@ -15,6 +15,10 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+# --- TRACING IMPORTS ---
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from tracing import setup_tracing
+
 from .observability import initialise_app_info, prometheus_metrics_middleware
 from .routers import admin, analyze, auth, chat, collaboration, debugging, explanation
 from .routers import health as health_router
@@ -152,6 +156,11 @@ Obtain a token via `POST /auth/login` and pass it as `Authorization: Bearer <tok
         },
     ],
 )
+
+# --- TRACING ACTIVATION ---
+setup_tracing()
+if os.getenv("OTEL_ENABLED", "false").lower() == "true":
+    FastAPIInstrumentor.instrument_app(app)
 
 # ── Middleware ────────────────────────────────────────────────────────────────
 app.add_middleware(GZipMiddleware, minimum_size=1000)
