@@ -143,6 +143,18 @@ def test_search_no_results():
     assert r.json() == []
 
 
+def test_search_history_syntax_injection():
+    # Test double quote query does not crash (returns 200 instead of 500)
+    r = client.get('/history/search?q="')
+    assert r.status_code == 200
+    assert r.json() == []
+
+    # Test FTS5 operators do not crash the query
+    r = client.get("/history/search?q=AND OR NOT ( * )")
+    assert r.status_code == 200
+    assert isinstance(r.json(), list)
+
+
 def test_search_history_max_length():
     r = client.get("/history/search?q=" + ("x" * 201))
     assert r.status_code == 422
