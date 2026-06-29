@@ -33,21 +33,68 @@ def _send_weekly_digests() -> None:
             log.info("No active digest subscribers")
             return
 
-        sent = 0
-        for sub in subs:
-            stats = compute_subscriber_stats(db, sub.email)
-            if not stats:
-                log.debug("No stats for %s, skipping", sub.email)
-                continue
-            ok = send_digest(stats, sub.unsubscribe_token)
-            if ok:
-                sub.last_sent_at = datetime.now(UTC)
-                sent += 1
-            else:
-                log.warning("Failed to deliver digest to %s", sub.email)
+        # Snapshot subscriber primitives to avoid N+1 reload queries and holding ORM objects active
+        subs_data = [
+            {
+                "id": sub.id,
+                "email": sub.email,
+                "unsubscribe_token": sub.unsubscribe_token,
+            }
+            for sub in subs
+        ]
+        # Rollback the read transaction immediately to release locks/connection
+        db.rollback()
 
-        db.commit()
-        log.info("Weekly digest sent to %d/%d subscribers", sent, len(subs))
+        sent = 0
+        failed = 0
+        for sub_info in subs_data:
+            sub_id = sub_info["id"]
+            email = sub_info["email"]
+            token = sub_info["unsubscribe_token"]
+
+            try:
+                # 1. Fetch statistics inside a transaction
+                stats = compute_subscriber_stats(db, email)
+                
+                # Always release the database transaction immediately after the read queries
+                db.rollback()
+
+                if not stats:
+                    log.debug("No stats for %s, skipping", email)
+                    continue
+
+                # 2. Trigger the SMTP network call outside any open database transaction
+                ok = send_digest(stats, token)
+
+                if ok:
+                    # 3. Update the specific subscriber's timestamp in a fresh, isolated transaction
+                    sub_record = (
+                        db.query(DigestSubscription)
+                        .filter(DigestSubscription.id == sub_id)
+                        .first()
+                    )
+                    if sub_record:
+                        sub_record.last_sent_at = datetime.now(UTC)
+                        db.commit()
+                        sent += 1
+                    else:
+                        db.rollback()
+                        log.warning("Subscriber record ID %d not found during update", sub_id)
+                        failed += 1
+                else:
+                    log.warning("Failed to deliver digest to %s", email)
+                    failed += 1
+            except Exception:
+                db.rollback()
+                log.exception("Error processing digest for %s — skipping", email)
+                failed += 1
+
+        log.info(
+            "Weekly digest run complete: %d sent, %d failed, %d total",
+            sent,
+            failed,
+            len(subs_data),
+        )
     except Exception:
         log.exception("Error in weekly digest job")
     finally:
