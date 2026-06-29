@@ -12,6 +12,7 @@ All notable changes to QyverixAI are documented in this file.
   queryable `GET /admin/audit-logs` endpoint and admin-gated user role
   management (`PUT /admin/users/{id}/role`) and deletion
   (`DELETE /admin/users/{id}`).
+- Add static analysis and code suggestions for PHP, Rust, and Kotlin languages, including security, type safety, error handling, readability, and performance patterns (fixes #702).
 
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.

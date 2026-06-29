@@ -4,11 +4,13 @@ Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Ru
 """
 
 from __future__ import annotations
+
 import ast
 import re
 import time
-from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+
+from .ast_analyzer import analyze as ast_analyze
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -238,9 +240,7 @@ def chat_fallback_reply(
         )
 
     if recent_history:
-        response_parts.append(
-            f"Recent chat context: {recent_history}."
-        )
+        response_parts.append(f"Recent chat context: {recent_history}.")
 
     return " ".join(response_parts)
 
@@ -813,8 +813,8 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     Returns:
         A list of detected issues with metadata and suggestions.
     """
-    from .line_utils import format_code_snippet
     from .ast_analyzer import analyze_python_ast
+    from .line_utils import format_code_snippet
 
     lines = code.splitlines()
     found: list[dict] = []
@@ -826,8 +826,12 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
             if key not in seen:
                 seen.add(key)
                 line_idx = issue["line"] - 1
-                issue["code_snippet"] = lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
-                issue["code_context"] = format_code_snippet(code, [issue["line"]], context_lines=2)
+                issue["code_snippet"] = (
+                    lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
+                )
+                issue["code_context"] = format_code_snippet(
+                    code, [issue["line"]], context_lines=2
+                )
                 found.append(issue)
 
     for bp in BUG_PATTERNS:
@@ -887,10 +891,10 @@ def run_suggestions(code: str, language: str) -> dict:
     """
     """Enhanced suggestion engine with line number tracking."""
     from .line_utils import (
-        format_code_snippet,
-        find_lines_matching_pattern,
         find_function_lines,
+        find_lines_matching_pattern,
         find_undocumented_lines,
+        format_code_snippet,
     )
 
     suggestions: list[dict] = []
@@ -1052,15 +1056,17 @@ def run_suggestions(code: str, language: str) -> dict:
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
-            suggestions.append({
-                "category": "Observability",
-                "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
-                "line_number": print_lines[0],
-                "line_range": sample_print,
-                "code_context": format_code_snippet(code, sample_print),
-                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
-                "priority": "medium",
-            })
+            suggestions.append(
+                {
+                    "category": "Observability",
+                    "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
+                    "line_number": print_lines[0],
+                    "line_range": sample_print,
+                    "code_context": format_code_snippet(code, sample_print),
+                    "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
+                    "priority": "medium",
+                }
+            )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 8: Environment Variables (JS/TS)
@@ -1094,6 +1100,170 @@ def run_suggestions(code: str, language: str) -> dict:
                     "description": "Code contains both a loop and `std::endl`. If `std::endl` is used inside the loop, it flushes the buffer on every iteration, severely degrading performance.",
                     "example": "std::cout << value << '\\n';",
                     "priority": "medium",
+                }
+            )
+
+    # ─────────────────────────────────────────────────────────────
+    # PHP-specific suggestions
+    # ─────────────────────────────────────────────────────────────
+    if language == "PHP":
+        # Detect deprecated mysql_* functions
+        mysql_lines = find_lines_matching_pattern(
+            code, r"\bmysql_(real_)?escape_string\b|\bmysql_connect\b|\bmysql_query\b"
+        )
+        if mysql_lines:
+            sample_mysql = mysql_lines[:3]
+            suggestions.append(
+                {
+                    "category": "Security",
+                    "description": f"Deprecated `mysql_*` functions detected ({len(mysql_lines)} line(s)). Use mysqli or PDO with prepared statements instead.",
+                    "line_number": mysql_lines[0],
+                    "line_range": sample_mysql,
+                    "code_context": format_code_snippet(code, sample_mysql),
+                    "example": "$stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');\n$stmt->execute([$id]);",
+                    "priority": "high",
+                }
+            )
+
+        # Detect unsanitized output of superglobals
+        unsanitized_output = find_lines_matching_pattern(
+            code, r"echo\s+\$(GET|POST|REQUEST|COOKIE|SERVER)\b"
+        )
+        if unsanitized_output:
+            sample_unsan = unsanitized_output[:3]
+            suggestions.append(
+                {
+                    "category": "Security",
+                    "description": f"Unsanitized superglobal output detected ({len(unsanitized_output)} line(s)). Escape output with htmlspecialchars().",
+                    "line_number": unsanitized_output[0],
+                    "line_range": sample_unsan,
+                    "code_context": format_code_snippet(code, sample_unsan),
+                    "example": "echo htmlspecialchars($_POST['name'], ENT_QUOTES, 'UTF-8');",
+                    "priority": "high",
+                }
+            )
+
+        # Detect missing namespace/use in PHP files that likely need autoloading
+        has_namespace = bool(re.search(r"\bnamespace\s+[\w\\]+;", code))
+        has_use = bool(re.search(r"\buse\s+[\w\\]+;", code))
+        has_class = bool(re.search(r"\bclass\s+\w+", code))
+        if has_class and not (has_namespace or has_use):
+            suggestions.append(
+                {
+                    "category": "Architecture",
+                    "description": "PHP file defines a class but lacks `namespace` or `use` statements. Adopt PSR-4 autoloading for maintainability.",
+                    "line_number": None,
+                    "line_range": None,
+                    "code_context": None,
+                    "example": "namespace App\\Models;\nuse Illuminate\\Database\\Eloquent\\Model;",
+                    "priority": "medium",
+                }
+            )
+
+    # ─────────────────────────────────────────────────────────────
+    # Rust-specific suggestions
+    # ─────────────────────────────────────────────────────────────
+    if language == "Rust":
+        # Detect .unwrap() in library/production code paths
+        unwrap_lines = find_lines_matching_pattern(code, r"\.\s*unwrap\s*\(")
+        if unwrap_lines:
+            sample_unwrap = unwrap_lines[:3]
+            suggestions.append(
+                {
+                    "category": "Error Handling",
+                    "description": f"`.unwrap()` detected ({len(unwrap_lines)} occurrence(s)). In production code, propagate errors with `?` or handle them explicitly.",
+                    "line_number": unwrap_lines[0],
+                    "line_range": sample_unwrap,
+                    "code_context": format_code_snippet(code, sample_unwrap),
+                    "example": "let value = some_result?;\n// or\nlet value = match some_result {\n    Ok(v) => v,\n    Err(e) => return Err(e),\n};",
+                    "priority": "high",
+                }
+            )
+
+        # Detect functions returning Result without ? operator usage
+        fn_returning_result = find_lines_matching_pattern(
+            code, r"fn\s+\w+[^{]*\)\s*->\s*Result\b"
+        )
+        if fn_returning_result:
+            suggestions.append(
+                {
+                    "category": "Error Handling",
+                    "description": "Function(s) returning `Result` detected. Consider using the `?` operator for concise error propagation.",
+                    "line_number": fn_returning_result[0],
+                    "line_range": fn_returning_result[:3],
+                    "code_context": format_code_snippet(code, fn_returning_result[:2]),
+                    "example": "fn read_file(path: &str) -> Result<String, io::Error> {\n    std::fs::read_to_string(path)?\n}",
+                    "priority": "medium",
+                }
+            )
+
+        # Detect unsafe blocks
+        unsafe_lines = find_lines_matching_pattern(code, r"\bunsafe\s*\{")
+        if unsafe_lines:
+            sample_unsafe = unsafe_lines[:3]
+            suggestions.append(
+                {
+                    "category": "Safety",
+                    "description": f"`unsafe` block detected ({len(unsafe_lines)} occurrence(s)). Ensure all invariants are documented and the block is as small as possible.",
+                    "line_number": unsafe_lines[0],
+                    "line_range": sample_unsafe,
+                    "code_context": format_code_snippet(code, sample_unsafe),
+                    "example": "// Document WHY this block is unsafe and what invariants it maintains",
+                    "priority": "medium",
+                }
+            )
+
+    # ─────────────────────────────────────────────────────────────
+    # Kotlin-specific suggestions
+    # ─────────────────────────────────────────────────────────────
+    if language == "Kotlin":
+        # Detect !! non-null assertions
+        not_null_assert_lines = find_lines_matching_pattern(code, r"\b\w+\s*!!\s*\(?")
+        if not_null_assert_lines:
+            sample_not_null = not_null_assert_lines[:3]
+            suggestions.append(
+                {
+                    "category": "Type Safety",
+                    "description": f"`!!` non-null assertion detected ({len(not_null_assert_lines)} occurrence(s)). Use safe calls (`?.`) or Elvis operator (`?:`) instead.",
+                    "line_number": not_null_assert_lines[0],
+                    "line_range": sample_not_null,
+                    "code_context": format_code_snippet(code, sample_not_null),
+                    "example": "val len = name?.length ?: 0",
+                    "priority": "high",
+                }
+            )
+
+        # Detect nested if-else chains that could be when expressions
+        nested_if_pattern = r"if\s*\([^)]+\)\s*\{[^}]*\n[^}]*if\s*\([^)]+\)\s*\{"
+        nested_ifs = find_lines_matching_pattern(code, nested_if_pattern)
+        if nested_ifs:
+            suggestions.append(
+                {
+                    "category": "Readability",
+                    "description": "Nested if-else chain detected. Consider refactoring to a `when` expression for cleaner control flow.",
+                    "line_number": nested_ifs[0],
+                    "line_range": nested_ifs[:3],
+                    "code_context": format_code_snippet(code, nested_ifs[:2]),
+                    "example": 'when (x) {\n    1 -> "one"\n    2 -> "two"\n    else -> "other"\n}',
+                    "priority": "medium",
+                }
+            )
+
+        # Detect mutable collections used where immutable would suffice
+        mutable_collection_lines = find_lines_matching_pattern(
+            code, r"\bmutableListOf\b|\bmutableMapOf\b|\bmutableSetOf\b"
+        )
+        if mutable_collection_lines:
+            sample_mut = mutable_collection_lines[:3]
+            suggestions.append(
+                {
+                    "category": "Immutability",
+                    "description": f"Mutable collection constructors detected ({len(mutable_collection_lines)} occurrence(s)). Prefer immutable collections for safer, more predictable code.",
+                    "line_number": mutable_collection_lines[0],
+                    "line_range": sample_mut,
+                    "code_context": format_code_snippet(code, sample_mut),
+                    "example": "listOf(1, 2, 3)  // immutable\nmutableListOf(1, 2, 3)  // mutable — only use if modification is needed",
+                    "priority": "low",
                 }
             )
 
