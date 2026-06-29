@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 from app import database
 from app.database import Base
 from app.main import app
 from app.models import SharedSnippet
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 
 def _configure_test_db(monkeypatch, tmp_path):
@@ -93,3 +92,63 @@ def test_expired_share_returns_404(monkeypatch, tmp_path):
 
     assert resp.status_code == 404
     assert "expired" in resp.json()["detail"].lower()
+
+
+def test_delete_share_unauthorized(monkeypatch, tmp_path):
+    _configure_test_db(monkeypatch, tmp_path)
+    from app.main import app
+    from fastapi.testclient import TestClient
+
+    client = TestClient(app)
+
+    # 1. Create a dummy share to try and delete
+    payload = {
+        "code": "print('hello')",
+        "result": {"provider": "rule-based", "explanation": {"summary": "ok"}},
+    }
+    create_resp = client.post("/share/", json=payload)
+    share_id = create_resp.json()["id"]
+
+    # 2. Attempt to delete WITHOUT being logged in (no bouncer pass!)
+    delete_resp = client.delete(f"/share/{share_id}")
+
+    # 3. Prove that the bouncer kicked them out (401 Unauthorized or 403 Forbidden)
+    assert delete_resp.status_code in [401, 403]
+
+
+def test_delete_share_authorized(monkeypatch, tmp_path):
+    _configure_test_db(monkeypatch, tmp_path)
+    from app.main import app
+    from fastapi.testclient import TestClient
+
+    client = TestClient(app)
+
+    # 1. Create a dummy share
+    payload = {
+        "code": "print('hello')",
+        "result": {"provider": "rule-based", "explanation": {"summary": "ok"}},
+    }
+    create_resp = client.post("/share/", json=payload)
+    share_id = create_resp.json()["id"]
+
+    # 2. Bribe the bouncer! (Mock a logged-in user)
+    from app.models import User
+    from app.security import get_current_user
+
+    def mock_user():
+        return User(id=999, email="leader@neural-knights.com")
+
+    app.dependency_overrides[get_current_user] = mock_user
+
+    # 3. Delete the share as an authorized user!
+    delete_resp = client.delete(f"/share/{share_id}")
+
+    # 4. Prove it was successfully deleted (204 No Content)
+    assert delete_resp.status_code == 204
+
+    # 5. Try to fetch it again to prove the castle is truly gone!
+    fetch_resp = client.get(f"/share/{share_id}")
+    assert fetch_resp.status_code == 404
+
+    # 6. Clean up our bribe so we don't mess up other tests
+    app.dependency_overrides.clear()
