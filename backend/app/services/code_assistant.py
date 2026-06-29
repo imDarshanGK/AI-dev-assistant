@@ -4,15 +4,17 @@ Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Ru
 """
 
 from __future__ import annotations
+
 import ast
 import re
 import time
-from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
 
-# --- TRACING SETUP ---
 from opentelemetry import trace
 
+from .ast_analyzer import analyze as ast_analyze
+
+# --- TRACING SETUP ---
 tracer = trace.get_tracer(__name__)
 
 # ── Language Detection ─────────────────────────────────────────────────────────
