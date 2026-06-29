@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -12,6 +12,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(256))
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
     )
@@ -79,17 +80,43 @@ class SharedSnippet(Base):
         DateTime, default=lambda: datetime.now(UTC)
     )
 
+
 class AnalysisSchedule(Base):
     __tablename__ = "analysis_schedules"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     cron_expression: Mapped[str] = mapped_column(String(100))
-    analysis_type: Mapped[str] = mapped_column(String(50)) # e.g., "code_quality", "security"
+    analysis_type: Mapped[str] = mapped_column(String(50))
     target_repo: Mapped[str] = mapped_column(String(200))
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
     )
 
-    user = relationship("User")  # type: ignore
+    user = relationship("User")
+
+
+class AuditLog(Base):
+    """Append-only record of a privileged (admin) action.
+
+    Rows are written once and never updated or deleted by application code, so
+    the table acts as an immutable audit trail. ``actor_email`` is denormalised
+    so the record stays meaningful even if the acting user is later removed.
+    """
+
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    actor_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), index=True, nullable=True
+    )
+    actor_email: Mapped[str] = mapped_column(String(320))
+    action: Mapped[str] = mapped_column(String(100), index=True)
+    target_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    target_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    details: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ip_address: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(UTC), index=True
+    )

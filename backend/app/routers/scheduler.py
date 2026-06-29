@@ -1,19 +1,26 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from ..database import get_db
 from ..models import AnalysisSchedule
-from ..services.scheduler import add_analysis_schedule, remove_analysis_schedule
 from ..schemas import AnalysisScheduleCreate, AnalysisScheduleResponse
 from ..security import get_current_user
+from ..services.scheduler import add_analysis_schedule, remove_analysis_schedule
 
 router = APIRouter(prefix="/api/schedules", tags=["schedules"])
 
 
 @router.get("/", response_model=List[AnalysisScheduleResponse])
-def get_schedules(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    return db.query(AnalysisSchedule).filter(AnalysisSchedule.user_id == current_user.id).all()
+def get_schedules(
+    db: Session = Depends(get_db), current_user=Depends(get_current_user)
+):
+    return (
+        db.query(AnalysisSchedule)
+        .filter(AnalysisSchedule.user_id == current_user.id)
+        .all()
+    )
 
 
 @router.post("/", response_model=AnalysisScheduleResponse)
@@ -42,7 +49,9 @@ def create_schedule(
 
 @router.delete("/{schedule_id}")
 def delete_schedule(
-    schedule_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)
+    schedule_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     schedule = (
         db.query(AnalysisSchedule)
