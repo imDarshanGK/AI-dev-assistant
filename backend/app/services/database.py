@@ -121,7 +121,6 @@ async def search_entries(q: str, limit: int = 20) -> list[dict]:
         return []
 
     fts_query = " ".join(words)
-
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute(

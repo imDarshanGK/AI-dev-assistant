@@ -155,6 +155,11 @@ def test_search_history_syntax_injection():
     assert isinstance(r.json(), list)
 
 
+def test_search_history_max_length():
+    r = client.get("/history/search?q=" + ("x" * 201))
+    assert r.status_code == 422
+
+
 def test_history_detail():
     save_r = client.post(
         "/history/",
