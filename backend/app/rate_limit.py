@@ -1,5 +1,6 @@
 import time
-from fastapi import Request, HTTPException, status
+
+from fastapi import HTTPException, Request, status
 
 
 class IPAddressRateLimiter:
