@@ -709,6 +709,20 @@ class FavoriteRecord(BaseModel):
     )
 
 
+class PaginatedHistoryResponse(BaseModel):
+    items: list[HistoryRecord]
+    total: int
+    skip: int
+    limit: int
+
+
+class PaginatedFavoritesResponse(BaseModel):
+    items: list[FavoriteRecord]
+    total: int
+    skip: int
+    limit: int
+
+
 # ── Share ─────────────────────────────────────────────────────────────────────
 
 
