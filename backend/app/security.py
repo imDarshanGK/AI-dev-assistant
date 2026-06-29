@@ -95,3 +95,17 @@ def get_current_user(
         )
 
     return user
+
+
+def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Allow the request only if the authenticated user is an admin.
+
+    Returns the user on success; raises ``403`` otherwise. Layered on top of
+    ``get_current_user`` so unauthenticated callers still receive ``401``.
+    """
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrator privileges required",
+        )
+    return current_user
