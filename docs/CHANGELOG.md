@@ -8,6 +8,10 @@ All notable changes to QyverixAI are documented in this file.
 - Added a dedicated changelog page in `docs/CHANGELOG.md`.
 - Added changelog guidance for contributors and PR authors.
 - Added `POST /auth/logout` to revoke the caller's access token.
+- Added an append-only audit log for privileged admin actions, with a
+  queryable `GET /admin/audit-logs` endpoint and admin-gated user role
+  management (`PUT /admin/users/{id}/role`) and deletion
+  (`DELETE /admin/users/{id}`).
 - Add static analysis and code suggestions for PHP, Rust, and Kotlin languages, including security, type safety, error handling, readability, and performance patterns (fixes #702).
 
 ### Changed
@@ -17,6 +21,8 @@ All notable changes to QyverixAI are documented in this file.
 - Hardened authentication against token replay: access tokens now carry a
   unique `jti`, and revoked tokens (e.g. after logout) are rejected via a
   server-side denylist until they expire.
+- Audit-log entries redact sensitive fields (passwords, tokens, secrets, API
+  keys) before they are persisted.
 
 ## [3.0.0] - 2026-06-06
 
