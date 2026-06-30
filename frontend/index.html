@@ -1263,6 +1263,58 @@ details.issue-card[open] {
       border: 1px solid var(--red);
     }
 
+    /* ── Issue Complexity Badge Banner ── */
+    .issue-complexity-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      margin: 0 0 14px 0;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 12px;
+      color: var(--text-2, #94a3b8);
+    }
+    .issue-complexity-banner .icb-label {
+      font-weight: 600;
+      color: var(--text-1, #f1f5f9);
+      white-space: nowrap;
+    }
+    .issue-complexity-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 3px 10px;
+      border: 1px solid;
+      white-space: nowrap;
+      cursor: default;
+      position: relative;
+    }
+    .issue-complexity-badge .icb-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .icb-easy  { color: #86efac; border-color: rgba(34,197,94,0.4);  background: rgba(34,197,94,0.12); }
+    .icb-easy  .icb-dot { background: #4ade80; }
+    .icb-medium { color: #fcd34d; border-color: rgba(234,179,8,0.4);  background: rgba(234,179,8,0.12); }
+    .icb-medium .icb-dot { background: #facc15; }
+    .icb-hard  { color: #f87171; border-color: rgba(239,68,68,0.4);  background: rgba(239,68,68,0.12); }
+    .icb-hard  .icb-dot { background: #ef4444; }
+    .icb-tooltip {
+      font-size: 11px;
+      color: var(--text-3, #64748b);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .risk-Simple {
       background: rgba(34, 197, 94, 0.12);
       color: var(--green);
@@ -2698,6 +2750,12 @@ details.issue-card[open] {
         </div>
 
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
+          <!-- Issue Complexity Banner -->
+          <div id="issueComplexityBanner" style="display:none" class="issue-complexity-banner">
+            <span class="icb-label">Issue Complexity:</span>
+            <span id="icbBadge" class="issue-complexity-badge"></span>
+            <span id="icbTooltip" class="icb-tooltip"></span>
+          </div>
           <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
             <span data-i18n="tab_explain">Explain</span>
@@ -3907,11 +3965,81 @@ details.issue-card[open] {
       /* ═══════════════════════════════════════════════════════════════
          RENDER RESULTS
       ═══════════════════════════════════════════════════════════════ */
+      // ── Issue Complexity Badge ────────────────────────────────────────────
+      function computeIssueComplexity(result) {
+        // Prefer pre-computed backend value
+        if (result.issue_complexity) return result.issue_complexity;
+
+        let score = 0;
+        const reasons = [];
+        const exp = result.explanation || {};
+        const dbg = result.debugging || {};
+        const sg  = result.suggestions || {};
+
+        // Explanation signals
+        const lvl = (exp.complexity || '').toLowerCase();
+        if (lvl === 'intermediate') { score += 35; reasons.push('intermediate-level code'); }
+        else if (lvl === 'advanced') { score += 55; reasons.push('advanced-level code'); }
+        else if (lvl === 'expert')   { score += 70; reasons.push('expert-level code'); }
+
+        const cc = exp.cyclomatic_complexity || 0;
+        if (cc > 20)      { score += 45; reasons.push(`very high cyclomatic complexity (${cc})`); }
+        else if (cc > 10) { score += 30; reasons.push(`high cyclomatic complexity (${cc})`); }
+        else if (cc > 5)  { score += 15; reasons.push(`cyclomatic complexity ${cc}`); }
+
+        const lines = exp.line_count || 0;
+        if (lines > 200)     { score += 20; reasons.push(`${lines} lines`); }
+        else if (lines > 80) { score += 10; reasons.push(`${lines} lines`); }
+
+        const structs = (exp.function_count || 0) + (exp.class_count || 0);
+        if (structs > 10) score += 15;
+        else if (structs > 4) score += 7;
+
+        // Debugging signals
+        const issues  = dbg.issues || [];
+        const errors  = issues.filter(i => i.severity === 'error').length;
+        const warnings = issues.filter(i => i.severity === 'warning').length;
+        score += errors * 12 + warnings * 5;
+        if (errors)   reasons.push(`${errors} error(s)`);
+        if (warnings) reasons.push(`${warnings} warning(s)`);
+
+        // Suggestions signals
+        const qs = sg.overall_score;
+        if (qs !== undefined) {
+          if (qs < 45)      { score += 25; reasons.push(`quality score ${qs}/100`); }
+          else if (qs < 70) { score += 10; }
+        }
+
+        let level, label;
+        if (score < 30)      { level = 'easy';   label = '🟢 Easy'; }
+        else if (score < 65) { level = 'medium';  label = '🟡 Medium'; }
+        else                 { level = 'hard';   label = '🔴 Hard'; }
+
+        const tooltip = reasons.length
+          ? 'Based on: ' + reasons.slice(0, 3).join(', ')
+          : 'Complexity estimated from code structure';
+
+        return { level, label, score, tooltip };
+      }
+
+      function renderComplexityBanner(result) {
+        const { level, label, tooltip } = computeIssueComplexity(result);
+        const banner = document.getElementById('issueComplexityBanner');
+        const badge  = document.getElementById('icbBadge');
+        const tip    = document.getElementById('icbTooltip');
+
+        badge.className = `issue-complexity-badge icb-${level}`;
+        badge.innerHTML = `<span class="icb-dot"></span>${label}`;
+        tip.textContent = tooltip;
+        banner.style.display = 'flex';
+      }
+
       function renderResults(result, code) {
         if (result.files) {
           renderZipResults(result);
           return;
         }
+        renderComplexityBanner(result);
         if (result.explanation) renderExplain(result.explanation);
         if (result.debugging) renderDebug(result.debugging);
         if (result.suggestions) renderSuggest(result.suggestions);
@@ -5877,3 +6005,4 @@ int main() {
 </body>
 
 </html>
+
