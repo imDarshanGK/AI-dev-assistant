@@ -333,7 +333,7 @@ class ZipAnalyzeResponse(BaseModel):
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
-cclass SignupRequest(BaseModel):
+class SignupRequest(BaseModel):
     """Request body for creating a new user account."""
 
     email: EmailStr = Field(
