@@ -3,8 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
-
+from pydantic import BaseModel, Field, field_validator, model_validator, EmailStr
 from .config import settings
 from .schema_validators import (
     validate_chat_history,
@@ -334,10 +333,10 @@ class ZipAnalyzeResponse(BaseModel):
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
-class SignupRequest(BaseModel):
+cclass SignupRequest(BaseModel):
     """Request body for creating a new user account."""
 
-    email: str = Field(
+    email: EmailStr = Field(
         ...,
         min_length=5,
         max_length=320,
@@ -351,14 +350,6 @@ class SignupRequest(BaseModel):
         description="Password for the new account. Minimum 8 characters.",
         example="supersecret123",
     )
-
-    @field_validator("email")
-    @classmethod
-    def email_must_be_valid(cls, v: str) -> str:
-        v = v.strip().lower()
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Invalid email address")
-        return v
 
     @field_validator("password")
     @classmethod
