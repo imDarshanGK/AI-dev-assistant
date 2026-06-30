@@ -11,7 +11,9 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
   <script>
+    
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
@@ -4037,99 +4039,99 @@ details.issue-card[open] {
       }
 
       function renderExplain(exp) {
-        document.getElementById('emptyExplain').style.display = 'none';
-        const el = document.getElementById('explainResult');
-        el.style.display = 'block';
-        document.getElementById('explainBadge').textContent = exp.complexity;
+  document.getElementById('emptyExplain').style.display = 'none';
+  const el = document.getElementById('explainResult');
+  el.style.display = 'block';
+  document.getElementById('explainBadge').textContent = escHtml(exp.complexity);
 
-        el.innerHTML = `
-    <div class="explain-summary" tabindex="0">${exp.summary}</div>
+  el.innerHTML = sanitizeHtml(`
+    <div class="explain-summary" tabindex="0">${escHtml(exp.summary)}</div>
     <div class="explain-meta">
-      <div class="meta-chip complexity-${exp.complexity}">
-        <div class="dot"></div>${exp.complexity}
+      <div class="meta-chip complexity-${escHtml(exp.complexity)}">
+        <div class="dot"></div>${escHtml(exp.complexity)}
       </div>
       <div class="meta-chip">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
-        ${exp.language}
+        ${escHtml(exp.language)}
       </div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', exp.line_count)}</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', exp.function_count)}</div>
-      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', exp.class_count) + '</div>' : ''}
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
-      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
-      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${escHtml(getTranslation('meta_lines').replace('{count}', exp.line_count))}</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${escHtml(getTranslation('meta_functions').replace('{count}', exp.function_count))}</div>
+      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + escHtml(getTranslation('meta_classes').replace('{count}', exp.class_count)) + '</div>' : ''}
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${escHtml(String(exp.line_count))} lines</div>
+      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${escHtml(String(exp.function_count))} fn${exp.function_count !== 1 ? 's' : ''}</div>
+      ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + escHtml(String(exp.class_count)) + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
+      ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${escHtml((exp.complexity_risk || 'Simple').replace(/\s+/g, '-'))}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${escHtml(String(exp.cyclomatic_complexity))} &middot; ${escHtml(exp.complexity_risk)}</div>` : ''}
     </div>
     <ul class="key-points">
-      ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
+      ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(escHtml(p))}</li>`).join('')}
     </ul>
-  `;
-      }
+  `);
+}
 
-      function renderDebug(dbg) {
-        document.getElementById('emptyDebug').style.display = 'none';
-        const el = document.getElementById('debugResult');
-        el.style.display = 'block';
+function renderDebug(dbg) {
+  document.getElementById('emptyDebug').style.display = 'none';
+  const el = document.getElementById('debugResult');
+  el.style.display = 'block';
 
-        const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
-        document.getElementById('debugBadge').textContent = badge || '0';
+  const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
+  document.getElementById('debugBadge').textContent = badge || '0';
 
-        if (dbg.clean) {
-          el.innerHTML = `
+  if (dbg.clean) {
+    el.innerHTML = sanitizeHtml(`
       <div class="clean-state">
         <div class="clean-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
-        <p class="clean-title">${getTranslation('debug_clean_title')}</p>
-        <p>${getTranslation('debug_clean_desc')}</p>
-      </div>`;
-          return;
-        }
+        <p class="clean-title">${escHtml(getTranslation('debug_clean_title'))}</p>
+        <p>${escHtml(getTranslation('debug_clean_desc'))}</p>
+      </div>`);
+    return;
+  }
 
-        const statBar = `
+  const statBar = `
     <div class="stat-bar">
       <div class="stat-chip error-chip">
-        <div class="stat-chip-num">${dbg.error_count}</div>
-        <div class="stat-chip-label">${getTranslation('debug_errors')}</div>
+        <div class="stat-chip-num">${escHtml(String(dbg.error_count))}</div>
+        <div class="stat-chip-label">${escHtml(getTranslation('debug_errors'))}</div>
       </div>
       <div class="stat-chip warn-chip">
-        <div class="stat-chip-num">${dbg.warning_count}</div>
-        <div class="stat-chip-label">${getTranslation('debug_warnings')}</div>
+        <div class="stat-chip-num">${escHtml(String(dbg.warning_count))}</div>
+        <div class="stat-chip-label">${escHtml(getTranslation('debug_warnings'))}</div>
       </div>
       <div class="stat-chip info-chip">
-        <div class="stat-chip-num">${dbg.info_count}</div>
-        <div class="stat-chip-label">${getTranslation('debug_info')}</div>
+        <div class="stat-chip-num">${escHtml(String(dbg.info_count))}</div>
+        <div class="stat-chip-label">${escHtml(getTranslation('debug_info'))}</div>
       </div>
     </div>`;
 
-        const cards = dbg.issues.map((issue, i) => `
-  <details class="issue-card ${issue.severity}"
-           style="animation-delay:${i * 0.05}s">
+  const cards = dbg.issues.map((issue, i) => `
+    <details class="issue-card ${escHtml(issue.severity)}"
+             style="animation-delay:${i * 0.05}s">
 
-    <summary class="collapsible-summary">
-      <span>${issue.type}</span>
-      ${issue.line
-        ? `<span class="issue-line">Line ${issue.line}</span>`
-        : ''}
-    </summary>
+      <summary class="collapsible-summary">
+        <span>${escHtml(issue.type)}</span>
+        ${issue.line
+          ? `<span class="issue-line">Line ${escHtml(String(issue.line))}</span>`
+          : ''}
+      </summary>
 
-    <div class="issue-content">
-      <div class="issue-header">
-        <span class="issue-badge">${issue.severity}</span>
+      <div class="issue-content">
+        <div class="issue-header">
+          <span class="issue-badge">${escHtml(issue.severity)}</span>
+        </div>
+
+        <div class="issue-desc">${escHtml(issue.description)}</div>
+
+        ${issue.code_snippet
+          ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>`
+          : ''}
+
+        <div class="issue-fix">${escHtml(issue.suggestion)}</div>
       </div>
 
-      <div class="issue-desc">${issue.description}</div>
+    </details>
+  `).join('');
 
-      ${issue.code_snippet
-        ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>`
-        : ''}
-
-      <div class="issue-fix">${issue.suggestion}</div>
-    </div>
-
-  </details>
-`).join('');
-
-        el.innerHTML = statBar + cards;
-      }
+  el.innerHTML = sanitizeHtml(statBar + cards);
+}
 
       /* ═══════════════════════════════════════════════════════════════
          PURE-JS LINE DIFF (LCS-based)
@@ -5096,6 +5098,25 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
       function escHtml(s) {
         return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
+      // Issue #579 — XSS sanitization defense-in-depth layer
+const DOMPURIFY_CONFIG = {
+  USE_PROFILES: { html: true },
+  ALLOWED_TAGS: ['div','p','br','span','h4','h5','strong','em','b','i',
+                 'code','pre','ul','ol','li','a'],
+  ALLOWED_ATTR: ['class', 'style', 'href'],
+  ALLOW_DATA_ATTR: false,
+  FORBID_TAGS: ['script','iframe','object','embed','form','input',
+                'svg','math'],
+  FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus',
+                'onblur','onkeydown','onkeyup','onchange','onsubmit'],
+};
+function sanitizeHtml(html) {
+  if (typeof DOMPurify !== 'undefined') {
+    return DOMPurify.sanitize(html, DOMPURIFY_CONFIG);
+  }
+  return String(html)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
       function renderMarkdown(s) {
         return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
           .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');

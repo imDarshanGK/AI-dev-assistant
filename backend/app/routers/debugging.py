@@ -1,5 +1,7 @@
 """Debugging router — POST /debugging/"""
 
+import html
+
 from fastapi import APIRouter
 
 from ..schemas import CodeRequest, DebuggingResponse
@@ -51,5 +53,5 @@ async def debug(req: CodeRequest):
         "error_count": errors,
         "warning_count": warnings,
         "info_count": infos,
-        "code": req.code,
+        "code": html.escape(req.code),  # Issue #579
     }

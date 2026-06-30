@@ -14,6 +14,58 @@ const SEC = window.QyverixSecurity || {
 };
 const { escHtml, sanitizeClientCode } = SEC;
 
+/**
+ * Issue #579 — XSS Sanitization
+ *
+ * DOMPURIFY_CONFIG / sanitizeHtml()
+ *
+ * All HTML built by renderResult() is assembled from server-controlled
+ * strings that have been run through escHtml() individually.  As an
+ * additional defense-in-depth layer, the entire assembled HTML string is
+ * passed through DOMPurify before it is written to outputBox.innerHTML.
+ *
+ * This guards against:
+ *  - Future code paths that forget to call escHtml()
+ *  - Prototype-pollution attacks that mutate String.prototype
+ *  - LLM-mode responses that embed HTML in text fields
+ */
+const DOMPURIFY_CONFIG = {
+  USE_PROFILES: { html: true },
+  ALLOWED_TAGS: [
+    'div', 'p', 'br', 'span',
+    'h4', 'h5',
+    'strong', 'em', 'b', 'i',
+    'code', 'pre',
+    'ul', 'ol', 'li',
+    'a',
+  ],
+  ALLOWED_ATTR: ['class', 'style', 'href'],
+  ALLOW_DATA_ATTR: false,
+  FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input',
+                'svg', 'math', 'details', 'summary'],
+  FORBID_ATTR: [
+    'onerror', 'onload', 'onclick', 'onmouseover', 'onfocus',
+    'onblur', 'onkeydown', 'onkeyup', 'onchange', 'onsubmit',
+    'ontoggle', 'onpointerover', 'onpointerdown',
+  ],
+};
+
+/**
+ * sanitizeHtml(html)
+ * Sanitise an assembled HTML string before writing to innerHTML.
+ * Falls back to plain-text escaping if DOMPurify is unavailable.
+ */
+function sanitizeHtml(html) {
+  if (typeof DOMPurify !== 'undefined') {
+    return DOMPurify.sanitize(html, DOMPURIFY_CONFIG);
+  }
+  // CDN unavailable: escape everything so nothing executes.
+  return String(html)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 const ALLOWED_MODES = new Set(['analyze', 'explanation', 'debugging', 'suggestions']);
 function safeModeLabel(mode) {
   const key = String(mode || '').toLowerCase();
@@ -427,6 +479,9 @@ async function runAnalysis() {
 }
 
 // ── Render Output ──
+// Issue #579: All HTML assembled here uses escHtml() on every API field.
+// The completed html string is then passed through sanitizeHtml() (DOMPurify)
+// as a final defense-in-depth layer before being written to innerHTML.
 function renderResult(data, mode) {
   let html = '';
   let text = '';
@@ -525,7 +580,13 @@ function renderResult(data, mode) {
   }
 
   lastResult = text;
-  outputBox.innerHTML = html || '<p style="color:var(--text-3)">No structured output returned.</p>';
+
+  // Issue #579: Final DOMPurify sanitization pass before innerHTML assignment.
+  // Even though every field above uses escHtml(), this catch-all ensures that
+  // any future code path that forgets escHtml() cannot cause XSS.
+  outputBox.innerHTML = sanitizeHtml(
+    html || '<p style="color:var(--text-3)">No structured output returned.</p>'
+  );
 }
 
 function showLoading() {
@@ -545,13 +606,14 @@ function resetOutput() {
 }
 
 function showError(msg) {
-  outputBox.innerHTML = `<div class="result-section">
+  // msg comes from getUserFriendlyError() — escape before innerHTML
+  outputBox.innerHTML = sanitizeHtml(`<div class="result-section">
     <h4>Error</h4>
     <div class="result-text">
-      <span class="result-tag tag-error">✕ ${msg}</span>
-      <p style="margin-top:12px;color:var(--text-2)">Check that the backend is running at: <code>${getApiUrl()}</code></p>
+      <span class="result-tag tag-error">✕ ${escHtml(msg)}</span>
+      <p style="margin-top:12px;color:var(--text-2)">Check that the backend is running at: <code>${escHtml(getApiUrl())}</code></p>
     </div>
-  </div>`;
+  </div>`);
 }
 
 // ── History ──
@@ -606,6 +668,7 @@ function showToast(msg) {
     border-radius:8px;font-family:var(--font-mono);font-size:13px;
     animation:fadeIn 0.2s ease;pointer-events:none;
   `;
+  // Use textContent (not innerHTML) — never risk XSS in toast messages.
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2200);
