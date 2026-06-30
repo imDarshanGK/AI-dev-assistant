@@ -353,11 +353,14 @@ class SignupRequest(BaseModel):
 
     @field_validator("password")
     @classmethod
-    def password_min_length(cls, v: str) -> str:
+    def password_validation(cls, v: str) -> str:
+        # Check if the password is empty or consists only of whitespace after stripping
+        if not v.strip():
+            raise ValueError("Password cannot be empty or contain only whitespace")
+        # Enforce the minimum character limit on the structural content
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters long")
         return v
-
 
 class LoginRequest(BaseModel):
     """Request body for user login."""
