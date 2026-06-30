@@ -306,6 +306,7 @@ def detect_deep_nesting(tree, code):
 def analyze(source: str) -> list[dict]:
     tree = ast.parse(source)
     issues = []
+    issues += analyze_python_ast(source)
     issues += detect_unreachable_code(tree, source)
     issues += detect_unused_imports(tree, source)
     issues += detect_unused_arguments(tree, source)
