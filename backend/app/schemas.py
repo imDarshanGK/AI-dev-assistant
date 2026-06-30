@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -706,6 +707,101 @@ class FavoriteRecord(BaseModel):
         ...,
         description="ISO 8601 creation timestamp.",
         example="2024-06-01T12:00:00Z",
+    )
+
+
+class UserDataPurgePreviewResponse(BaseModel):
+    """Preview of user-owned data that will be removed by a purge request."""
+
+    user_id: int = Field(
+        ...,
+        description="Authenticated user id.",
+        json_schema_extra={"example": 12},
+    )
+    history_records: int = Field(
+        ...,
+        description="Number of saved history records that will be deleted.",
+        json_schema_extra={"example": 4},
+    )
+    favorite_records: int = Field(
+        ...,
+        description="Number of favorite records that will be deleted.",
+        json_schema_extra={"example": 2},
+    )
+    account_will_be_deleted: bool = Field(
+        ...,
+        description="Whether the user account row will be deleted.",
+        json_schema_extra={"example": True},
+    )
+    confirmation_phrase: str = Field(
+        ...,
+        description="Phrase required to confirm irreversible deletion.",
+        json_schema_extra={"example": "DELETE MY DATA"},
+    )
+    deletion_status: str = Field(
+        ...,
+        description="Current user deletion lifecycle status.",
+        json_schema_extra={"example": "active"},
+    )
+    retention_days: int = Field(
+        ...,
+        description="Number of days before final erase becomes eligible.",
+        json_schema_extra={"example": 30},
+    )
+    deletion_scheduled_for: datetime | None = Field(
+        None,
+        description="Timestamp when final erase becomes eligible, if already scheduled.",
+    )
+
+
+class UserDataPurgeRequest(BaseModel):
+    """Confirmation body for irreversible account and data purge."""
+
+    confirmation: str = Field(
+        ...,
+        min_length=1,
+        max_length=64,
+        description="Must exactly match the confirmation phrase.",
+        json_schema_extra={"example": "DELETE MY DATA"},
+    )
+
+
+class UserDataPurgeResponse(BaseModel):
+    """Result returned after successful user data purge."""
+
+    status: str = Field(
+        ...,
+        description="Purge status.",
+        json_schema_extra={"example": "purged"},
+    )
+    history_deleted: int = Field(
+        ...,
+        description="Deleted history record count.",
+        json_schema_extra={"example": 4},
+    )
+    favorites_deleted: int = Field(
+        ...,
+        description="Deleted favorite record count.",
+        json_schema_extra={"example": 2},
+    )
+    account_deleted: bool = Field(
+        ...,
+        description="Whether the user account was deleted.",
+        json_schema_extra={"example": True},
+    )
+    audit_recorded: bool = Field(
+        ...,
+        description="Whether a non-sensitive audit record was stored.",
+        json_schema_extra={"example": True},
+    )
+    deletion_scheduled_for: datetime | None = Field(
+        None,
+        description="Timestamp when final erase becomes eligible.",
+    )
+    retention_days: int = Field(
+        ...,
+        description="Number of days before final erase becomes eligible.",
+        json_schema_extra={"example": 30},
     )
 
 
