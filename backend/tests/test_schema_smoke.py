@@ -39,7 +39,6 @@ from app import models as _models  # noqa: E402, F401  – registers all ORM mod
 from app.database import Base  # noqa: E402
 from app.models import (  # noqa: E402
     DigestSubscription,
-    FavoriteResult,
     QueryHistory,
     SharedSnippet,
     User,
@@ -252,9 +251,13 @@ def test_history_fts5_search():
     asyncio.run(
         _hist_db_module.save_entry("def unique_smoke_fn(): pass", "python", 80, 0)
     )
-    results = asyncio.run(_hist_db_module.search_entries("unique_smoke_fn"))
-    assert any("unique_smoke_fn" in e["code_preview"] for e in results)
 
+    results, total = asyncio.run(
+        _hist_db_module.search_entries("unique_smoke_fn")
+    )
+
+    assert total > 0
+    assert any("unique_smoke_fn" in e["code_preview"] for e in results)
 
 def test_history_delete():
     """delete_entry() must remove a record and return True."""
