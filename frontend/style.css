@@ -8,7 +8,23 @@
   --bg-4: #27272a;
   --border: #27272a;
   --border-2: #3f3f46;
-  --text: #fafafa;
+  --text: #fafafa;@media (max-width: 480px) {
+  .code-editor {
+    min-height: 280px; /* Better workspace proportion on modern mobile screens */
+    padding: 12px;
+  }
+  .editor-footer {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start; /* Clean left-alignment for modern developer interfaces */
+    text-align: left;
+    padding: 12px 16px;
+  }
+  .btn-run {
+    margin: 8px 12px;
+    width: calc(100% - 24px); /* Scales cleanly across distinct mobile layouts */
+  }
+}
   --text-2: #a1a1aa;
   --text-3: #71717a;
   --accent-blue: #3b82f6;
@@ -602,12 +618,18 @@ body {
 }
 @media (max-width: 480px) {
   .code-editor {
-    min-height: 200px;
+    min-height: 280px; 
+    padding: 12px;
   }
   .editor-footer {
     flex-direction: column;
-    gap: 12px;
-    align-items: center;
-    text-align: center;
+    gap: 8px;
+    align-items: flex-start;
+    text-align: left;
+    padding: 12px 16px;
+  }
+  .btn-run {
+    margin: 8px 12px;
+    width: calc(100% - 24px);
   }
 }
