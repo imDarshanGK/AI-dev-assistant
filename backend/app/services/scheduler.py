@@ -1,6 +1,7 @@
 """APScheduler integration — weekly Sunday digest dispatch."""
 
 from __future__ import annotations
+
 import logging
 from datetime import UTC, datetime
 
@@ -9,11 +10,13 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from ..config import settings
 from ..database import SessionLocal
 from ..models import DigestSubscription
+from ..routers.collaboration import manager as collaboration_manager
 from .email_service import compute_subscriber_stats, send_digest
 
 log = logging.getLogger(__name__)
 scheduler = BackgroundScheduler(daemon=True)
 JOB_ID = "weekly_digest"
+PURGE_ROOMS_JOB_ID = "purge_empty_collab_rooms"
 
 
 def _send_weekly_digests() -> None:
@@ -54,6 +57,18 @@ def _send_weekly_digests() -> None:
         db.close()
 
 
+def _purge_empty_collab_rooms() -> None:
+    """Remove collaboration rooms left with no active sockets."""
+    empty = [
+        sid for sid, room in list(collaboration_manager.rooms.items())
+        if not room.sockets
+    ]
+    for sid in empty:
+        collaboration_manager.rooms.pop(sid, None)
+    if empty:
+        log.info("Purged %d empty collaboration room(s)", len(empty))
+
+
 def start_scheduler() -> None:
     """Start the background scheduler with the weekly digest job."""
     if scheduler.get_job(JOB_ID):
@@ -69,6 +84,16 @@ def start_scheduler() -> None:
         id=JOB_ID,
         replace_existing=True,
     )
+
+    log.info("Starting empty collaboration room purge job (every 30 min)")
+    scheduler.add_job(
+        _purge_empty_collab_rooms,
+        trigger="interval",
+        minutes=30,
+        id=PURGE_ROOMS_JOB_ID,
+        replace_existing=True,
+    )
+
     scheduler.start()
 
 
