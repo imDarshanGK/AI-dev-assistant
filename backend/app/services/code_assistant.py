@@ -9,6 +9,7 @@ import re
 import time
 from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+from .ai_provider import call_llm, is_enabled
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -1130,7 +1131,7 @@ def run_suggestions(code: str, language: str) -> dict:
 
 
 # ── Explanation Engine ─────────────────────────────────────────────────────────
-def run_explanation(code: str, language: str) -> dict:
+async def run_explanation(code: str, language: str) -> dict:
     """Generate a plain-English explanation of the provided source code.
 
     Args:
@@ -1199,10 +1200,40 @@ def run_explanation(code: str, language: str) -> dict:
         "Advanced": f"A well-structured {language} codebase with {len(class_names)} class(es) and {len(funcs)} function(s). Shows advanced design patterns.",
         "Expert": f"A large-scale {language} system ({len(lines)} lines). Expert-level architecture with significant abstraction layers.",
     }
+    
+    summary = summaries.get(complexity, f"A {language} code snippet.")
+    
+    if is_enabled():
+        
+        system_prompt = (
+            "You are a code summarization assistant. "
+            "Generate a concise one-sentence summary of what the code does."
+        )
+
+        user_prompt = f"""
+        Language: {language}
+
+        Code:
+        {code}
+
+        Return only the summary.
+        """
+
+        if is_enabled():
+            ai_summary = await call_llm(system_prompt, user_prompt)
+            print("AI SUMMARY:", ai_summary)        # ← already there
+            print("ENTERED RUN_EXPLANATION")         # ← already there  
+            print("LLM enabled?", is_enabled())      # ← already there
+
+        if ai_summary:
+            summary = ai_summary
+            
+    
+    
 
     return {
         "language": language,
-        "summary": summaries.get(complexity, f"A {language} code snippet."),
+        "summary": summary,
         "key_points": key_points,
         "complexity": complexity,
         "line_count": len(lines),

@@ -22,6 +22,9 @@ LLM_TIMEOUT  = int(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
 LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))
 LLM_RETRY_BACKOFF = float(os.getenv("LLM_RETRY_BACKOFF", "1.0"))
 
+print("LLM_ENABLED =", LLM_ENABLED)
+print("LLM_API_KEY exists =", bool(LLM_API_KEY))
+
 def _get_provider_name(base_url: str) -> str:
     parsed = urlparse(base_url)
     hostname = parsed.hostname or ""
