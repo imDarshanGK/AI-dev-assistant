@@ -1,4 +1,16 @@
-from datetime import UTC, datetime
+import datetime
+import sys
+
+if not hasattr(datetime, "UTC"):
+    datetime.UTC = datetime.timezone.utc
+    sys.modules["datetime"] = datetime
+from datetime import datetime, timezone
+
+# Python 3.10 and below compatibility patch
+try:
+    from datetime import UTC
+except ImportError:
+    UTC = timezone.utc
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
