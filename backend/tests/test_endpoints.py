@@ -734,3 +734,17 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+
+def test_metrics_endpoint():
+    client.get("/metrics")
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    
+    data = response.json()
+    assert "total_requests" in data
+    assert "total_analyses" in data
+    assert "languages_detected" in data
+    assert "uptime_seconds" in data
+    assert data["version"] == "3.0.0"
+    assert isinstance(data["total_requests"], int)
+
