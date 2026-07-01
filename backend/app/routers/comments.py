@@ -26,7 +26,6 @@ async def add_comment(
     finding_id: str,
     comment: CommentCreate,
 ):
-    
     try:
         record = await save_comment(
             share_id=share_id,
@@ -52,7 +51,6 @@ async def add_comment(
 async def fetch_comments(
     share_id: str,
 ):
-   
     try:
         return await get_comments(share_id)
 

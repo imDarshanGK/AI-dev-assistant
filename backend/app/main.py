@@ -14,31 +14,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-import time
-import os
-from collections import defaultdict
-import logging
-from contextlib import asynccontextmanager
 
+from .observability import initialise_app_info, prometheus_metrics_middleware
 from .routers import (
+    admin,
     analyze,
     auth,
     chat,
+    collaboration,
     debugging,
     explanation,
+    health as health_router,
     history,
+    metrics as metrics_router,
     share,
     subscribe,
     suggestions,
     upload_file,
     user_data,
 )
-from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import admin, analyze, auth, chat, collaboration, debugging, explanation
-from .routers import health as health_router
-from .routers import history
-from .routers import metrics as metrics_router
-from .routers import share, subscribe, suggestions, upload_file, user_data
 from .schemas import HealthResponse
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler

@@ -47,7 +47,7 @@ async def init_db() -> None:
         await db.execute(
             "CREATE INDEX IF NOT EXISTS idx_timestamp ON history(timestamp DESC)"
         )
-        
+
         await db.execute("""
             CREATE TABLE IF NOT EXISTS comments (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,13 +59,13 @@ async def init_db() -> None:
                 created_at  TEXT NOT NULL DEFAULT (datetime('now'))
             )
         """)
-        
+
         await db.execute("""
             CREATE INDEX IF NOT EXISTS idx_comments_share_finding
             ON comments(share_id, finding_id)
         """)
         # ───────────────────────────────────────────────────────────────────────
-        
+
         await db.commit()
 
 
@@ -198,7 +198,7 @@ async def save_comment(
             (share_id, finding_id, parent_id, author, text),
         )
         await db.commit()
-        
+
         row_id = cursor.lastrowid
         cursor = await db.execute("SELECT * FROM comments WHERE id = ?", (row_id,))
         row = await cursor.fetchone()

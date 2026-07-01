@@ -1,9 +1,10 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator, model_validator, EmailStr, ConfigDict
+
 import json
+from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .config import settings
 from .schema_validators import (
@@ -883,9 +884,7 @@ class ChatMessageResponse(BaseModel):
     )
 
 class CommentCreate(BaseModel):
-    text: str = Field(
-        ..., 
-        min_length=1, max_length=1000)
+    text: str = Field(..., min_length=1, max_length=1000)
     author: str = Field("Anonymous", max_length=50)
     parent_id: int | None = None
 
