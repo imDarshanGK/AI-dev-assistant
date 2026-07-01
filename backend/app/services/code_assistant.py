@@ -4,11 +4,18 @@ Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Ru
 """
 
 from __future__ import annotations
+
 import ast
 import re
 import time
-from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+
+from opentelemetry import trace
+
+from .ast_analyzer import analyze as ast_analyze
+
+# --- TRACING SETUP ---
+tracer = trace.get_tracer(__name__)
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -238,9 +245,7 @@ def chat_fallback_reply(
         )
 
     if recent_history:
-        response_parts.append(
-            f"Recent chat context: {recent_history}."
-        )
+        response_parts.append(f"Recent chat context: {recent_history}.")
 
     return " ".join(response_parts)
 
@@ -813,8 +818,8 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     Returns:
         A list of detected issues with metadata and suggestions.
     """
-    from .line_utils import format_code_snippet
     from .ast_analyzer import analyze_python_ast
+    from .line_utils import format_code_snippet
 
     lines = code.splitlines()
     found: list[dict] = []
@@ -826,8 +831,12 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
             if key not in seen:
                 seen.add(key)
                 line_idx = issue["line"] - 1
-                issue["code_snippet"] = lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
-                issue["code_context"] = format_code_snippet(code, [issue["line"]], context_lines=2)
+                issue["code_snippet"] = (
+                    lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
+                )
+                issue["code_context"] = format_code_snippet(
+                    code, [issue["line"]], context_lines=2
+                )
                 found.append(issue)
 
     for bp in BUG_PATTERNS:
@@ -887,10 +896,10 @@ def run_suggestions(code: str, language: str) -> dict:
     """
     """Enhanced suggestion engine with line number tracking."""
     from .line_utils import (
-        format_code_snippet,
-        find_lines_matching_pattern,
         find_function_lines,
+        find_lines_matching_pattern,
         find_undocumented_lines,
+        format_code_snippet,
     )
 
     suggestions: list[dict] = []
@@ -1052,15 +1061,17 @@ def run_suggestions(code: str, language: str) -> dict:
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
-            suggestions.append({
-                "category": "Observability",
-                "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
-                "line_number": print_lines[0],
-                "line_range": sample_print,
-                "code_context": format_code_snippet(code, sample_print),
-                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
-                "priority": "medium",
-            })
+            suggestions.append(
+                {
+                    "category": "Observability",
+                    "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
+                    "line_number": print_lines[0],
+                    "line_range": sample_print,
+                    "code_context": format_code_snippet(code, sample_print),
+                    "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
+                    "priority": "medium",
+                }
+            )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 8: Environment Variables (JS/TS)
@@ -1372,40 +1383,48 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
     Returns:
         Combined explanation, debugging, and suggestion analysis results.
     """
+    # 1. We wrap the whole master process in one big tracker! ⏱️
+    with tracer.start_as_current_span("full_analysis_pipeline"):
+        t0 = time.perf_counter()
+        language = detect_language(code, language_hint)
 
-    t0 = time.perf_counter()
-    language = detect_language(code, language_hint)
+        # 2. Track the explanation AI 🧠
+        with tracer.start_as_current_span("run_explanation"):
+            explanation = run_explanation(code, language)
 
-    explanation = run_explanation(code, language)
+        # 3. Track the bug finding AI 🐛
+        with tracer.start_as_current_span("run_bug_detection"):
+            raw_issues = run_bug_detection(code, language)
 
-    raw_issues = run_bug_detection(code, language)
-    errors = [i for i in raw_issues if i["severity"] == "error"]
-    warnings = [i for i in raw_issues if i["severity"] == "warning"]
-    infos = [i for i in raw_issues if i["severity"] == "info"]
-    issue_summary = (
-        f"Found {len(raw_issues)} issue(s): {len(errors)} error(s), {len(warnings)} warning(s), {len(infos)} info."
-        if raw_issues
-        else "✅ No issues detected!"
-    )
-    debugging = {
-        "issues": raw_issues,
-        "summary": issue_summary,
-        "clean": len(raw_issues) == 0,
-        "error_count": len(errors),
-        "warning_count": len(warnings),
-        "info_count": len(infos),
-        "code": code,
-    }
+        errors = [i for i in raw_issues if i["severity"] == "error"]
+        warnings = [i for i in raw_issues if i["severity"] == "warning"]
+        infos = [i for i in raw_issues if i["severity"] == "info"]
+        issue_summary = (
+            f"Found {len(raw_issues)} issue(s): {len(errors)} error(s), {len(warnings)} warning(s), {len(infos)} info."
+            if raw_issues
+            else "✅ No issues detected!"
+        )
+        debugging = {
+            "issues": raw_issues,
+            "summary": issue_summary,
+            "clean": len(raw_issues) == 0,
+            "error_count": len(errors),
+            "warning_count": len(warnings),
+            "info_count": len(infos),
+            "code": code,
+        }
 
-    sugg = run_suggestions(code, language)
+        # 4. Track the suggestions AI ✨
+        with tracer.start_as_current_span("run_suggestions"):
+            sugg = run_suggestions(code, language)
 
-    elapsed_ms = (time.perf_counter() - t0) * 1000
+        elapsed_ms = (time.perf_counter() - t0) * 1000
 
-    return {
-        "provider": "rule-based",
-        "model": "qyverix-engine-v3",
-        "explanation": explanation,
-        "debugging": debugging,
-        "suggestions": sugg,
-        "analysis_time_ms": round(elapsed_ms, 2),
-    }
+        return {
+            "provider": "rule-based",
+            "model": "qyverix-engine-v3",
+            "explanation": explanation,
+            "debugging": debugging,
+            "suggestions": sugg,
+            "analysis_time_ms": round(elapsed_ms, 2),
+        }
