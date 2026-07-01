@@ -710,6 +710,22 @@ class FavoriteRecord(BaseModel):
 
 
 # ── Share ─────────────────────────────────────────────────────────────────────
+class LivenessResponse(BaseModel):
+    """Minimal liveness response — emitted only when the process can answer."""
+
+    status: str  # always "ok" when this response is returned
+
+
+class ReadinessResponse(BaseModel):
+    """Readiness response with a per-dependency breakdown.
+
+    ``status`` is ``"ok"`` only when every entry in ``checks`` has ``ok=True``.
+    Each ``checks`` entry contains at minimum ``ok`` (bool) and ``elapsed_ms``
+    (float), plus an optional ``error`` field when the check failed.
+    """
+
+    status: str
+    checks: dict[str, dict[str, Any]]
 
 
 class ShareCreateRequest(BaseModel):
@@ -895,19 +911,36 @@ class ChatMessageRequest(BaseModel):
 
 
 class ChatMessageResponse(BaseModel):
-    """Extended chat response with provider and mode metadata."""
+    provider: str
+    model: str
+    mode: str
+    reply: str
 
-    provider: str = Field(
-        ..., description="LLM provider used, or `rule-based`.", example="openai"
-    )
-    model: str = Field(
-        ...,
-        description="Model name used to generate the reply.",
-        example="gpt-4o-mini",
-    )
-    mode: str = Field(..., description="Conversation mode.", example="chat")
-    reply: str = Field(
-        ...,
-        description="The assistant's reply.",
-        example="A ZeroDivisionError occurs when you divide by zero.",
-    )
+
+# ── Explanation / Debugging / Suggestions response models ───────────────────
+class ExplanationResponse(BaseModel):
+    language: str
+    summary: str
+    key_points: list[str]
+    complexity: str
+    line_count: int
+    function_count: int
+    class_count: int
+    cyclomatic_complexity: int
+    complexity_risk: str
+
+
+class SuggestionsResponse(BaseModel):
+    suggestions: list[Suggestion]
+    overall_score: int
+    grade: str
+    next_step: str
+
+
+class AnalyzeResponse(BaseModel):
+    provider: str
+    model: str
+    explanation: ExplanationResponse
+    debugging: DebuggingResponse
+    suggestions: SuggestionsResponse
+    analysis_time_ms: float | None = None
