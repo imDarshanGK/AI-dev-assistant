@@ -77,6 +77,13 @@
   border-color: var(--accent);
 }
 
+.issue-snippet pre {
+  margin: 0;
+  padding: 0;
+}
+
 .issue-snippet pre code {
   border-radius: 0 0 6px 6px;
+  display: block;
+  padding: 8px 12px;
 }

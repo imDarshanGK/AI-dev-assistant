@@ -4099,7 +4099,7 @@ details.issue-card[open] {
       <div class="issue-snippet">
         <div class="snippet-header">
           <span class="snippet-lang-badge">${selectedLang}</span>
-          <button class="snippet-copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(issue.code_snippet)}).then(()=>{this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button>
+          <button class="snippet-copy-btn" data-code="${escHtml(issue.code_snippet)}">Copy</button>
         </div>
         <pre><code class="language-${selectedLang}">${escHtml(issue.code_snippet)}</code></pre>
       </div>` : ''}
@@ -4111,6 +4111,14 @@ details.issue-card[open] {
 `).join('');
 
         el.innerHTML = statBar + cards;
+        el.querySelectorAll('.snippet-copy-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(btn.dataset.code).then(() => {
+              btn.textContent = '✓ Copied';
+              setTimeout(() => btn.textContent = 'Copy', 1500);
+            });
+          });
+        });
         if (window.highlightAllCode) window.highlightAllCode();
       }
 
