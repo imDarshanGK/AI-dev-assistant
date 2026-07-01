@@ -52,6 +52,7 @@ class PythonASTAnalyzer(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:
+        # 1. Existing check for eval/exec
         if isinstance(node.func, ast.Name) and node.func.id in ("eval", "exec"):
             name = node.func.id
             self.issues.append(_issue(
@@ -62,6 +63,31 @@ class PythonASTAnalyzer(ast.NodeVisitor):
                 "error",
                 node.lineno,
             ))
+        
+        # 2. New check for unsafe subprocess(shell=True)
+        is_subprocess = False
+        # Handles: subprocess.run()
+        if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+            if node.func.value.id == "subprocess" and node.func.attr in ("run", "Popen", "call", "check_output", "check_call"):
+                is_subprocess = True
+        # Handles: run() if imported directly via from subprocess import run
+        elif isinstance(node.func, ast.Name) and node.func.id in ("run", "Popen", "call", "check_output", "check_call"):
+            is_subprocess = True
+
+        if is_subprocess:
+            has_shell_true = any(
+                kw.arg == "shell" and isinstance(kw.value, ast.Constant) and kw.value.value is True 
+                for kw in node.keywords
+            )
+            if has_shell_true:
+                self.issues.append(_issue(
+                    "Unsafe Subprocess Shell Usage",
+                    "`shell=True` passes commands through the system shell and may lead to command injection.",
+                    "Use argument lists with shell=False whenever possible.",
+                    "warning",
+                    node.lineno,
+                ))
+
         self.generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign) -> None:
