@@ -47,6 +47,25 @@ async def init_db() -> None:
         await db.execute(
             "CREATE INDEX IF NOT EXISTS idx_timestamp ON history(timestamp DESC)"
         )
+
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS comments (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                share_id    TEXT NOT NULL,
+                finding_id  TEXT NOT NULL,
+                parent_id   INTEGER,
+                author      TEXT NOT NULL DEFAULT 'Anonymous',
+                text        TEXT NOT NULL,
+                created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
+
+        await db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_comments_share_finding
+            ON comments(share_id, finding_id)
+        """)
+        # ───────────────────────────────────────────────────────────────────────
+
         await db.commit()
 
 
@@ -160,3 +179,45 @@ async def clear_entries() -> int:
         await db.execute("DELETE FROM fts_history")
         await db.commit()
         return cursor.rowcount
+
+
+async def save_comment(
+    share_id: str,
+    finding_id: str,
+    text: str,
+    author: str = "Anonymous",
+    parent_id: int | None = None,
+) -> dict:
+    """Persist a comment and return the stored record."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute(
+            """
+            INSERT INTO comments (share_id, finding_id, parent_id, author, text)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (share_id, finding_id, parent_id, author, text),
+        )
+        await db.commit()
+
+        row_id = cursor.lastrowid
+        cursor = await db.execute("SELECT * FROM comments WHERE id = ?", (row_id,))
+        row = await cursor.fetchone()
+        return dict(row)
+
+
+async def get_comments(share_id: str) -> list[dict]:
+    """Return all comments belonging to a shared report."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute(
+            """
+            SELECT id, share_id, finding_id, parent_id, author, text, created_at
+            FROM comments
+            WHERE share_id = ?
+            ORDER BY created_at ASC
+            """,
+            (share_id,),
+        )
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .config import settings
 from .schema_validators import (
@@ -45,43 +46,13 @@ class CodeRequest(BaseModel):
 
 # ── Debugging ─────────────────────────────────────────────────────────────────
 class Issue(BaseModel):
-    """A single bug or code-quality issue detected by the analysis engine."""
-
-    type: str = Field(
-        ...,
-        description="Name of the bug pattern that was matched.",
-        example="ZeroDivisionError",
-    )
-    line: int | None = Field(
-        default=None,
-        description="1-based line number where the issue was found. `null` if not locatable.",
-        example=2,
-    )
-    description: str = Field(
-        ...,
-        description="Human-readable explanation of why this is a problem.",
-        example="Potential division by zero — the divisor may be 0 at runtime.",
-    )
-    suggestion: str = Field(
-        ...,
-        description="Concrete fix recommendation.",
-        example="Guard the divisor: if b == 0: return None",
-    )
-    severity: str = Field(
-        ...,
-        description="Issue severity level. One of: `error`, `warning`, `info`.",
-        example="error",
-    )
-    code_snippet: str | None = Field(
-        default=None,
-        description="The exact offending line of code.",
-        example="    return a / b",
-    )
-    code_context: str | None = Field(
-        default=None,
-        description="A few lines of surrounding context to help locate the issue.",
-        example="def divide(a, b):\n    return a / b  # issue here",
-    )
+    type: str
+    line: int | None
+    description: str
+    suggestion: str
+    severity: str
+    code_snippet: str | None = None
+    code_context: str | None = None
 
 
 class DebuggingResponse(BaseModel):
@@ -911,3 +882,19 @@ class ChatMessageResponse(BaseModel):
         description="The assistant's reply.",
         example="A ZeroDivisionError occurs when you divide by zero.",
     )
+
+class CommentCreate(BaseModel):
+    text: str = Field(..., min_length=1, max_length=1000)
+    author: str = Field("Anonymous", max_length=50)
+    parent_id: int | None = None
+
+class CommentResponse(BaseModel):
+    id: int
+    share_id: str
+    finding_id: str
+    parent_id: int | None = None
+    author: str
+    text: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
