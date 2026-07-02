@@ -5,6 +5,8 @@ All notable changes to QyverixAI are documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added branded HTML email templates (base, welcome, reset password, notification, weekly digest).
+- Added a local development email preview route and admin dashboard at `/email-preview`.
 - Added a dedicated changelog page in `docs/CHANGELOG.md`.
 - Added changelog guidance for contributors and PR authors.
 - Added `POST /auth/logout` to revoke the caller's access token.

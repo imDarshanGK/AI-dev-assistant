@@ -13,6 +13,8 @@ apscheduler>=3.10.0
 python-magic-bin>=0.4.14; platform_system == "Windows"
 python-magic>=0.4.27; platform_system != "Windows"
 prometheus-client>=0.20.0
+jinja2>=3.1.0
+premailer>=3.10.0
 
 # formatting tools (also used by CI)
 black==24.10.0
