@@ -32,6 +32,15 @@ def test_save_history():
             "issue_count": 1,
         },
     )
+    r = client.post(
+        "/history/",
+        json={
+            "code": "print('hello')",
+            "language": "Python",
+            "score": 85,
+            "issue_count": 1,
+        },
+    )
     assert r.status_code == 201
     d = r.json()
     assert d["status"] == "saved"
@@ -39,6 +48,10 @@ def test_save_history():
 
 
 def test_get_history():
+    client.post(
+        "/history/",
+        json={"code": "x = 1", "language": "Python", "score": 90, "issue_count": 0},
+    )
     client.post(
         "/history/",
         json={"code": "x = 1", "language": "Python", "score": 90, "issue_count": 0},
@@ -96,6 +109,10 @@ def test_search_history():
         "/history/",
         json={"code": "def my_unique_function(): pass", "language": "Python"},
     )
+    client.post(
+        "/history/",
+        json={"code": "def my_unique_function(): pass", "language": "Python"},
+    )
     r = client.get("/history/search?q=my_unique_function")
     assert r.status_code == 200
     results = r.json()
@@ -116,6 +133,15 @@ def test_delete_nonexistent():
 
 
 def test_history_entry_fields():
+    client.post(
+        "/history/",
+        json={
+            "code": "let x = 1;",
+            "language": "JavaScript",
+            "score": 70,
+            "issue_count": 2,
+        },
+    )
     client.post(
         "/history/",
         json={

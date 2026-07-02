@@ -12,4 +12,4 @@ router = APIRouter()
 )
 async def suggest(req: CodeRequest):
     lang = detect_language(req.code, req.language)
-    return run_suggestions(req.code, lang)
+    return run_suggestions(req.code, lang, req.ai_language)

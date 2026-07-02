@@ -12,4 +12,4 @@ router = APIRouter()
 )
 async def explain(req: CodeRequest):
     lang = detect_language(req.code, req.language)
-    return run_explanation(req.code, lang)
+    return run_explanation(req.code, lang, req.ai_language)
