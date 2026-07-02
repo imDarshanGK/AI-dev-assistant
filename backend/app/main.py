@@ -48,6 +48,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
     return {
         "X-RateLimit-Limit": str(RATE_LIMIT),
         "X-RateLimit-Remaining": str(max(remaining, 0)),
+        "X-RateLimit-Reset": str(RATE_LIMIT_WINDOW_SECONDS),
     }
 
 
