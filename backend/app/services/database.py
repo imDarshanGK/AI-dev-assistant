@@ -111,6 +111,7 @@ async def get_entries(
 
 
 async def search_entries(q: str, limit: int = 20) -> list[dict]:
+    q = q[:200]
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute(
