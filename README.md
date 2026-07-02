@@ -503,6 +503,24 @@ npm test               # Node test runner: XSS/injection regression tests for se
 
 All of this runs automatically via GitHub Actions - see [CI workflows](#tech-stack) below for which workflow covers what.
 
+## Cleanup Test Artifacts
+
+To remove stale test and development artifacts, run:
+
+```bash
+python3 scripts/cleanup_tests.py
+```
+
+This removes:
+
+- `__pycache__` directories
+- `.pytest_cache`
+- `.coverage`
+- `htmlcov`
+- `.tox`
+- log files (`*.log`)
+- temporary database files
+
 ---
 
 ## Deployment
