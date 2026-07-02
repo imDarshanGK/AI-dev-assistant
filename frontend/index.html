@@ -3296,6 +3296,18 @@ details.issue-card[open] {
       const engineInfo = document.getElementById('engineInfo');
       const timeInfo = document.getElementById('timeInfo');
 
+      const resultActionLabels = {
+        favBtn: 'Save current analysis to favorites',
+        downloadBtn: 'Download analysis results',
+        'export-pdf-btn': 'Export analysis as PDF',
+        'export-md-btn': 'Export analysis as Markdown'
+      };
+
+      Object.entries(resultActionLabels).forEach(([id, label]) => {
+        const button = document.getElementById(id);
+        if (button) button.setAttribute('aria-label', label);
+      });
+
       /* ═══════════════════════════════════════════════════════════════
          THEME
       ═══════════════════════════════════════════════════════════════ */
