@@ -1,5 +1,5 @@
-const { test, expect } = require('@playwright/test');
-const { sampleFixturePath } = require('../helpers');
+import { test, expect } from '@playwright/test';
+import { sampleFixturePath } from '../helpers';
 
 test('uploads a sample file and renders analysis results', async ({ page }) => {
   await page.goto('/app/');
@@ -44,4 +44,22 @@ test('drag-and-drop upload auto-selects the detected language tab', async ({ pag
 
   await expect(editor).toHaveValue('const answer: number = 42;\n');
   await expect(activeTab).toHaveAttribute('data-lang', 'typescript');
+});
+test('displays appropriate empty state placeholders on initial application load', async ({ page }) => {
+  await page.goto('/app/');
+
+  const emptyExplain = page.locator('#emptyExplain');
+  await expect(emptyExplain).toBeVisible();
+  await expect(emptyExplain.locator('.empty-title')).toHaveText('No analysis yet');
+  await expect(page.locator('#explainResult')).toBeHidden();
+
+  const emptyDebug = page.locator('#emptyDebug');
+  await expect(emptyDebug).toBeVisible();
+  await expect(emptyDebug.locator('.empty-title')).toHaveText('No bugs scanned');
+  await expect(page.locator('#debugResult')).toBeHidden();
+
+  const emptySuggest = page.locator('#emptySuggest');
+  await expect(emptySuggest).toBeVisible();
+  await expect(emptySuggest.locator('.empty-title')).toHaveText('No suggestions yet');
+  await expect(page.locator('#suggestResult')).toBeHidden();
 });
