@@ -174,7 +174,9 @@ open frontend/index.html
 
 Set the API URL field to `http://localhost:8000`, click **Ping** to confirm the green Connected status, then paste any code and click **Analyze Code**.
 
-> `frontend/index.html` is the single self-contained file actually served — it does not load `frontend/script.js` or `frontend/style.css`. Those two files (plus `security-utils.js`) hold the same logic in separately testable modules and exist primarily so `frontend/tests/` can run focused security/XSS regression tests against them without parsing the full page.
+Keyboard shortcuts: press `Ctrl+Enter` (`Cmd+Enter` on macOS) to analyze, `/` to focus the code editor, and `Escape` to leave the editor.
+
+> `frontend/index.html` is the page actually served. It loads `frontend/security-utils.js` for shared security and keyboard helpers, while its remaining styles and application logic are inline. `frontend/script.js` and `frontend/style.css` are retained as separately testable/reference modules.
 
 ---
 
