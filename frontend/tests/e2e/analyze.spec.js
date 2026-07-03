@@ -45,3 +45,26 @@ test('drag-and-drop upload auto-selects the detected language tab', async ({ pag
   await expect(editor).toHaveValue('const answer: number = 42;\n');
   await expect(activeTab).toHaveAttribute('data-lang', 'typescript');
 });
+test('handles code editor keyboard shortcuts (Escape and Ctrl+Enter)', async ({ page }) => {
+  await page.goto('/app/');
+
+  const editor = page.locator('#codeEditor').first();
+  const fileInput = page.locator('#fileInput').first();
+
+  await editor.focus();
+  await expect(editor).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(editor).not.toBeFocused();
+
+  await fileInput.setInputFiles(sampleFixturePath());
+  await expect(editor).toHaveValue(/def add\(a, b\):/);
+
+  await editor.focus();
+  await page.keyboard.press('Control+Enter');
+
+  const summary = page.locator('#explainResult .explain-summary');
+  await expect(summary).toBeVisible();
+  await expect(summary).toHaveText(
+    'A short Python snippet (3 lines) that performs a focused task. Good starting point for learners.'
+  );
+});
