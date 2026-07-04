@@ -12,7 +12,6 @@ from app.main import app
 
 client = TestClient(app)
 
-
 def test_debugging_endpoint_with_line_numbers():
     """Test that /debugging/ endpoint returns issues with line numbers."""
     code = """
