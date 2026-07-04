@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 # isort: off
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../backend"))
 from app.main import app
+
 # isort: on
 
 client = TestClient(app)
