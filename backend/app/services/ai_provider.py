@@ -44,10 +44,10 @@ def _get_provider_name(base_url: str) -> str:
 
 async def call_llm(system: str, user: str) -> str | None:
     """Return LLM text response or None if disabled/error."""
-    
+
     with tracer.start_as_current_span("ai_provider.call_llm") as span:
         span.set_attribute("llm.model", LLM_MODEL)
-        
+
         if not LLM_ENABLED or not LLM_API_KEY:
             return None
 
@@ -84,7 +84,7 @@ async def call_llm(system: str, user: str) -> str | None:
                             "provider": provider_name,
                             "attempt": attempt + 1,
                             "latency_ms": latency_ms,
-                        }
+                        },
                     )
                     return data["choices"][0]["message"]["content"].strip()
 
@@ -146,7 +146,7 @@ async def call_llm(system: str, user: str) -> str | None:
                 return None
 
             if attempt < LLM_MAX_RETRIES:
-                sleep_time = LLM_RETRY_BACKOFF * (2 ** attempt)
+                sleep_time = LLM_RETRY_BACKOFF * (2**attempt)
                 await asyncio.sleep(sleep_time)
 
         logger.error(
@@ -161,6 +161,7 @@ async def call_llm(system: str, user: str) -> str | None:
             },
         )
         return None
+
 
 def is_enabled() -> bool:
     return LLM_ENABLED and bool(LLM_API_KEY)
