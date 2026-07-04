@@ -8,10 +8,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../backend"))
 
 from app.services.code_assistant import run_bug_detection, run_suggestions
 from app.services.line_utils import (
-    format_code_snippet,
     find_lines_matching_pattern,
     find_function_lines,
     find_undocumented_lines,
+    format_code_snippet,
 )
 
 
