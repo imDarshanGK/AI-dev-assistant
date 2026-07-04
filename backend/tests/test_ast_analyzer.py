@@ -1,6 +1,6 @@
 """Tests for the AST-based Python analyzer."""
 
-from app.services.ast_analyzer import analyze_python_ast, analyze
+from app.services.ast_analyzer import analyze, analyze_python_ast
 
 
 def _types(code: str) -> list[str]:
