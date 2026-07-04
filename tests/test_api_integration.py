@@ -4,11 +4,12 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../backend"))
-
 from fastapi.testclient import TestClient
 
+# isort: off
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../backend"))
 from app.main import app
+# isort: on
 
 client = TestClient(app)
 
@@ -21,7 +22,7 @@ def bad_function():
     except:
         pass
     return x
-    """
+"""
 
     response = client.post("/debugging/", json={"code": code, "language": "Python"})
 
@@ -96,7 +97,7 @@ def test_analyze_endpoint_integration():
 # Good example
 def calculate(x, y):
     return x + y
-    """
+"""
 
     response = client.post("/analyze/", json={"code": code, "language": "Python"})
 
@@ -146,7 +147,7 @@ x = eval('line3')
 line4
 except:
 line5
-    """
+"""
 
     response = client.post("/debugging/", json={"code": code, "language": "Python"})
 
