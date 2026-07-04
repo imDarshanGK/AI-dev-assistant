@@ -3342,6 +3342,7 @@ details.issue-card[open] {
 
       const MAX_HISTORY = 50;
       let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+      let analyticsHistory = [];
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
       let selectedLang = 'python';
@@ -3918,7 +3919,7 @@ details.issue-card[open] {
             const data = await res.json();
             currentResult = data;
             renderZipResults(data);
-            addToHistory(`ZIP: ${selectedZipFile.name}`, data);
+            await addToHistory(`ZIP: ${selectedZipFile.name}`, data);
             apiDot?.classList.add('connected');
             if (apiStatusText) apiStatusText.textContent = 'Connected';
             document.getElementById('engineBar').style.display = 'flex';
@@ -3958,7 +3959,7 @@ details.issue-card[open] {
 
           currentResult = result;
           renderResults(result, code);
-          addToHistory(code, result);
+          await addToHistory(code, result);
           apiDot?.classList.add('connected');
           if (apiStatusText) apiStatusText.textContent = getTranslation('api_status_connected');
           document.getElementById('engineBar').style.display = 'flex';
@@ -4522,7 +4523,8 @@ details.issue-card[open] {
       }
 
       function renderAnalytics() {
-        const total = history.length;
+        const entries = analyticsHistory.length ? analyticsHistory : history;
+        const total = entries.length;
 
         document.getElementById('analyticsTotal').textContent = total;
 
@@ -4539,33 +4541,40 @@ details.issue-card[open] {
         let scoreCount = 0;
         let issueCount = 0;
 
-        history.forEach(entry => {
-          const lang = entry.lang || 'Unknown';
+        entries.forEach(entry => {
 
-          languageCounts[lang] = (languageCounts[lang] || 0) + 1;
+        const lang = entry.lang || entry.language || "Unknown";
+        languageCounts[lang] = (languageCounts[lang] || 0) + 1;
 
-          const score =
+        const score =
+            entry.score ??
+            entry.result?.suggestions?.overall_score ??
             entry.result?.suggestions?.quality_score ??
+            entry.result?.overall_project_score ??
             entry.result?.quality_score;
 
-          if (typeof score === 'number') {
+        if (typeof score === "number") {
             totalScore += score;
             scoreCount++;
-          }
+        }
 
-          const issues =
-            entry.result?.debugging?.issues?.length ?? 0;
+        const issues =
+            entry.issue_count ??
+            entry.result?.debugging?.issues?.length ??
+            0;
 
-          totalIssues += issues;
-          issueCount++;
-        });
+        totalIssues += issues;
+        issueCount++;
+      });
 
         const topLanguage =
           Object.entries(languageCounts)
             .sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
 
-        document.getElementById('analyticsLanguage').textContent =
-          topLanguage;
+        document.getElementById("analyticsLanguage").textContent =
+          topLanguage === "-"
+              ? "-"
+              : topLanguage.charAt(0).toUpperCase() + topLanguage.slice(1);
 
         document.getElementById('analyticsScore').textContent =
           scoreCount ? (totalScore / scoreCount).toFixed(1) : '0';
@@ -4626,8 +4635,11 @@ details.issue-card[open] {
           });
           historyOffset = 0;
           await fetchHistory();
+          await fetchAnalyticsHistory();
         } catch (err) {
           loadLocalHistory();
+          renderHistory();
+          renderAnalytics();
         }
       }
 
@@ -4637,17 +4649,45 @@ details.issue-card[open] {
           const res = await fetch(`${apiBase}/history/?limit=${historyLimit}&offset=${historyOffset}&sort_by=${historySortBy}&order=${historyOrder}`);
           if (res.ok) {
             const data = await res.json();
+
             history = data.items;
             historyTotal = data.meta.total;
+
             renderHistory();
+            renderAnalytics();
             updatePaginationUI();
+
             return;
-          }
+        }
         } catch (err) {
           // Fallback to local storage on fetch error
         }
         loadLocalHistory();
+        renderHistory();
+        renderAnalytics();
       }
+
+      async function fetchAnalyticsHistory() {
+        const apiBase = getApiBase();
+
+        try {
+            const res = await fetch(
+                `${apiBase}/history/?limit=100&offset=0&sort_by=timestamp&order=desc`
+            );
+
+            if (!res.ok) return;
+
+            const data = await res.json();
+
+            analyticsHistory = data.items;
+
+            renderAnalytics();
+
+        } catch (err) {
+            analyticsHistory = JSON.parse(localStorage.getItem("qyx_history") || "[]");
+            renderAnalytics();
+        }
+    }
 
       function loadLocalHistory() {
         let localHistory = JSON.parse(localStorage.getItem('qyx_history') || '[]');
@@ -4814,6 +4854,7 @@ details.issue-card[open] {
         renderAnalytics();
         historyOffset = 0;
         await fetchHistory();
+        await fetchAnalyticsHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
@@ -5298,6 +5339,7 @@ int main() {
       fetchHistory();
       renderFavorites();
       renderAnalytics();
+      fetchAnalyticsHistory();
       updateEditor();
 
       // Save API URL
