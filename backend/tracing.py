@@ -13,7 +13,9 @@ def setup_tracing(app_name: str = "qyverix-ai"):
         return None
 
     # Set up the resource (tells us what app is sending the data)
-    resource = Resource.create({"service.name": app_name})
+    # Fetch the name from the .env file, but use app_name as a backup!
+    service_name = os.getenv("OTEL_SERVICE_NAME", app_name)
+    resource = Resource.create({"service.name": service_name})
     provider = TracerProvider(resource=resource)
 
     # Set up the exporter (this sends data to Jaeger)
