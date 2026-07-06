@@ -3,16 +3,16 @@ Test multilingual support for rule-based code analysis engine.
 Tests English, Hindi, and other language outputs.
 """
 
-import sys
 import os
+import sys
 
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
 
 from backend.app.services.code_assistant import (  # noqa: E402
+    full_analysis,
     run_explanation,
     run_suggestions,
-    full_analysis,
 )
 
 

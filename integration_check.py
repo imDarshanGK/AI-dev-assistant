@@ -15,8 +15,8 @@ def check_imports():
     print("=" * 60)
 
     try:
-        from app.services.multilingual import get_system_prompt  # noqa: F401
         from app.services.multilingual import LANGUAGE_MAP  # noqa: F401
+        from app.services.multilingual import get_system_prompt  # noqa: F401
 
         print("✓ app.services.multilingual imported successfully")
     except Exception as e:
@@ -61,7 +61,7 @@ def check_multilingual_service():
     print("MULTILINGUAL SERVICE CHECK")
     print("=" * 60)
 
-    from app.services.multilingual import get_system_prompt, LANGUAGE_MAP
+    from app.services.multilingual import LANGUAGE_MAP, get_system_prompt
 
     # Check language map
     print(f"✓ Language map has {len(LANGUAGE_MAP)} languages:")
@@ -131,12 +131,13 @@ def check_function_signatures():
     print("FUNCTION SIGNATURE CHECK")
     print("=" * 60)
 
+    import inspect
+
     from app.services.code_assistant import (
         full_analysis,
         run_explanation,
         run_suggestions,
     )
-    import inspect
 
     functions = {
         "full_analysis": full_analysis,

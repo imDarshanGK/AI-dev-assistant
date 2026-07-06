@@ -3,14 +3,14 @@ Test multilingual support for LLM mode.
 Verifies that the system prompt is correctly configured for different languages.
 """
 
-import sys
 import os
+import sys
 
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
 
-from backend.app.services.multilingual import get_system_prompt  # noqa: E402
 from backend.app.services.multilingual import LANGUAGE_MAP  # noqa: E402
+from backend.app.services.multilingual import get_system_prompt  # noqa: E402
 
 
 def test_english_system_prompt():
