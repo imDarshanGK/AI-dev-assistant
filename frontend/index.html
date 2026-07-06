@@ -2682,10 +2682,10 @@ details.issue-card[open] {
 
         <!-- Result action buttons (hidden until results) -->
         <div id="resultActions" class="result-actions" style="display:none">
-          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
-          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
-          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF">📄</button>
-          <button class="icon-btn" id="export-md-btn" title="Export as Markdown">📝</button>
+          <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save to favorites">★</button>
+          <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download results">⬇</button>
+          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF" aria-label="Export results as PDF">📄</button>
+          <button class="icon-btn" id="export-md-btn" title="Export as Markdown" aria-label="Export results as Markdown">📝</button>
         </div>
 
       </div>
@@ -2782,13 +2782,13 @@ details.issue-card[open] {
         </div>
         <div class="history-controls-row" style="display:flex; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 0.72rem; align-items:center; flex-wrap:wrap;">
           <span style="color:var(--text3);" data-i18n="history_sort_label">Sort:</span>
-          <select id="historySortSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+          <select id="historySortSelect" aria-label="Sort history by" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
             <option value="timestamp" data-i18n="history_sort_date">Date</option>
             <option value="score" data-i18n="history_sort_score">Quality Score</option>
             <option value="issue_count" data-i18n="history_sort_bugs">Bugs Scanned</option>
           </select>
           <span style="color:var(--text3); margin-left: 8px;" data-i18n="history_order_label">Order:</span>
-          <select id="historyOrderSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+          <select id="historyOrderSelect" aria-label="History sort order" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
             <option value="desc" data-i18n="history_order_desc">Desc</option>
             <option value="asc" data-i18n="history_order_asc">Asc</option>
           </select>
@@ -2832,7 +2832,7 @@ details.issue-card[open] {
         <div style="max-width:360px;">
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
-            <input type="email" id="digestEmail" placeholder="your@email.com" required
+            <input type="email" id="digestEmail" placeholder="your@email.com" aria-label="Email address for digest subscription" required
                    style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
             <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
@@ -5352,8 +5352,8 @@ int main() {
         <span>Session</span>
       </div>
       <div class="collab-panel-top">
-        <input id="collabName" placeholder="Your name" value="Your name" />
-        <input id="collabSession" placeholder="Session ID e.g. review-676" />
+        <input id="collabName" placeholder="Your name" value="Your name" aria-label="Your name" />
+        <input id="collabSession" placeholder="Session ID e.g. review-676" aria-label="Session ID" />
         <button id="collabJoinBtn" type="button">Join Live</button>
         <button id="collabLeaveBtn" type="button" disabled>Leave</button>
       </div>
@@ -5373,8 +5373,8 @@ int main() {
         <span>Review comments</span>
       </div>
       <div class="collab-comment-row">
-        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1" />
-        <input id="collabCommentText" placeholder="Add a live review comment..." />
+        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1" aria-label="Line number for comment" />
+        <input id="collabCommentText" placeholder="Add a live review comment..." aria-label="Live review comment text" />
         <button id="collabCommentBtn" type="button" disabled>Comment</button>
       </div>
       <div id="collabComments" class="collab-comments"></div>

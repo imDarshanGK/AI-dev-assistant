@@ -48,3 +48,6 @@ vscode-extension/extension.js
 *.db
 assistant.db
 backend/assistant.db
+
+frontend/test-results/
+frontend/tests/test-results/

@@ -12,6 +12,7 @@ All notable changes to QyverixAI are documented in this file.
   queryable `GET /admin/audit-logs` endpoint and admin-gated user role
   management (`PUT /admin/users/{id}/role`) and deletion
   (`DELETE /admin/users/{id}`).
+- Added accessible labels (`aria-label`) to result action buttons, history sort/order selects, collaboration panel inputs, and the digest subscription email field, along with Playwright e2e coverage in `frontend/tests/e2e/accessible-labels.spec.js`.
 
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.
