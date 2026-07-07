@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 from app import database
 from app.database import Base
 from app.main import app
-from app.models import SharedSnippet
+from app.models import AuditLog, SharedSnippet, User
+from app.security import get_current_user
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 
 def _configure_test_db(monkeypatch, tmp_path):
@@ -93,3 +93,48 @@ def test_expired_share_returns_404(monkeypatch, tmp_path):
 
     assert resp.status_code == 404
     assert "expired" in resp.json()["detail"].lower()
+
+
+def test_delete_share_authorization(monkeypatch, tmp_path):
+    session_local = _configure_test_db(monkeypatch, tmp_path)
+
+    from fastapi.testclient import TestClient
+
+    client = TestClient(app)
+    db = session_local()
+
+    # 1. Create our pretend users in the database
+    owner = User(email="owner@test.com", is_admin=False)
+    admin = User(email="admin@test.com", is_admin=True)
+    stranger = User(email="stranger@test.com", is_admin=False)
+    db.add_all([owner, admin, stranger])
+    db.commit()
+
+    # 2. Create pretend shares owned by the 'owner'
+    share1 = SharedSnippet(
+        token="token1", code="print('1')", result_json="{}", user_id=owner.id
+    )
+    share2 = SharedSnippet(
+        token="token2", code="print('2')", result_json="{}", user_id=owner.id
+    )
+    db.add_all([share1, share2])
+    db.commit()
+
+    # 3. Test Scenario A: Stranger tries to delete (Should Fail - 403)
+    app.dependency_overrides[get_current_user] = lambda: stranger
+    resp_stranger = client.delete("/share/token1")
+    assert resp_stranger.status_code == 403
+
+    # 4. Test Scenario B: Owner tries to delete (Should Succeed - 204)
+    app.dependency_overrides[get_current_user] = lambda: owner
+    resp_owner = client.delete("/share/token1")
+    assert resp_owner.status_code == 204
+
+    # 5. Test Scenario C: Admin tries to delete (Should Succeed - 204)
+    app.dependency_overrides[get_current_user] = lambda: admin
+    resp_admin = client.delete("/share/token2")
+    assert resp_admin.status_code == 204
+
+    # Cleanup our overrides and close database
+    app.dependency_overrides.clear()
+    db.close()
