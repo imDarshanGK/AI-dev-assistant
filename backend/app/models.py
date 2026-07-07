@@ -73,6 +73,9 @@ class SharedSnippet(Base):
     __tablename__ = "shares"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), index=True, nullable=True
+    )
     token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     code: Mapped[str] = mapped_column(Text)
     result_json: Mapped[str] = mapped_column(Text)
