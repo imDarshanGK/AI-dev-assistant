@@ -106,7 +106,9 @@ def test_delete_share_authorization(monkeypatch, tmp_path):
     # 1. Create our pretend users in the database
     owner = User(email="owner@test.com", password_hash="fake_pass", is_admin=False)
     admin = User(email="admin@test.com", password_hash="fake_pass", is_admin=True)
-    stranger = User(email="stranger@test.com", password_hash="fake_pass", is_admin=False)
+    stranger = User(
+        email="stranger@test.com", password_hash="fake_pass", is_admin=False
+    )
     db.add_all([owner, admin, stranger])
     db.commit()
 
