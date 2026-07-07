@@ -120,23 +120,25 @@
 
   /** @deprecated Use buildStoredListItemHtml — kept for tests */
   const buildHistoryItemHtml = (entry) => buildStoredListItemHtml(entry);
+  
+  function getStoredEntryId(listEl, target) {
+    const item = target.closest('[data-entry-id]');
+    if (!item || !listEl.contains(item)) return null;
+    return safeHistoryId(item.dataset.entryId);
+  }
 
   function bindStoredListNavigation(listEl, loaderFn) {
     if (!listEl || typeof loaderFn !== 'function') return;
 
     listEl.addEventListener('click', (e) => {
-      const item = e.target.closest('[data-entry-id]');
-      if (!item || !listEl.contains(item)) return;
-      const id = safeHistoryId(item.dataset.entryId);
+      const id = getStoredEntryId(listEl, e.target);
       if (id !== null) loaderFn(id);
     });
 
     listEl.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
-      const item = e.target.closest('[data-entry-id]');
-      if (!item || !listEl.contains(item)) return;
       e.preventDefault();
-      const id = safeHistoryId(item.dataset.entryId);
+      const id = getStoredEntryId(listEl, e.target);
       if (id !== null) loaderFn(id);
     });
   }
