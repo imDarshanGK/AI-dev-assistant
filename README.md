@@ -70,8 +70,8 @@ No account required for the core analysis. No API key needed. Works fully offlin
 
 | Feature | Detail |
 |---|---|
-| **65+ Bug Patterns** | ZeroDivisionError, bare except, hardcoded secrets, eval/exec, memory leaks, XSS, NullPointerException, unsafe `unwrap()`, and more |
-| **9 Languages Detected** | Python, JavaScript, TypeScript, Java, C++ - the first 5 have dedicated bug-pattern checks today |
+| **40+ Bug Patterns** | ZeroDivisionError, bare except, hardcoded secrets, eval/exec, memory leaks, XSS, NullPointerException, unsafe `unwrap()`, and more |
+| **5 Languages Detected** | Python, JavaScript, TypeScript, Java, C++ - the first 5 have dedicated bug-pattern checks today |
 | **AST-Based Python Analysis** | Real `ast`-module checks beyond regex: unused imports, unused function arguments, dead code after `return`, mutable default arguments |
 | **Project / ZIP Analysis** | `POST /analyze/zip/` scans up to 20 source files in an uploaded archive and returns one aggregated project score plus a per-file breakdown |
 | **Streaming Analysis (SSE)** | `GET/POST /analyze/stream` streams explanation → debugging → suggestions as they complete, instead of waiting for the full response |
