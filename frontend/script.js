@@ -637,3 +637,4 @@ if (digestForm) {
 // ── Init ──
 renderHistory();
 renderFavorites();
+
