@@ -39,7 +39,7 @@ Read the release history and notable changes in the project changelog: **[docs/C
 > **GSSoC 2026 Contributors** -- Welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, then grab a [good first issue](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue) to get started.
 
 </div>
-
+If you're contributing through GSSoC 2026, check out the [Good First Issues](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue) to find beginner-friendly tasks and follow the [CONTRIBUTING.md](CONTRIBUTING.md) guidelines before submitting a PR.
 ---
 
 ## What is QyverixAI?
