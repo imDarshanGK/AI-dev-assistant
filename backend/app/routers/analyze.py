@@ -386,3 +386,13 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
         "skipped_files": skipped_files,
         "analysis_time_ms": round(elapsed_ms, 2),
     }
+
+
+@router.get(
+    "/plugins",
+    summary="List all loaded and active analysis plugins",
+)
+async def list_plugins():
+    """Return a list of metadata for all registered analysis plugins."""
+    from ..services.plugin_manager import plugin_manager
+    return [p.to_dict() for p in plugin_manager.get_plugins()]

@@ -82,5 +82,14 @@ class Settings:
         "DIGEST_BASE_URL", "https://qyverixai.onrender.com"
     )
 
+    # ── Plugins ─────────────────────────────────────────────────
+    plugins_enabled: bool = _bool_env("PLUGINS_ENABLED", True)
+    plugins_dir: str = os.getenv(
+        "PLUGINS_DIR",
+        os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "plugins"
+        ),
+    )
+
 
 settings = Settings()

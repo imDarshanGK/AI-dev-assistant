@@ -871,6 +871,38 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
         except SyntaxError:
             pass
 
+    # Run third-party plugins
+    try:
+        from .plugin_manager import plugin_manager
+        import logging
+        logger = logging.getLogger("ai_assistant.code_assistant")
+
+        plugin_issues = plugin_manager.run_all_plugins(code, language)
+        for issue in plugin_issues:
+            key = f"{issue['type']}:{issue['line']}"
+            if key not in seen:
+                seen.add(key)
+
+                # Ensure snippet & context are present
+                line_idx = issue["line"] - 1
+                if "code_snippet" not in issue:
+                    issue["code_snippet"] = (
+                        lines[line_idx].strip()[:120]
+                        if 0 <= line_idx < len(lines)
+                        else ""
+                    )
+                if "code_context" not in issue:
+                    issue["code_context"] = format_code_snippet(
+                        code, [issue["line"]], context_lines=2
+                    )
+
+                found.append(issue)
+    except Exception as exc:
+        import logging
+        logging.getLogger("ai_assistant.code_assistant").exception(
+            "Error running plugins: %s", exc
+        )
+
     return found
 
 
