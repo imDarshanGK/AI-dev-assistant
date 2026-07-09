@@ -4,7 +4,7 @@ Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Ru
 """
 
 from __future__ import annotations
-import ast
+
 import re
 import time
 from .ast_analyzer import analyze as ast_analyze
@@ -138,65 +138,48 @@ _DECISION_RE = re.compile(
     re.MULTILINE,
 )
 
-_RISK_THRESHOLDS: tuple[tuple[int, str], ...] = (
-    (5, "Simple"),
-    (10, "Moderate"),
-    (20, "High"),
-)
-
-
-def calculate_cyclomatic_complexity(code: str, language: str) -> tuple[int, str]:
-    """Calculate the cyclomatic complexity of a code snippet.
-
-    Uses a simplified McCabe formula: M = decision points + 1, where decision
-    points are control-flow keywords (if, elif, else, for, while, and, or,
-    case, catch, except) and ternary operators.
-
-    Args:
-        code: The source code to analyse.
-        language: The programming language of the code.
-
-    Returns:
-        A tuple of (score, risk) where risk is one of "Simple", "Moderate",
-        "High", or "Very High".
-    """
-    score = len(_DECISION_RE.findall(code)) + 1
-    for threshold, label in _RISK_THRESHOLDS:
-        if score <= threshold:
-            return score, label
-    return score, "Very High"
-
-
 # ── Complexity Estimation ──────────────────────────────────────────────────────
 def estimate_complexity(code: str) -> str:
-    """Estimate the overall complexity level of the given code snippet.
+    """
+    Estimates the complexity level of the given source code.
 
     Args:
-        code: The source code to evaluate.
+        code (str): Source code to evaluate.
 
     Returns:
-        Complexity level as a string from Beginner to Expert.
+        str: Complexity level classified as Beginner, Intermediate, Advanced, or Expert.
     """
 
-    lines = [
-        line
-        for line in code.splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    ]
-    n = len(lines)
-    branches = len(
-        re.findall(r"\b(if|elif|else|for|while|switch|case|try|catch|except)\b", code)
-    )
-    funcs = len(re.findall(r"\bdef\b|\bfunction\b|\bfunc\b|\bfn\b", code))
+    lines = len(code.strip().splitlines())
+    func_count = len(re.findall(r"\bdef |\bfunction |\bfunc \b", code))
 
-    if n <= 20 and branches <= 3 and funcs <= 2:
+    if lines < 15 and func_count <= 1:
         return "Beginner"
-    if n <= 80 and branches <= 10:
+
+    if lines <= 80:
         return "Intermediate"
-    if n <= 200:
+
+    if lines <= 200:
         return "Advanced"
+
     return "Expert"
 
+# ── Explanation Service ──
+def explain_code(code: str, language: Optional[str] = None) -> ExplanationResponse:
+    """
+    Generates a human-readable explanation of the provided source code.
+
+    Args:
+        code (str): Source code to explain.
+        language (str): Programming language of the source code.
+
+    Returns:
+        ExplanationResponse: Explanation summary, key points, and complexity details.
+    """
+    lang = language or detect_language(code)
+    lines = code.strip().splitlines()
+    line_count = len(lines)
+    complexity = estimate_complexity(code)
 
 def chat_fallback_reply(
     message: str,
@@ -802,6 +785,21 @@ BUG_PATTERNS: list[BugPattern] = [
     ),
 ]
 
+def debug_code(code: str, language: Optional[str] = None) -> DebuggingResponse:
+    """
+Analyzes the source code for potential bugs, security risks, and bad practices.
+
+Args:
+    code (str): Source code to inspect.
+    language (Optional[str]): Programming language of the source code.
+
+Returns:
+    DebuggingResponse: Detected issues and debugging suggestions.
+"""
+    lang = language or detect_language(code)
+    issues: list[DebugIssue] = []
+    seen: set[tuple[str, Optional[int], str]] = set()
+    lines_list = code.splitlines()
 
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
@@ -1222,170 +1220,47 @@ class Issue:
     severity: str | None = None
     code_snippet: str | None = None
 
-
-@dataclass
-class DebugResult:
-    issues: list[Issue]
-    summary: str | None = None
-
-
-def debug_code(code: str, language: str = "Python") -> DebugResult:
-    """Lightweight AST-based analyzer used by tests.
-
-    Produces `Issue` objects for syntax errors, division by zero, out-of-range
-    constant indexes and simple type-mismatch additions.
+def suggest_improvements(code: str, language: Optional[str] = None) -> SuggestionsResponse:
     """
-    issues: list[Issue] = []
+Generates suggestions to improve code quality, readability, and maintainability.
 
-    try:
-        tree = ast.parse(code)
-    except SyntaxError as e:
-        issues.append(
-            Issue(
-                type="Syntax Error",
-                line=e.lineno or 0,
-                description=str(e),
-                severity="error",
-            )
-        )
-        return DebugResult(issues=issues, summary="Syntax error detected")
+Args:
+    code (str): Source code to analyze.
+    language (Optional[str]): Programming language of the source code.
 
-    # Track simple assignments to infer literal container lengths
-    container_lengths: dict[str, int] = {}
+Returns:
+    SuggestionsResponse: Suggested improvements and optimization recommendations.
+"""
+    cards: list[SuggestionCard] = []
+    seen_cats = set()
+    lines_list = code.splitlines()
 
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Assign):
-            # only simple name targets
-            if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
-                name = node.targets[0].id
-                val = node.value
-                if isinstance(val, ast.List):
-                    container_lengths[name] = len(val.elts)
-                elif isinstance(val, ast.Constant) and isinstance(val.value, str):
-                    container_lengths[name] = len(val.value)
+    for rule in SUGGESTION_RULES:
+        for line in lines_list:
+            if re.search(rule["pattern"], line) and rule["cat"] not in seen_cats:
+                cards.append(SuggestionCard(
+                    category=rule["cat"],
+                    description=rule["desc"],
+                    example=rule.get("example"),
+                    priority=rule["priority"]
+                ))
+                seen_cats.add(rule["cat"])
+                break
 
-    # Find issues
-    for node in ast.walk(tree):
-        # Division by zero literal
-        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
-            right = node.right
-            if isinstance(right, ast.Constant) and right.value == 0:
-                issues.append(
-                    Issue(
-                        type="ZeroDivisionError",
-                        line=getattr(node, "lineno", None),
-                        description="Division by literal zero detected.",
-                        severity="error",
-                    )
-                )
+    # Always add docstring tip if no docstring present
+    if not re.search(r'"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'', code):
+        cards.append(SuggestionCard(
+            category="Documentation",
+            description="Add docstrings to your functions to describe their purpose, parameters, and return value.",
+            example='def greet(name: str) -> str:\n    """Return a greeting string."""',
+            priority="medium"
+        ))
 
-        # Indexing with a constant that's out of bounds for a known container
-        if isinstance(node, ast.Subscript):
-            idx = node.slice
-            target = node.value
-            if (
-                isinstance(idx, ast.Constant)
-                and isinstance(idx.value, int)
-                and isinstance(target, ast.Name)
-            ):
-                name = target.id
-                if name in container_lengths:
-                    length = container_lengths[name]
-                    if idx.value >= length or idx.value < -length:
-                        issues.append(
-                            Issue(
-                                type="Index Error Risk",
-                                line=getattr(node, "lineno", None),
-                                description=f"Index {idx.value} is out of range for '{name}' of length {length}.",
-                                severity="warning",
-                            )
-                        )
-
-        # Addition between incompatible constant types (e.g., str + int)
-        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
-            left = node.left
-            right = node.right
-            if isinstance(left, ast.Constant) and isinstance(right, ast.Constant):
-                if (isinstance(left.value, str) and isinstance(right.value, int)) or (
-                    isinstance(left.value, int) and isinstance(right.value, str)
-                ):
-                    issues.append(
-                        Issue(
-                            type="Type Error Risk",
-                            line=getattr(node, "lineno", None),
-                            description="Possible string-integer concatenation detected.",
-                            severity="warning",
-                        )
-                    )
-
-    # Detect division via parameter passed zero: find functions with division by a parameter
-    func_div_params: dict[str, set[str]] = {}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
-            params = [arg.arg for arg in node.args.args]
-            for sub in ast.walk(node):
-                if isinstance(sub, ast.BinOp) and isinstance(sub.op, ast.Div):
-                    if isinstance(sub.right, ast.Name) and sub.right.id in params:
-                        func_div_params[node.name] = func_div_params.get(
-                            node.name, set()
-                        ) | {sub.right.id}
-
-    # Check calls with literal zero for those functions
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-            fname = node.func.id
-            if fname in func_div_params:
-                for i, arg in enumerate(node.args):
-                    if isinstance(arg, ast.Constant) and arg.value == 0:
-                        # determine which parameter this maps to
-                        try:
-                            func_node = next(
-                                f
-                                for f in ast.walk(tree)
-                                if isinstance(f, ast.FunctionDef) and f.name == fname
-                            )
-                            if i < len(func_node.args.args):
-                                param_name = func_node.args.args[i].arg
-                                if param_name in func_div_params[fname]:
-                                    issues.append(
-                                        Issue(
-                                            type="ZeroDivisionError",
-                                            line=getattr(node, "lineno", None),
-                                            description=f"Literal 0 passed to parameter '{param_name}' of function '{fname}' which is used as divisor.",
-                                            severity="error",
-                                        )
-                                    )
-                        except StopIteration:
-                            pass
-
-    return DebugResult(issues=issues, summary=f"Found {len(issues)} issue(s)")
-
-
-# ── Combined ───────────────────────────────────────────────────────────────────
-def full_analysis(code: str, language_hint: str | None = None) -> dict:
-    """Run the complete analysis pipeline for the provided source code.
-
-    Args:
-        code: The source code to analyse.
-        language_hint: Optional language override hint.
-
-    Returns:
-        Combined explanation, debugging, and suggestion analysis results.
-    """
-
-    t0 = time.perf_counter()
-    language = detect_language(code, language_hint)
-
-    explanation = run_explanation(code, language)
-
-    raw_issues = run_bug_detection(code, language)
-    errors = [i for i in raw_issues if i["severity"] == "error"]
-    warnings = [i for i in raw_issues if i["severity"] == "warning"]
-    infos = [i for i in raw_issues if i["severity"] == "info"]
-    issue_summary = (
-        f"Found {len(raw_issues)} issue(s): {len(errors)} error(s), {len(warnings)} warning(s), {len(infos)} info."
-        if raw_issues
-        else "✅ No issues detected!"
+    # Score: start at 100, deduct per issue
+    score = max(0, 100 - len(cards) * 10)
+    next_step = (
+        "Great code! Consider adding tests next." if score >= 80
+        else "Focus on fixing high-priority issues first, then add tests."
     )
     debugging = {
         "issues": raw_issues,
