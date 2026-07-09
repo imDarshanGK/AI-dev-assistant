@@ -301,6 +301,24 @@ BUG_PATTERNS: list[BugPattern] = [
         ["Python"],
     ),
     BugPattern(
+        "OS System Shell Injection",
+        r"\bos\.system\s*\(",
+        "`os.system()` executes shell commands directly and can be vulnerable "
+        "to command injection. Review for injection risk when input is user-controlled.",
+        "Use `subprocess.run()` with a list of arguments and `shell=False` instead.",
+        "error",
+        ["Python"],
+    ),
+    BugPattern(
+        "OS Popen Shell Injection",
+        r"\bos\.popen\s*\(",
+        "`os.popen()` opens a pipe to a shell command and can be vulnerable "
+        "to command injection. Review for injection risk when input is user-controlled.",
+        "Use `subprocess.run()` with `capture_output=True` and `shell=False` instead.",
+        "error",
+        ["Python"],
+    ),
+    BugPattern(
         "Mutable Default Arg",
         r"def\s+\w+\s*\([^)]*=\s*(\[\]|\{\}|\(\))",
         "Mutable default argument shared across all calls — classic Python gotcha.",
