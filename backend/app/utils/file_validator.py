@@ -20,7 +20,7 @@ def has_double_extension(filename: str) -> bool:
 
     return any(ext in BLOCKED_EXTENSIONS for ext in suffixes[:-1])
 
-def validate_file_extension(filename: str) -> None:
+def validate_file_extension(filename: str) -> str:
     extension = get_file_extension(filename)
 
     if not extension:
@@ -59,7 +59,7 @@ def validate_mime_type(ext:str, filecontent:bytes) -> None:
         )
     return detected_mime
 
-def validate_file(filename: str, filecontent:bytes) -> None:
+def validate_file(filename: str, filecontent:bytes) -> str:
     ext = validate_file_extension(filename)
     mime_type = validate_mime_type(ext=ext,filecontent=filecontent)
 
