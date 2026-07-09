@@ -1,16 +1,19 @@
-
+version: '3.8'
 
 services:
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-dev-backend:prod
     container_name: ai-dev-backend
-    ports:
-      - "8000:8000"
+    restart: always
+    expose:
+      - "8000"
     env_file:
       - .env
-    volumes:
-      - ./backend:/app/backend
-    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+    # Removed host volume mounts and --reload for performance and isolation
+    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz/live', timeout=3).read()"]
       interval: 30s
@@ -18,30 +21,43 @@ services:
       retries: 3
       start_period: 10s
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - ai_prod_network
 
   frontend:
     image: nginx:alpine
     container_name: ai-dev-frontend
+    restart: always
     ports:
-      - "3000:80"
+      - "80:80" # Exposing standard web port 80 instead of 3000
     volumes:
+      # If serving vanilla static files, we bake them or copy them safely
       - ./frontend:/usr/share/nginx/html:ro
     depends_on:
       - backend
+    networks:
+      - ai_prod_network
 
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: ai-dev-db
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: aidevdb
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    # Removed public port exposure entirely to secure the database
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai_prod_network
 
 volumes:
   postgres_data:
