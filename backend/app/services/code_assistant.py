@@ -12,6 +12,17 @@ from dataclasses import dataclass, field
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
+    "Swift": [
+    r"\bimport\s+Foundation\b",
+    r"\bfunc\s+\w+\s*\(",
+    r"\b(let|var)\s+\w+\s*:\s*\w+",
+    r"\bclass\s+\w+",
+    r"\bstruct\s+\w+",
+    r"\bprotocol\s+\w+",
+    r"\bextension\s+\w+",
+    r"\bguard\s+let\b",
+    r"\bprint\s*\(",
+    ],
     "Python": [
         r"\bdef\s+\w+\s*\(",
         r"\bimport\s+\w+",
@@ -52,13 +63,13 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"\bint\s+main\s*\(",
         r"::\w+",
     ],
-    "Swift": [
+    "Go": [
         r"\bfunc\s+\w+\s*\(",
-        r"\bvar\s+\w+\s*:",
-        r"\blet\s+\w+\s*=",
-        r"print\s*\(",
-        r"import\s+\w+",
-        r"guard\s+let\b",
+        r"\bpackage\s+\w+",
+        r'\bimport\s+"',
+        r"fmt\.Print",
+        r"\bgo\s+func\b",
+        r":=",
     ],
     "PHP": [
         r"<\?php",
@@ -262,6 +273,7 @@ class BugPattern:
             "C++",
             "PHP",
             "Rust",
+            "Swift",
         ]
     )
 
