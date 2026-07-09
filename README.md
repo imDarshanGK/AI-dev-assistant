@@ -150,6 +150,22 @@ Important variables:
 
 The app can still run without external AI providers when `LLM_ENABLED=false`. Accounts, history, favorites, and live collaboration all work without `LLM_API_KEY` too - only `/chat` upgrades from rule-based to LLM-backed when a key is set.
 
+### Bootstrap sample data (optional)
+
+Populate the database with a sample user, analyses, and configs to explore features:
+
+```bash
+python scripts/bootstrap_db.py
+```
+
+To wipe existing data and start fresh:
+
+```bash
+python scripts/bootstrap_db.py --reset
+```
+
+The sample user is `alice@example.com` / `SamplePass123!`. Run this after the first `uvicorn` start so the database file exists.
+
 | Endpoint | URL |
 |---|---|
 | API root | http://localhost:8000/ |
