@@ -114,7 +114,7 @@ fileInput.addEventListener('change', (e) => {
 });
 
 // ── Clear ──
-document.getElementById('clearBtn').addEventListener('click', () => {
+document.querySelector('.clearBtn').addEventListener('click', () => {
   codeInput.value = '';
   lineCount.textContent = '0 lines';
   resetOutput();
