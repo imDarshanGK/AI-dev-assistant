@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Playground – QyverixAI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="playground-container" style="max-width:700px;margin:40px auto;padding:24px">
+    <h2>Prompt Playground</h2>
+    <label>System Prompt</label>
+    <textarea id="systemInput" rows="2" style="width:100%;margin-bottom:12px"
+      placeholder="You are a helpful assistant..."></textarea>
+    <label>Prompt</label>
+    <textarea id="promptInput" rows="6" style="width:100%;margin-bottom:12px"
+      placeholder="Write your prompt here..."></textarea>
+    <label>Temperature: <span id="tempVal">0.7</span></label>
+    <input type="range" id="tempInput" min="0" max="1" step="0.1" value="0.7"
+      style="width:100%;margin-bottom:16px" />
+    <button id="runBtn">Run</button>
+    <div id="errorBox" style="color:red;margin-top:8px"></div>
+    <div id="responseBox" style="margin-top:16px;padding:12px;background:#f5f5f5;display:none">
+      <strong>Output:</strong>
+      <pre id="outputText" style="white-space:pre-wrap"></pre>
+      <small id="metaText"></small>
+    </div>
+  </div>
+  <script>
+    const tempInput = document.getElementById('tempInput');
+    const tempVal = document.getElementById('tempVal');
+    tempInput.addEventListener('input', () => tempVal.textContent = tempInput.value);
+
+    document.getElementById('runBtn').addEventListener('click', async () => {
+      const prompt = document.getElementById('promptInput').value.trim();
+      const system = document.getElementById('systemInput').value.trim();
+      const errorBox = document.getElementById('errorBox');
+      const responseBox = document.getElementById('responseBox');
+      const runBtn = document.getElementById('runBtn');
+
+      if (!prompt) { errorBox.textContent = 'Prompt cannot be empty.'; return; }
+      errorBox.textContent = '';
+      runBtn.disabled = true;
+      runBtn.textContent = 'Running...';
+
+      try {
+        const res = await fetch('/playground/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            prompt,
+            system,
+            options: { temperature: parseFloat(tempInput.value) }
+          })
+        });
+        if (res.status === 401) { window.location.href = '/'; return; }
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Request failed'); }
+        const data = await res.json();
+        document.getElementById('outputText').textContent = data.output;
+        document.getElementById('metaText').textContent = `Model: ${data.model} · Tokens: ${data.tokens_used}`;
+        responseBox.style.display = 'block';
+      } catch (e) {
+        errorBox.textContent = e.message;
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = 'Run';
+      }
+    });
+  </script>
+</body>
+</html>

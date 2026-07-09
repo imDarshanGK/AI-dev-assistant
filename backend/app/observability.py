@@ -44,6 +44,7 @@ from prometheus_client import (
 # ``Duplicated timeseries in CollectorRegistry`` because they live on the
 # module-global ``prometheus_client.REGISTRY``.
 
+
 def _bool_env(name: str, default: bool) -> bool:
     raw = os.getenv(name)
     if raw is None:
@@ -57,6 +58,7 @@ def metrics_enabled() -> bool:
 
 def metrics_auth_token() -> str | None:
     return os.getenv("METRICS_AUTH_TOKEN") or None
+
 
 # Paths the middleware ignores entirely (the /metrics endpoint must not record
 # itself; static files under /app are noisy and high-cardinality if used as
@@ -72,7 +74,18 @@ _EXCLUDED_PATH_PREFIXES: tuple[str, ...] = (
 # Buckets are chosen for a typical HTTP API: sub-millisecond up to ~30s. The
 # upper bucket of +Inf is added automatically by prometheus_client.
 _LATENCY_BUCKETS_SECONDS: tuple[float, ...] = (
-    0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0,
+    0.005,
+    0.01,
+    0.025,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0,
+    2.5,
+    5.0,
+    10.0,
+    30.0,
 )
 
 REQUESTS_TOTAL = Counter(
@@ -130,7 +143,10 @@ def _endpoint_label(request: Request) -> str:
 
 
 def _should_skip(path: str) -> bool:
-    return any(path == prefix or path.startswith(prefix + "/") for prefix in _EXCLUDED_PATH_PREFIXES)
+    return any(
+        path == prefix or path.startswith(prefix + "/")
+        for prefix in _EXCLUDED_PATH_PREFIXES
+    )
 
 
 # ── Middleware ────────────────────────────────────────────────────────────────

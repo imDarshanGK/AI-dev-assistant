@@ -6,6 +6,8 @@ FastAPI application with advanced middleware, rate limiting, and full analysis e
 import logging
 import os
 import time
+from app.observability import initialise_app_info
+from app.observability import prometheus_metrics_middleware
 from collections import defaultdict
 from contextlib import asynccontextmanager
 
@@ -15,12 +17,20 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import admin, analyze, auth, chat, collaboration, debugging, explanation
-from .routers import health as health_router
-from .routers import history
-from .routers import metrics as metrics_router
-from .routers import share, subscribe, suggestions, upload_file, user_data
+from .routers import (
+    analyze,
+    auth,
+    chat,
+    debugging,
+    explanation,
+    history,
+    playground,
+    share,
+    subscribe,
+    suggestions,
+    upload_file,
+    user_data,
+)
 from .schemas import HealthResponse
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
@@ -172,6 +182,7 @@ async def add_process_time_header(request: Request, call_next):
     ip = request.client.host if request.client else "unknown"
     remaining = RATE_LIMIT
 
+    # Apply rate limiting to analysis endpoints only
     if request.url.path in (
         "/explanation/",
         "/debugging/",
@@ -216,20 +227,13 @@ app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions
 app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
 app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
 app.include_router(history.router, prefix="/history", tags=["History"])
+app.include_router(playground.router, prefix="/playground", tags=["Playground"])
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(admin.router)
 app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
-app.include_router(
-    collaboration.router,
-    prefix="/collaboration",
-    tags=["Collaboration"],
-)
-
-app.include_router(health_router.router)
-app.include_router(metrics_router.router)
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
