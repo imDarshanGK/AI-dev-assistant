@@ -122,7 +122,7 @@ No account required for the core analysis. No API key needed. Works fully offlin
 ### 1 - Clone
 
 ```bash
-git clone [https://github.com/imDarshanGK/AI-dev-assistant.git](https://github.com/imDarshanGK/AI-dev-assistant.git)
+git clone https://github.com/imDarshanGK/AI-dev-assistant.git
 cd AI-dev-assistant
 ```
 
@@ -526,11 +526,11 @@ Run the complete stack (backend + frontend + PostgreSQL) with a single command.
 ### Prerequisites
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed
 
+### 1. Clone the repo
 ```bash
-docker build -t qyverixai .
-docker run -p 8000:8000 qyverixai
+git clone https://github.com/imDarshanGK/AI-dev-assistant.git
+cd AI-dev-assistant
 ```
-### Docker Compose
 
 ### 2. Set up environment variables
 ```bash
@@ -542,18 +542,36 @@ The database is pre-configured in `docker-compose.yml`:
 - **Password:** `postgres`
 - **Database:** `aidevdb`
 
+### 3. Start all services
 ```bash
 docker compose up --build
 ```
 
-Available services:
+This starts three services:
 
-- Frontend → http://localhost:3000
-- Backend API → http://localhost:8000
-- PostgreSQL → localhost:5432
+| Service  | URL                        | Description              |
+|----------|----------------------------|--------------------------|
+| Frontend | http://localhost:3000      | Nginx-served UI          |
+| Backend  | http://localhost:8000      | FastAPI + rule-based engine |
+| Database | localhost:5432             | PostgreSQL 16            |
 
 The backend includes a health check - wait for the log line `Application startup complete` before sending requests.
 
+### 4. Verify everything is running
+```bash
+# Check all containers are up
+docker compose ps
+
+# Hit the health endpoint
+curl http://localhost:8000/healthz/ready
+```
+
+You should see `{"status": "ok"}` (or a `degraded` breakdown if the DB isn't ready yet).
+
+### 5. Open the app
+Navigate to **http://localhost:3000**, set the API URL to `http://localhost:8000`, click **Ping** to confirm the green Connected status, then paste any code and click **Analyze Code**.
+
+### Stop containers
 ```bash
 docker compose down
 ```
@@ -625,7 +643,7 @@ QyverixAI works fully offline with its built-in rule-based engine. To enable ric
 ```env
 LLM_ENABLED=true
 LLM_API_KEY=your-key-here
-LLM_BASE_URL=[https://api.openai.com/v1](https://api.openai.com/v1)
+LLM_BASE_URL=https://api.openai.com/v1
 LLM_MODEL=gpt-4o-mini
 LLM_TIMEOUT_SECONDS=30
 ```
@@ -651,7 +669,7 @@ The backend includes built-in resilience for LLM requests:
 | `RATE_LIMIT_PER_MINUTE` | `30` | Max requests per IP per minute |
 | `LLM_ENABLED` | `false` | Enable LLM provider for `/analyze/` and `/chat` |
 | `LLM_API_KEY` | - | API key for your LLM provider |
-| `LLM_BASE_URL` | `https://api.openai.com/v1` | LLM base URL |
+| `LLM_BASE_URL` | `[https://api.openai.com/v1](https://api.openai.com/v1)` | LLM base URL |
 | `LLM_MODEL` | `gpt-4o-mini` | Model name |
 | `LLM_TIMEOUT_SECONDS` | `30` | Request timeout in seconds |
 | `METRICS_ENABLED` | `true` | Enable `/metrics` — see [Observability](#observability) |
@@ -690,7 +708,7 @@ QyverixAI is a **GSSoC 2026** open source project. Contributors of all levels ar
 ```bash
 # 1. Fork the repo on GitHub
 # 2. Clone your fork
-git clone [https://github.com/YOUR_USERNAME/AI-dev-assistant.git](https://github.com/YOUR_USERNAME/AI-dev-assistant.git)
+git clone https://github.com/YOUR_USERNAME/AI-dev-assistant.git
 
 # 3. Create a branch
 git checkout -b feat/your-feature-name
