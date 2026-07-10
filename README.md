@@ -669,7 +669,7 @@ The backend includes built-in resilience for LLM requests:
 | `RATE_LIMIT_PER_MINUTE` | `30` | Max requests per IP per minute |
 | `LLM_ENABLED` | `false` | Enable LLM provider for `/analyze/` and `/chat` |
 | `LLM_API_KEY` | - | API key for your LLM provider |
-| `LLM_BASE_URL` | `[https://api.openai.com/v1](https://api.openai.com/v1)` | LLM base URL |
+| `LLM_BASE_URL` | `https://api.openai.com/v1` | LLM base URL |
 | `LLM_MODEL` | `gpt-4o-mini` | Model name |
 | `LLM_TIMEOUT_SECONDS` | `30` | Request timeout in seconds |
 | `METRICS_ENABLED` | `true` | Enable `/metrics` — see [Observability](#observability) |
