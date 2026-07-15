@@ -98,7 +98,7 @@ def test_search_history():
     )
     r = client.get("/history/search?q=my_unique_function")
     assert r.status_code == 200
-    results = r.json()
+    results = r.json()["items"]
     assert any("my_unique_function" in e["code_preview"] for e in results)
 
 
@@ -140,7 +140,9 @@ def test_history_entry_fields():
 def test_search_no_results():
     r = client.get("/history/search?q=xyznotfoundever")
     assert r.status_code == 200
-    assert r.json() == []
+    res = r.json()
+    assert res["items"] == []
+    assert res["meta"]["total"] == 0
 
 
 def test_search_history_max_length():
