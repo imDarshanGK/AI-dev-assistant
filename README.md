@@ -716,6 +716,10 @@ git checkout -b feat/your-feature-name
 cd backend && pip install -r requirements.txt
 pytest -v   # all tests must pass
 
+# Optional verification
+uvicorn app.main:app --reload
+# Open http://localhost:8000/docs and confirm the API documentation loads successfully.
+
 # 5. Push and open a pull request
 ```
 
