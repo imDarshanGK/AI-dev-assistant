@@ -2,6 +2,7 @@
 Tests for the /history/ endpoints.
 """
 
+import sys
 import asyncio
 import os
 import sys

@@ -24,6 +24,12 @@ from .routers import share, subscribe, suggestions, upload_file, user_data
 from .schemas import HealthResponse
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
+from .observability import (
+    initialise_app_info,
+    prometheus_metrics_middleware,
+)
+
+from .schemas import HealthResponse
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
 RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
