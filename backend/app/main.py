@@ -15,6 +15,11 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+
+from .database import Base, engine
+from .observability import initialise_app_info, prometheus_metrics_middleware
+from .routers import analyze, auth, chat, debugging, explanation
+
 from .observability import initialise_app_info, prometheus_metrics_middleware
 from .routers import admin, analyze, auth, chat, collaboration, debugging, explanation
 from .routers import health as health_router
@@ -54,15 +59,21 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
     await database.init_db()
+
+    print("QyverixAI backend starting...")
+    # Static info gauge so dashboards can pin version / provider labels.
+
     print("🚀 QyverixAI backend starting…")
+
     initialise_app_info(
         version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
     )
     start_scheduler()
     yield
     stop_scheduler()
-    logging.getLogger(__name__).info("🛑 QyverixAI backend shutting down…")
+    logging.getLogger(__name__).info("QyverixAI backend shutting down...")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -172,6 +183,7 @@ async def add_process_time_header(request: Request, call_next):
     ip = request.client.host if request.client else "unknown"
     remaining = RATE_LIMIT
 
+
     if request.url.path in (
         "/explanation/",
         "/debugging/",
@@ -222,11 +234,13 @@ app.include_router(share.router)
 app.include_router(user_data.router)
 app.include_router(admin.router)
 app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
+
 app.include_router(
     collaboration.router,
     prefix="/collaboration",
     tags=["Collaboration"],
 )
+
 
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)

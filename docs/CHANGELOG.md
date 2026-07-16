@@ -16,6 +16,11 @@ All notable changes to QyverixAI are documented in this file.
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.
 
+
+### Fixed
+- Fixed Weekly Digest "Subscribe" button having no visual feedback in the footer on the live site by correcting the default API URL base to the current origin and adding interactive success/error inline message feedback.
+- Fixed backend Windows lifespan startup UnicodeEncodeError crash caused by emojis in console logs.
+
 ### Security
 - Hardened authentication against token replay: access tokens now carry a
   unique `jti`, and revoked tokens (e.g. after logout) are rejected via a
@@ -23,6 +28,7 @@ All notable changes to QyverixAI are documented in this file.
 - Audit-log entries redact sensitive fields (passwords, tokens, secrets, API
   keys) before they are persisted.
 - Prevent resource exhaustion by adding size constraints (max_length=200) and truncation rules on search query parameter q in GET /history/search.
+
 
 ## [3.0.0] - 2026-06-06
 

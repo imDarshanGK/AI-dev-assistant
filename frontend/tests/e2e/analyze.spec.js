@@ -40,8 +40,28 @@ test('drag-and-drop upload auto-selects the detected language tab', async ({ pag
     return transfer;
   });
 
+
+  await page.locator('#editorWrap').dispatchEvent('drop', { dataTransfer });
+
   await page.locator('.editor-wrap').dispatchEvent('drop', { dataTransfer });
+
 
   await expect(editor).toHaveValue('const answer: number = 42;\n');
   await expect(activeTab).toHaveAttribute('data-lang', 'typescript');
+});
+
+test('subscribes to weekly digest and shows success feedback', async ({ page }) => {
+  await page.goto('/app/');
+
+  const emailInput = page.locator('#digestEmail').first();
+  const subscribeBtn = page.locator('#digestBtn').first();
+  const feedback = page.locator('#digestFeedback').first();
+
+  const testEmail = `test-${Date.now()}@example.com`;
+  await emailInput.fill(testEmail);
+  await subscribeBtn.click();
+
+  await expect(feedback).toBeVisible();
+  await expect(feedback).toHaveText(/subscribed/i);
+  await expect(emailInput).toHaveValue('');
 });

@@ -13,8 +13,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.database import Base, get_db
 from app.main import app as fastapi_app
+
 from app.security import decode_token
 from app.token_denylist import token_denylist
+
 
 TEST_ENGINE = create_engine(
     "sqlite:///:memory:",
@@ -124,6 +126,7 @@ def test_me_rejects_missing_and_invalid_token(client):
     assert "invalid token" in invalid_token_response.json()["detail"].lower()
 
 
+
 def _signup_and_get_token(client, email: str = "replay@example.com") -> str:
     response = client.post(
         "/auth/signup",
@@ -193,3 +196,4 @@ def test_revoking_one_token_leaves_other_sessions_valid(client):
         ).status_code
         == 200
     )
+
