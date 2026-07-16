@@ -15,8 +15,9 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from .config import settings
 from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import admin, analyze, auth, chat, collaboration, debugging, explanation
+from .routers import admin, analyze, auth, chat, collaboration, debugging, dev, explanation
 from .routers import health as health_router
 from .routers import history
 from .routers import metrics as metrics_router
@@ -56,6 +57,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 async def lifespan(app: FastAPI):
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
+    # Static info gauge so dashboards can pin version / provider labels.
     initialise_app_info(
         version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
     )
@@ -172,6 +174,7 @@ async def add_process_time_header(request: Request, call_next):
     ip = request.client.host if request.client else "unknown"
     remaining = RATE_LIMIT
 
+    # Apply rate limiting to analysis endpoints only
     if request.url.path in (
         "/explanation/",
         "/debugging/",
@@ -227,6 +230,9 @@ app.include_router(
     prefix="/collaboration",
     tags=["Collaboration"],
 )
+if not settings.is_production:
+    app.include_router(dev.router)
+    app.include_router(dev.preview_router)
 
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)

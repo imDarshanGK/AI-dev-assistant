@@ -82,5 +82,12 @@ class Settings:
         "DIGEST_BASE_URL", "https://qyverixai.onrender.com"
     )
 
+    # ── Environment ─────────────────────────────────────────────
+    environment: str = os.getenv("ENVIRONMENT", "development").strip().lower()
+
+    @property
+    def is_production(self) -> bool:
+        return self.environment == "production"
+
 
 settings = Settings()

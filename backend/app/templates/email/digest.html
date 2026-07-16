@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}QyverixAI Weekly Digest{% endblock %}
+
+{% block content %}
+<h1>Weekly Digest</h1>
+<p>{{ week_start }} &ndash; {{ week_end }}: here&rsquo;s your code analysis summary.</p>
+
+{% if score_streak_weeks and score_streak_weeks >= 2 %}
+<div class="streak-callout" role="status">
+  <strong>{{ score_streak_weeks }}-week streak!</strong>
+  Your quality score has improved for {{ score_streak_weeks }} consecutive weeks. Keep it up.
+</div>
+{% endif %}
+
+{% if weekly_scores and score_sparkline %}
+<h2>Score trend — last 4 weeks</h2>
+<div class="section-box">
+  <p class="sparkline-row" aria-label="Score trend sparkline">{{ score_sparkline }}</p>
+  <p class="week-labels">
+    {% for week in weekly_scores %}{{ week.label }}{% if not loop.last %} &nbsp;&middot;&nbsp; {% endif %}{% endfor %}
+  </p>
+  <table class="stats-table" role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;">
+    {% for week in weekly_scores %}
+    <tr>
+      <td>{{ week.label }}</td>
+      <td>{% if week.score is not none %}{{ week.score }}/100{% else %}&mdash;{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<h2>This week at a glance</h2>
+<table class="stats-table" role="presentation" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td>Analyses run</td>
+    <td>{{ total_analyses }}</td>
+  </tr>
+  <tr>
+    <td>Languages</td>
+    <td>{{ languages | join(', ') }}</td>
+  </tr>
+  {% if avg_score is not none %}
+  <tr>
+    <td>Average score</td>
+    <td>{{ avg_score }}/100{% if improvement is not none %} ({{ trend_arrow }} {{ improvement | abs }}% vs last week){% endif %}</td>
+  </tr>
+  {% endif %}
+  <tr>
+    <td>Issues found</td>
+    <td>{{ total_issues }}</td>
+  </tr>
+  {% if top_bug %}
+  <tr>
+    <td>Most common bug</td>
+    <td>{{ top_bug }}</td>
+  </tr>
+  {% endif %}
+</table>
+
+{% if focus_recommendations %}
+<h2>Focus for next week</h2>
+<div class="section-box">
+  <ul style="margin:0;padding-left:18px;">
+    {% for item in focus_recommendations %}
+    <li>{{ item }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<p style="margin-top:24px;">
+  <a class="btn-primary" href="{{ app_url }}">Open QyverixAI</a>
+</p>
+
+{% if feedback_up_url and feedback_down_url %}
+<p class="feedback-links">
+  Was this digest helpful?
+  <a href="{{ feedback_up_url }}">&#128077; Yes</a>
+  <a href="{{ feedback_down_url }}">&#128078; No</a>
+</p>
+{% endif %}
+{% endblock %}
+
+{% block footer_extra %}
+<p style="margin:0 0 8px;">This email was sent to {{ email }} because you subscribed to the QyverixAI weekly digest.</p>
+{% endblock %}

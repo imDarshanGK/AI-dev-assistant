@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{% block title %}QyverixAI{% endblock %}</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100% !important;
+      background-color: #f4f1ec;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #1a1b2e;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    .preheader {
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      color: transparent;
+      height: 0;
+      width: 0;
+      max-height: 0;
+      max-width: 0;
+      overflow: hidden;
+      mso-hide: all;
+      font-size: 1px;
+      line-height: 1px;
+    }
+    .email-wrapper {
+      width: 100%;
+      background-color: #f4f1ec;
+      padding: 24px 12px;
+    }
+    .email-container {
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+    .email-header {
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      background-color: #7c3aed;
+      padding: 20px 24px;
+      text-align: center;
+    }
+    .brand-mark {
+      display: inline-block;
+      vertical-align: middle;
+      width: 28px;
+      height: 28px;
+      margin-right: 8px;
+      background-color: #5b9cf6;
+      border-radius: 6px;
+    }
+    .brand-name {
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+    .email-body {
+      background-color: #1a1b2e;
+      padding: 32px 24px;
+      color: #f5f5f7;
+    }
+    .email-body h1 {
+      margin: 0 0 16px;
+      font-size: 24px;
+      line-height: 1.3;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .email-body h2 {
+      margin: 28px 0 12px;
+      font-size: 17px;
+      line-height: 1.4;
+      font-weight: 600;
+      color: #ffffff;
+    }
+    .email-body p {
+      margin: 0 0 16px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #e8e8ed;
+    }
+    .email-body ul {
+      margin: 0 0 16px;
+      padding-left: 20px;
+      color: #e8e8ed;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .email-body li {
+      margin-bottom: 8px;
+    }
+    .email-body a {
+      color: #a78bfa;
+      text-decoration: underline;
+    }
+    .section-box {
+      margin-top: 20px;
+      padding: 16px 18px;
+      background-color: #252640;
+      border: 1px solid #3d3d5c;
+      border-radius: 8px;
+    }
+    .btn-primary {
+      display: inline-block;
+      margin-top: 8px;
+      margin-right: 8px;
+      padding: 12px 28px;
+      background-color: #7c3aed;
+      color: #ffffff !important;
+      text-decoration: none !important;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.4;
+      text-align: center;
+    }
+    .btn-secondary {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 12px 24px;
+      background-color: transparent;
+      border: 2px solid #7c3aed;
+      color: #c4b5fd !important;
+      text-decoration: none !important;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.4;
+      text-align: center;
+    }
+    .notice-box {
+      margin-top: 20px;
+      padding: 14px 16px;
+      background-color: #2d2d44;
+      border-left: 4px solid #f59e0b;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #e8e8ed;
+    }
+    .streak-callout {
+      margin-top: 20px;
+      padding: 14px 16px;
+      background-color: #1e3a2f;
+      border-left: 4px solid #22d47b;
+      border-radius: 4px;
+      font-size: 15px;
+      line-height: 1.5;
+      color: #d1fae5;
+    }
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      border: 1px solid #3d3d5c;
+    }
+    .stats-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #3d3d5c;
+      font-size: 15px;
+      color: #e8e8ed;
+    }
+    .stats-table td:last-child {
+      text-align: right;
+      font-weight: 600;
+      color: #ffffff;
+    }
+    .stats-table tr:last-child td {
+      border-bottom: none;
+    }
+    .security-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    .security-table td {
+      padding: 8px 0;
+      font-size: 14px;
+      color: #c4c4d4;
+      border-bottom: 1px solid #3d3d5c;
+    }
+    .security-table td:first-child {
+      color: #9ca3af;
+      width: 42%;
+    }
+    .security-table tr:last-child td {
+      border-bottom: none;
+    }
+    .metric-cards {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    .metric-card {
+      width: 33.33%;
+      padding: 6px;
+      vertical-align: top;
+    }
+    .metric-card-inner {
+      background-color: #252640;
+      border: 1px solid #3d3d5c;
+      border-radius: 8px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+    .metric-value {
+      display: block;
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+    .metric-label {
+      display: block;
+      font-size: 12px;
+      color: #9ca3af;
+      line-height: 1.3;
+    }
+    .onboarding-step {
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      background-color: #252640;
+      border-radius: 6px;
+      border-left: 3px solid #7c3aed;
+    }
+    .onboarding-step strong {
+      color: #ffffff;
+      font-size: 15px;
+    }
+    .onboarding-step span {
+      display: block;
+      margin-top: 4px;
+      font-size: 14px;
+      color: #c4c4d4;
+      line-height: 1.5;
+    }
+    .sparkline-row {
+      margin-top: 8px;
+      font-size: 28px;
+      letter-spacing: 4px;
+      color: #a78bfa;
+      line-height: 1;
+    }
+    .week-labels {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 6px;
+      letter-spacing: 0;
+    }
+    .feedback-links {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #9ca3af;
+      text-align: center;
+    }
+    .feedback-links a {
+      color: #a78bfa;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+    .email-footer {
+      padding: 20px 24px;
+      background-color: #f5f4f0;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #5c5c6e;
+    }
+    .email-footer a {
+      color: #5c5c6e;
+      text-decoration: underline;
+    }
+    .footer-links {
+      margin: 8px 0;
+    }
+    @media only screen and (max-width: 600px) {
+      .email-wrapper {
+        padding: 12px 8px;
+      }
+      .email-body {
+        padding: 24px 16px;
+      }
+      .email-body h1 {
+        font-size: 20px;
+      }
+      .email-body p,
+      .btn-primary,
+      .btn-secondary {
+        font-size: 15px;
+      }
+      .btn-primary,
+      .btn-secondary {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        margin-right: 0;
+      }
+      .metric-card {
+        display: block;
+        width: 100% !important;
+        padding: 4px 0;
+      }
+    }
+    @media only screen and (max-width: 320px) {
+      .brand-name {
+        font-size: 18px;
+      }
+      .email-body h1 {
+        font-size: 18px;
+      }
+      .sparkline-row {
+        font-size: 22px;
+        letter-spacing: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+  {% if preheader %}
+  <div class="preheader">{{ preheader }}</div>
+  {% endif %}
+  <div class="email-wrapper">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center">
+          <table class="email-container" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+            <tr>
+              <td class="email-header">
+                <span class="brand-mark" aria-hidden="true"></span>
+                <p class="brand-name">QyverixAI</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-body">
+                {% block content %}{% endblock %}
+              </td>
+            </tr>
+            <tr>
+              <td class="email-footer">
+                {% block footer_extra %}{% endblock %}
+                <p style="margin:0 0 6px;">QyverixAI &middot; MIT open source</p>
+                <p class="footer-links" style="margin:0 0 6px;">
+                  <a href="{{ privacy_url }}">Privacy Policy</a>
+                  &middot;
+                  <a href="{{ terms_url }}">Terms</a>
+                  &middot;
+                  <a href="{{ preferences_url }}">Notification Preferences</a>
+                </p>
+                {% if unsubscribe_url %}
+                <p style="margin:0;"><a href="{{ unsubscribe_url }}">Unsubscribe</a></p>
+                {% endif %}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
