@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+import json
+from datetime import datetime, timedelta, timezone
+
+# Standard Python 3.10 compatible global fallback object mapping
+UTC = timezone.utc
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -78,6 +82,7 @@ def test_expired_share_returns_404(monkeypatch, tmp_path):
 
     db = session_local()
 
+    # Clear standard datetime mapping targeting current timezone config
     record = SharedSnippet(
         token="expired123",
         code="print('old')",
