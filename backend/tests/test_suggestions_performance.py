@@ -2,7 +2,6 @@ import time
 
 from app.services.code_assistant import run_suggestions
 
-
 CODE = """
 import requests
 
