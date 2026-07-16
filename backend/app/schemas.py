@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
 import json
 from typing import Any
 
@@ -368,24 +368,8 @@ class SignupRequest(BaseModel):
         return v
 
 
-class LoginRequest(BaseModel):
-    """Request body for user login."""
-
-    email: str = Field(
-        ...,
-        min_length=5,
-        max_length=320,
-        description="The registered email address.",
-        example="dev@example.com",
-    )
-    password: str = Field(
-        ...,
-        min_length=8,
-        max_length=128,
-        description="The account password.",
-        example="supersecret123",
-    )
-
+class SubscribeRequest(BaseModel):
+    email: EmailStr
 
 class AuthResponse(BaseModel):
     """Response returned after successful signup or login."""
@@ -409,29 +393,23 @@ class AuthResponse(BaseModel):
         example="dev@example.com",
     )
 
+class SubscribeResponse(BaseModel):
+    message: str
+    email: EmailStr
 
 class UserProfileResponse(BaseModel):
     """Public user profile returned by GET /auth/me."""
 
-    user_id: int = Field(
-        ..., description="Internal numeric user identifier.", example=42
-    )
-    email: str = Field(
-        ...,
-        description="The authenticated user's email address.",
-        example="dev@example.com",
-    )
+class UnsubscribeRequest(BaseModel):
+    email: EmailStr
+    token: str
 
 
-class MessageResponse(BaseModel):
-    """Generic success message returned by actions without a richer payload."""
+class SignupRequest(BaseModel):
+    """Request body for creating a new user account."""
 
-    message: str = Field(
-        ...,
-        description="Human-readable description of the action's outcome.",
-        example="Logged out; token revoked.",
-    )
-
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128)
 
 # ── Admin / Audit ─────────────────────────────────────────────────────────────
 class RoleUpdateRequest(BaseModel):
@@ -503,44 +481,27 @@ class HealthResponse(BaseModel):
         example=["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
     )
 
+class LoginRequest(BaseModel):
+    """Request body for user login."""
 
-class LivenessResponse(BaseModel):
-    """Liveness probe response — emitted only when the process can answer HTTP."""
-
-    status: str = Field(
-        ..., description="Always `ok` when this response is returned.", example="ok"
-    )
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128)
 
 
-class ReadinessResponse(BaseModel):
-    """Readiness probe response with a per-dependency breakdown.
+
+class AuthResponse(BaseModel):
+    """Response returned after successful authentication.
 
     `status` is `ok` only when every entry in `checks` has `ok: true`.
     Each entry contains at minimum `ok` (bool) and `elapsed_ms` (float),
     plus an optional `error` field when the check failed.
     """
 
-    status: str = Field(
-        ...,
-        description="`ok` when all dependency checks pass, `degraded` otherwise.",
-        example="degraded",
-    )
-    checks: dict[str, dict[str, Any]] = Field(
-        ...,
-        description="Per-dependency check results.",
-        example={
-            "database": {
-                "ok": False,
-                "elapsed_ms": 2003.41,
-                "error": "OperationalError: connection refused",
-            }
-        },
-    )
+    access_token: str
+    token_type: str = "bearer"
+    user_id: int
+    email: EmailStr
 
-
-# ── Subscribe ─────────────────────────────────────────────────────────────────
-class SubscribeRequest(BaseModel):
-    """Request body for newsletter subscription."""
 
     email: str = Field(
         ...,
@@ -559,8 +520,8 @@ class SubscribeRequest(BaseModel):
         return v
 
 
-class SubscribeResponse(BaseModel):
-    """Confirmation returned after a successful subscription."""
+    user_id: int
+    email: EmailStr
 
     message: str = Field(
         ...,
