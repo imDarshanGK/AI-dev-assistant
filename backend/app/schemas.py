@@ -433,6 +433,57 @@ class MessageResponse(BaseModel):
     )
 
 
+# ── Admin / Audit ─────────────────────────────────────────────────────────────
+class RoleUpdateRequest(BaseModel):
+    """Request body for promoting or demoting a user's admin role."""
+
+    is_admin: bool = Field(
+        ...,
+        description="Whether the target user should have administrator privileges.",
+        example=True,
+    )
+
+
+class AuditLogRecord(BaseModel):
+    """A single immutable audit-trail entry for a privileged action."""
+
+    id: int = Field(..., description="Audit entry identifier.", example=1)
+    actor_id: int | None = Field(
+        None,
+        description="User id of the admin who performed the action (null if removed).",
+        example=42,
+    )
+    actor_email: str = Field(
+        ...,
+        description="Email of the admin who performed the action.",
+        example="admin@example.com",
+    )
+    action: str = Field(
+        ...,
+        description="Machine-readable action name.",
+        example="user.role_update",
+    )
+    target_type: str | None = Field(
+        None, description="Type of the entity acted upon.", example="user"
+    )
+    target_id: str | None = Field(
+        None, description="Identifier of the entity acted upon.", example="7"
+    )
+    details: dict[str, Any] | None = Field(
+        None,
+        description="Additional context for the action, with sensitive fields redacted.",
+        example={"is_admin": True},
+    )
+    ip_address: str | None = Field(
+        None, description="Source IP address of the request.", example="203.0.113.5"
+    )
+    created_at: str = Field(
+        ...,
+        description="ISO-8601 timestamp of when the action occurred.",
+        example="2026-06-24T12:30:00+00:00",
+    )
+
+
 # ── Health ────────────────────────────────────────────────────────────────────
 class HealthResponse(BaseModel):
     """Generic health / status response."""
@@ -730,6 +781,11 @@ class ShareRecord(BaseModel):
         ...,
         description="Short unique identifier for this share.",
         example="aB3xYz",
+    )
+    user_id: int | None = Field(
+        default=None,
+        description="ID of the user who created the share, or null if anonymous.",
+        example=42,
     )
     action: str = Field(..., description="Analysis type.", example="analyze")
     code: str = Field(..., description="The shared source code.")
