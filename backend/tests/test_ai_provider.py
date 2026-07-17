@@ -358,11 +358,11 @@ class TestCallLlmErrors:
         finally:
             patcher.stop()
         assert result is None
-    
+
     @pytest.mark.asyncio
-    async def test_retries_on_500_error(self,enabled_env):
+    async def test_retries_on_500_error(self, enabled_env):
         mod = _reload_module(enabled_env)
-        
+
         mock_client = AsyncMock()
         mock_client.post = AsyncMock(
             side_effect=httpx.HTTPStatusError(
@@ -378,15 +378,16 @@ class TestCallLlmErrors:
 
             with patch("app.services.ai_provider.asyncio.sleep", new=AsyncMock()):
                 result = await mod.call_llm("sys", "usr")
-            
+
         assert result is None
         assert mock_client.post.call_count == mod.LLM_MAX_RETRIES + 1
+
     @pytest.mark.asyncio
-    async def test_retries_on_429_error(self,enabled_env):
-        mod=_reload_module(enabled_env)
-        
-        mock_client=AsyncMock()
-        mock_client.post=AsyncMock(
+    async def test_retries_on_429_error(self, enabled_env):
+        mod = _reload_module(enabled_env)
+
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(
             side_effect=httpx.HTTPStatusError(
                 "HTTP 429",
                 request=MagicMock(),
@@ -395,21 +396,21 @@ class TestCallLlmErrors:
         )
 
         with patch("app.services.ai_provider.httpx.AsyncClient") as MockCls:
-            MockCls.return_value.__aenter__=AsyncMock(return_value=mock_client)
-            MockCls.return_value.__aexit__=AsyncMock(return_value=False)
+            MockCls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            MockCls.return_value.__aexit__ = AsyncMock(return_value=False)
 
             with patch("app.services.ai_provider.asyncio.sleep", new=AsyncMock()):
-                result=await mod.call_llm("sys","usr")
+                result = await mod.call_llm("sys", "usr")
 
         assert result is None
         assert mock_client.post.call_count == mod.LLM_MAX_RETRIES + 1
 
     @pytest.mark.asyncio
-    async def test_retries_on_401_error(self,enabled_env):
-        mod=_reload_module(enabled_env)
+    async def test_retries_on_401_error(self, enabled_env):
+        mod = _reload_module(enabled_env)
 
-        mock_client=AsyncMock()
-        mock_client.post=AsyncMock(
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(
             side_effect=httpx.HTTPStatusError(
                 "HTTP 401",
                 request=MagicMock(),
@@ -418,8 +419,8 @@ class TestCallLlmErrors:
         )
 
         with patch("app.services.ai_provider.httpx.AsyncClient") as MockCls:
-            MockCls.return_value.__aenter__=AsyncMock(return_value=mock_client)
-            MockCls.return_value.__aexit__=AsyncMock(return_value=False)
+            MockCls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            MockCls.return_value.__aexit__ = AsyncMock(return_value=False)
 
             result = await mod.call_llm("sys", "usr")
         assert result is None
