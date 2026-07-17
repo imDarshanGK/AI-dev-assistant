@@ -17,9 +17,20 @@ from fastapi.staticfiles import StaticFiles
 
 from .observability import initialise_app_info, prometheus_metrics_middleware
 from .routers import (
-    admin, analyze, auth, chat, collaboration, debugging,
-    explanation, history, preview, share, subscribe,
-    suggestions, upload_file, user_data,
+    admin,
+    analyze,
+    auth,
+    chat,
+    collaboration,
+    debugging,
+    explanation,
+    history,
+    preview,
+    share,
+    subscribe,
+    suggestions,
+    upload_file,
+    user_data,
 )
 from .routers import health as health_router
 from .routers import metrics as metrics_router
@@ -213,7 +224,7 @@ async def add_cache_header(request: Request, call_next):
     return response
 
 
-#──Routers───────────────────────────────────────────────────────────────────
+# ──Routers───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
 app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
