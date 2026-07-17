@@ -41,15 +41,24 @@ def _bool_env(name: str, default: bool) -> bool:
     return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _required_env(name: str) -> str:
-    """Get a required environment variable. Raise error if not set."""
+def _required_env(name: str, dev_default: str | None = None) -> str:
+    """Get a required environment variable. Raise error if not set (except in dev).
+
+    If dev_default is provided and ENVIRONMENT is 'development', use the default.
+    Otherwise, require the value to be set.
+    """
     value = os.getenv(name)
-    if not value or not value.strip():
-        raise ValueError(
-            f"Required environment variable '{name}' is not set. "
-            f"Please set it before starting the application."
-        )
-    return value
+    if value and value.strip():
+        return value
+
+    environment = os.getenv("ENVIRONMENT", "").lower()
+    if environment == "development" and dev_default:
+        return dev_default
+
+    raise ValueError(
+        f"Required environment variable '{name}' is not set. "
+        f"Please copy .env.example to .env and configure it, or set {name} in your environment."
+    )
 
 
 class Settings:
@@ -71,7 +80,7 @@ class Settings:
     enable_docs: bool = _bool_env("ENABLE_DOCS", False)
     public_root_info: bool = _bool_env("PUBLIC_ROOT_INFO", False)
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./assistant.db")
-    jwt_secret: str = _required_env("JWT_SECRET")
+    jwt_secret: str = _required_env("JWT_SECRET", dev_default="dev-secret-key-minimum-32-bytes-for-testing")
     jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_minutes: int = _int_env("ACCESS_TOKEN_MINUTES", 720)
     llm_enabled: bool = _bool_env("LLM_ENABLED", False)
