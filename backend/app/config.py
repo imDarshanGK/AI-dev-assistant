@@ -80,7 +80,9 @@ class Settings:
     enable_docs: bool = _bool_env("ENABLE_DOCS", False)
     public_root_info: bool = _bool_env("PUBLIC_ROOT_INFO", False)
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./assistant.db")
-    jwt_secret: str = _required_env("JWT_SECRET", dev_default="dev-secret-key-minimum-32-bytes-for-testing")
+    jwt_secret: str = _required_env(
+        "JWT_SECRET", dev_default="dev-secret-key-minimum-32-bytes-for-testing"
+    )
     jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_minutes: int = _int_env("ACCESS_TOKEN_MINUTES", 720)
     llm_enabled: bool = _bool_env("LLM_ENABLED", False)
