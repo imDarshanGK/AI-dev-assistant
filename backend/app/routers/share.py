@@ -6,8 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import SharedSnippet
+from ..models import SharedSnippet, User
 from ..schemas import ShareCreateRequest, ShareRecord
+from ..security import get_current_user
 
 router = APIRouter(prefix="/share", tags=["Share"])
 
@@ -17,9 +18,11 @@ MAX_SHARE_CODE_BYTES = 50 * 1024  # 50KB
 
 
 @router.post("/", response_model=ShareRecord)
-def create_share(payload: ShareCreateRequest, db: Session = Depends(get_db)):
-    # ensure tables exist on the engine (tests monkeypatch `database.engine`)
-    # ensure tables exist on the current DB bind (use the session's bind)
+def create_share(
+    payload: ShareCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     from ..database import Base as _Base
 
     _Base.metadata.create_all(bind=db.get_bind())
@@ -48,6 +51,7 @@ def create_share(payload: ShareCreateRequest, db: Session = Depends(get_db)):
 
     record = SharedSnippet(
         token=token,
+        user_id=current_user.id,
         code=payload.code,
         result_json=json.dumps(payload.result),
     )
@@ -57,6 +61,7 @@ def create_share(payload: ShareCreateRequest, db: Session = Depends(get_db)):
 
     return ShareRecord(
         id=record.token,
+        user_id=record.user_id,
         action=payload.action,
         code=record.code,
         result=json.loads(record.result_json),
@@ -81,7 +86,7 @@ def get_share(token: str, db: Session = Depends(get_db)):
 
         raw = db.execute(
             text(
-                "SELECT token, code, result_json, created_at FROM shares WHERE token = :t"
+                "SELECT token, user_id, code, result_json, created_at FROM shares WHERE token = :t"
             ),
             {"t": token},
         ).first()
@@ -92,7 +97,7 @@ def get_share(token: str, db: Session = Depends(get_db)):
             )
 
         # parse created_at which may be string or datetime
-        token_val, code_val, result_json_val, created_at_val = raw
+        token_val, user_id_val, code_val, result_json_val, created_at_val = raw
         import datetime as _dt
 
         created_at = created_at_val
@@ -123,6 +128,7 @@ def get_share(token: str, db: Session = Depends(get_db)):
 
         return ShareRecord(
             id=token_val,
+            user_id=user_id_val,
             action="share",
             code=code_val,
             result=json.loads(result_json_val),
@@ -143,6 +149,7 @@ def get_share(token: str, db: Session = Depends(get_db)):
 
     return ShareRecord(
         id=record.token,
+        user_id=record.user_id,
         action="share",
         code=record.code,
         result=json.loads(record.result_json),
