@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -17,14 +17,18 @@ router = APIRouter(prefix="/user", tags=["User Data"])
 
 @router.get("/history", response_model=list[HistoryRecord])
 def list_history(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     records = (
         db.execute(
             select(QueryHistory)
             .where(QueryHistory.user_id == current_user.id)
             .order_by(QueryHistory.id.desc())
-            .limit(50)
+            .limit(limit)
+            .offset(offset)
         )
         .scalars()
         .all()
@@ -83,7 +87,7 @@ def delete_history(
             status_code=status.HTTP_404_NOT_FOUND, detail="History record not found"
         )
 
-    db.execute(delete(QueryHistory).where(QueryHistory.id == history_id))
+    db.delete(record)
     db.commit()
     return {"status": "deleted", "history_id": history_id}
 
@@ -102,14 +106,18 @@ def clear_history(
 
 @router.get("/favorites", response_model=list[FavoriteRecord])
 def list_favorites(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     records = (
         db.execute(
             select(FavoriteResult)
             .where(FavoriteResult.user_id == current_user.id)
             .order_by(FavoriteResult.id.desc())
-            .limit(50)
+            .limit(limit)
+            .offset(offset)
         )
         .scalars()
         .all()
@@ -171,7 +179,7 @@ def delete_favorite(
             status_code=status.HTTP_404_NOT_FOUND, detail="Favorite not found"
         )
 
-    db.execute(delete(FavoriteResult).where(FavoriteResult.id == favorite_id))
+    db.delete(record)
     db.commit()
     return {"status": "deleted", "favorite_id": favorite_id}
 
