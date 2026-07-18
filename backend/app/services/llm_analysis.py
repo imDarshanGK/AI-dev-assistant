@@ -55,19 +55,54 @@ class LLMAnalysisClient:
 
     @staticmethod
     def _extract_json(raw_text: str) -> dict:
-        candidate = raw_text.strip()
-        if candidate.startswith("```"):
-            candidate = candidate.strip("`")
-            if candidate.startswith("json"):
-                candidate = candidate[4:]
-            candidate = candidate.strip()
+        import re
 
-        start = candidate.find("{")
-        end = candidate.rfind("}")
-        if start == -1 or end == -1 or end <= start:
-            raise LLMAnalysisError("invalid_json_payload")
+        text = raw_text.strip()
 
-        return json.loads(candidate[start : end + 1])
+        # 1. Try to extract from markdown code blocks first
+        code_block_patterns = [
+            r"```json\s*(.*?)\s*```",
+            r"```\s*(.*?)\s*```"
+        ]
+        for pattern in code_block_patterns:
+            matches = re.findall(pattern, text, re.DOTALL | re.IGNORECASE)
+            for match in matches:
+                candidate = match.strip()
+                try:
+                    return json.loads(candidate)
+                except json.JSONDecodeError:
+                    pass
+
+        # 2. Try the largest possible block first (from first '{' to last '}')
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            candidate = text[start : end + 1]
+            try:
+                return json.loads(candidate)
+            except json.JSONDecodeError:
+                pass
+
+        # 3. Balance-based brace scanning
+        # For each '{', scan forward to find the matching '}' where braces are balanced.
+        # This is O(N) where N is the number of characters in the response, very fast.
+        for i in range(len(text)):
+            if text[i] == '{':
+                balance = 0
+                for j in range(i, len(text)):
+                    if text[j] == '{':
+                        balance += 1
+                    elif text[j] == '}':
+                        balance -= 1
+                        if balance == 0:
+                            candidate = text[i : j + 1]
+                            try:
+                                return json.loads(candidate)
+                            except json.JSONDecodeError:
+                                # Try other options
+                                break
+
+        raise LLMAnalysisError("invalid_json_payload")
 
     async def summarize_code(self, code: str, language_guess: str) -> str:
         if not self.enabled:
