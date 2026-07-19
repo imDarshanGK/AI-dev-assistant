@@ -98,7 +98,7 @@ class DigestSubscription(Base):
     subscribed_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
     )
-    last_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_sent_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
 
 class SharedSnippet(Base):
@@ -106,11 +106,16 @@ class SharedSnippet(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"), nullable=True, index=True
+    )
     code: Mapped[str] = mapped_column(Text)
     result_json: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
     )
+
+    owner = relationship("User", foreign_keys=[user_id])
 
 
 class AuditLog(Base):
@@ -124,15 +129,15 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    actor_id: Mapped[int | None] = mapped_column(
+    actor_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), index=True, nullable=True
     )
     actor_email: Mapped[str] = mapped_column(String(320))
     action: Mapped[str] = mapped_column(String(100), index=True)
-    target_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    target_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    details: Mapped[str | None] = mapped_column(Text, nullable=True)
-    ip_address: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    target_type: Mapped[str] = mapped_column(String(50), nullable=True)
+    target_id: Mapped[str] = mapped_column(String(64), nullable=True)
+    details: Mapped[str] = mapped_column(Text, nullable=True)
+    ip_address: Mapped[str] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC), index=True
     )
