@@ -1186,6 +1186,73 @@ details.issue-card[open] {
       margin-top: 3px
     }
 
+    /* ── Comment Input ── */
+    .comment-input {
+      width: 100%;
+      min-height: 42px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      padding: 10px 12px;
+      resize: vertical;
+      font-family: inherit;
+      font-size: 0.85rem;
+      transition: all var(--transition);
+    }
+
+    .comment-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+    }
+
+    /* ── Comment Button ── */
+    .comment-btn {
+      background: var(--bg2);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: var(--r2);
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .comment-btn:hover {
+      border-color: var(--accent);
+      background: var(--bg3);
+    }
+
+    /* ── Comment Card ── */
+    .comment-card {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .comment-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text3);
+      margin-bottom: 6px;
+    }
+
+    .comment-body {
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    /* ── Comments Title ── */
+    .comments-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      margin-bottom: 12px;
+    }
+
     /* ── Explanation Cards ── */
     .explain-summary {
       padding: 16px;
@@ -3271,6 +3338,7 @@ details.issue-card[open] {
       let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
+      let globalCommentsByFinding = {};
       let selectedLang = 'python';
       const LOCAL_API_BASE = 'http://localhost:8000';
       const REMOTE_API_BASE = 'https://qyverixai.onrender.com';
@@ -3423,9 +3491,26 @@ details.issue-card[open] {
       }
 
       function getApiBase() {
-        const configuredBase = ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || '').trim();
-        if (configuredBase) return configuredBase.replace(/\/$/, '');
-        return window.location.protocol === 'file:' ? REMOTE_API_BASE : LOCAL_API_BASE;
+        return "http://127.0.0.1:8000";
+      }
+
+      function getCurrentShareId() {
+        const match = window.location.pathname.match(/\/share\/([^/]+)/);
+
+        if (match) {
+          return match[1];
+        }
+
+        // Dev mode
+        if (location.protocol === "file:" || location.pathname.includes("index.html")) {
+          return "test_share";
+        }
+
+        return null;
+      }
+
+      function isSharedReportView() {
+        return !!getCurrentShareId();
       }
 
       function getApiFallbackBase(base) {
@@ -4100,7 +4185,52 @@ details.issue-card[open] {
       </div>
     </div>`;
 
-        const cards = dbg.issues.map((issue, i) => `
+        const cards = dbg.issues.map((issue, i) => {
+          const issueId = issue.id;
+          const issueComments = globalCommentsByFinding[issueId] || [];
+
+          let commentsHTML = ``;
+          if (issueComments.length === 0) {
+            commentsHTML += `
+              <div class="comment-empty">
+                No comments yet.
+              </div>
+            `;
+          }
+
+          issueComments.forEach(comment => {
+            commentsHTML += `
+              <div class="comment-card">
+                <div class="comment-meta">
+                  <span class="comment-author"><strong>${escHtml(comment.author)}</strong></span>
+                  <span class="comment-date">${new Date(comment.created_at).toLocaleDateString()}</span>
+                </div>
+                <div class="comment-body">${escHtml(comment.text)}</div>
+              </div>
+            `;
+          });
+
+          const commentSection = `
+            <div class="comments-section">
+              <div class="comments-title">Team Notes</div>
+              ${commentsHTML}
+              <div class="comment-input-wrapper">
+                <textarea
+                  id="input-${issueId}"
+                  class="comment-input"
+                  placeholder="Add a team note..."
+                ></textarea>
+                <button
+                  class="comment-btn"
+                  onclick="submitComment('${issueId}')"
+                >
+                  Post Note
+                </button>
+              </div>
+            </div>
+          `;
+
+          return `
   <details class="issue-card ${issue.severity}"
            style="animation-delay:${i * 0.05}s">
 
@@ -4123,16 +4253,12 @@ details.issue-card[open] {
         : ''}
 
       <div class="issue-fix">${issue.suggestion}</div>
+      ${commentSection}
     </div>
 
   </details>
-`).join('');
-
-        el.innerHTML = statBar + cards;
-      }
-
-      /* ═══════════════════════════════════════════════════════════════
-         PURE-JS LINE DIFF (LCS-based)
+`;
+        }).join('');
       ═══════════════════════════════════════════════════════════════ */
       function computeDiff(originalText, fixedText) {
         const aLines = originalText.split('\n');
@@ -5278,6 +5404,78 @@ int main() {
           btn.textContent = 'Subscribe';
         }
       });
+
+      async function fetchAndGroupComments() {
+        const shareId = getCurrentShareId();
+        if (!shareId) {
+          globalCommentsByFinding = {};
+          return;
+        }
+
+        try {
+          const base = getApiBase();
+          const response = await fetch(`${base}/share/${shareId}/comments`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch comments');
+          }
+
+          const comments = await response.json();
+          globalCommentsByFinding = {};
+
+          comments.forEach(comment => {
+            const key = comment.finding_id;
+            if (!globalCommentsByFinding[key]) {
+              globalCommentsByFinding[key] = [];
+            }
+            globalCommentsByFinding[key].push(comment);
+          });
+        } catch (err) {
+          console.error('Comment fetch error:', err);
+        }
+      }
+
+      async function submitComment(findingId) {
+        const shareId = getCurrentShareId() || 'local-test-session';
+
+
+        const input = document.getElementById(`input-${findingId}`);
+        const text = input.value.trim();
+        if (!text) return;
+
+        try {
+          const base = getApiBase();
+          const response = await fetch(
+            `${base}/share/${shareId}/findings/${findingId}/comments`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text, author: 'Developer' })
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error('Failed to save comment');
+          }
+
+          const comment = await response.json();
+          if (!globalCommentsByFinding[findingId]) {
+            globalCommentsByFinding[findingId] = [];
+          }
+          globalCommentsByFinding[findingId].push(comment);
+
+          input.value = '';
+          if (currentResult && currentResult.debugging) {
+            renderDebug(currentResult.debugging);
+          }
+
+          toast('Comment added', 'success');
+        } catch (err) {
+          console.error(err);
+          toast('Failed to save comment', 'error');
+        }
+      }
+
+      window.submitComment = submitComment;
     </script>
 
 <script>
