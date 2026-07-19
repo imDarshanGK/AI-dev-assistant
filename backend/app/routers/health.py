@@ -28,6 +28,7 @@ from fastapi import APIRouter, Response, status
 from sqlalchemy import text
 
 from ..database import engine
+from ..logging_config import get_effective_levels
 from ..schemas import LivenessResponse, ReadinessResponse
 
 router = APIRouter(prefix="/healthz", tags=["System"])
@@ -105,3 +106,21 @@ async def readiness(response: Response) -> ReadinessResponse:
         status="ok" if overall_ok else "degraded",
         checks=checks,
     )
+
+
+# ── Logging diagnostics ───────────────────────────────────────────────────────
+@router.get(
+    "/log-levels",
+    summary="Effective logging levels per component",
+    description=(
+        "Returns the currently active log level for each known backend "
+        "component. Useful to confirm LOG_LEVEL / LOG_LEVEL_<COMPONENT> "
+        "environment variables took effect after a deploy or restart. "
+        "Logging levels are read at process startup — changing the level "
+        "for a running process requires a restart, since Python's logging "
+        "module is configured once via dictConfig in this app."
+    ),
+    include_in_schema=False,
+)
+async def log_levels() -> dict[str, str]:
+    return get_effective_levels()
