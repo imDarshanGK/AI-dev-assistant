@@ -782,6 +782,11 @@ class ShareRecord(BaseModel):
         description="Short unique identifier for this share.",
         example="aB3xYz",
     )
+    user_id: int | None = Field(
+        default=None,
+        description="ID of the user who created the share, or null if anonymous.",
+        example=42,
+    )
     action: str = Field(..., description="Analysis type.", example="analyze")
     code: str = Field(..., description="The shared source code.")
     result: dict[str, Any] = Field(..., description="The shared analysis result.")
