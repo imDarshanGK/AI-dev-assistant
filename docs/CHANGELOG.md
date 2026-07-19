@@ -12,6 +12,10 @@ All notable changes to QyverixAI are documented in this file.
   queryable `GET /admin/audit-logs` endpoint and admin-gated user role
   management (`PUT /admin/users/{id}/role`) and deletion
   (`DELETE /admin/users/{id}`).
+- Added finding suppression support for debugging results.
+- Added frontend integration for suppressing individual findings.
+- Added backend persistence and API support for suppressed findings.
+- Added automated tests for the finding suppression workflow.
 
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.
@@ -34,7 +38,7 @@ All notable changes to QyverixAI are documented in this file.
 - Documentation and contribution guidance for GSSoC 2026 contributors.
 
 ### Fixed
-- N/A
+- Updated the debugging interface after suppressing findings to keep the active results synchronized.
 
 ### Security
 - N/A

@@ -109,3 +109,16 @@ class AuditLog(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC), index=True
     )
+
+
+class Suppression(Base):
+    __tablename__ = "suppressions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    issue_type: Mapped[str] = mapped_column(String(200), index=True)
+    line: Mapped[int] = mapped_column(Integer, nullable=True)
+    reason: Mapped[str] = mapped_column(Text)
+    scope: Mapped[str] = mapped_column(String(20), default="project", index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(UTC), index=True
+    )

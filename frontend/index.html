@@ -4223,6 +4223,36 @@ details.issue-card[open] {
         }
       }
 
+      function removeSuppressedIssue(issueType, issueLine) {
+        if (!currentResult?.debugging?.issues) return;
+
+        const normalizedIssueLine = issueLine ? Number(issueLine) : null;
+        const nextIssues = currentResult.debugging.issues.filter((issue) => {
+          const sameType = issue.type === issueType;
+          const sameLine = issue.line == null ? normalizedIssueLine == null : Number(issue.line) === normalizedIssueLine;
+          return !(sameType && sameLine);
+        });
+
+        const updatedDebugging = {
+          ...currentResult.debugging,
+          issues: nextIssues,
+          clean: nextIssues.length === 0,
+          error_count: nextIssues.filter(issue => issue.severity === 'error').length,
+          warning_count: nextIssues.filter(issue => issue.severity === 'warning').length,
+          info_count: nextIssues.filter(issue => issue.severity === 'info').length,
+          summary: nextIssues.length
+            ? `Found ${nextIssues.length} issue(s): ${nextIssues.filter(issue => issue.severity === 'error').length} error(s), ${nextIssues.filter(issue => issue.severity === 'warning').length} warning(s), ${nextIssues.filter(issue => issue.severity === 'info').length} info.`
+            : '✅ No issues detected!',
+        };
+
+        currentResult = {
+          ...currentResult,
+          debugging: updatedDebugging,
+        };
+
+        renderDebug(updatedDebugging);
+      }
+
       function openSuppressDialog(issueType, issueLine) {
         closeSuppressDialog();
 
@@ -4255,10 +4285,11 @@ details.issue-card[open] {
                 <label><input type="radio" name="suppressScope" value="project" checked> This Project</label>
                 <label><input type="radio" name="suppressScope" value="global"> Global</label>
               </div>
+              <div id="suppressError" class="toast error" style="display:none; margin-top:4px;"></div>
             </div>
             <div class="suppress-dialog-actions">
               <button type="button" class="btn btn-secondary suppress-cancel">Cancel</button>
-              <button type="button" class="btn btn-primary suppress-submit">Suppress</button>
+              <button type="button" class="btn btn-primary suppress-submit" disabled>Suppress</button>
             </div>
           </div>
         `;
@@ -4266,6 +4297,16 @@ details.issue-card[open] {
         document.body.appendChild(modal);
         document.body.classList.add('modal-open');
         document.addEventListener('keydown', handleSuppressDialogEscape);
+
+        const reasonInput = modal.querySelector('#suppressReason');
+        const submitButton = modal.querySelector('.suppress-submit');
+        const errorBox = modal.querySelector('#suppressError');
+
+        const updateSubmitState = () => {
+          submitButton.disabled = !reasonInput.value.trim();
+        };
+
+        reasonInput.addEventListener('input', updateSubmitState);
 
         modal.addEventListener('click', (event) => {
           if (event.target === modal) {
@@ -4275,25 +4316,55 @@ details.issue-card[open] {
 
         modal.querySelector('.suppress-dialog-close').addEventListener('click', closeSuppressDialog);
         modal.querySelector('.suppress-cancel').addEventListener('click', closeSuppressDialog);
-        modal.querySelector('.suppress-submit').addEventListener('click', () => {
-          const reasonInput = modal.querySelector('#suppressReason');
-          const scopeInput = modal.querySelector('input[name="suppressScope"]:checked');
+        modal.querySelector('.suppress-submit').addEventListener('click', async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
 
-          if (!reasonInput.value.trim()) {
+          const scopeInput = modal.querySelector('input[name="suppressScope"]:checked');
+          const reason = reasonInput.value.trim();
+
+          if (!reason) {
             reasonInput.focus();
-            reasonInput.reportValidity();
+            errorBox.textContent = 'Please enter a reason before suppressing.';
+            errorBox.style.display = 'flex';
             return;
           }
 
-          console.log({
-            issue_type: issueType,
-            line: issueLine || 0,
-            reason: reasonInput.value.trim(),
-            scope: scopeInput ? scopeInput.value : 'project'
-          });
+          submitButton.disabled = true;
+          submitButton.textContent = 'Suppressing…';
+          errorBox.style.display = 'none';
 
-          closeSuppressDialog();
+          try {
+            const base = getApiBase();
+            const response = await fetchWithApiFallback(base, '/debugging/suppress', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                issue_type: issueType,
+                line: issueLine || null,
+                reason,
+                scope: scopeInput ? scopeInput.value : 'project'
+              }),
+              signal: AbortSignal.timeout(30000),
+            });
+
+            if (!response.response.ok) {
+              const err = await response.response.json().catch(() => ({}));
+              throw new Error(err.detail || err.message || `HTTP ${response.response.status}`);
+            }
+
+            toast('Issue suppressed successfully', 'success');
+            removeSuppressedIssue(issueType, issueLine);
+            closeSuppressDialog();
+          } catch (error) {
+            errorBox.textContent = error.message || 'Unable to suppress issue.';
+            errorBox.style.display = 'flex';
+            submitButton.disabled = false;
+            submitButton.textContent = 'Suppress';
+          }
         });
+
+        updateSubmitState();
       }
 
       function renderDebug(dbg) {
@@ -4356,8 +4427,9 @@ details.issue-card[open] {
 
       <div class="issue-actions">
         <button
+          type="button"
           class="suppress-btn"
-          onclick="openSuppressDialog('${issue.type}', ${issue.line || 0})">
+          onclick="event.preventDefault(); event.stopPropagation(); openSuppressDialog('${issue.type}', ${issue.line || 0})">
           Suppress
         </button>
       </div>
