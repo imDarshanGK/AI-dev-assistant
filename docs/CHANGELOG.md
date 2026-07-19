@@ -31,6 +31,7 @@ All notable changes to QyverixAI are documented in this file.
 - Code analysis features for explain, debug, and improve workflows.
 - Frontend and backend integration with local history, share links, and file upload support.
 - API endpoints for explanation, debugging, suggestions, analysis, and share.
+- Added a protected `GET /diag` system diagnostics endpoint returning minimal, non-sensitive JSON (process/system memory, CPU, and queue depth). Disabled by default (`DIAG_ENABLED`) and guarded by an admin bearer token (`DIAG_AUTH_TOKEN`) and/or an IP allowlist (`DIAG_IP_ALLOWLIST`). Closes #628.
 - Documentation and contribution guidance for GSSoC 2026 contributors.
 
 ### Fixed

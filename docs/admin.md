@@ -39,11 +39,11 @@ print(response.text)
 
 **With auth token:**
 ```bash
-curl -H "Authorization: Bearer mysecrettoken" http://localhost:8000/metrics
+curl -H "put_auth_headers_here" http://localhost:8000/metrics
 ```
 ```python
 import requests
-headers = {"Authorization": "Bearer mysecrettoken"}
+headers = "put auth headers here in the form of {\'key\': \'value\'}"
 response = requests.get("http://localhost:8000/metrics", headers=headers)
 print(response.text)
 ```
@@ -55,6 +55,93 @@ print(response.text)
 | `200` | Prometheus-formatted metrics payload |
 | `401` | Missing or invalid bearer token |
 | `404` | Metrics disabled via `METRICS_ENABLED=false` |
+
+> **Note:** This endpoint is excluded from the OpenAPI schema (`include_in_schema=False`). It will not appear in `/docs` or `/redoc`.
+
+---
+
+## `GET /diag`
+
+Returns a minimal JSON snapshot of process/system **memory, CPU, and queue depth** for quick troubleshooting. The payload is deliberately limited to non-sensitive operational signals — it never includes environment variables, secrets, connection strings, tokens, or request contents.
+
+### Safety model
+
+- **Disabled by default.** Returns `404` unless `DIAG_ENABLED=true`, so its existence is not advertised.
+- **Never unguarded.** Even when enabled, the endpoint returns `403` unless at least one access control is configured.
+- **Two ways in.** A request is authorised if it presents the correct bearer token **or** originates from an allowlisted IP/CIDR.
+
+### Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `DIAG_ENABLED` | No (default: `false`) | Master switch. Returns `404` while disabled. |
+| `DIAG_AUTH_TOKEN` | No | Admin bearer token. When set, a matching `Authorization: Bearer <token>` grants access. |
+| `DIAG_IP_ALLOWLIST` | No | Comma-separated IPs and/or CIDRs allowed access (e.g. `10.0.0.0/8,127.0.0.1`). |
+| `DIAG_TRUST_FORWARDED_FOR` | No (default: `false`) | Trust the left-most `X-Forwarded-For` entry for the allowlist check. Only enable behind a trusted proxy. |
+
+> At least one of `DIAG_AUTH_TOKEN` or `DIAG_IP_ALLOWLIST` must be set, otherwise the endpoint returns `403`.
+
+### Example Request
+
+```bash
+curl -H "put_auth_headers_here" http://localhost:8000/diag
+```
+```python
+import requests
+headers = "put auth headers here in the form of {\'key\': \'value\'}"
+response = requests.get("http://localhost:8000/diag", headers=headers)
+print(response.json())
+```
+
+### Example Response
+
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-05-30T12:00:00+00:00",
+  "uptime_seconds": 1342.51,
+  "process": {
+    "pid": 42,
+    "memory_rss_bytes": 78643200,
+    "memory_rss_mb": 75.0,
+    "memory_percent": 1.83,
+    "num_threads": 9,
+    "cpu_user_seconds": 4.21,
+    "cpu_system_seconds": 1.07,
+    "num_fds": 23
+  },
+  "system": {
+    "cpu_count": 4,
+    "load_average": [0.31, 0.27, 0.22],
+    "cpu_percent": 6.0,
+    "memory_total_bytes": 8323039232,
+    "memory_available_bytes": 5123440640,
+    "memory_percent": 38.4
+  },
+  "queue": {
+    "inflight_requests": 1.0,
+    "scheduled_jobs": 1,
+    "rate_limited_clients": 0
+  },
+  "runtime": {
+    "python_version": "3.12.3",
+    "platform": "linux",
+    "psutil_available": true,
+    "gc_objects": 51234
+  }
+}
+```
+
+> `inflight_requests` includes the diagnostics request currently being served, so `1` under no other load is expected. Richer `process`/`system` fields require the optional `psutil` dependency; without it the endpoint degrades to stdlib-only metrics (`load_average`, `getrusage` CPU times, and `VmRSS` on Linux), and `runtime.psutil_available` reports `false`.
+
+### Responses
+
+| Status | Meaning |
+|---|---|
+| `200` | Diagnostics snapshot |
+| `401` | Token configured but missing/invalid (and IP not allowlisted) |
+| `403` | Enabled but unconfigured, or client IP not in allowlist |
+| `404` | Diagnostics disabled via `DIAG_ENABLED` unset/false |
 
 > **Note:** This endpoint is excluded from the OpenAPI schema (`include_in_schema=False`). It will not appear in `/docs` or `/redoc`.
 

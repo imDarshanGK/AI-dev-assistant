@@ -17,7 +17,16 @@ from fastapi.staticfiles import StaticFiles
 
 from .logging_config import configure_logging
 from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import admin, analyze, auth, chat, collaboration, debugging, explanation
+from .routers import (
+    admin,
+    analyze,
+    auth,
+    chat,
+    collaboration,
+    debugging,
+    diagnostics,
+    explanation,
+)
 from .routers import health as health_router
 from .routers import history
 from .routers import metrics as metrics_router
@@ -232,6 +241,7 @@ app.include_router(
 
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)
+app.include_router(diagnostics.router)
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
