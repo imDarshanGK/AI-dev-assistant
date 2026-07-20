@@ -59,6 +59,12 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
 
+    if getattr(user, "deletion_status", "active") == "pending_deletion":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account is pending deletion",
+        )
+
     token = create_access_token(user.id)
     return AuthResponse(access_token=token, user_id=user.id, email=user.email)
 
