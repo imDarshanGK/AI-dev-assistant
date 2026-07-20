@@ -15,8 +15,9 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from .logging_config import configure_logging
 from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import analyze, auth, chat, collaboration, debugging, explanation
+from .routers import admin, analyze, auth, chat, collaboration, debugging, explanation
 from .routers import health as health_router
 from .routers import history
 from .routers import metrics as metrics_router
@@ -54,6 +55,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    configure_logging()
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
     initialise_app_info(
@@ -143,6 +145,10 @@ Obtain a token via `POST /auth/login` and pass it as `Authorization: Bearer <tok
             "description": "Email newsletter subscription and unsubscription.",
         },
         {
+            "name": "Admin",
+            "description": "Administrator-only operations (user role management, account deletion) and a queryable, append-only audit log of privileged actions.",
+        },
+        {
             "name": "System",
             "description": "Root info, legacy health check, and ping endpoints.",
         },
@@ -216,6 +222,7 @@ app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
 app.include_router(user_data.router)
+app.include_router(admin.router)
 app.include_router(upload_file.router, prefix="/upload", tags=["Upload File"])
 app.include_router(
     collaboration.router,

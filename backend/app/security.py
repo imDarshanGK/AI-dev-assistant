@@ -94,4 +94,24 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
 
+    if getattr(user, "deletion_status", "active") == "pending_deletion":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User is pending deletion",
+        )
+
     return user
+
+
+def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Allow the request only if the authenticated user is an admin.
+
+    Returns the user on success; raises ``403`` otherwise. Layered on top of
+    ``get_current_user`` so unauthenticated callers still receive ``401``.
+    """
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrator privileges required",
+        )
+    return current_user
