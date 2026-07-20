@@ -177,6 +177,19 @@ class ExplanationResponse(BaseModel):
         description="Risk label derived from cyclomatic complexity: Low, Medium, High, or Very High.",
         example="Low",
     )
+    issue_complexity: dict | None = Field(
+        default=None,
+        description=(
+            "Automatically computed complexity badge. "
+            "Contains: level ('easy'|'medium'|'hard'), label ('🟢 Easy'|…), score (int), tooltip (str)."
+        ),
+        example={
+            "level": "easy",
+            "label": "🟢 Easy",
+            "score": 12,
+            "tooltip": "beginner-level code",
+        },
+    )
 
 
 # ── Suggestions ───────────────────────────────────────────────────────────────
@@ -274,6 +287,19 @@ class AnalyzeResponse(BaseModel):
         default=None,
         description="Total time taken to run all three analyses, in milliseconds.",
         example=1.84,
+    )
+    issue_complexity: dict | None = Field(
+        default=None,
+        description=(
+            "Automatically computed complexity badge for the full analysis. "
+            "Contains: level ('easy'|'medium'|'hard'), label ('🟢 Easy'|…), score (int), tooltip (str)."
+        ),
+        example={
+            "level": "medium",
+            "label": "🟡 Medium",
+            "score": 42,
+            "tooltip": "Based on: intermediate-level code, 2 warning(s)",
+        },
     )
 
 

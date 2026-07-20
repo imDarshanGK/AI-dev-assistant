@@ -427,11 +427,116 @@ async function runAnalysis() {
 }
 
 // ── Render Output ──
+// ── Issue Complexity Badge ──────────────────────────────────────────────────
+/**
+ * Compute issue complexity from analysis data using lightweight heuristics:
+ *  - Explanation: complexity field + cyclomatic_complexity + line_count
+ *  - Debugging: number/severity of issues
+ *  - Suggestions: overall_score
+ *  Returns { level: 'easy'|'medium'|'hard', label: '🟢 Easy'|..., score, reason }
+ */
+function computeComplexity(data, mode) {
+  let score = 0;
+  const reasons = [];
+
+  if (mode === 'analyze' || mode === 'explanation') {
+    const ex = (mode === 'analyze' ? data.explanation : data) || {};
+
+    // 1. Semantic complexity level
+    const lvl = (ex.complexity || '').toLowerCase();
+    if (lvl === 'beginner') { score += 0; reasons.push('beginner-level code'); }
+    else if (lvl === 'intermediate') { score += 35; reasons.push('intermediate-level code'); }
+    else if (lvl === 'advanced') { score += 55; reasons.push('advanced-level code'); }
+
+    // 2. Cyclomatic complexity
+    const cc = ex.cyclomatic_complexity || 0;
+    if (cc <= 5) { score += 0; }
+    else if (cc <= 10) { score += 15; reasons.push(`cyclomatic complexity ${cc}`); }
+    else if (cc <= 20) { score += 30; reasons.push(`high cyclomatic complexity (${cc})`); }
+    else { score += 45; reasons.push(`very high cyclomatic complexity (${cc})`); }
+
+    // 3. Line count
+    const lines = ex.line_count || 0;
+    if (lines > 200) { score += 20; reasons.push(`${lines} lines`); }
+    else if (lines > 80) { score += 10; reasons.push(`${lines} lines`); }
+
+    // 4. Classes / functions (structural complexity)
+    const structs = (ex.function_count || 0) + (ex.class_count || 0);
+    if (structs > 10) { score += 15; }
+    else if (structs > 4) { score += 7; }
+  }
+
+  if (mode === 'analyze' || mode === 'debugging') {
+    const dg = (mode === 'analyze' ? data.debugging : data) || {};
+    const issues = dg.issues || [];
+    const errors = issues.filter(i => i.severity === 'error').length;
+    const warnings = issues.filter(i => i.severity === 'warning').length;
+    score += errors * 12 + warnings * 5;
+    if (errors > 0) reasons.push(`${errors} error(s)`);
+    if (warnings > 0) reasons.push(`${warnings} warning(s)`);
+  }
+
+  if (mode === 'analyze' || mode === 'suggestions') {
+    const sg = (mode === 'analyze' ? data.suggestions : data) || {};
+    const qualityScore = sg.overall_score;
+    if (qualityScore !== undefined) {
+      // Low quality score = more complex / problematic
+      if (qualityScore < 45) { score += 25; reasons.push(`quality score ${qualityScore}/100`); }
+      else if (qualityScore < 70) { score += 10; }
+    }
+  }
+
+  // Map score → level
+  let level, emoji, label;
+  if (score < 30) {
+    level = 'easy'; emoji = '🟢'; label = 'Easy';
+  } else if (score < 65) {
+    level = 'medium'; emoji = '🟡'; label = 'Medium';
+  } else {
+    level = 'hard'; emoji = '🔴'; label = 'Hard';
+  }
+
+  const tooltipText = reasons.length
+    ? `Based on: ${reasons.slice(0, 3).join(', ')}`
+    : 'Complexity estimated from code structure';
+
+  return { level, emoji, label, score, tooltip: tooltipText };
+}
+
+function renderComplexityBadge(data, mode) {
+  const { level, emoji, label, tooltip } = computeComplexity(data, mode);
+  return `<span class="complexity-badge ${level}" data-tooltip="${escHtml(tooltip)}" title="${escHtml(tooltip)}">
+    <span class="badge-dot"></span>${emoji} ${label}
+  </span>`;
+}
+
+function renderComplexityBanner(data, mode) {
+  // Prefer pre-computed backend value if available (analyze mode)
+  let cx;
+  if (data.issue_complexity) {
+    const b = data.issue_complexity;
+    cx = { level: b.level, emoji: b.label.split(' ')[0], label: b.label.replace(/^\S+\s*/, ''), tooltip: b.tooltip };
+  } else {
+    cx = computeComplexity(data, mode);
+  }
+  const { level, emoji, label, tooltip } = cx;
+  return `<div class="complexity-banner">
+    <span class="banner-label">Issue Complexity:</span>
+    <span class="complexity-badge ${level}" data-tooltip="${escHtml(tooltip)}" title="${escHtml(tooltip)}">
+      <span class="badge-dot"></span>${emoji} ${label}
+    </span>
+    <span style="color:var(--text-3);font-size:11px">${escHtml(tooltip)}</span>
+  </div>`;
+}
+
 function renderResult(data, mode) {
   let html = '';
   let text = '';
 
   if (mode === 'analyze') {
+    // Complexity badge at top of full analysis
+    html += renderComplexityBanner(data, 'analyze');
+
     // Full analysis
     if (data.explanation) {
       const ex = data.explanation;
@@ -480,6 +585,7 @@ function renderResult(data, mode) {
       text += cards.map(c => `[${c.category}] ${c.description}`).join('\n');
     }
   } else if (mode === 'explanation') {
+    html += renderComplexityBanner(data, 'explanation');
     html += `<div class="result-section">
       <h4>Language</h4>
       <div class="result-text">${escHtml(data.language || 'Auto-detected')}</div>
@@ -495,6 +601,7 @@ function renderResult(data, mode) {
     text = `Language: ${data.language}\n${data.summary}\n${(data.key_points || []).join('\n')}`;
   } else if (mode === 'debugging') {
     const issues = data.issues || [];
+    html += renderComplexityBanner(data, 'debugging');
     html += `<div class="result-section">
       <h4>Issues Found (${issues.length})</h4>
       <div class="result-text">
@@ -511,6 +618,7 @@ function renderResult(data, mode) {
     text = issues.map(i => `[${i.type}] Line ${i.line}: ${i.description}\nFix: ${i.suggestion}`).join('\n');
   } else if (mode === 'suggestions') {
     const cards = data.suggestions || [];
+    html += renderComplexityBanner(data, 'suggestions');
     html += `<div class="result-section">
       <h4>Suggestions (${cards.length})</h4>
       <div class="result-text">
