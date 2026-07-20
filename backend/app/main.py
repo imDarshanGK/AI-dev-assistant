@@ -326,3 +326,42 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "Internal server error. Please try again."},
     )
+import time
+from fastapi import FastAPI, Request
+
+# 1. Global in-memory metrics storage
+START_TIME = time.time()
+APP_VERSION = "3.0.0"
+
+METRICS = {
+    "total_requests": 0,
+    "total_analyses": 0,
+    "languages_detected": {
+        "Python": 0,
+        "JavaScript": 0,
+        "TypeScript": 0,
+        "Java": 0,
+        "C++": 0
+    }
+}
+
+# 2. Middleware to capture usage statistics automatically
+@app.middleware("http")
+async def collect_metrics(request: Request, call_next):
+    METRICS["total_requests"] += 1
+    if "/analyze" in request.url.path and request.method == "POST":
+        METRICS["total_analyses"] += 1
+    response = await call_next(request)
+    return response
+
+# 3. The metrics route
+@app.get("/metrics")
+async def get_metrics():
+    uptime = int(time.time() - START_TIME)
+    return {
+        "total_requests": METRICS["total_requests"],
+        "total_analyses": METRICS["total_analyses"],
+        "languages_detected": METRICS["languages_detected"],
+        "uptime_seconds": uptime,
+        "version": APP_VERSION
+    }
