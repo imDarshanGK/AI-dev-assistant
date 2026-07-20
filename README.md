@@ -12,6 +12,7 @@
 <br/>
 
 [![CI](https://github.com/imDarshanGK/AI-dev-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/imDarshanGK/AI-dev-assistant/actions)
+[![Coverage Status](https://coveralls.io/repos/github/imDarshanGK/AI-dev-assistant/badge.svg?branch=main)](https://coveralls.io/github/imDarshanGK/AI-dev-assistant?branch=main)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://python.org)
