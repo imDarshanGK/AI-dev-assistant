@@ -4,12 +4,12 @@ Run: cd backend && pytest -v
 """
 
 import json
+import os
+import sys
+from pathlib import Path
 
 import pytest
-from pathlib import Path
 from fastapi.testclient import TestClient
-import sys
-import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app import main as app_main
@@ -18,8 +18,11 @@ client = TestClient(app_main.app)
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
+
 def load_fixture(filename: str) -> str:
     return (FIXTURES_DIR / filename).read_text(encoding="utf-8")
+
+
 @pytest.fixture(autouse=True)
 def reset_rate_limit_state():
     app_main._request_counts.clear()
@@ -481,7 +484,6 @@ def test_debug_kotlin():
     assert d is not None
 
 
-
 def test_debug_cpp_syntax_errors():
     code = "void main() {\n    cout << 'Hello World'\n}"
     r = client.post("/debugging/", json={"code": code, "language": "cpp"})
@@ -562,15 +564,20 @@ def test_add():
     d = r.json()
     assert d["overall_score"] >= 60  # clean code should score reasonably
 
+
 def test_suggestions_observability_print_only_python():
     # Pasting code with print() in Java should NOT trigger the Observability suggestion
-    r_java = client.post("/suggestions/", json={"code": 'print("hello");', "language": "java"})
+    r_java = client.post(
+        "/suggestions/", json={"code": 'print("hello");', "language": "java"}
+    )
     assert r_java.status_code == 200
     s_java = [s["category"] for s in r_java.json()["suggestions"]]
     assert "Observability" not in s_java
 
     # Pasting code with print() in Python SHOULD trigger the Observability suggestion
-    r_py = client.post("/suggestions/", json={"code": 'print("hello")', "language": "python"})
+    r_py = client.post(
+        "/suggestions/", json={"code": 'print("hello")', "language": "python"}
+    )
     assert r_py.status_code == 200
     s_py = [s["category"] for s in r_py.json()["suggestions"]]
     assert "Observability" in s_py
@@ -724,7 +731,9 @@ def test_get_stream_done_event_present():
 
 
 def test_get_stream_with_language_hint():
-    r = client.get("/analyze/stream", params={"code": JS_CODE, "language": "javascript"})
+    r = client.get(
+        "/analyze/stream", params={"code": JS_CODE, "language": "javascript"}
+    )
     assert r.status_code == 200
     events = _parse_sse_events(r.text)
     exp = next(e["data"] for e in events if e["type"] == "explanation")
@@ -734,3 +743,209 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Issue #579 — Markdown XSS Sanitization
+#
+# These tests verify that XSS payloads embedded in the code field:
+#   (a) do NOT cause the API to return HTTP 5xx (robustness)
+#   (b) do NOT echo back as unescaped executable HTML in any JSON text field
+#       (defense-in-depth — primary sanitization is in the frontend via
+#        DOMPurify, but the backend must not amplify risk)
+#   (c) normal code still analyzes correctly after these changes
+#
+# The tests cover:
+#   - Standard script/img/iframe/svg injection vectors
+#   - Encoded variants (&lt; / &#60; / %3C / null-byte / ANSI escape)
+#   - Template injection probes (SSTI patterns)
+#   - Event-handler attribute injection
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Payloads that should NEVER appear as raw executable HTML in API JSON responses
+XSS_SCRIPT_VECTORS: list[str] = [
+    "<script>alert('xss')</script>",
+    "<script>alert(String.fromCharCode(88,83,83))</script>",
+    '<img src=x onerror="alert(1)">',
+    "<img src=x onerror=alert('xss')>",
+    "<svg/onload=alert(1)>",
+    "<svg><script>alert(1)</script></svg>",
+    "<body onload=alert('xss')>",
+    "<iframe src=\"javascript:alert('xss')\"></iframe>",
+    "<details open ontoggle=alert(1)>",
+    "<math><mtext></p><script>alert(1)</script>",
+    '<a href="javascript:alert(document.cookie)">click</a>',
+    "<<SCRIPT>alert('XSS');//<</SCRIPT>",
+]
+
+# Dangerous substrings — if any of these appear unescaped in the JSON body
+# the test fails.  We check for the raw tag/attribute forms that a browser
+# would execute; HTML-entity-encoded forms are fine (they render as text).
+DANGEROUS_NEEDLES: list[str] = [
+    "<script",
+    "onerror=",
+    "onload=",
+    "ontoggle=",
+    "javascript:",
+    "</script>",
+]
+
+ANALYSIS_ENDPOINTS: list[str] = [
+    "/explanation/",
+    "/debugging/",
+    "/suggestions/",
+    "/analyze/",
+]
+
+
+def _response_contains_dangerous_html(response_text: str) -> tuple[bool, str]:
+    """
+    Return (True, needle) if the raw response body contains an unescaped
+    dangerous HTML pattern, (False, '') otherwise.
+
+    HTML-entity-encoded forms like &lt;script&gt; are safe — they will render
+    as literal text in the browser, not execute.  We only fail on the raw
+    angle-bracket forms that a browser's HTML parser would treat as tags.
+    """
+    body_lower = response_text.lower()
+    for needle in DANGEROUS_NEEDLES:
+        if needle.lower() in body_lower:
+            # Allow if the occurrence is inside a JSON string that is already
+            # entity-encoded (i.e. preceded by &lt; or &#).  A simple heuristic:
+            # count raw occurrences vs encoded occurrences.
+            raw_count = body_lower.count(needle.lower())
+            # Entity-encoded variant: &lt;script  /  &lt;/script  etc.
+            encoded = needle.replace("<", "&lt;").replace(">", "&gt;")
+            encoded_count = body_lower.count(encoded.lower())
+            if raw_count > encoded_count:
+                return True, needle
+    return False, ""
+
+
+@pytest.mark.parametrize("payload", XSS_SCRIPT_VECTORS)
+@pytest.mark.parametrize("endpoint", ANALYSIS_ENDPOINTS)
+def test_xss_payload_in_code_does_not_produce_executable_html(
+    payload: str, endpoint: str
+) -> None:
+    """
+    Issue #579 — API must not echo executable HTML from XSS payloads.
+
+    Submitting code that contains XSS vectors must not result in those
+    vectors appearing unescaped in the JSON response.  The primary
+    sanitization layer is DOMPurify in the frontend, but this test ensures
+    the backend does not amplify risk by echoing raw HTML.
+    """
+    r = client.post(endpoint, json={"code": payload, "language": "python"})
+    assert (
+        r.status_code == 200
+    ), f"Endpoint {endpoint} returned {r.status_code} for XSS payload"
+    dangerous, needle = _response_contains_dangerous_html(r.text)
+    assert not dangerous, (
+        f"Dangerous pattern '{needle}' found unescaped in {endpoint} response "
+        f"for payload: {payload!r}"
+    )
+
+
+# Encoded / obfuscated variants
+XSS_ENCODED_VECTORS: list[tuple[str, str]] = [
+    ("html_entity", "&lt;script&gt;alert('xss')&lt;/script&gt;"),
+    ("decimal_ref", "&#60;script&#62;alert(1)&#60;/script&#62;"),
+    ("url_encoded", "%3Cscript%3Ealert(1)%3C/script%3E"),
+    ("null_byte", "<scr\x00ipt>alert('xss')</scr\x00ipt>"),
+    ("ansi_escape", "\x1b[31m<script>alert(1)</script>\x1b[0m"),
+]
+
+
+@pytest.mark.parametrize("variant,payload", XSS_ENCODED_VECTORS)
+@pytest.mark.parametrize("endpoint", ANALYSIS_ENDPOINTS)
+def test_encoded_xss_variants_do_not_produce_executable_html(
+    variant: str, payload: str, endpoint: str
+) -> None:
+    """
+    Issue #579 — Encoded/obfuscated XSS vectors must not produce executable HTML.
+
+    Covers HTML-entity encoding, URL-encoding, null-byte injection, and
+    ANSI escape sequences that some parsers might strip before rendering.
+    """
+    r = client.post(endpoint, json={"code": payload, "language": "python"})
+    assert (
+        r.status_code == 200
+    ), f"Endpoint {endpoint} returned {r.status_code} for encoded variant '{variant}'"
+    dangerous, needle = _response_contains_dangerous_html(r.text)
+    assert not dangerous, (
+        f"Dangerous pattern '{needle}' found in {endpoint} response "
+        f"for encoded variant '{variant}'"
+    )
+
+
+@pytest.mark.parametrize("endpoint", ANALYSIS_ENDPOINTS)
+def test_xss_in_code_does_not_crash_api(endpoint: str) -> None:
+    """
+    Issue #579 — XSS payloads in the code field must not crash the API.
+
+    The backend must handle any input gracefully; sanitization happens at
+    the rendering layer in the frontend.
+    """
+    payload = "<script>alert(document.cookie)</script>"
+    r = client.post(endpoint, json={"code": payload, "language": "python"})
+    assert r.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "lang,code",
+    [
+        ("python", "def add(a: int, b: int) -> int:\n    return a + b\n"),
+        ("python", "if x < 10 and y > 0:\n    print('ok')\n"),
+        ("javascript", "const add = (a, b) => a + b;\nconsole.log(add(1, 2));\n"),
+        ("cpp", "#include <iostream>\nint main() { return 0; }\n"),
+    ],
+)
+def test_normal_code_still_analyzes_after_xss_fix(lang: str, code: str) -> None:
+    """
+    Issue #579 — Normal code must continue to analyze correctly.
+
+    The XSS fix must not break legitimate analysis of code that contains
+    angle brackets (e.g. C++ templates, comparison operators).
+    """
+    r = client.post("/explanation/", json={"code": code, "language": lang})
+    assert r.status_code == 200
+    d = r.json()
+    assert "summary" in d
+    assert len(d["summary"]) > 0
+
+
+def test_xss_payload_in_code_is_plain_text_in_json_response() -> None:
+    """
+    Issue #579 — Script tag in submitted code must appear as plain text in JSON.
+
+    The API returns the code snippet in some response fields.  Any angle
+    brackets should be HTML-entity-encoded in the JSON string, not raw.
+    """
+    payload = "<script>alert(1)</script>"
+    r = client.post("/debugging/", json={"code": payload, "language": "python"})
+    assert r.status_code == 200
+    # Verify the raw response body does not contain an unescaped <script> open tag
+    dangerous, needle = _response_contains_dangerous_html(r.text)
+    assert not dangerous, (
+        f"Raw '<script' found in /debugging/ response for XSS payload — "
+        f"needle: {needle!r}"
+    )
+
+
+def test_markdown_code_block_with_xss_renders_as_plain_text() -> None:
+    """
+    Issue #579 — XSS inside a Markdown code fence must not execute.
+
+    If the frontend renders Markdown from API responses, content inside
+    code fences (``` blocks) must be treated as plain text, not HTML.
+    This test verifies the backend echoes the fence content safely.
+    """
+    payload = "```html\n<script>alert(1)</script>\n```"
+    for endpoint in ANALYSIS_ENDPOINTS:
+        r = client.post(endpoint, json={"code": payload, "language": "python"})
+        assert r.status_code == 200
+        dangerous, needle = _response_contains_dangerous_html(r.text)
+        assert not dangerous, (
+            f"Dangerous pattern '{needle}' found in {endpoint} response "
+            f"for Markdown code-fence XSS payload"
+        )

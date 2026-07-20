@@ -4,11 +4,32 @@ Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Ru
 """
 
 from __future__ import annotations
+
 import ast
+import html
 import re
 import time
-from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+
+from .ast_analyzer import analyze as ast_analyze
+
+
+def _escape_snippet(raw: str | None) -> str | None:
+    """HTML-escape a code snippet before storing it in an issue dict.
+
+    Prevents XSS vectors embedded in user-submitted code from appearing as
+    executable HTML in the JSON response body (Issue #579).
+
+    Args:
+        raw: Raw code string extracted from user input, or None.
+
+    Returns:
+        HTML-escaped string, or None if the input was None.
+    """
+    if raw is None:
+        return None
+    return html.escape(raw)
+
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -211,7 +232,7 @@ def chat_fallback_reply(
 
     if not code_text:
         base = (
-            "I can’t access the AI service right now, but I’m still here to help. "
+            "I can't access the AI service right now, but I'm still here to help. "
             "Please retry when the assistant is available."
         )
         if message_text:
@@ -238,9 +259,7 @@ def chat_fallback_reply(
         )
 
     if recent_history:
-        response_parts.append(
-            f"Recent chat context: {recent_history}."
-        )
+        response_parts.append(f"Recent chat context: {recent_history}.")
 
     return " ".join(response_parts)
 
@@ -813,8 +832,8 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     Returns:
         A list of detected issues with metadata and suggestions.
     """
-    from .line_utils import format_code_snippet
     from .ast_analyzer import analyze_python_ast
+    from .line_utils import format_code_snippet
 
     lines = code.splitlines()
     found: list[dict] = []
@@ -826,8 +845,14 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
             if key not in seen:
                 seen.add(key)
                 line_idx = issue["line"] - 1
-                issue["code_snippet"] = lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
-                issue["code_context"] = format_code_snippet(code, [issue["line"]], context_lines=2)
+                # Issue #579: escape code extracted from user input before storing
+                raw_snippet = (
+                    lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
+                )
+                issue["code_snippet"] = _escape_snippet(raw_snippet)
+                issue["code_context"] = _escape_snippet(
+                    format_code_snippet(code, [issue["line"]], context_lines=2)
+                )
                 found.append(issue)
 
     for bp in BUG_PATTERNS:
@@ -842,12 +867,12 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                     continue
                 seen.add(key)
 
-                # Format divisor hint for ZeroDivisionError
                 description = bp.description
                 suggestion = bp.suggestion
 
-                # NEW: Add code context with line number
-                code_context = format_code_snippet(code, [i], context_lines=2)
+                # Issue #579: escape code_context (derived from user input)
+                # before storing it in the issue dict that is serialised to JSON.
+                raw_context = format_code_snippet(code, [i], context_lines=2)
 
                 found.append(
                     {
@@ -856,8 +881,9 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                         "description": description,
                         "suggestion": suggestion,
                         "severity": bp.severity,
-                        "code_snippet": line.strip()[:120],
-                        "code_context": code_context,
+                        # Issue #579: both fields HTML-escaped via _escape_snippet()
+                        "code_snippet": _escape_snippet(line.strip()[:120]),
+                        "code_context": _escape_snippet(raw_context),
                     }
                 )
 
@@ -887,10 +913,10 @@ def run_suggestions(code: str, language: str) -> dict:
     """
     """Enhanced suggestion engine with line number tracking."""
     from .line_utils import (
-        format_code_snippet,
-        find_lines_matching_pattern,
         find_function_lines,
+        find_lines_matching_pattern,
         find_undocumented_lines,
+        format_code_snippet,
     )
 
     suggestions: list[dict] = []
@@ -906,9 +932,8 @@ def run_suggestions(code: str, language: str) -> dict:
         if line.strip().startswith(("#", "//", "/*", "*", "/**"))
     ) / max(len(non_blank), 1)
     if comment_ratio < 0.10:
-        # Track undocumented code lines
         undocumented = find_undocumented_lines(code)
-        sample_lines = undocumented[:5]  # Show first 5 examples
+        sample_lines = undocumented[:5]
 
         suggestions.append(
             {
@@ -945,7 +970,7 @@ def run_suggestions(code: str, language: str) -> dict:
                     "priority": "high",
                 }
             )
-            break  # Only flag first long function
+            break
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 3: Magic Numbers
@@ -954,7 +979,7 @@ def run_suggestions(code: str, language: str) -> dict:
     magic_lines = find_lines_matching_pattern(code, magic_pattern)
 
     if magic_lines:
-        sample_magic_lines = magic_lines[:5]  # Show first 5 occurrences
+        sample_magic_lines = magic_lines[:5]
 
         suggestions.append(
             {
@@ -1006,7 +1031,6 @@ def run_suggestions(code: str, language: str) -> dict:
         unhinted = [d for d in defs if d.strip() and ":" not in d]
 
         if unhinted:
-            # Find lines with functions without type hints
             func_def_lines = find_lines_matching_pattern(
                 code, r"def\s+\w+\s*\([^)]*\)\s*:"
             )
@@ -1052,15 +1076,17 @@ def run_suggestions(code: str, language: str) -> dict:
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
-            suggestions.append({
-                "category": "Observability",
-                "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
-                "line_number": print_lines[0],
-                "line_range": sample_print,
-                "code_context": format_code_snippet(code, sample_print),
-                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
-                "priority": "medium",
-            })
+            suggestions.append(
+                {
+                    "category": "Observability",
+                    "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
+                    "line_number": print_lines[0],
+                    "line_range": sample_print,
+                    "code_context": format_code_snippet(code, sample_print),
+                    "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
+                    "priority": "medium",
+                }
+            )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 8: Environment Variables (JS/TS)
@@ -1097,7 +1123,6 @@ def run_suggestions(code: str, language: str) -> dict:
                 }
             )
 
-    # Score
     # Score calculation
     deductions = sum(
         {"high": 15, "medium": 7, "low": 3}.get(s["priority"], 5) for s in suggestions
@@ -1192,7 +1217,6 @@ def run_explanation(code: str, language: str) -> dict:
             "⚠ Recursive call detected — ensure a proper base case exists."
         )
 
-    # Summary by complexity
     summaries = {
         "Beginner": f"A short {language} snippet ({len(non_blank)} lines) that performs a focused task. Good starting point for learners.",
         "Intermediate": f"A {language} module with {len(funcs)} function(s) and moderate complexity. Demonstrates solid programming fundamentals.",
@@ -1250,12 +1274,10 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
         )
         return DebugResult(issues=issues, summary="Syntax error detected")
 
-    # Track simple assignments to infer literal container lengths
     container_lengths: dict[str, int] = {}
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
-            # only simple name targets
             if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
                 name = node.targets[0].id
                 val = node.value
@@ -1264,7 +1286,6 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
                 elif isinstance(val, ast.Constant) and isinstance(val.value, str):
                     container_lengths[name] = len(val.value)
 
-    # Find issues
     for node in ast.walk(tree):
         # Division by zero literal
         if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
@@ -1318,7 +1339,6 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
                         )
                     )
 
-    # Detect division via parameter passed zero: find functions with division by a parameter
     func_div_params: dict[str, set[str]] = {}
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
@@ -1330,14 +1350,12 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
                             node.name, set()
                         ) | {sub.right.id}
 
-    # Check calls with literal zero for those functions
     for node in ast.walk(tree):
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
             fname = node.func.id
             if fname in func_div_params:
                 for i, arg in enumerate(node.args):
                     if isinstance(arg, ast.Constant) and arg.value == 0:
-                        # determine which parameter this maps to
                         try:
                             func_node = next(
                                 f
@@ -1394,7 +1412,7 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         "error_count": len(errors),
         "warning_count": len(warnings),
         "info_count": len(infos),
-        "code": code,
+        "code": html.escape(code),  # Issue #579: escape raw code before echoing
     }
 
     sugg = run_suggestions(code, language)
