@@ -11,7 +11,10 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
-  <script>
+  <!-- Syntax Highlighting -->
+<link rel="stylesheet" id="hljs-dark"  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<link rel="stylesheet" id="hljs-light" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" disabled>
+<link rel="stylesheet" href="css/syntax.css">  <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
@@ -4118,9 +4121,14 @@ details.issue-card[open] {
 
       <div class="issue-desc">${issue.description}</div>
 
-      ${issue.code_snippet
-        ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>`
-        : ''}
+    ${issue.code_snippet ? `
+      <div class="issue-snippet">
+        <div class="snippet-header">
+          <span class="snippet-lang-badge">${selectedLang}</span>
+          <button class="snippet-copy-btn" data-code="${escHtml(issue.code_snippet)}">Copy</button>
+        </div>
+        <pre><code class="language-${selectedLang}">${escHtml(issue.code_snippet)}</code></pre>
+      </div>` : ''}
 
       <div class="issue-fix">${issue.suggestion}</div>
     </div>
@@ -4129,6 +4137,15 @@ details.issue-card[open] {
 `).join('');
 
         el.innerHTML = statBar + cards;
+        el.querySelectorAll('.snippet-copy-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(btn.dataset.code).then(() => {
+              btn.textContent = '✓ Copied';
+              setTimeout(() => btn.textContent = 'Copy', 1500);
+            });
+          });
+        });
+        if (window.highlightAllCode) window.highlightAllCode();
       }
 
       /* ═══════════════════════════════════════════════════════════════
@@ -5873,7 +5890,8 @@ int main() {
   }, 25000);
 })();
 </script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="js/syntax-highlighting.js"></script>
 </body>
 
 </html>
