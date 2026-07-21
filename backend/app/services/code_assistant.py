@@ -4,11 +4,13 @@ Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Ru
 """
 
 from __future__ import annotations
+
 import ast
 import re
 import time
-from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+
+from .ast_analyzer import analyze as ast_analyze
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -90,46 +92,63 @@ LANG_SIGNATURES: dict[str, list[str]] = {
 def detect_language(code: str, hint: str | None = None) -> str:
     """Detect the programming language of the given code snippet.
 
-    Args:
-        code: The source code string to analyze.
-        hint: Optional language name to override detection.
-
-    Returns:
-        Detected language name as a string.
+    If a language hint is provided, it is treated as a preference—not an
+    absolute override. The actual code is analyzed first, and the hint is only
+    trusted when it agrees with or is not contradicted by the detected syntax.
     """
 
-    if hint:
-        normalized = hint.strip().lower()
-        mapping = {
-            "python": "Python",
-            "py": "Python",
-            "javascript": "JavaScript",
-            "js": "JavaScript",
-            "typescript": "TypeScript",
-            "ts": "TypeScript",
-            "java": "Java",
-            "cpp": "C++",
-            "c++": "C++",
-            "cxx": "C++",
-            "swift": "Swift",
-            "php": "PHP",
-            "rust": "Rust",
-            "rs": "Rust",
-            "kotlin": "Kotlin",
-            "kt": "Kotlin",
-            "kts": "Kotlin",
-        }
-        if normalized in mapping:
-            return mapping[normalized]
+    mapping = {
+        "python": "Python",
+        "py": "Python",
+        "javascript": "JavaScript",
+        "js": "JavaScript",
+        "typescript": "TypeScript",
+        "ts": "TypeScript",
+        "java": "Java",
+        "cpp": "C++",
+        "c++": "C++",
+        "cxx": "C++",
+        "swift": "Swift",
+        "php": "PHP",
+        "rust": "Rust",
+        "rs": "Rust",
+        "kotlin": "Kotlin",
+        "kt": "Kotlin",
+        "kts": "Kotlin",
+    }
 
     scores: dict[str, int] = {lang: 0 for lang in LANG_SIGNATURES}
+
     for lang, patterns in LANG_SIGNATURES.items():
         for pat in patterns:
             if re.search(pat, code, re.MULTILINE):
                 scores[lang] += 1
 
-    best = max(scores, key=lambda lang_key: scores[lang_key])
-    return best if scores[best] > 0 else "Unknown"
+    best_language = max(scores, key=scores.get)
+    best_score = scores[best_language]
+
+    # If no language signatures matched, fall back to the hint (if valid)
+    if best_score == 0:
+        if hint:
+            normalized = hint.strip().lower()
+            if normalized in mapping:
+                return mapping[normalized]
+        return "Unknown"
+
+    # If a hint exists, trust it only when it isn't clearly contradicted
+    if hint:
+        normalized = hint.strip().lower()
+        hinted = mapping.get(normalized)
+
+        if hinted:
+            hint_score = scores.get(hinted, 0)
+
+            # If the hinted language is almost as likely, keep it.
+            if hint_score >= best_score - 1:
+                return hinted
+
+    # Otherwise return the detected language
+    return best_language
 
 
 # ── Cyclomatic Complexity ──────────────────────────────────────────────────────
@@ -238,9 +257,7 @@ def chat_fallback_reply(
         )
 
     if recent_history:
-        response_parts.append(
-            f"Recent chat context: {recent_history}."
-        )
+        response_parts.append(f"Recent chat context: {recent_history}.")
 
     return " ".join(response_parts)
 
@@ -813,8 +830,8 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     Returns:
         A list of detected issues with metadata and suggestions.
     """
-    from .line_utils import format_code_snippet
     from .ast_analyzer import analyze_python_ast
+    from .line_utils import format_code_snippet
 
     lines = code.splitlines()
     found: list[dict] = []
@@ -826,8 +843,12 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
             if key not in seen:
                 seen.add(key)
                 line_idx = issue["line"] - 1
-                issue["code_snippet"] = lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
-                issue["code_context"] = format_code_snippet(code, [issue["line"]], context_lines=2)
+                issue["code_snippet"] = (
+                    lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
+                )
+                issue["code_context"] = format_code_snippet(
+                    code, [issue["line"]], context_lines=2
+                )
                 found.append(issue)
 
     for bp in BUG_PATTERNS:
@@ -887,10 +908,10 @@ def run_suggestions(code: str, language: str) -> dict:
     """
     """Enhanced suggestion engine with line number tracking."""
     from .line_utils import (
-        format_code_snippet,
-        find_lines_matching_pattern,
         find_function_lines,
+        find_lines_matching_pattern,
         find_undocumented_lines,
+        format_code_snippet,
     )
 
     suggestions: list[dict] = []
@@ -1052,15 +1073,17 @@ def run_suggestions(code: str, language: str) -> dict:
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
-            suggestions.append({
-                "category": "Observability",
-                "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
-                "line_number": print_lines[0],
-                "line_range": sample_print,
-                "code_context": format_code_snippet(code, sample_print),
-                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
-                "priority": "medium",
-            })
+            suggestions.append(
+                {
+                    "category": "Observability",
+                    "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
+                    "line_number": print_lines[0],
+                    "line_range": sample_print,
+                    "code_context": format_code_snippet(code, sample_print),
+                    "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
+                    "priority": "medium",
+                }
+            )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 8: Environment Variables (JS/TS)
