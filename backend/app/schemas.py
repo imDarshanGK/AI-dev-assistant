@@ -4,8 +4,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
-
+from pydantic import BaseModel, Field, field_validator, model_validator, EmailStr
 from .config import settings
 from .schema_validators import (
     validate_chat_history,
@@ -338,7 +337,7 @@ class ZipAnalyzeResponse(BaseModel):
 class SignupRequest(BaseModel):
     """Request body for creating a new user account."""
 
-    email: str = Field(
+    email: EmailStr = Field(
         ...,
         min_length=5,
         max_length=320,
@@ -353,21 +352,16 @@ class SignupRequest(BaseModel):
         example="supersecret123",
     )
 
-    @field_validator("email")
-    @classmethod
-    def email_must_be_valid(cls, v: str) -> str:
-        v = v.strip().lower()
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Invalid email address")
-        return v
-
     @field_validator("password")
     @classmethod
-    def password_min_length(cls, v: str) -> str:
+    def password_validation(cls, v: str) -> str:
+        # Check if the password is empty or consists only of whitespace after stripping
+        if not v.strip():
+            raise ValueError("Password cannot be empty or contain only whitespace")
+        # Enforce the minimum character limit on the structural content
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters long")
         return v
-
 
 class LoginRequest(BaseModel):
     """Request body for user login."""
