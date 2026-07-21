@@ -11,7 +11,10 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
-  <script>
+  <!-- Syntax Highlighting -->
+<link rel="stylesheet" id="hljs-dark"  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<link rel="stylesheet" id="hljs-light" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" disabled>
+<link rel="stylesheet" href="css/syntax.css">  <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
@@ -830,6 +833,37 @@
       padding: 14px 18px
     }
 
+    .shortcut-hints {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 10px;
+      color: var(--text3);
+      font-size: 0.7rem;
+    }
+
+    .shortcut-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .shortcut-hint kbd {
+      padding: 2px 6px;
+      border: 1px solid var(--border2);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      background: var(--bg3);
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.67rem;
+      line-height: 1.35;
+      box-shadow: var(--shadow2);
+    }
+
     .btn-analyze {
       width: 100%;
       padding: 13px;
@@ -1139,6 +1173,31 @@ details.issue-card[open] {
       font-size: 0.72rem;
       color: var(--text3);
       font-family: var(--font-mono);
+    }
+
+    .complexity-chip {
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: help;
+      white-space: nowrap;
+    }
+
+    .complexity-chip.complexity-easy {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+
+    .complexity-chip.complexity-medium {
+      background: rgba(245, 200, 66, 0.15);
+      color: var(--yellow);
+    }
+
+    .complexity-chip.complexity-hard {
+      background: rgba(242, 87, 87, 0.15);
+      color: var(--red);
     }
 
     .issue-type {
@@ -2801,7 +2860,7 @@ details.issue-card[open] {
             <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
           </div>
           <div class="line-numbers" id="lineNumbers">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" aria-keyshortcuts="/ Escape" style="width:100%"></textarea>
         </div>
 
         <div class="editor-footer">
@@ -2817,18 +2876,23 @@ details.issue-card[open] {
         </div>
 
         <div class="analyze-row">
-          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
+          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code" aria-keyshortcuts="Control+Enter Meta+Enter">
             <span class="spinner" id="spinner"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
+          <div class="shortcut-hints" role="note" aria-label="Keyboard shortcuts" data-i18n-aria-label="shortcuts_label">
+            <span class="shortcut-hint"><kbd>/</kbd><span data-i18n="shortcut_focus">Focus editor</span></span>
+            <span class="shortcut-hint"><kbd>Ctrl/⌘ + Enter</kbd><span data-i18n="shortcut_analyze">Analyze</span></span>
+            <span class="shortcut-hint"><kbd>Esc</kbd><span data-i18n="shortcut_leave">Leave editor</span></span>
+          </div>
         </div>
 
         <!-- Result action buttons (hidden until results) -->
         <div id="resultActions" class="result-actions" style="display:none">
-          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
-          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
-          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF">📄</button>
-          <button class="icon-btn" id="export-md-btn" title="Export as Markdown">📝</button>
+          <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save to favorites">★</button>
+          <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">⬇</button>
+          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF"  aria-label="Export analysis results as PDF">📄</button>
+          <button class="icon-btn" id="export-md-btn" title="Export as Markdown" aria-label="Export analysis results as Markdown">📝</button>
         </div>
 
       </div>
@@ -2987,6 +3051,7 @@ details.issue-card[open] {
     <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
     <div id="toastContainer"></div>
 
+    <script src="security-utils.js"></script>
     <script>
       /* ═══════════════════════════════════════════════════════════════
          STATE & TRANSLATIONS
@@ -3036,6 +3101,10 @@ details.issue-card[open] {
           btn_ping: "Ping",
           btn_analyze_code: "Analyze Code",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "Keyboard shortcuts",
+          shortcut_focus: "Focus editor",
+          shortcut_analyze: "Analyze",
+          shortcut_leave: "Leave editor",
           results_title: "Analysis Results",
           tab_explain: "Explain",
           tab_debug: "Debug",
@@ -3140,6 +3209,10 @@ details.issue-card[open] {
           btn_ping: "பிங்",
           btn_analyze_code: "குறியீட்டை பகுப்பாய்",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "விசைப்பலகை குறுக்குவழிகள்",
+          shortcut_focus: "தொகுப்பானில் கவனம்",
+          shortcut_analyze: "பகுப்பாய்வு",
+          shortcut_leave: "தொகுப்பானிலிருந்து விலகு",
           results_title: "பகுப்பாய்வு முடிவுகள்",
           tab_explain: "விளக்கு",
           tab_debug: "பிழைத்திருத்து",
@@ -3244,6 +3317,10 @@ details.issue-card[open] {
           btn_ping: "पिंग",
           btn_analyze_code: "कोड का विश्लेषण करें",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "कीबोर्ड शॉर्टकट",
+          shortcut_focus: "एडिटर पर फ़ोकस",
+          shortcut_analyze: "विश्लेषण",
+          shortcut_leave: "एडिटर से बाहर",
           results_title: "विश्लेषण के परिणाम",
           tab_explain: "समझाएं",
           tab_debug: "डीबग",
@@ -3348,6 +3425,10 @@ details.issue-card[open] {
           btn_ping: "Ping",
           btn_analyze_code: "Analyser le code",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "Raccourcis clavier",
+          shortcut_focus: "Activer l’éditeur",
+          shortcut_analyze: "Analyser",
+          shortcut_leave: "Quitter l’éditeur",
           results_title: "Résultats de l'analyse",
           tab_explain: "Expliquer",
           tab_debug: "Déboguer",
@@ -3951,6 +4032,28 @@ details.issue-card[open] {
       ═══════════════════════════════════════════════════════════════ */
       analyzeBtn.addEventListener('click', doAnalyze);
 
+      window.QyverixSecurity.bindKeyboardShortcuts(document, [
+        {
+          key: 'Enter',
+          mod: true,
+          allowInEditable: true,
+          when: (event) =>
+            !analyzeBtn.disabled &&
+            (event.target === editor || !window.QyverixSecurity.isEditableShortcutTarget(event.target)),
+          handler: doAnalyze,
+        },
+        {
+          key: '/',
+          handler: () => editor.focus(),
+        },
+        {
+          key: 'Escape',
+          allowInEditable: true,
+          when: () => document.activeElement === editor,
+          handler: () => editor.blur(),
+        },
+      ]);
+
       async function doAnalyze() {
         const code = editor.value.trim();
         if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
@@ -4365,6 +4468,49 @@ details.issue-card[open] {
         });
 
         updateSubmitState();
+      // ── Issue Complexity Badge ──
+      // Pure frontend heuristic: scores an issue using fields already present on the
+      // issue object (severity, description length, suggestion presence, keywords)
+      // and maps it to Easy / Medium / Hard. No backend involvement required.
+      const COMPLEXITY_KEYWORDS = {
+        hard: ['race condition', 'deadlock', 'memory leak', 'security', 'vulnerability', 'concurrency', 'thread', 'async', 'architecture', 'refactor', 'sql injection', 'recursion', 'algorithm'],
+        medium: ['null', 'undefined', 'exception', 'error handling', 'type', 'performance', 'validation', 'edge case', 'logic'],
+      };
+
+      function scoreIssueComplexity(issue) {
+        let score = 0;
+        const desc = (issue.description || '').toLowerCase();
+        const type = (issue.type || '').toLowerCase();
+        const text = `${desc} ${type}`;
+
+        if (issue.severity === 'error') score += 3;
+        else if (issue.severity === 'warning') score += 2;
+        else if (issue.severity === 'info') score += 1;
+
+        const len = desc.length;
+        if (len > 160) score += 3;
+        else if (len > 80) score += 2;
+        else if (len > 0) score += 1;
+
+        if (COMPLEXITY_KEYWORDS.hard.some(k => text.includes(k))) score += 3;
+        else if (COMPLEXITY_KEYWORDS.medium.some(k => text.includes(k))) score += 1;
+
+        if (!issue.suggestion) score += 1;
+
+        return score;
+      }
+
+      function getIssueComplexity(issue) {
+        const score = scoreIssueComplexity(issue);
+        if (score >= 7) return { level: 'hard', label: 'Hard', emoji: '🔴', score };
+        if (score >= 4) return { level: 'medium', label: 'Medium', emoji: '🟡', score };
+        return { level: 'easy', label: 'Easy', emoji: '🟢', score };
+      }
+
+      function renderComplexityBadge(issue) {
+        const c = getIssueComplexity(issue);
+        const tooltip = `Estimated complexity: ${c.label} (score ${c.score}/11) — based on severity, description length, keywords, and whether a fix suggestion is provided.`;
+        return `<span class="complexity-chip complexity-${c.level}" title="${escHtml(tooltip)}">${c.emoji} ${c.label}</span>`;
       }
 
       function renderDebug(dbg) {
@@ -4407,6 +4553,7 @@ details.issue-card[open] {
 
     <summary class="collapsible-summary">
       <span>${issue.type}</span>
+      ${renderComplexityBadge(issue)}
       ${issue.line
         ? `<span class="issue-line">Line ${issue.line}</span>`
         : ''}
@@ -4419,9 +4566,14 @@ details.issue-card[open] {
 
       <div class="issue-desc">${issue.description}</div>
 
-      ${issue.code_snippet
-        ? `<div class="issue-snippet">${escHtml(issue.code_snippet)}</div>`
-        : ''}
+    ${issue.code_snippet ? `
+      <div class="issue-snippet">
+        <div class="snippet-header">
+          <span class="snippet-lang-badge">${selectedLang}</span>
+          <button class="snippet-copy-btn" data-code="${escHtml(issue.code_snippet)}">Copy</button>
+        </div>
+        <pre><code class="language-${selectedLang}">${escHtml(issue.code_snippet)}</code></pre>
+      </div>` : ''}
 
       <div class="issue-fix">${issue.suggestion}</div>
 
@@ -4439,6 +4591,15 @@ details.issue-card[open] {
 `).join('');
 
         el.innerHTML = statBar + cards;
+        el.querySelectorAll('.snippet-copy-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(btn.dataset.code).then(() => {
+              btn.textContent = '✓ Copied';
+              setTimeout(() => btn.textContent = 'Copy', 1500);
+            });
+          });
+        });
+        if (window.highlightAllCode) window.highlightAllCode();
       }
 
       /* ═══════════════════════════════════════════════════════════════
@@ -5662,8 +5823,8 @@ int main() {
         <span>Session</span>
       </div>
       <div class="collab-panel-top">
-        <input id="collabName" placeholder="Your name" value="Your name" />
-        <input id="collabSession" placeholder="Session ID e.g. review-676" />
+        <input id="collabName" placeholder="Your name" value="Your name"  aria-label="Your name"/>
+        <input id="collabSession" placeholder="Session ID e.g. review-676" aria-label="Session ID"/>
         <button id="collabJoinBtn" type="button">Join Live</button>
         <button id="collabLeaveBtn" type="button" disabled>Leave</button>
       </div>
@@ -5683,8 +5844,8 @@ int main() {
         <span>Review comments</span>
       </div>
       <div class="collab-comment-row">
-        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1" />
-        <input id="collabCommentText" placeholder="Add a live review comment..." />
+        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1"  aria-label="Comment line number"/>
+        <input id="collabCommentText" placeholder="Add a live review comment..." aria-label="Review comment"/>
         <button id="collabCommentBtn" type="button" disabled>Comment</button>
       </div>
       <div id="collabComments" class="collab-comments"></div>
@@ -6183,7 +6344,8 @@ int main() {
   }, 25000);
 })();
 </script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="js/syntax-highlighting.js"></script>
 </body>
 
 </html>
