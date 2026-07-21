@@ -94,6 +94,12 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
 
+    if getattr(user, "deletion_status", "active") == "pending_deletion":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User is pending deletion",
+        )
+
     return user
 
 
