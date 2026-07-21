@@ -1144,6 +1144,31 @@ details.issue-card[open] {
       font-family: var(--font-mono);
     }
 
+    .complexity-chip {
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: help;
+      white-space: nowrap;
+    }
+
+    .complexity-chip.complexity-easy {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+
+    .complexity-chip.complexity-medium {
+      background: rgba(245, 200, 66, 0.15);
+      color: var(--yellow);
+    }
+
+    .complexity-chip.complexity-hard {
+      background: rgba(242, 87, 87, 0.15);
+      color: var(--red);
+    }
+
     .issue-type {
       font-size: 0.88rem;
       font-weight: 600
@@ -4069,6 +4094,51 @@ details.issue-card[open] {
   `;
       }
 
+      // ── Issue Complexity Badge ──
+      // Pure frontend heuristic: scores an issue using fields already present on the
+      // issue object (severity, description length, suggestion presence, keywords)
+      // and maps it to Easy / Medium / Hard. No backend involvement required.
+      const COMPLEXITY_KEYWORDS = {
+        hard: ['race condition', 'deadlock', 'memory leak', 'security', 'vulnerability', 'concurrency', 'thread', 'async', 'architecture', 'refactor', 'sql injection', 'recursion', 'algorithm'],
+        medium: ['null', 'undefined', 'exception', 'error handling', 'type', 'performance', 'validation', 'edge case', 'logic'],
+      };
+
+      function scoreIssueComplexity(issue) {
+        let score = 0;
+        const desc = (issue.description || '').toLowerCase();
+        const type = (issue.type || '').toLowerCase();
+        const text = `${desc} ${type}`;
+
+        if (issue.severity === 'error') score += 3;
+        else if (issue.severity === 'warning') score += 2;
+        else if (issue.severity === 'info') score += 1;
+
+        const len = desc.length;
+        if (len > 160) score += 3;
+        else if (len > 80) score += 2;
+        else if (len > 0) score += 1;
+
+        if (COMPLEXITY_KEYWORDS.hard.some(k => text.includes(k))) score += 3;
+        else if (COMPLEXITY_KEYWORDS.medium.some(k => text.includes(k))) score += 1;
+
+        if (!issue.suggestion) score += 1;
+
+        return score;
+      }
+
+      function getIssueComplexity(issue) {
+        const score = scoreIssueComplexity(issue);
+        if (score >= 7) return { level: 'hard', label: 'Hard', emoji: '🔴', score };
+        if (score >= 4) return { level: 'medium', label: 'Medium', emoji: '🟡', score };
+        return { level: 'easy', label: 'Easy', emoji: '🟢', score };
+      }
+
+      function renderComplexityBadge(issue) {
+        const c = getIssueComplexity(issue);
+        const tooltip = `Estimated complexity: ${c.label} (score ${c.score}/11) — based on severity, description length, keywords, and whether a fix suggestion is provided.`;
+        return `<span class="complexity-chip complexity-${c.level}" title="${escHtml(tooltip)}">${c.emoji} ${c.label}</span>`;
+      }
+
       function renderDebug(dbg) {
         document.getElementById('emptyDebug').style.display = 'none';
         const el = document.getElementById('debugResult');
@@ -4109,6 +4179,7 @@ details.issue-card[open] {
 
     <summary class="collapsible-summary">
       <span>${issue.type}</span>
+      ${renderComplexityBadge(issue)}
       ${issue.line
         ? `<span class="issue-line">Line ${issue.line}</span>`
         : ''}
