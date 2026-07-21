@@ -141,6 +141,80 @@
     });
   }
 
+  function isEditableShortcutTarget(target) {
+    if (!target || typeof target !== 'object') return false;
+    const tagName = String(target.tagName || '').toLowerCase();
+    return (
+      tagName === 'input' ||
+      tagName === 'textarea' ||
+      tagName === 'select' ||
+      target.isContentEditable === true
+    );
+  }
+
+  function matchesKeyboardShortcut(event, shortcut) {
+    if (!event || !shortcut || typeof shortcut.key !== 'string') return false;
+
+    const eventKey = String(event.key || '').toLowerCase();
+    const shortcutKey = shortcut.key.toLowerCase();
+    if (eventKey !== shortcutKey) return false;
+
+    if (shortcut.mod) {
+      if (!event.ctrlKey && !event.metaKey) return false;
+    } else if (
+      Boolean(event.ctrlKey) !== Boolean(shortcut.ctrl) ||
+      Boolean(event.metaKey) !== Boolean(shortcut.meta)
+    ) {
+      return false;
+    }
+
+    return (
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift)
+    );
+  }
+
+  /**
+   * Bind declarative keyboard shortcuts and return a function that removes them.
+   * Plain-key shortcuts ignore form fields by default; set allowInEditable when a
+   * shortcut is intentionally available while the user is typing.
+   */
+  function bindKeyboardShortcuts(target, shortcuts) {
+    if (!target || typeof target.addEventListener !== 'function') {
+      throw new TypeError('A valid keyboard event target is required');
+    }
+
+    const bindings = Array.isArray(shortcuts) ? shortcuts : [];
+    const onKeydown = (event) => {
+      if (event.defaultPrevented || event.repeat || event.isComposing) return;
+
+      for (const shortcut of bindings) {
+        if (!shortcut || typeof shortcut.handler !== 'function') continue;
+        if (
+          !shortcut.allowInEditable &&
+          isEditableShortcutTarget(event.target)
+        ) {
+          continue;
+        }
+        if (
+          typeof shortcut.when === 'function' &&
+          !shortcut.when(event)
+        ) {
+          continue;
+        }
+        if (!matchesKeyboardShortcut(event, shortcut)) continue;
+
+        if (shortcut.preventDefault !== false) event.preventDefault();
+        if (shortcut.stopPropagation) event.stopPropagation();
+        shortcut.handler(event);
+        break;
+      }
+    };
+
+    target.addEventListener('keydown', onKeydown);
+    return () => target.removeEventListener('keydown', onKeydown);
+  }
+
   /** Minimal card builders used by security tests (mirror panel class rules). */
   function buildIssueCardHtml(issue) {
     return (
@@ -177,6 +251,9 @@
     buildStoredListItemHtml,
     buildHistoryItemHtml,
     bindStoredListNavigation,
+    isEditableShortcutTarget,
+    matchesKeyboardShortcut,
+    bindKeyboardShortcuts,
     buildIssueCardHtml,
     buildSuggestCardHtml,
   };
