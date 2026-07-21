@@ -4,6 +4,24 @@ Thank you for wanting to contribute! QyverixAI is a GSSoC 2026 project and welco
 
 ---
 
+# Contributing
+
+Thank you for your interest in contributing!
+
+### Looking for your first contribution?
+
+Check our **Good First Issues** and **Help Wanted** labels to find beginner-friendly tasks.
+
+Remember to:
+
+- Comment before starting work
+- Create a dedicated branch
+- Keep your PR focused on one issue
+
+## Development Setup
+
+...
+
 ## Quick Start
 
 ```bash
