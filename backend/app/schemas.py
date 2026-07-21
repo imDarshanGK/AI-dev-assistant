@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -352,6 +353,21 @@ class SignupRequest(BaseModel):
         example="supersecret123",
     )
 
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        return v
+
 
 class LoginRequest(BaseModel):
     """Request body for user login."""
@@ -405,6 +421,67 @@ class UserProfileResponse(BaseModel):
         ...,
         description="The authenticated user's email address.",
         example="dev@example.com",
+    )
+
+
+class MessageResponse(BaseModel):
+    """Generic success message returned by actions without a richer payload."""
+
+    message: str = Field(
+        ...,
+        description="Human-readable description of the action's outcome.",
+        example="Logged out; token revoked.",
+    )
+
+
+# ── Admin / Audit ─────────────────────────────────────────────────────────────
+class RoleUpdateRequest(BaseModel):
+    """Request body for promoting or demoting a user's admin role."""
+
+    is_admin: bool = Field(
+        ...,
+        description="Whether the target user should have administrator privileges.",
+        example=True,
+    )
+
+
+class AuditLogRecord(BaseModel):
+    """A single immutable audit-trail entry for a privileged action."""
+
+    id: int = Field(..., description="Audit entry identifier.", example=1)
+    actor_id: int | None = Field(
+        None,
+        description="User id of the admin who performed the action (null if removed).",
+        example=42,
+    )
+    actor_email: str = Field(
+        ...,
+        description="Email of the admin who performed the action.",
+        example="admin@example.com",
+    )
+    action: str = Field(
+        ...,
+        description="Machine-readable action name.",
+        example="user.role_update",
+    )
+    target_type: str | None = Field(
+        None, description="Type of the entity acted upon.", example="user"
+    )
+    target_id: str | None = Field(
+        None, description="Identifier of the entity acted upon.", example="7"
+    )
+    details: dict[str, Any] | None = Field(
+        None,
+        description="Additional context for the action, with sensitive fields redacted.",
+        example={"is_admin": True},
+    )
+    ip_address: str | None = Field(
+        None, description="Source IP address of the request.", example="203.0.113.5"
+    )
+    created_at: str = Field(
+        ...,
+        description="ISO-8601 timestamp of when the action occurred.",
+        example="2026-06-24T12:30:00+00:00",
     )
 
 
@@ -633,7 +710,104 @@ class FavoriteRecord(BaseModel):
     )
 
 
+class UserDataPurgePreviewResponse(BaseModel):
+    """Preview of user-owned data that will be removed by a purge request."""
+
+    user_id: int = Field(
+        ...,
+        description="Authenticated user id.",
+        json_schema_extra={"example": 12},
+    )
+    history_records: int = Field(
+        ...,
+        description="Number of saved history records that will be deleted.",
+        json_schema_extra={"example": 4},
+    )
+    favorite_records: int = Field(
+        ...,
+        description="Number of favorite records that will be deleted.",
+        json_schema_extra={"example": 2},
+    )
+    account_will_be_deleted: bool = Field(
+        ...,
+        description="Whether the user account row will be deleted.",
+        json_schema_extra={"example": True},
+    )
+    confirmation_phrase: str = Field(
+        ...,
+        description="Phrase required to confirm irreversible deletion.",
+        json_schema_extra={"example": "DELETE MY DATA"},
+    )
+    deletion_status: str = Field(
+        ...,
+        description="Current user deletion lifecycle status.",
+        json_schema_extra={"example": "active"},
+    )
+    retention_days: int = Field(
+        ...,
+        description="Number of days before final erase becomes eligible.",
+        json_schema_extra={"example": 30},
+    )
+    deletion_scheduled_for: datetime | None = Field(
+        None,
+        description="Timestamp when final erase becomes eligible, if already scheduled.",
+    )
+
+
+class UserDataPurgeRequest(BaseModel):
+    """Confirmation body for irreversible account and data purge."""
+
+    confirmation: str = Field(
+        ...,
+        min_length=1,
+        max_length=64,
+        description="Must exactly match the confirmation phrase.",
+        json_schema_extra={"example": "DELETE MY DATA"},
+    )
+
+
+class UserDataPurgeResponse(BaseModel):
+    """Result returned after successful user data purge."""
+
+    status: str = Field(
+        ...,
+        description="Purge status.",
+        json_schema_extra={"example": "purged"},
+    )
+    history_deleted: int = Field(
+        ...,
+        description="Deleted history record count.",
+        json_schema_extra={"example": 4},
+    )
+    favorites_deleted: int = Field(
+        ...,
+        description="Deleted favorite record count.",
+        json_schema_extra={"example": 2},
+    )
+    account_deleted: bool = Field(
+        ...,
+        description="Whether the user account was deleted.",
+        json_schema_extra={"example": True},
+    )
+    audit_recorded: bool = Field(
+        ...,
+        description="Whether a non-sensitive audit record was stored.",
+        json_schema_extra={"example": True},
+    )
+    deletion_scheduled_for: datetime | None = Field(
+        None,
+        description="Timestamp when final erase becomes eligible.",
+    )
+    retention_days: int = Field(
+        ...,
+        description="Number of days before final erase becomes eligible.",
+        json_schema_extra={"example": 30},
+    )
+
+
 # ── Share ─────────────────────────────────────────────────────────────────────
+
+
 class ShareCreateRequest(BaseModel):
     """Request body for creating a shareable analysis link."""
 
@@ -703,6 +877,11 @@ class ShareRecord(BaseModel):
         ...,
         description="Short unique identifier for this share.",
         example="aB3xYz",
+    )
+    user_id: int | None = Field(
+        default=None,
+        description="ID of the user who created the share, or null if anonymous.",
+        example=42,
     )
     action: str = Field(..., description="Analysis type.", example="analyze")
     code: str = Field(..., description="The shared source code.")
