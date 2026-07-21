@@ -833,6 +833,37 @@
       padding: 14px 18px
     }
 
+    .shortcut-hints {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 10px;
+      color: var(--text3);
+      font-size: 0.7rem;
+    }
+
+    .shortcut-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .shortcut-hint kbd {
+      padding: 2px 6px;
+      border: 1px solid var(--border2);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      background: var(--bg3);
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.67rem;
+      line-height: 1.35;
+      box-shadow: var(--shadow2);
+    }
+
     .btn-analyze {
       width: 100%;
       padding: 13px;
@@ -2686,7 +2717,7 @@ details.issue-card[open] {
             <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
           </div>
           <div class="line-numbers" id="lineNumbers">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" aria-keyshortcuts="/ Escape" style="width:100%"></textarea>
         </div>
 
         <div class="editor-footer">
@@ -2702,10 +2733,15 @@ details.issue-card[open] {
         </div>
 
         <div class="analyze-row">
-          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
+          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code" aria-keyshortcuts="Control+Enter Meta+Enter">
             <span class="spinner" id="spinner"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
+          <div class="shortcut-hints" role="note" aria-label="Keyboard shortcuts" data-i18n-aria-label="shortcuts_label">
+            <span class="shortcut-hint"><kbd>/</kbd><span data-i18n="shortcut_focus">Focus editor</span></span>
+            <span class="shortcut-hint"><kbd>Ctrl/⌘ + Enter</kbd><span data-i18n="shortcut_analyze">Analyze</span></span>
+            <span class="shortcut-hint"><kbd>Esc</kbd><span data-i18n="shortcut_leave">Leave editor</span></span>
+          </div>
         </div>
 
         <!-- Result action buttons (hidden until results) -->
@@ -2872,6 +2908,7 @@ details.issue-card[open] {
     <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
     <div id="toastContainer"></div>
 
+    <script src="security-utils.js"></script>
     <script>
       /* ═══════════════════════════════════════════════════════════════
          STATE & TRANSLATIONS
@@ -2921,6 +2958,10 @@ details.issue-card[open] {
           btn_ping: "Ping",
           btn_analyze_code: "Analyze Code",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "Keyboard shortcuts",
+          shortcut_focus: "Focus editor",
+          shortcut_analyze: "Analyze",
+          shortcut_leave: "Leave editor",
           results_title: "Analysis Results",
           tab_explain: "Explain",
           tab_debug: "Debug",
@@ -3025,6 +3066,10 @@ details.issue-card[open] {
           btn_ping: "பிங்",
           btn_analyze_code: "குறியீட்டை பகுப்பாய்",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "விசைப்பலகை குறுக்குவழிகள்",
+          shortcut_focus: "தொகுப்பானில் கவனம்",
+          shortcut_analyze: "பகுப்பாய்வு",
+          shortcut_leave: "தொகுப்பானிலிருந்து விலகு",
           results_title: "பகுப்பாய்வு முடிவுகள்",
           tab_explain: "விளக்கு",
           tab_debug: "பிழைத்திருத்து",
@@ -3129,6 +3174,10 @@ details.issue-card[open] {
           btn_ping: "पिंग",
           btn_analyze_code: "कोड का विश्लेषण करें",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "कीबोर्ड शॉर्टकट",
+          shortcut_focus: "एडिटर पर फ़ोकस",
+          shortcut_analyze: "विश्लेषण",
+          shortcut_leave: "एडिटर से बाहर",
           results_title: "विश्लेषण के परिणाम",
           tab_explain: "समझाएं",
           tab_debug: "डीबग",
@@ -3233,6 +3282,10 @@ details.issue-card[open] {
           btn_ping: "Ping",
           btn_analyze_code: "Analyser le code",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "Raccourcis clavier",
+          shortcut_focus: "Activer l’éditeur",
+          shortcut_analyze: "Analyser",
+          shortcut_leave: "Quitter l’éditeur",
           results_title: "Résultats de l'analyse",
           tab_explain: "Expliquer",
           tab_debug: "Déboguer",
@@ -3835,6 +3888,28 @@ details.issue-card[open] {
          ANALYZE
       ═══════════════════════════════════════════════════════════════ */
       analyzeBtn.addEventListener('click', doAnalyze);
+
+      window.QyverixSecurity.bindKeyboardShortcuts(document, [
+        {
+          key: 'Enter',
+          mod: true,
+          allowInEditable: true,
+          when: (event) =>
+            !analyzeBtn.disabled &&
+            (event.target === editor || !window.QyverixSecurity.isEditableShortcutTarget(event.target)),
+          handler: doAnalyze,
+        },
+        {
+          key: '/',
+          handler: () => editor.focus(),
+        },
+        {
+          key: 'Escape',
+          allowInEditable: true,
+          when: () => document.activeElement === editor,
+          handler: () => editor.blur(),
+        },
+      ]);
 
       async function doAnalyze() {
         const code = editor.value.trim();
