@@ -2808,10 +2808,10 @@ details.issue-card[open] {
 
         <!-- Result action buttons (hidden until results) -->
         <div id="resultActions" class="result-actions" style="display:none">
-          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
-          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
-          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF">📄</button>
-          <button class="icon-btn" id="export-md-btn" title="Export as Markdown">📝</button>
+          <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save to favorites">★</button>
+          <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">⬇</button>
+          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF"  aria-label="Export analysis results as PDF">📄</button>
+          <button class="icon-btn" id="export-md-btn" title="Export as Markdown" aria-label="Export analysis results as Markdown">📝</button>
         </div>
 
       </div>
@@ -5713,8 +5713,8 @@ int main() {
         <span>Session</span>
       </div>
       <div class="collab-panel-top">
-        <input id="collabName" placeholder="Your name" value="Your name" />
-        <input id="collabSession" placeholder="Session ID e.g. review-676" />
+        <input id="collabName" placeholder="Your name" value="Your name"  aria-label="Your name"/>
+        <input id="collabSession" placeholder="Session ID e.g. review-676" aria-label="Session ID"/>
         <button id="collabJoinBtn" type="button">Join Live</button>
         <button id="collabLeaveBtn" type="button" disabled>Leave</button>
       </div>
@@ -5734,8 +5734,8 @@ int main() {
         <span>Review comments</span>
       </div>
       <div class="collab-comment-row">
-        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1" />
-        <input id="collabCommentText" placeholder="Add a live review comment..." />
+        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1"  aria-label="Comment line number"/>
+        <input id="collabCommentText" placeholder="Add a live review comment..." aria-label="Review comment"/>
         <button id="collabCommentBtn" type="button" disabled>Comment</button>
       </div>
       <div id="collabComments" class="collab-comments"></div>
