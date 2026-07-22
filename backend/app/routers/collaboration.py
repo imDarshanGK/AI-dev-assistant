@@ -130,6 +130,9 @@ class CollaborationManager:
         room: CollaborationRoom,
         client_id: str,
     ) -> dict[str, Any]:
+        # Take a shallow copy of comments so the serialised snapshot is
+        # stable even if another coroutine appends to room.comments before
+        # send_json flushes the data to the wire.
         return {
             "type": "session_state",
             "sessionId": session_id,
@@ -137,8 +140,18 @@ class CollaborationManager:
             "code": room.code,
             "language": room.language,
             "version": room.version,
-            "comments": room.comments,
+            "comments": list(room.comments),
             "users": self._users_payload(room),
+            # True when the client is reconnecting into a room that already
+            # has state (other users present, code written, or prior comments).
+            # The client-side can use this flag to decide whether to show a
+            # "session restored" notice rather than the default "new session"
+            # welcome UI, without having to diff the payload itself.
+            "reconnected": bool(
+                room.code
+                or room.comments
+                or len(room.users) > 1
+            ),
         }
 
     # ── Connection lifecycle ──────────────────────────────────────────────────
@@ -277,6 +290,10 @@ class CollaborationManager:
 
         if message_type == "comment_added":
             await self._handle_comment_added(session_id, client_id, data)
+            return
+
+        if message_type == "comment_sync":
+            await self._handle_comment_sync(session_id, client_id)
             return
 
         # Unknown message type.
@@ -445,6 +462,45 @@ class CollaborationManager:
             record_collab_message(session_id, "cursor_update")
 
         await self.broadcast(session_id, payload, exclude=client_id)
+
+    async def _handle_comment_sync(
+        self,
+        session_id: str,
+        client_id: str,
+    ) -> None:
+        """Send the current comment list to the requesting client.
+
+        A reconnecting client can send ``{"type": "comment_sync"}`` immediately
+        after receiving its ``session_state`` to explicitly request a fresh
+        snapshot of the comment list. This handles the narrow race window where
+        comments were appended between the ``session_state`` snapshot and the
+        client finishing its own setup (e.g. async JS framework rendering).
+
+        The response type ``"comment_sync"`` is distinct from ``"comment_added"``
+        so the client can treat it as a full replacement rather than a delta.
+        """
+        room = self._get_room_if_exists(session_id)
+        if room is None:
+            return
+
+        socket = room.sockets.get(client_id)
+        if socket is None:
+            return
+
+        async with room.lock:
+            comments_snapshot = list(room.comments)
+
+        logger.debug(
+            "comment_sync session_id=%s client_id=%s comment_count=%d",
+            session_id,
+            client_id,
+            len(comments_snapshot),
+        )
+
+        await socket.send_json({
+            "type": "comment_sync",
+            "comments": comments_snapshot,
+        })
 
     async def _handle_comment_added(
         self,
