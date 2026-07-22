@@ -92,46 +92,63 @@ LANG_SIGNATURES: dict[str, list[str]] = {
 def detect_language(code: str, hint: str | None = None) -> str:
     """Detect the programming language of the given code snippet.
 
-    Args:
-        code: The source code string to analyze.
-        hint: Optional language name to override detection.
-
-    Returns:
-        Detected language name as a string.
+    If a language hint is provided, it is treated as a preference—not an
+    absolute override. The actual code is analyzed first, and the hint is only
+    trusted when it agrees with or is not contradicted by the detected syntax.
     """
 
-    if hint:
-        normalized = hint.strip().lower()
-        mapping = {
-            "python": "Python",
-            "py": "Python",
-            "javascript": "JavaScript",
-            "js": "JavaScript",
-            "typescript": "TypeScript",
-            "ts": "TypeScript",
-            "java": "Java",
-            "cpp": "C++",
-            "c++": "C++",
-            "cxx": "C++",
-            "swift": "Swift",
-            "php": "PHP",
-            "rust": "Rust",
-            "rs": "Rust",
-            "kotlin": "Kotlin",
-            "kt": "Kotlin",
-            "kts": "Kotlin",
-        }
-        if normalized in mapping:
-            return mapping[normalized]
+    mapping = {
+        "python": "Python",
+        "py": "Python",
+        "javascript": "JavaScript",
+        "js": "JavaScript",
+        "typescript": "TypeScript",
+        "ts": "TypeScript",
+        "java": "Java",
+        "cpp": "C++",
+        "c++": "C++",
+        "cxx": "C++",
+        "swift": "Swift",
+        "php": "PHP",
+        "rust": "Rust",
+        "rs": "Rust",
+        "kotlin": "Kotlin",
+        "kt": "Kotlin",
+        "kts": "Kotlin",
+    }
 
     scores: dict[str, int] = {lang: 0 for lang in LANG_SIGNATURES}
+
     for lang, patterns in LANG_SIGNATURES.items():
         for pat in patterns:
             if re.search(pat, code, re.MULTILINE):
                 scores[lang] += 1
 
-    best = max(scores, key=lambda lang_key: scores[lang_key])
-    return best if scores[best] > 0 else "Unknown"
+    best_language = max(scores, key=scores.get)
+    best_score = scores[best_language]
+
+    # If no language signatures matched, fall back to the hint (if valid)
+    if best_score == 0:
+        if hint:
+            normalized = hint.strip().lower()
+            if normalized in mapping:
+                return mapping[normalized]
+        return "Unknown"
+
+    # If a hint exists, trust it only when it isn't clearly contradicted
+    if hint:
+        normalized = hint.strip().lower()
+        hinted = mapping.get(normalized)
+
+        if hinted:
+            hint_score = scores.get(hinted, 0)
+
+            # If the hinted language is almost as likely, keep it.
+            if hint_score >= best_score - 1:
+                return hinted
+
+    # Otherwise return the detected language
+    return best_language
 
 
 # ── Cyclomatic Complexity ──────────────────────────────────────────────────────
@@ -1066,6 +1083,8 @@ def run_suggestions(code: str, language: str, ai_language: str | None = None) ->
                 {
                     "category": translate_key("logging", ai_language),
                     "description": translate_key("no_logging", ai_language),
+                    "category": "Observability",
+                    "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
                     "line_number": print_lines[0],
                     "line_range": sample_print,
                     "code_context": format_code_snippet(code, sample_print),
