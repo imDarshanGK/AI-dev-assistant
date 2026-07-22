@@ -544,6 +544,10 @@
       .workspace {
         grid-template-columns: 1fr
       }
+      #workspace > .panel {
+        grid-column: 1 !important;
+        min-width: 0;
+      }
     }
 
     .panel {
@@ -2212,6 +2216,14 @@ details.issue-card[open] {
       margin-bottom: 8px;
     }
 
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
     /* ═══════════════════════════════════════════════════════════════
    RESULT ACTIONS BAR
 ═══════════════════════════════════════════════════════════════ */
@@ -2256,7 +2268,8 @@ details.issue-card[open] {
 /* responsive */
 @media(max-width:600px){
   .hero h1{font-size:2.2rem}
-  nav{flex-wrap:wrap;gap:8px}
+  nav{flex-direction:column;align-items:center;gap:12px;padding:16px 14px}
+  .nav-links{width:100%;justify-content:center}
   .nav-links .nav-link span{display:none}
   .hero{padding:50px 0 40px}
   .hero-sub{font-size:0.98rem}
@@ -2267,7 +2280,6 @@ details.issue-card[open] {
   .feat-pill-info .feat-pill-title{font-size:0.82rem;line-height:1.25}
   .feat-pill-info p{font-size:0.74rem;line-height:1.25}
   .workspace{gap:14px}
-  #workspace > .panel{grid-column:1 !important;min-width:0}
   .panel-header{padding:12px 14px}
   .mode-row{gap:6px;padding:10px 14px}
   .mode-btn{padding:8px 4px;font-size:0.74rem}
@@ -2284,9 +2296,13 @@ details.issue-card[open] {
   .toast{min-width:unset;width:100%}
   .hero-cta{gap:8px}
   .btn{padding:11px 18px;font-size:0.85rem}
+  .footer-inner{flex-direction:column;align-items:center;text-align:center;gap:28px}
+  .footer-inner > div{display:flex;flex-direction:column;align-items:center;width:100%}
+  #digestForm{width:100%;max-width:320px}
 }
 @media(max-width:400px){
   .app{padding:0 14px 60px}
+  nav{margin:0 -14px;padding-left:14px;padding-right:14px}
   .hero h1{font-size:1.9rem}
   .lang-tab{padding:7px 10px;font-size:0.72rem}
   .result-tab{padding:9px 12px;font-size:0.75rem}
@@ -2980,7 +2996,7 @@ details.issue-card[open] {
 
     <!-- ── FOOTER ─────────────────────────────────────────────────── -->
     <footer>
-      <div class="app" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:space-between;">
+      <div class="app footer-inner">
         <div style="min-width:220px;">
           <div class="footer-logo">QyverixAI</div>
           <p>
@@ -2995,10 +3011,10 @@ details.issue-card[open] {
           <p style="margin:0 0 6px;font-size:0.8rem;font-weight:600;color:var(--accent);">Weekly Digest</p>
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
-                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
+                   style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);">
             <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
-          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
+          <p style="margin:6px 0 0;font-size:0.7rem;color:var(--text3);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
       </div>
     </footer>
@@ -5593,7 +5609,6 @@ int main() {
       setAppLanguage(appLang);
       syncApiStatusText();
 
-      loadTheme();
       fetchHistory();
       renderFavorites();
       renderAnalytics();
