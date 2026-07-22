@@ -2290,43 +2290,104 @@ details.issue-card[open] {
 .stat-chip.info-chip .stat-chip-num{color:var(--accent)}
 
 /* responsive */
+
+/* ── 600 px — tablet / large phone ─────────────────────────── */
 @media(max-width:600px){
-  .hero h1{font-size:2.2rem}
-  nav{flex-wrap:wrap;gap:8px}
+  /* Nav */
+  nav{flex-wrap:wrap;gap:8px;padding-left:16px;padding-right:16px}
   .nav-links .nav-link span{display:none}
+  /* Hide language selector in nav on small screens — inline select is cramped */
+  .nav-links .lang-select{display:none}
+
+  /* Hero */
   .hero{padding:50px 0 40px}
+  .hero h1{font-size:2.2rem}
   .hero-sub{font-size:0.98rem}
+  .hero-cta{gap:8px}
+  .btn{padding:11px 18px;font-size:0.85rem}
+
+  /* Feature pills */
   .features-row{display:flex;flex-direction:column;gap:8px;max-width:340px;margin-inline:auto;padding:16px 0 40px}
   .feat-pill{gap:10px;padding:10px 14px;min-width:0}
   .feat-pill-icon{width:32px;height:32px;flex-shrink:0}
   .feat-pill-info{min-width:0;overflow-wrap:break-word}
   .feat-pill-info .feat-pill-title{font-size:0.82rem;line-height:1.25}
   .feat-pill-info p{font-size:0.74rem;line-height:1.25}
+
+  /* Workspace & panels */
   .workspace{gap:14px}
   #workspace > .panel{grid-column:1 !important;min-width:0}
-  .panel-header{padding:12px 14px}
+  /* Panel headers that hold multiple action buttons wrap gracefully */
+  .panel-header{padding:12px 14px;flex-wrap:wrap;gap:6px}
+  .panel-title{flex:1 1 100%}  /* title takes full row so buttons go below */
+
+  /* Code editor: smaller fixed heights free vertical space on phones */
+  #codeEditor{min-height:200px;max-height:340px}
+  .line-numbers{min-height:200px;max-height:340px}
+  .editor-footer{font-size:0.7rem;padding:8px 12px}
+
+  /* Mode buttons */
   .mode-row{gap:6px;padding:10px 14px}
-  .mode-btn{padding:8px 4px;font-size:0.74rem}
+  .mode-btn{padding:10px 6px;font-size:0.74rem;min-height:44px} /* ≥44px touch target */
+
+  /* Analyze row */
   .analyze-row{padding:10px 14px}
-  .btn-analyze{padding:14px}
-  .result-content{min-height:280px;max-height:420px;padding:14px}
+  .btn-analyze{padding:14px;min-height:48px} /* comfortable touch target */
+  /* Collapse shortcut hints on narrow screens — keyboard shortcuts are not
+     relevant on touch-only devices; hints are still present in the DOM for
+     screen readers via aria-keyshortcuts on the buttons themselves. */
+  .shortcut-hints{display:none}
+
+  /* Result panel */
+  .result-content{min-height:240px;max-height:420px;padding:14px}
+  /* Result action buttons wrap instead of overflowing */
+  .result-actions{flex-wrap:wrap;gap:6px;padding:8px 14px}
+  .result-actions .icon-btn{min-height:44px;min-width:44px}
+
+  /* Icon buttons: ensure 44×44px touch target everywhere */
+  .icon-btn{min-height:44px;min-width:44px;width:auto;padding:0 10px}
+
+  /* History / favorites */
   .bottom-grid{gap:14px}
   .history-list,.fav-list{max-height:200px}
+  /* History panel header buttons wrap on narrow screens */
+  #historyList ~ * .btn-clear,
+  .history-controls-row{flex-wrap:wrap}
+
+  /* API config input row wraps cleanly */
+  .api-config-inner{flex-wrap:wrap}
+  #apiUrl{min-width:0;width:100%}
+
+  /* Analytics */
   .score-ring-wrap{flex-direction:column;text-align:center;gap:12px}
   .stat-bar{gap:6px}
   .stat-chip{padding:8px 10px}
   .stat-chip-num{font-size:1.2rem}
+
+  /* Toasts */
   #toastContainer{bottom:12px;right:12px;left:12px}
   .toast{min-width:unset;width:100%}
-  .hero-cta{gap:8px}
-  .btn{padding:11px 18px;font-size:0.85rem}
 }
+
+/* ── 400 px — small phone ───────────────────────────────────── */
 @media(max-width:400px){
-  .app{padding:0 14px 60px}
+  .app{padding:0 12px 60px}
   .hero h1{font-size:1.9rem}
-  .lang-tab{padding:7px 10px;font-size:0.72rem}
-  .result-tab{padding:9px 12px;font-size:0.75rem}
+  /* Navigation: stack logo and links vertically with full-width logo row */
+  nav{padding-left:12px;padding-right:12px}
+  /* Tabs scroll horizontally rather than squeezing */
+  .lang-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .lang-tab{padding:7px 10px;font-size:0.72rem;flex-shrink:0}
+  .result-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .result-tab{padding:9px 12px;font-size:0.75rem;flex-shrink:0}
+  /* Mode buttons: allow horizontal scroll instead of squeezing below 44px */
+  .mode-row{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;scrollbar-width:none}
+  .mode-btn{flex:0 0 auto;min-width:68px}
+  /* Pagination row: ensure buttons stay tappable */
+  .history-pagination-row{gap:8px}
+  #btnPrevHistory,#btnNextHistory{min-height:44px;min-width:44px;padding:8px 12px}
 }
+
 
 /* ── Live Collaboration ── */
 .collab-toolbar-btn {
