@@ -2049,6 +2049,42 @@ details.issue-card[open] {
       color: var(--text3);
     }
 
+    /* Richer empty state for history/favorites panels */
+    .list-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .list-empty-state .list-empty-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text3);
+    }
+
+    .list-empty-state .list-empty-title {
+      font-family: var(--font-disp);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .list-empty-state .list-empty-desc {
+      font-size: 0.78rem;
+      color: var(--text2);
+      max-width: 200px;
+    }
+
     /* ═══════════════════════════════════════════════════════════════
    API CONFIG
 ═══════════════════════════════════════════════════════════════ */
@@ -2611,6 +2647,7 @@ details.issue-card[open] {
           <span data-i18n="nav_api_docs">API Docs</span>
         </a>
         <button class="theme-btn" id="themeToggle" title="Toggle theme" data-i18n-title="btn_toggle_theme" data-i18n-aria-label="btn_toggle_theme" aria-label="Toggle dark mode"
+          aria-keyshortcuts="Control+Shift+T Meta+Shift+T"
           aria-pressed="false">
           <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" aria-hidden="true">
@@ -2737,7 +2774,7 @@ details.issue-card[open] {
             </button>
             <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
               tabindex="-1">
-            <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
+            <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor" aria-keyshortcuts="Control+K Meta+K">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <polyline points="3,6 5,6 21,6" />
@@ -2786,10 +2823,10 @@ details.issue-card[open] {
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
             <div class="mode-row" role="tablist" aria-label="Mode selector">
-              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full">Full</button>
-              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain">Explain</button>
-              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
-              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full" aria-keyshortcuts="Alt+1">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain" aria-keyshortcuts="Alt+2">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug" aria-keyshortcuts="Alt+3">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve" aria-keyshortcuts="Alt+4">Improve</button>
             </div>
           </div>
         </div>
@@ -2803,6 +2840,9 @@ details.issue-card[open] {
             <span class="shortcut-hint"><kbd>/</kbd><span data-i18n="shortcut_focus">Focus editor</span></span>
             <span class="shortcut-hint"><kbd>Ctrl/⌘ + Enter</kbd><span data-i18n="shortcut_analyze">Analyze</span></span>
             <span class="shortcut-hint"><kbd>Esc</kbd><span data-i18n="shortcut_leave">Leave editor</span></span>
+            <span class="shortcut-hint"><kbd>Ctrl/⌘ + K</kbd><span data-i18n="shortcut_clear">Clear editor</span></span>
+            <span class="shortcut-hint"><kbd>Ctrl/⌘ + Shift + T</kbd><span data-i18n="shortcut_theme">Toggle theme</span></span>
+            <span class="shortcut-hint"><kbd>Alt + 1–4</kbd><span data-i18n="shortcut_mode">Switch mode</span></span>
           </div>
         </div>
 
@@ -2956,7 +2996,15 @@ details.issue-card[open] {
           </select>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
-          <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
+          <div class="list-empty-state" id="emptyHistory" data-i18n-title="empty_history_title" data-i18n-desc="empty_history_desc">
+            <div class="list-empty-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <p class="list-empty-title">No history yet</p>
+            <p class="list-empty-desc">Run your first analysis to see it here</p>
+          </div>
         </div>
         <div class="history-pagination-row" id="historyPagination" style="display:flex; justify-content:space-between; align-items:center; padding:8px 16px; border-top:1px solid var(--border); font-size:0.75rem;">
           <button id="btnPrevHistory" class="btn-clear" style="padding:4px 10px; font-size:0.7rem;" disabled>&laquo; Prev</button>
@@ -2970,7 +3018,15 @@ details.issue-card[open] {
           <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
         </div>
         <div class="fav-list" id="favList" aria-live="polite">
-          <div class="list-empty" data-i18n="empty_favorites">No favorites saved yet.</div>
+          <div class="list-empty-state" id="emptyFavorites" data-i18n-title="empty_favorites_title" data-i18n-desc="empty_favorites_desc">
+            <div class="list-empty-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </div>
+            <p class="list-empty-title">No favorites saved</p>
+            <p class="list-empty-desc">Star an analysis result to save it here</p>
+          </div>
         </div>
       </div>
     </div>
@@ -3073,6 +3129,8 @@ details.issue-card[open] {
           history_title: "Query History",
           favorites_title: "Saved Favorites",
           empty_history: "No history yet. Run your first analysis.",
+          empty_history_title: "No history yet",
+          empty_history_desc: "Run your first analysis to see it here",
           history_sort_label: "Sort:",
           history_sort_date: "Date",
           history_sort_score: "Quality Score",
@@ -3081,6 +3139,8 @@ details.issue-card[open] {
           history_order_desc: "Desc",
           history_order_asc: "Asc",
           empty_favorites: "No favorites saved yet.",
+          empty_favorites_title: "No favorites saved",
+          empty_favorites_desc: "Star an analysis result to save it here",
           btn_clear: "Clear",
           footer_license: "MIT License",
           footer_built_for: "Built for the open source community",
@@ -3181,6 +3241,8 @@ details.issue-card[open] {
           history_title: "வினவல் வரலாறு",
           favorites_title: "சேமிக்கப்பட்ட பிடித்தவை",
           empty_history: "இன்னும் வரலாறு இல்லை. உங்கள் முதல் பகுப்பாய்வை இயக்கவும்.",
+          empty_history_title: "இன்னும் வரலாறு இல்லை",
+          empty_history_desc: "இங்கே காண உங்கள் முதல் பகுப்பாய்வை இயக்கவும்",
           history_sort_label: "வரிசைப்படுத்து:",
           history_sort_date: "தேதி",
           history_sort_score: "தர மதிப்பெண்",
@@ -3189,6 +3251,8 @@ details.issue-card[open] {
           history_order_desc: "இறங்குவரிசை",
           history_order_asc: "ஏறுவரிசை",
           empty_favorites: "இன்னும் பிடித்தவை எதுவும் சேமிக்கப்படவில்லை.",
+          empty_favorites_title: "பிடித்தவை எதுவும் இல்லை",
+          empty_favorites_desc: "ஒரு பகுப்பாய்வு முடிவை நட்சத்திரமிட்டு இங்கே சேமிக்கவும்",
           btn_clear: "அழி",
           footer_license: "எம்ஐடி உரிமம் (MIT License)",
           footer_built_for: "திறந்த மூல சமூகத்திற்காக உருவாக்கப்பட்டது",
@@ -3289,6 +3353,8 @@ details.issue-card[open] {
           history_title: "क्वेरी इतिहास",
           favorites_title: "सहेजे गए पसंदीदा",
           empty_history: "अभी तक कोई इतिहास नहीं है। अपना पहला विश्लेषण चलाएं।",
+          empty_history_title: "अभी तक कोई इतिहास नहीं",
+          empty_history_desc: "इसे यहाँ देखने के लिए अपना पहला विश्लेषण चलाएं",
           history_sort_label: "क्रमबद्ध करें:",
           history_sort_date: "तारीख",
           history_sort_score: "गुणवत्ता स्कोर",
@@ -3297,6 +3363,8 @@ details.issue-card[open] {
           history_order_desc: "अवरोही",
           history_order_asc: "आरोही",
           empty_favorites: "अभी तक कोई पसंदीदा सहेजा नहीं गया है।",
+          empty_favorites_title: "कोई पसंदीदा नहीं",
+          empty_favorites_desc: "किसी विश्लेषण को यहाँ सहेजने के लिए उसे स्टार करें",
           btn_clear: "साफ करें",
           footer_license: "एमआईटी लाइसेंस (MIT License)",
           footer_built_for: "ओपन सोर्स समुदाय के लिए निर्मित",
@@ -3397,6 +3465,8 @@ details.issue-card[open] {
           history_title: "Historique des requêtes",
           favorites_title: "Favoris enregistrés",
           empty_history: "Aucun historique pour le moment. Lancez votre première analyse.",
+          empty_history_title: "Aucun historique",
+          empty_history_desc: "Lancez votre première analyse pour la voir ici",
           history_sort_label: "Trier par :",
           history_sort_date: "Date",
           history_sort_score: "Score de qualité",
@@ -3405,6 +3475,8 @@ details.issue-card[open] {
           history_order_desc: "Décroissant",
           history_order_asc: "Croissant",
           empty_favorites: "Aucun favori enregistré pour le moment.",
+          empty_favorites_title: "Aucun favori enregistré",
+          empty_favorites_desc: "Mettez une étoile sur un résultat pour le sauvegarder ici",
           btn_clear: "Effacer",
           footer_license: "Licence MIT",
           footer_built_for: "Conçu pour la communauté open source",
@@ -4007,6 +4079,52 @@ details.issue-card[open] {
           allowInEditable: true,
           when: () => document.activeElement === editor,
           handler: () => editor.blur(),
+        },
+        // Ctrl/⌘ + K — clear the editor
+        {
+          key: 'k',
+          mod: true,
+          handler: () => document.getElementById('clearBtn').click(),
+        },
+        // Ctrl/⌘ + Shift + T — toggle theme
+        {
+          key: 't',
+          mod: true,
+          shift: true,
+          handler: () => document.getElementById('themeToggle').click(),
+        },
+        // Alt + 1–4 — switch analysis mode
+        {
+          key: '1',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="analyze"]');
+            if (btn) btn.click();
+          },
+        },
+        {
+          key: '2',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="explain"]');
+            if (btn) btn.click();
+          },
+        },
+        {
+          key: '3',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="debug"]');
+            if (btn) btn.click();
+          },
+        },
+        {
+          key: '4',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="suggest"]');
+            if (btn) btn.click();
+          },
         },
       ]);
 
@@ -4942,7 +5060,16 @@ details.issue-card[open] {
         if (!listContainer) return;
 
         if (!history || !history.length) {
-          listContainer.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
+          listContainer.innerHTML = `
+            <div class="list-empty-state" id="emptyHistory">
+              <div class="list-empty-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <p class="list-empty-title">${getTranslation('empty_history_title')}</p>
+              <p class="list-empty-desc">${getTranslation('empty_history_desc')}</p>
+            </div>`;
           return;
         }
 
@@ -5208,7 +5335,16 @@ details.issue-card[open] {
 
       function renderFavorites() {
         if (!favorites.length) {
-          favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
+          favList.innerHTML = `
+            <div class="list-empty-state" id="emptyFavorites">
+              <div class="list-empty-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+              <p class="list-empty-title">${getTranslation('empty_favorites_title')}</p>
+              <p class="list-empty-desc">${getTranslation('empty_favorites_desc')}</p>
+            </div>`;
           return;
         }
         favList.innerHTML = favorites.map(f => {
