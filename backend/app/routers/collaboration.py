@@ -35,6 +35,60 @@ COLORS = [
     "#f25757",
 ]
 
+# ── Shared helpers ────────────────────────────────────────────────────────────
+
+
+def _coerce_int(value: Any, default: int) -> int | None:
+    """Coerce *value* to ``int``, returning *default* on success or ``None`` on failure.
+
+    Using ``None`` as the sentinel lets callers distinguish "conversion failed"
+    from a legitimately zero/negative value.
+
+    Args:
+        value:   Raw value from the WebSocket payload.
+        default: Value to use when *value* is ``None`` / missing.
+
+    Returns:
+        The coerced integer, or ``None`` if the conversion raises.
+    """
+    if value is None:
+        value = default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+async def _send_error(
+    socket: WebSocket | None,
+    session_id: str,
+    error_reason: str,
+    log_message: str,
+    detail: str,
+) -> None:
+    """Log a warning, record the error metric, and send an error frame to the client.
+
+    Centralises the repeated triple of:
+        1. ``logger.warning(log_message)``
+        2. ``record_collab_error(session_id, error_reason)``
+        3. ``await socket.send_json({"type": "error", "detail": detail})``
+
+    Args:
+        socket:       The client's WebSocket (may be ``None`` — send is skipped).
+        session_id:   Collaboration session identifier for metric labelling.
+        error_reason: Label value for the ``qyverixai_collaboration_errors_total`` counter.
+        log_message:  Already-formatted string passed directly to ``logger.warning``.
+        detail:       Human-readable message included in the ``"error"`` frame sent to
+                      the client.
+    """
+    logger.warning(log_message)
+    record_collab_error(session_id, error_reason)
+    if socket is not None:
+        await socket.send_json({"type": "error", "detail": detail})
+
+
+# ── Data model ────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class CollaborationRoom:
@@ -45,6 +99,9 @@ class CollaborationRoom:
     users: dict[str, dict[str, Any]] = field(default_factory=dict)
     sockets: dict[str, WebSocket] = field(default_factory=dict)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+
+
+# ── Manager ───────────────────────────────────────────────────────────────────
 
 
 class CollaborationManager:
@@ -83,6 +140,8 @@ class CollaborationManager:
             "users": self._users_payload(room),
         }
 
+    # ── Connection lifecycle ──────────────────────────────────────────────────
+
     async def connect(
         self,
         session_id: str,
@@ -117,10 +176,7 @@ class CollaborationManager:
         record_collab_connect(session_id)
 
         await websocket.send_json(state)
-        await self.broadcast(
-            session_id,
-            {"type": "presence_update", "users": users},
-        )
+        await self.broadcast(session_id, {"type": "presence_update", "users": users})
         return client_id
 
     async def disconnect(self, session_id: str, client_id: str) -> None:
@@ -147,10 +203,9 @@ class CollaborationManager:
             logger.info("session_closed session_id=%s reason=last_client_left", session_id)
             return
 
-        await self.broadcast(
-            session_id,
-            {"type": "presence_update", "users": users},
-        )
+        await self.broadcast(session_id, {"type": "presence_update", "users": users})
+
+    # ── Broadcast ─────────────────────────────────────────────────────────────
 
     async def broadcast(
         self,
@@ -167,7 +222,6 @@ class CollaborationManager:
         for client_id, socket in list(room.sockets.items()):
             if exclude is not None and client_id == exclude:
                 continue
-
             try:
                 await socket.send_json(message)
             except Exception:
@@ -184,6 +238,8 @@ class CollaborationManager:
 
         for client_id in stale_clients:
             await self.disconnect(session_id, client_id)
+
+    # ── Message dispatch ──────────────────────────────────────────────────────
 
     async def handle_message(
         self,
@@ -222,21 +278,18 @@ class CollaborationManager:
             await self._handle_comment_added(session_id, client_id, data)
             return
 
-        logger.warning(
-            "unsupported_message_type session_id=%s client_id=%s message_type=%s",
-            session_id,
-            client_id,
-            message_type,
+        # Unknown message type.
+        await _send_error(
+            socket=room.sockets.get(client_id),
+            session_id=session_id,
+            error_reason="unsupported_message_type",
+            log_message=(
+                "unsupported_message_type session_id=%s client_id=%s message_type=%s"
+            ),
+            detail=f"Unsupported collaboration message type: {message_type}",
         )
-        record_collab_error(session_id, "unsupported_message_type")
-        socket = room.sockets.get(client_id)
-        if socket is not None:
-            await socket.send_json(
-                {
-                    "type": "error",
-                    "detail": f"Unsupported collaboration message type: {message_type}",
-                }
-            )
+
+    # ── Individual message handlers ───────────────────────────────────────────
 
     async def _handle_code_update(
         self,
@@ -253,50 +306,44 @@ class CollaborationManager:
         language = data.get("language")
 
         # Safely coerce version — reject non-numeric values rather than crash.
-        raw_version = data.get("version", 0)
-        try:
-            incoming_version = int(raw_version)
-        except (TypeError, ValueError):
-            logger.warning(
-                "invalid_version_field session_id=%s client_id=%s reason=non_integer_version",
-                session_id,
-                client_id,
+        incoming_version = _coerce_int(data.get("version", 0), default=0)
+        if incoming_version is None:
+            await _send_error(
+                socket=socket,
+                session_id=session_id,
+                error_reason="non_integer_version",
+                log_message=(
+                    "invalid_version_field session_id=%s client_id=%s"
+                    " reason=non_integer_version"
+                ),
+                detail="version must be an integer",
             )
-            record_collab_error(session_id, "non_integer_version")
-            if socket is not None:
-                await socket.send_json(
-                    {"type": "error", "detail": "version must be an integer"}
-                )
             return
 
         if not isinstance(code, str):
-            logger.warning(
-                "code_update_rejected session_id=%s client_id=%s reason=invalid_code_type",
-                session_id,
-                client_id,
+            await _send_error(
+                socket=socket,
+                session_id=session_id,
+                error_reason="invalid_code_type",
+                log_message=(
+                    "code_update_rejected session_id=%s client_id=%s"
+                    " reason=invalid_code_type"
+                ),
+                detail="code must be a string",
             )
-            record_collab_error(session_id, "invalid_code_type")
-            if socket is not None:
-                await socket.send_json(
-                    {"type": "error", "detail": "code must be a string"}
-                )
             return
 
         if len(code) > MAX_CODE_CHARS:
-            logger.warning(
-                "code_update_rejected session_id=%s client_id=%s reason=code_too_long length=%d",
-                session_id,
-                client_id,
-                len(code),
+            await _send_error(
+                socket=socket,
+                session_id=session_id,
+                error_reason="code_too_long",
+                log_message=(
+                    "code_update_rejected session_id=%s client_id=%s"
+                    " reason=code_too_long length=%d"
+                ),
+                detail=f"code exceeds {MAX_CODE_CHARS} characters",
             )
-            record_collab_error(session_id, "code_too_long")
-            if socket is not None:
-                await socket.send_json(
-                    {
-                        "type": "error",
-                        "detail": f"code exceeds {MAX_CODE_CHARS} characters",
-                    }
-                )
             return
 
         async with room.lock:
@@ -305,7 +352,8 @@ class CollaborationManager:
                 state["type"] = "sync_required"
                 latest_socket = room.sockets.get(client_id)
                 logger.debug(
-                    "sync_required session_id=%s client_id=%s incoming_version=%d room_version=%d",
+                    "sync_required session_id=%s client_id=%s"
+                    " incoming_version=%d room_version=%d",
                     session_id,
                     client_id,
                     incoming_version,
@@ -314,8 +362,10 @@ class CollaborationManager:
             else:
                 room.version += 1
                 room.code = code
-                room.language = language if isinstance(language, str) else room.language
-                payload = {
+                room.language = (
+                    language if isinstance(language, str) else room.language
+                )
+                state = {
                     "type": "code_update",
                     "code": room.code,
                     "language": room.language,
@@ -323,7 +373,6 @@ class CollaborationManager:
                     "senderId": client_id,
                 }
                 latest_socket = None
-                state = payload
                 logger.debug(
                     "code_update session_id=%s client_id=%s version=%d code_length=%d",
                     session_id,
@@ -350,41 +399,41 @@ class CollaborationManager:
             return
 
         raw_cursor = data.get("cursor")
-
         if not isinstance(raw_cursor, dict):
             return
 
-        # Safely coerce cursor fields — non-integer values must not crash.
-        try:
-            cursor = {
-                "line": max(1, int(raw_cursor.get("line", 1))),
-                "column": max(1, int(raw_cursor.get("column", 1))),
-                "selectionStart": max(0, int(raw_cursor.get("selectionStart", 0))),
-                "selectionEnd": max(0, int(raw_cursor.get("selectionEnd", 0))),
-            }
-        except (TypeError, ValueError):
-            logger.warning(
-                "cursor_update_rejected session_id=%s client_id=%s reason=non_integer_cursor_field",
-                session_id,
-                client_id,
+        # Safely coerce all four cursor fields — non-integer values must not crash.
+        line = _coerce_int(raw_cursor.get("line"), default=1)
+        column = _coerce_int(raw_cursor.get("column"), default=1)
+        sel_start = _coerce_int(raw_cursor.get("selectionStart"), default=0)
+        sel_end = _coerce_int(raw_cursor.get("selectionEnd"), default=0)
+
+        if any(v is None for v in (line, column, sel_start, sel_end)):
+            await _send_error(
+                socket=room.sockets.get(client_id),
+                session_id=session_id,
+                error_reason="non_integer_cursor_field",
+                log_message=(
+                    "cursor_update_rejected session_id=%s client_id=%s"
+                    " reason=non_integer_cursor_field"
+                ),
+                detail="cursor fields must be integers",
             )
-            record_collab_error(session_id, "non_integer_cursor_field")
-            socket = room.sockets.get(client_id)
-            if socket is not None:
-                await socket.send_json(
-                    {"type": "error", "detail": "cursor fields must be integers"}
-                )
             return
+
+        cursor = {
+            "line": max(1, line),        # type: ignore[arg-type]
+            "column": max(1, column),    # type: ignore[arg-type]
+            "selectionStart": max(0, sel_start),  # type: ignore[arg-type]
+            "selectionEnd": max(0, sel_end),      # type: ignore[arg-type]
+        }
 
         async with room.lock:
             user = room.users.get(client_id)
             if user is None:
                 return
             user["cursor"] = cursor
-            payload = {
-                "type": "cursor_update",
-                "user": user,
-            }
+            payload = {"type": "cursor_update", "user": user}
             logger.debug(
                 "cursor_update session_id=%s client_id=%s line=%d column=%d",
                 session_id,
@@ -407,44 +456,38 @@ class CollaborationManager:
             return
 
         text = str(data.get("text", "")).strip()
-
-        # Safely coerce line number.
-        raw_line = data.get("line", 1)
-        try:
-            line = max(1, int(raw_line))
-        except (TypeError, ValueError):
+        # Safely coerce line number; default to 1 if missing or non-integer.
+        line = _coerce_int(data.get("line"), default=1)
+        if line is None:
             line = 1
+        line = max(1, line)
 
         socket = room.sockets.get(client_id)
 
         if not text:
-            logger.warning(
-                "comment_rejected session_id=%s client_id=%s reason=empty_comment_text",
-                session_id,
-                client_id,
+            await _send_error(
+                socket=socket,
+                session_id=session_id,
+                error_reason="empty_comment_text",
+                log_message=(
+                    "comment_rejected session_id=%s client_id=%s"
+                    " reason=empty_comment_text"
+                ),
+                detail="comment text is required",
             )
-            record_collab_error(session_id, "empty_comment_text")
-            if socket is not None:
-                await socket.send_json(
-                    {"type": "error", "detail": "comment text is required"}
-                )
             return
 
         if len(text) > MAX_COMMENT_CHARS:
-            logger.warning(
-                "comment_rejected session_id=%s client_id=%s reason=comment_too_long length=%d",
-                session_id,
-                client_id,
-                len(text),
+            await _send_error(
+                socket=socket,
+                session_id=session_id,
+                error_reason="comment_too_long",
+                log_message=(
+                    "comment_rejected session_id=%s client_id=%s"
+                    " reason=comment_too_long length=%d"
+                ),
+                detail=f"comment exceeds {MAX_COMMENT_CHARS} characters",
             )
-            record_collab_error(session_id, "comment_too_long")
-            if socket is not None:
-                await socket.send_json(
-                    {
-                        "type": "error",
-                        "detail": f"comment exceeds {MAX_COMMENT_CHARS} characters",
-                    }
-                )
             return
 
         async with room.lock:
@@ -479,6 +522,9 @@ class CollaborationManager:
 manager = CollaborationManager()
 
 
+# ── WebSocket endpoint ────────────────────────────────────────────────────────
+
+
 @router.websocket("/ws/{session_id}")
 async def collaboration_websocket(
     websocket: WebSocket,
@@ -507,10 +553,7 @@ async def collaboration_websocket(
                 record_collab_error(session_id, "malformed_json")
                 try:
                     await websocket.send_json(
-                        {
-                            "type": "error",
-                            "detail": "message must be valid JSON",
-                        }
+                        {"type": "error", "detail": "message must be valid JSON"}
                     )
                 except Exception:
                     pass
@@ -520,7 +563,8 @@ async def collaboration_websocket(
                 await manager.handle_message(session_id, client_id, data)
             else:
                 logger.warning(
-                    "non_object_payload session_id=%s client_id=%s reason=non_object_payload",
+                    "non_object_payload session_id=%s client_id=%s"
+                    " reason=non_object_payload",
                     session_id,
                     client_id,
                 )
