@@ -11,6 +11,13 @@ from typing import Any
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
+from ..observability import (
+    record_collab_connect,
+    record_collab_disconnect,
+    record_collab_error,
+    record_collab_message,
+)
+
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
@@ -107,6 +114,7 @@ class CollaborationManager:
             client_id,
             len(users),
         )
+        record_collab_connect(session_id)
 
         await websocket.send_json(state)
         await self.broadcast(
@@ -132,6 +140,7 @@ class CollaborationManager:
             client_id,
             len(users),
         )
+        record_collab_disconnect(session_id)
 
         if should_delete:
             self.rooms.pop(session_id, None)
@@ -170,6 +179,7 @@ class CollaborationManager:
                     session_id,
                     client_id,
                 )
+                record_collab_error(session_id, "stale_socket")
                 stale_clients.append(client_id)
 
         for client_id in stale_clients:
@@ -218,6 +228,7 @@ class CollaborationManager:
             client_id,
             message_type,
         )
+        record_collab_error(session_id, "unsupported_message_type")
         socket = room.sockets.get(client_id)
         if socket is not None:
             await socket.send_json(
@@ -251,6 +262,7 @@ class CollaborationManager:
                 session_id,
                 client_id,
             )
+            record_collab_error(session_id, "non_integer_version")
             if socket is not None:
                 await socket.send_json(
                     {"type": "error", "detail": "version must be an integer"}
@@ -263,6 +275,7 @@ class CollaborationManager:
                 session_id,
                 client_id,
             )
+            record_collab_error(session_id, "invalid_code_type")
             if socket is not None:
                 await socket.send_json(
                     {"type": "error", "detail": "code must be a string"}
@@ -276,6 +289,7 @@ class CollaborationManager:
                 client_id,
                 len(code),
             )
+            record_collab_error(session_id, "code_too_long")
             if socket is not None:
                 await socket.send_json(
                     {
@@ -317,6 +331,7 @@ class CollaborationManager:
                     room.version,
                     len(code),
                 )
+                record_collab_message(session_id, "code_update")
 
         if latest_socket is not None:
             await latest_socket.send_json(state)
@@ -353,6 +368,7 @@ class CollaborationManager:
                 session_id,
                 client_id,
             )
+            record_collab_error(session_id, "non_integer_cursor_field")
             socket = room.sockets.get(client_id)
             if socket is not None:
                 await socket.send_json(
@@ -376,6 +392,7 @@ class CollaborationManager:
                 cursor["line"],
                 cursor["column"],
             )
+            record_collab_message(session_id, "cursor_update")
 
         await self.broadcast(session_id, payload, exclude=client_id)
 
@@ -406,6 +423,7 @@ class CollaborationManager:
                 session_id,
                 client_id,
             )
+            record_collab_error(session_id, "empty_comment_text")
             if socket is not None:
                 await socket.send_json(
                     {"type": "error", "detail": "comment text is required"}
@@ -419,6 +437,7 @@ class CollaborationManager:
                 client_id,
                 len(text),
             )
+            record_collab_error(session_id, "comment_too_long")
             if socket is not None:
                 await socket.send_json(
                     {
@@ -452,6 +471,7 @@ class CollaborationManager:
                 comment["id"],
                 line,
             )
+            record_collab_message(session_id, "comment_added")
 
         await self.broadcast(session_id, payload)
 
@@ -484,6 +504,7 @@ async def collaboration_websocket(
                     session_id,
                     client_id,
                 )
+                record_collab_error(session_id, "malformed_json")
                 try:
                     await websocket.send_json(
                         {
@@ -503,6 +524,7 @@ async def collaboration_websocket(
                     session_id,
                     client_id,
                 )
+                record_collab_error(session_id, "non_object_payload")
                 await websocket.send_json(
                     {"type": "error", "detail": "message payload must be a JSON object"}
                 )
