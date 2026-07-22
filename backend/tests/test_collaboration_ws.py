@@ -1,8 +1,9 @@
 """Tests for real-time collaboration WebSocket sessions."""
 
+from fastapi.testclient import TestClient
+
 from app import main as app_main
 from app.routers.collaboration import manager
-from fastapi.testclient import TestClient
 
 client = TestClient(app_main.app)
 

@@ -120,4 +120,4 @@ jobs:
       - name: Check import ordering with isort
         run: |
           git diff --name-only origin/main...HEAD -- '*.py' | \
-          xargs -r isort --check-only
+          xargs -r isort --check-only -p app

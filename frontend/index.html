@@ -3986,7 +3986,15 @@ details.issue-card[open] {
       /* ═══════════════════════════════════════════════════════════════
          ANALYZE
       ═══════════════════════════════════════════════════════════════ */
-      analyzeBtn.addEventListener('click', doAnalyze);
+      function debounce(fn, delay = 300) {
+        let timer;
+        return function (...args) {
+          clearTimeout(timer);
+          timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+      }
+
+      analyzeBtn.addEventListener('click', debounce(doAnalyze, 300));
 
       window.QyverixSecurity.bindKeyboardShortcuts(document, [
         {
@@ -4011,8 +4019,12 @@ details.issue-card[open] {
       ]);
 
       async function doAnalyze() {
+        if (isAnalyzing) return;
+
         const code = editor.value.trim();
         if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
+
+        isAnalyzing = true;
 
         const base = getApiBase();
         const endpointMap = {
@@ -4103,12 +4115,13 @@ details.issue-card[open] {
         } finally {
           analyzeBtn.classList.remove('loading');
           analyzeBtn.disabled = false;
+          isAnalyzing = false;
         }
       }
 
       /* ═══════════════════════════════════════════════════════════════
          RENDER RESULTS
-      ═══════════════════════════════════════════════════════════════ */
+      ════════════════════════════════════════════════════════ */
       function renderResults(result, code) {
         if (result.files) {
           renderZipResults(result);
