@@ -2049,6 +2049,42 @@ details.issue-card[open] {
       color: var(--text3);
     }
 
+    /* Richer empty state for history/favorites panels */
+    .list-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .list-empty-state .list-empty-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text3);
+    }
+
+    .list-empty-state .list-empty-title {
+      font-family: var(--font-disp);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .list-empty-state .list-empty-desc {
+      font-size: 0.78rem;
+      color: var(--text2);
+      max-width: 200px;
+    }
+
     /* ═══════════════════════════════════════════════════════════════
    API CONFIG
 ═══════════════════════════════════════════════════════════════ */
@@ -2960,7 +2996,15 @@ details.issue-card[open] {
           </select>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
-          <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
+          <div class="list-empty-state" id="emptyHistory" data-i18n-title="empty_history_title" data-i18n-desc="empty_history_desc">
+            <div class="list-empty-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <p class="list-empty-title">No history yet</p>
+            <p class="list-empty-desc">Run your first analysis to see it here</p>
+          </div>
         </div>
         <div class="history-pagination-row" id="historyPagination" style="display:flex; justify-content:space-between; align-items:center; padding:8px 16px; border-top:1px solid var(--border); font-size:0.75rem;">
           <button id="btnPrevHistory" class="btn-clear" style="padding:4px 10px; font-size:0.7rem;" disabled>&laquo; Prev</button>
@@ -2974,7 +3018,15 @@ details.issue-card[open] {
           <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
         </div>
         <div class="fav-list" id="favList" aria-live="polite">
-          <div class="list-empty" data-i18n="empty_favorites">No favorites saved yet.</div>
+          <div class="list-empty-state" id="emptyFavorites" data-i18n-title="empty_favorites_title" data-i18n-desc="empty_favorites_desc">
+            <div class="list-empty-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </div>
+            <p class="list-empty-title">No favorites saved</p>
+            <p class="list-empty-desc">Star an analysis result to save it here</p>
+          </div>
         </div>
       </div>
     </div>
@@ -4992,7 +5044,16 @@ details.issue-card[open] {
         if (!listContainer) return;
 
         if (!history || !history.length) {
-          listContainer.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
+          listContainer.innerHTML = `
+            <div class="list-empty-state" id="emptyHistory">
+              <div class="list-empty-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <p class="list-empty-title">${getTranslation('empty_history_title')}</p>
+              <p class="list-empty-desc">${getTranslation('empty_history_desc')}</p>
+            </div>`;
           return;
         }
 
@@ -5258,7 +5319,16 @@ details.issue-card[open] {
 
       function renderFavorites() {
         if (!favorites.length) {
-          favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
+          favList.innerHTML = `
+            <div class="list-empty-state" id="emptyFavorites">
+              <div class="list-empty-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+              <p class="list-empty-title">${getTranslation('empty_favorites_title')}</p>
+              <p class="list-empty-desc">${getTranslation('empty_favorites_desc')}</p>
+            </div>`;
           return;
         }
         favList.innerHTML = favorites.map(f => {
