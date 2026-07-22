@@ -61,7 +61,7 @@ No account required for the core analysis. No API key needed. Works fully offlin
 
 ## Preview
 
-![QyverixAI Preview](screenshots/Qyverixai.jpeg)
+![QyverixAI Preview](assets/preview.png)
 
 ---
 
@@ -70,8 +70,8 @@ No account required for the core analysis. No API key needed. Works fully offlin
 | Feature | Detail |
 |---|---|
 | **40+ Bug Patterns** | ZeroDivisionError, bare except, hardcoded secrets, eval/exec, memory leaks, XSS, NullPointerException, unsafe `unwrap()`, and more |
+
 | **5 Languages Detected** | Python, JavaScript, TypeScript, Java, C++ - the first 5 have dedicated bug-pattern checks today |
-| **AST-Based Python Analysis** | Real `ast`-module checks beyond regex: unused imports, unused function arguments, dead code after `return`, mutable default arguments |
 | **Project / ZIP Analysis** | `POST /analyze/zip/` scans up to 20 source files in an uploaded archive and returns one aggregated project score plus a per-file breakdown |
 | **Streaming Analysis (SSE)** | `GET/POST /analyze/stream` streams explanation → debugging → suggestions as they complete, instead of waiting for the full response |
 | **Live Collaboration (WebSocket)** | `WS /ws/{session_id}` — multiple users join a session, see each other's presence (name + colour), live code sync, and shared inline comments |
@@ -174,7 +174,9 @@ open frontend/index.html
 
 Set the API URL field to `http://localhost:8000`, click **Ping** to confirm the green Connected status, then paste any code and click **Analyze Code**.
 
-> `frontend/index.html` is the single self-contained file actually served — it does not load `frontend/script.js` or `frontend/style.css`. Those two files (plus `security-utils.js`) hold the same logic in separately testable modules and exist primarily so `frontend/tests/` can run focused security/XSS regression tests against them without parsing the full page.
+Keyboard shortcuts: press `Ctrl+Enter` (`Cmd+Enter` on macOS) to analyze, `/` to focus the code editor, and `Escape` to leave the editor.
+
+> `frontend/index.html` is the page actually served. It loads `frontend/security-utils.js` for shared security and keyboard helpers, while its remaining styles and application logic are inline. `frontend/script.js` and `frontend/style.css` are retained as separately testable/reference modules.
 
 ---
 
@@ -521,6 +523,32 @@ All of this runs automatically via GitHub Actions - see [CI workflows](#tech-sta
 ## Docker Compose - Full Local Dev Environment
 
 Run the complete stack (backend + frontend + PostgreSQL) with a single command.
+
+## 🌱 Good First Issues
+
+New to AI Dev Assistant? Start here!
+
+We maintain a collection of beginner-friendly issues that are ideal for first-time contributors. These issues usually require minimal project familiarity and are a great way to get started.
+
+### Find beginner-friendly issues
+
+- ⭐ Good First Issues:
+  https://github.com/imDarshanGK/AI-dev-assistant/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
+
+- 🛠️ Help Wanted:
+  https://github.com/imDarshanGK/AI-dev-assistant/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
+
+### How to claim an issue
+
+1. Browse the available issues.
+2. Read the issue description carefully.
+3. Comment on the issue to express your interest.
+4. Wait for a maintainer to assign or acknowledge your request (if required).
+5. Fork the repository and create a new branch.
+6. Make your changes and test them.
+7. Submit a Pull Request referencing the issue number.
+
+> **Note:** This list is updated periodically. If you don't find a suitable issue, check the Issues page for newly opened tasks.
 
 ### Prerequisites
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed
