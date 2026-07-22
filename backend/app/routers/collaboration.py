@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 MAX_CODE_CHARS = 50_000
 MAX_COMMENT_CHARS = 1_000
 MAX_SESSION_ID_CHARS = 128
+MAX_COMMENTS_PER_SESSION = 500
 
 COLORS = [
     "#5b9cf6",
@@ -455,14 +456,45 @@ class CollaborationManager:
         if room is None:
             return
 
-        text = str(data.get("text", "")).strip()
+        socket = room.sockets.get(client_id)
+
+        # Reject comments from a client that is no longer registered in the
+        # room (e.g. a race between disconnect and a queued comment message).
+        if client_id not in room.users:
+            await _send_error(
+                socket=socket,
+                session_id=session_id,
+                error_reason="unregistered_commenter",
+                log_message=(
+                    f"comment_rejected session_id={session_id}"
+                    f" client_id={client_id} reason=unregistered_commenter"
+                ),
+                detail="comment rejected: client is not registered in this session",
+            )
+            return
+
+        # Reject non-string text up front rather than silently coercing it.
+        raw_text = data.get("text")
+        if not isinstance(raw_text, str):
+            await _send_error(
+                socket=socket,
+                session_id=session_id,
+                error_reason="invalid_comment_text_type",
+                log_message=(
+                    f"comment_rejected session_id={session_id}"
+                    f" client_id={client_id} reason=invalid_comment_text_type"
+                ),
+                detail="comment text must be a string",
+            )
+            return
+
+        text = raw_text.strip()
+
         # Safely coerce line number; default to 1 if missing or non-integer.
         line = _coerce_int(data.get("line"), default=1)
         if line is None:
             line = 1
         line = max(1, line)
-
-        socket = room.sockets.get(client_id)
 
         if not text:
             await _send_error(
@@ -470,8 +502,8 @@ class CollaborationManager:
                 session_id=session_id,
                 error_reason="empty_comment_text",
                 log_message=(
-                    "comment_rejected session_id=%s client_id=%s"
-                    " reason=empty_comment_text"
+                    f"comment_rejected session_id={session_id}"
+                    f" client_id={client_id} reason=empty_comment_text"
                 ),
                 detail="comment text is required",
             )
@@ -483,14 +515,33 @@ class CollaborationManager:
                 session_id=session_id,
                 error_reason="comment_too_long",
                 log_message=(
-                    "comment_rejected session_id=%s client_id=%s"
-                    " reason=comment_too_long length=%d"
+                    f"comment_rejected session_id={session_id}"
+                    f" client_id={client_id} reason=comment_too_long"
+                    f" length={len(text)}"
                 ),
                 detail=f"comment exceeds {MAX_COMMENT_CHARS} characters",
             )
             return
 
         async with room.lock:
+            # Prevent unbounded comment accumulation — reject once the cap is
+            # reached so the room state stays bounded in both memory and wire size.
+            if len(room.comments) >= MAX_COMMENTS_PER_SESSION:
+                await _send_error(
+                    socket=socket,
+                    session_id=session_id,
+                    error_reason="comment_limit_reached",
+                    log_message=(
+                        f"comment_rejected session_id={session_id}"
+                        f" client_id={client_id} reason=comment_limit_reached"
+                        f" limit={MAX_COMMENTS_PER_SESSION}"
+                    ),
+                    detail=(
+                        f"session comment limit of {MAX_COMMENTS_PER_SESSION} reached"
+                    ),
+                )
+                return
+
             user = room.users.get(client_id, {})
             comment = {
                 "id": uuid.uuid4().hex[:12],
