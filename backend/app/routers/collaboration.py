@@ -12,10 +12,12 @@ from typing import Any
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from ..observability import (
+    record_collab_comment_added,
     record_collab_connect,
     record_collab_disconnect,
     record_collab_error,
     record_collab_message,
+    record_collab_session_closed,
 )
 
 router = APIRouter()
@@ -203,6 +205,7 @@ class CollaborationManager:
             room.users.pop(client_id, None)
             users = self._users_payload(room)
             should_delete = not room.sockets
+            comment_count = len(room.comments) if should_delete else 0
 
         logger.info(
             "client_disconnected session_id=%s client_id=%s remaining_users=%d",
@@ -215,6 +218,7 @@ class CollaborationManager:
         if should_delete:
             self.rooms.pop(session_id, None)
             logger.info("session_closed session_id=%s reason=last_client_left", session_id)
+            record_collab_session_closed(session_id, comment_count)
             return
 
         await self.broadcast(session_id, {"type": "presence_update", "users": users})
@@ -496,6 +500,7 @@ class CollaborationManager:
             client_id,
             len(comments_snapshot),
         )
+        record_collab_message(session_id, "comment_sync")
 
         await socket.send_json({
             "type": "comment_sync",
@@ -622,6 +627,7 @@ class CollaborationManager:
                 line,
             )
             record_collab_message(session_id, "comment_added")
+            record_collab_comment_added(session_id)
 
         await self.broadcast(session_id, payload)
 

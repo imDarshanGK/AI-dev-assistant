@@ -146,6 +146,18 @@ COLLAB_ERRORS_TOTAL = Counter(
     labelnames=("session_id", "error_reason"),
 )
 
+COLLAB_COMMENTS_TOTAL = Counter(
+    "qyverixai_collaboration_comments_total",
+    "Total number of comments successfully added across all collaboration sessions since process start.",
+    labelnames=("session_id",),
+)
+
+COLLAB_COMMENT_COUNT = Gauge(
+    "qyverixai_collaboration_comment_count",
+    "Current number of comments stored in each active collaboration session.",
+    labelnames=("session_id",),
+)
+
 
 def record_collab_connect(session_id: str) -> None:
     """Increment connection metrics when a client joins a session."""
@@ -184,6 +196,42 @@ def record_collab_error(session_id: str, error_reason: str) -> None:
         return
     try:
         COLLAB_ERRORS_TOTAL.labels(session_id=session_id, error_reason=error_reason).inc()
+    except Exception:  # pragma: no cover
+        pass
+
+
+def record_collab_comment_added(session_id: str) -> None:
+    """Increment the comment-added counter and gauge when a comment is accepted.
+
+    This is separate from ``record_collab_message(session_id, "comment_added")``
+    so that the dedicated comment gauge can be managed independently from the
+    generic message counter — in particular it can be decremented when a session
+    is destroyed via ``record_collab_session_closed``.
+    """
+    if not metrics_enabled():
+        return
+    try:
+        COLLAB_COMMENTS_TOTAL.labels(session_id=session_id).inc()
+        COLLAB_COMMENT_COUNT.labels(session_id=session_id).inc()
+    except Exception:  # pragma: no cover
+        pass
+
+
+def record_collab_session_closed(session_id: str, comment_count: int) -> None:
+    """Reset the comment-count gauge to zero when a session is destroyed.
+
+    Called when the last client disconnects so the gauge accurately reflects
+    that the session's comment buffer no longer exists in memory.
+
+    Args:
+        session_id:    The session that was destroyed.
+        comment_count: The number of comments that were in the room at close
+                       time (used to decrement the gauge by the exact amount).
+    """
+    if not metrics_enabled():
+        return
+    try:
+        COLLAB_COMMENT_COUNT.labels(session_id=session_id).dec(comment_count)
     except Exception:  # pragma: no cover
         pass
 
