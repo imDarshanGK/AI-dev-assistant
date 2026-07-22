@@ -3032,6 +3032,18 @@ details.issue-card[open] {
 
       </div>
 
+      <!-- Empty state shown when no analyses have been run yet -->
+      <div class="list-empty-state" id="emptyAnalytics" style="display:none" aria-live="polite">
+        <div class="list-empty-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        <p class="list-empty-title" data-i18n="empty_analytics_title">No analyses yet</p>
+        <p class="list-empty-desc" data-i18n="empty_analytics_desc">Run your first analysis to see stats here</p>
+      </div>
+
     </details>
 
     <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
@@ -3202,6 +3214,8 @@ details.issue-card[open] {
           empty_favorites: "No favorites saved yet.",
           empty_favorites_title: "No favorites saved",
           empty_favorites_desc: "Star an analysis result to save it here",
+          empty_analytics_title: "No analyses yet",
+          empty_analytics_desc: "Run your first analysis to see stats here",
           btn_clear: "Clear",
           footer_license: "MIT License",
           footer_built_for: "Built for the open source community",
@@ -3314,6 +3328,8 @@ details.issue-card[open] {
           empty_favorites: "இன்னும் பிடித்தவை எதுவும் சேமிக்கப்படவில்லை.",
           empty_favorites_title: "பிடித்தவை எதுவும் இல்லை",
           empty_favorites_desc: "ஒரு பகுப்பாய்வு முடிவை நட்சத்திரமிட்டு இங்கே சேமிக்கவும்",
+          empty_analytics_title: "இன்னும் பகுப்பாய்வுகள் இல்லை",
+          empty_analytics_desc: "புள்ளிவிவரங்களைக் காண உங்கள் முதல் பகுப்பாய்வை இயக்கவும்",
           btn_clear: "அழி",
           footer_license: "எம்ஐடி உரிமம் (MIT License)",
           footer_built_for: "திறந்த மூல சமூகத்திற்காக உருவாக்கப்பட்டது",
@@ -4890,12 +4906,20 @@ details.issue-card[open] {
 
         document.getElementById('analyticsTotal').textContent = total;
 
+        const grid = document.querySelector('.analytics-grid');
+        const emptyEl = document.getElementById('emptyAnalytics');
+
         if (!total) {
           document.getElementById('analyticsLanguage').textContent = '-';
           document.getElementById('analyticsScore').textContent = '0';
           document.getElementById('analyticsIssues').textContent = '0';
+          if (grid) grid.style.display = 'none';
+          if (emptyEl) emptyEl.style.display = 'flex';
           return;
         }
+
+        if (grid) grid.style.display = '';
+        if (emptyEl) emptyEl.style.display = 'none';
 
         const languageCounts = {};
         let totalScore = 0;
