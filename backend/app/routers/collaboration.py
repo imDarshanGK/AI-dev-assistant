@@ -14,6 +14,7 @@ router = APIRouter()
 
 MAX_CODE_CHARS = 50_000
 MAX_COMMENT_CHARS = 1_000
+MAX_COMMENTS_PER_ROOM = 200
 
 COLORS = [
     "#5b9cf6",
@@ -293,7 +294,15 @@ class CollaborationManager:
                     }
                 )
             return
-
+        if len(room.comments) >= MAX_COMMENTS_PER_ROOM:
+            if socket is not None:
+                await socket.send_json(
+                    {
+                        "type": "error",
+                        "detail": f"Comment limit of {MAX_COMMENTS_PER_ROOM} reached for this session",
+                    }
+                )
+            return
         async with room.lock:
             user = room.users.get(client_id, {})
             comment = {
