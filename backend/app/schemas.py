@@ -15,8 +15,10 @@ from .schema_validators import (
 )
 
 
-# ── Core request ──────────────────────────────────────────────────────────────
 class CodeRequest(BaseModel):
+    code: str
+    language: str | None = None
+    ai_language: str | None = None
     """Request body accepted by all analysis endpoints."""
 
     code: str = Field(
@@ -998,17 +1000,5 @@ class ChatMessageRequest(BaseModel):
 class ChatMessageResponse(BaseModel):
     """Extended chat response with provider and mode metadata."""
 
-    provider: str = Field(
-        ..., description="LLM provider used, or `rule-based`.", example="openai"
-    )
-    model: str = Field(
-        ...,
-        description="Model name used to generate the reply.",
-        example="gpt-4o-mini",
-    )
-    mode: str = Field(..., description="Conversation mode.", example="chat")
-    reply: str = Field(
-        ...,
-        description="The assistant's reply.",
-        example="A ZeroDivisionError occurs when you divide by zero.",
-    )
+
+# ── Explanation / Debugging / Suggestions response models ───────────────────

@@ -76,6 +76,7 @@ def get_share(token: str, db: Session = Depends(get_db)):
 
         raw = db.execute(
             text(
+                "SELECT token, code, result_json, created_at FROM shares WHERE token = :t"
                 "SELECT token, user_id, code, result_json, created_at FROM shares WHERE token = :t"
             ),
             {"t": token},

@@ -1,6 +1,7 @@
 """Explanation router — POST /explanation/"""
 
 from fastapi import APIRouter
+
 from ..schemas import CodeRequest, ExplanationResponse
 from ..services.code_assistant import detect_language, run_explanation
 
@@ -12,4 +13,4 @@ router = APIRouter()
 )
 async def explain(req: CodeRequest):
     lang = detect_language(req.code, req.language)
-    return run_explanation(req.code, lang)
+    return run_explanation(req.code, lang, req.ai_language)

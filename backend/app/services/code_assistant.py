@@ -896,12 +896,13 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
 
 # ── Suggestion Engine ──────────────────────────────────────────────────────────
-def run_suggestions(code: str, language: str) -> dict:
+def run_suggestions(code: str, language: str, ai_language: str | None = None) -> dict:
     """Generate improvement suggestions for the provided source code.
 
     Args:
         code: The source code to analyse.
         language: The detected or selected programming language.
+        ai_language: Optional UI language code (e.g., "en", "ta", "hi", "fr") for LLM responses.
 
     Returns:
         Suggestion results including score, grade, and recommendations.
@@ -913,6 +914,7 @@ def run_suggestions(code: str, language: str) -> dict:
         find_undocumented_lines,
         format_code_snippet,
     )
+    from .multilingual import translate_key
 
     suggestions: list[dict] = []
     lines = code.splitlines()
@@ -933,8 +935,8 @@ def run_suggestions(code: str, language: str) -> dict:
 
         suggestions.append(
             {
-                "category": "Documentation",
-                "description": "Less than 10% of lines are comments. Add docstrings/comments to explain intent.",
+                "category": translate_key("documentation", ai_language),
+                "description": translate_key("less_than_ten", ai_language),
                 "line_number": sample_lines[0] if sample_lines else None,
                 "line_range": sample_lines,
                 "code_context": (
@@ -955,8 +957,8 @@ def run_suggestions(code: str, language: str) -> dict:
 
             suggestions.append(
                 {
-                    "category": "Refactoring",
-                    "description": f"Function '{func['name']}' is {func['length']} lines — consider splitting into smaller helpers.",
+                    "category": translate_key("refactoring", ai_language),
+                    "description": f"{translate_key('function_s', ai_language)} '{func['name']}' {translate_key('function_length', ai_language).format(length=func['length'])}",
                     "line_number": func["start_line"],
                     "line_range": func_range,
                     "code_context": format_code_snippet(
@@ -979,8 +981,10 @@ def run_suggestions(code: str, language: str) -> dict:
 
         suggestions.append(
             {
-                "category": "Readability",
-                "description": f"Magic numbers detected ({len(magic_lines)} occurrence(s)). Replace with named constants.",
+                "category": translate_key("readability", ai_language),
+                "description": translate_key("magic_numbers", ai_language).format(
+                    count=len(magic_lines)
+                ),
                 "line_number": magic_lines[0],
                 "line_range": sample_magic_lines,
                 "code_context": format_code_snippet(code, sample_magic_lines),
@@ -1009,8 +1013,10 @@ def run_suggestions(code: str, language: str) -> dict:
             sample_risky = risky_lines[:5]
             suggestions.append(
                 {
-                    "category": "Error Handling",
-                    "description": f"I/O operations detected ({len(risky_lines)} line(s)) with no try/except block.",
+                    "category": translate_key("error_handling", ai_language),
+                    "description": translate_key("io_operations", ai_language).format(
+                        count=len(risky_lines)
+                    ),
                     "line_number": risky_lines[0],
                     "line_range": sample_risky,
                     "code_context": format_code_snippet(code, sample_risky),
@@ -1034,8 +1040,8 @@ def run_suggestions(code: str, language: str) -> dict:
 
             suggestions.append(
                 {
-                    "category": "Type Safety",
-                    "description": f"{len(unhinted)} function(s) missing type annotations.",
+                    "category": translate_key("type_safety", ai_language),
+                    "description": f"{len(unhinted)} {translate_key('functions_missing_types', ai_language)}",
                     "line_number": func_def_lines[0] if func_def_lines else None,
                     "line_range": func_def_lines[:5] if func_def_lines else None,
                     "code_context": (
@@ -1054,8 +1060,8 @@ def run_suggestions(code: str, language: str) -> dict:
     if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]", code):
         suggestions.append(
             {
-                "category": "Testing",
-                "description": "No tests detected. Unit tests catch regressions early.",
+                "category": translate_key("testing", ai_language),
+                "description": translate_key("no_tests", ai_language),
                 "line_number": None,
                 "line_range": None,
                 "code_context": None,
@@ -1075,6 +1081,8 @@ def run_suggestions(code: str, language: str) -> dict:
             sample_print = print_lines[:3]
             suggestions.append(
                 {
+                    "category": translate_key("logging", ai_language),
+                    "description": translate_key("no_logging", ai_language),
                     "category": "Observability",
                     "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
                     "line_number": print_lines[0],
@@ -1128,20 +1136,20 @@ def run_suggestions(code: str, language: str) -> dict:
     score = max(0, min(100, 100 - deductions))
 
     if score >= 90:
-        grade, next_step = "A", "Excellent code! Consider adding integration tests."
+        grade, next_step = "A", translate_key("excellent", ai_language)
     elif score >= 75:
-        grade, next_step = "B", "Good work. Address the medium-priority items next."
+        grade, next_step = "B", translate_key("good_work", ai_language)
     elif score >= 60:
-        grade, next_step = "C", "Solid foundation. Focus on error handling and testing."
+        grade, next_step = "C", translate_key("solid_foundation", ai_language)
     elif score >= 40:
         grade, next_step = (
             "D",
-            "Needs significant improvement — start with the high-priority items.",
+            translate_key("needs_improvement", ai_language),
         )
     else:
         grade, next_step = (
             "F",
-            "Major issues detected. Refactor with error handling, tests, and type safety.",
+            translate_key("major_issues", ai_language),
         )
 
     return {
@@ -1153,16 +1161,18 @@ def run_suggestions(code: str, language: str) -> dict:
 
 
 # ── Explanation Engine ─────────────────────────────────────────────────────────
-def run_explanation(code: str, language: str) -> dict:
+def run_explanation(code: str, language: str, ai_language: str | None = None) -> dict:
     """Generate a plain-English explanation of the provided source code.
 
     Args:
         code: The source code to analyse.
         language: The detected or selected programming language.
+        ai_language: Optional UI language code (e.g., "en", "ta", "hi", "fr") for LLM responses.
 
     Returns:
         A structured explanation summary with key insights.
     """
+    from .multilingual import translate_key
 
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
@@ -1192,35 +1202,41 @@ def run_explanation(code: str, language: str) -> dict:
     )
 
     key_points = [
-        f"Written in **{language}** — {len(non_blank)} non-blank lines of code.",
+        f"Written in **{language}** — {len(non_blank)} {translate_key('non_blank_lines', ai_language)}.",
     ]
     if funcs:
         key_points.append(
-            f"Defines {len(funcs)} function(s): `{'`, `'.join(funcs[:5])}`{'...' if len(funcs) > 5 else ''}."
+            f"{translate_key('defines_functions', ai_language)} {len(funcs)} {translate_key('function_s', ai_language)} `{'`, `'.join(funcs[:5])}`{'...' if len(funcs) > 5 else ''}."
         )
     if class_names:
         key_points.append(
-            f"Contains {len(class_names)} class(es): `{'`, `'.join(class_names[:3])}`."
+            f"{translate_key('contains_classes', ai_language)} {len(class_names)} {translate_key('class_es', ai_language)} `{'`, `'.join(class_names[:3])}`."
         )
     if import_count:
         key_points.append(
-            f"Imports {import_count} module(s) — external dependencies present."
+            f"{translate_key('imports_modules', ai_language)} {import_count} {translate_key('external_dependencies', ai_language)}"
         )
     if has_loops:
-        key_points.append("Contains loop(s) — iterative data processing detected.")
+        key_points.append(translate_key("contains_loops", ai_language))
     if has_conditions:
-        key_points.append("Contains conditional logic — branching control flow.")
+        key_points.append(translate_key("contains_conditionals", ai_language))
     if has_recursion:
-        key_points.append(
-            "⚠ Recursive call detected — ensure a proper base case exists."
-        )
+        key_points.append(translate_key("recursive_call", ai_language))
 
     # Summary by complexity
     summaries = {
-        "Beginner": f"A short {language} snippet ({len(non_blank)} lines) that performs a focused task. Good starting point for learners.",
-        "Intermediate": f"A {language} module with {len(funcs)} function(s) and moderate complexity. Demonstrates solid programming fundamentals.",
-        "Advanced": f"A well-structured {language} codebase with {len(class_names)} class(es) and {len(funcs)} function(s). Shows advanced design patterns.",
-        "Expert": f"A large-scale {language} system ({len(lines)} lines). Expert-level architecture with significant abstraction layers.",
+        "Beginner": translate_key("beginner", ai_language).format(
+            language=language, lines=len(non_blank)
+        ),
+        "Intermediate": translate_key("intermediate", ai_language).format(
+            language=language, funcs=len(funcs)
+        ),
+        "Advanced": translate_key("advanced", ai_language).format(
+            language=language, classes=len(class_names), funcs=len(funcs)
+        ),
+        "Expert": translate_key("expert", ai_language).format(
+            language=language, lines=len(lines)
+        ),
     }
 
     return {
@@ -1385,12 +1401,15 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
 
 
 # ── Combined ───────────────────────────────────────────────────────────────────
-def full_analysis(code: str, language_hint: str | None = None) -> dict:
+def full_analysis(
+    code: str, language_hint: str | None = None, ai_language: str | None = None
+) -> dict:
     """Run the complete analysis pipeline for the provided source code.
 
     Args:
         code: The source code to analyse.
         language_hint: Optional language override hint.
+        ai_language: Optional UI language code for AI responses (e.g., "en", "ta", "hi", "fr").
 
     Returns:
         Combined explanation, debugging, and suggestion analysis results.
@@ -1399,7 +1418,7 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
     t0 = time.perf_counter()
     language = detect_language(code, language_hint)
 
-    explanation = run_explanation(code, language)
+    explanation = run_explanation(code, language, ai_language)
 
     raw_issues = run_bug_detection(code, language)
     errors = [i for i in raw_issues if i["severity"] == "error"]
@@ -1420,7 +1439,7 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         "code": code,
     }
 
-    sugg = run_suggestions(code, language)
+    sugg = run_suggestions(code, language, ai_language)
 
     elapsed_ms = (time.perf_counter() - t0) * 1000
 
