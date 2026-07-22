@@ -4418,9 +4418,7 @@ details.issue-card[open] {
       }
 
       function renderExplain(exp) {
-        document.getElementById('emptyExplain').style.display = 'none';
-        const el = document.getElementById('explainResult');
-        el.style.display = 'block';
+        const el = showPane('explainResult', 'emptyExplain');
         document.getElementById('explainBadge').textContent = exp.complexity;
 
         el.innerHTML = `
@@ -4493,9 +4491,7 @@ details.issue-card[open] {
       }
 
       function renderDebug(dbg) {
-        document.getElementById('emptyDebug').style.display = 'none';
-        const el = document.getElementById('debugResult');
-        el.style.display = 'block';
+        const el = showPane('debugResult', 'emptyDebug');
 
         const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
         document.getElementById('debugBadge').textContent = badge || '0';
@@ -4719,9 +4715,7 @@ details.issue-card[open] {
          RENDER SUGGESTIONS (with diff view)
       ═══════════════════════════════════════════════════════════════ */
       function renderSuggest(sugg) {
-        document.getElementById('emptySuggest').style.display = 'none';
-        const el = document.getElementById('suggestResult');
-        el.style.display = 'block';
+        const el = showPane('suggestResult', 'emptySuggest');
         document.getElementById('suggestBadge').textContent = sugg.suggestions.length || '0';
 
         const scoreColor = sugg.overall_score >= 80 ? 'var(--green)'
@@ -5653,6 +5647,65 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
       function renderMarkdown(s) {
         return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
           .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
+      }
+
+      /**
+       * Show a result pane and hide its matching empty-state placeholder.
+       *
+       * @param {string} resultId  - ID of the result content div (e.g. 'explainResult').
+       * @param {string} emptyId   - ID of the empty-state div    (e.g. 'emptyExplain').
+       * @param {string} [display] - CSS display value for the result div (default 'block').
+       * @returns {HTMLElement} The result element, ready for innerHTML assignment.
+       */
+      function showPane(resultId, emptyId, display = 'block') {
+        document.getElementById(emptyId).style.display = 'none';
+        const el = document.getElementById(resultId);
+        el.style.display = display;
+        return el;
+      }
+
+      /**
+       * Set a CSS `display` value on a list of elements identified by ID.
+       *
+       * @param {string[]} ids     - Array of element IDs.
+       * @param {string}   display - The display value to apply.
+       */
+      function setDisplayAll(ids, display) {
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = display;
+        });
+      }
+
+      /**
+       * Set a property (e.g. `textContent`) to a value on a list of elements by ID.
+       *
+       * @param {string[]} ids   - Array of element IDs.
+       * @param {string}   prop  - Property name to set.
+       * @param {*}        value - Value to assign.
+       */
+      function setPropAll(ids, prop, value) {
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el[prop] = value;
+        });
+      }
+
+      /**
+       * Deactivate all buttons/tabs matching `selector`, then activate `activeEl`.
+       * Handles both `aria-pressed` (buttons) and `aria-selected` (tabs).
+       *
+       * @param {string}      selector  - CSS selector for the full group.
+       * @param {HTMLElement} activeEl  - The element to mark as active.
+       * @param {string}      ariaAttr  - ARIA attribute to toggle ('aria-pressed' | 'aria-selected').
+       */
+      function activateExclusive(selector, activeEl, ariaAttr) {
+        document.querySelectorAll(selector).forEach(el => {
+          el.classList.remove('active');
+          el.setAttribute(ariaAttr, 'false');
+        });
+        activeEl.classList.add('active');
+        activeEl.setAttribute(ariaAttr, 'true');
       }
 
       /* ═══════════════════════════════════════════════════════════════
