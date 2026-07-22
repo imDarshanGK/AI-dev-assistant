@@ -2611,6 +2611,7 @@ details.issue-card[open] {
           <span data-i18n="nav_api_docs">API Docs</span>
         </a>
         <button class="theme-btn" id="themeToggle" title="Toggle theme" data-i18n-title="btn_toggle_theme" data-i18n-aria-label="btn_toggle_theme" aria-label="Toggle dark mode"
+          aria-keyshortcuts="Control+Shift+T Meta+Shift+T"
           aria-pressed="false">
           <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" aria-hidden="true">
@@ -2737,7 +2738,7 @@ details.issue-card[open] {
             </button>
             <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
               tabindex="-1">
-            <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
+            <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor" aria-keyshortcuts="Control+K Meta+K">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <polyline points="3,6 5,6 21,6" />
@@ -2786,10 +2787,10 @@ details.issue-card[open] {
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
             <div class="mode-row" role="tablist" aria-label="Mode selector">
-              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full">Full</button>
-              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain">Explain</button>
-              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
-              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full" aria-keyshortcuts="Alt+1">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain" aria-keyshortcuts="Alt+2">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug" aria-keyshortcuts="Alt+3">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve" aria-keyshortcuts="Alt+4">Improve</button>
             </div>
           </div>
         </div>
@@ -2803,6 +2804,9 @@ details.issue-card[open] {
             <span class="shortcut-hint"><kbd>/</kbd><span data-i18n="shortcut_focus">Focus editor</span></span>
             <span class="shortcut-hint"><kbd>Ctrl/⌘ + Enter</kbd><span data-i18n="shortcut_analyze">Analyze</span></span>
             <span class="shortcut-hint"><kbd>Esc</kbd><span data-i18n="shortcut_leave">Leave editor</span></span>
+            <span class="shortcut-hint"><kbd>Ctrl/⌘ + K</kbd><span data-i18n="shortcut_clear">Clear editor</span></span>
+            <span class="shortcut-hint"><kbd>Ctrl/⌘ + Shift + T</kbd><span data-i18n="shortcut_theme">Toggle theme</span></span>
+            <span class="shortcut-hint"><kbd>Alt + 1–4</kbd><span data-i18n="shortcut_mode">Switch mode</span></span>
           </div>
         </div>
 
@@ -4007,6 +4011,52 @@ details.issue-card[open] {
           allowInEditable: true,
           when: () => document.activeElement === editor,
           handler: () => editor.blur(),
+        },
+        // Ctrl/⌘ + K — clear the editor
+        {
+          key: 'k',
+          mod: true,
+          handler: () => document.getElementById('clearBtn').click(),
+        },
+        // Ctrl/⌘ + Shift + T — toggle theme
+        {
+          key: 't',
+          mod: true,
+          shift: true,
+          handler: () => document.getElementById('themeToggle').click(),
+        },
+        // Alt + 1–4 — switch analysis mode
+        {
+          key: '1',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="analyze"]');
+            if (btn) btn.click();
+          },
+        },
+        {
+          key: '2',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="explain"]');
+            if (btn) btn.click();
+          },
+        },
+        {
+          key: '3',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="debug"]');
+            if (btn) btn.click();
+          },
+        },
+        {
+          key: '4',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="suggest"]');
+            if (btn) btn.click();
+          },
         },
       ]);
 
