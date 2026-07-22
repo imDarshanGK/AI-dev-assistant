@@ -2049,6 +2049,42 @@ details.issue-card[open] {
       color: var(--text3);
     }
 
+    /* Richer empty state for history/favorites panels */
+    .list-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .list-empty-state .list-empty-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text3);
+    }
+
+    .list-empty-state .list-empty-title {
+      font-family: var(--font-disp);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .list-empty-state .list-empty-desc {
+      font-size: 0.78rem;
+      color: var(--text2);
+      max-width: 200px;
+    }
+
     /* ═══════════════════════════════════════════════════════════════
    API CONFIG
 ═══════════════════════════════════════════════════════════════ */
@@ -2254,43 +2290,104 @@ details.issue-card[open] {
 .stat-chip.info-chip .stat-chip-num{color:var(--accent)}
 
 /* responsive */
+
+/* ── 600 px — tablet / large phone ─────────────────────────── */
 @media(max-width:600px){
-  .hero h1{font-size:2.2rem}
-  nav{flex-wrap:wrap;gap:8px}
+  /* Nav */
+  nav{flex-wrap:wrap;gap:8px;padding-left:16px;padding-right:16px}
   .nav-links .nav-link span{display:none}
+  /* Hide language selector in nav on small screens — inline select is cramped */
+  .nav-links .lang-select{display:none}
+
+  /* Hero */
   .hero{padding:50px 0 40px}
+  .hero h1{font-size:2.2rem}
   .hero-sub{font-size:0.98rem}
+  .hero-cta{gap:8px}
+  .btn{padding:11px 18px;font-size:0.85rem}
+
+  /* Feature pills */
   .features-row{display:flex;flex-direction:column;gap:8px;max-width:340px;margin-inline:auto;padding:16px 0 40px}
   .feat-pill{gap:10px;padding:10px 14px;min-width:0}
   .feat-pill-icon{width:32px;height:32px;flex-shrink:0}
   .feat-pill-info{min-width:0;overflow-wrap:break-word}
   .feat-pill-info .feat-pill-title{font-size:0.82rem;line-height:1.25}
   .feat-pill-info p{font-size:0.74rem;line-height:1.25}
+
+  /* Workspace & panels */
   .workspace{gap:14px}
   #workspace > .panel{grid-column:1 !important;min-width:0}
-  .panel-header{padding:12px 14px}
+  /* Panel headers that hold multiple action buttons wrap gracefully */
+  .panel-header{padding:12px 14px;flex-wrap:wrap;gap:6px}
+  .panel-title{flex:1 1 100%}  /* title takes full row so buttons go below */
+
+  /* Code editor: smaller fixed heights free vertical space on phones */
+  #codeEditor{min-height:200px;max-height:340px}
+  .line-numbers{min-height:200px;max-height:340px}
+  .editor-footer{font-size:0.7rem;padding:8px 12px}
+
+  /* Mode buttons */
   .mode-row{gap:6px;padding:10px 14px}
-  .mode-btn{padding:8px 4px;font-size:0.74rem}
+  .mode-btn{padding:10px 6px;font-size:0.74rem;min-height:44px} /* ≥44px touch target */
+
+  /* Analyze row */
   .analyze-row{padding:10px 14px}
-  .btn-analyze{padding:14px}
-  .result-content{min-height:280px;max-height:420px;padding:14px}
+  .btn-analyze{padding:14px;min-height:48px} /* comfortable touch target */
+  /* Collapse shortcut hints on narrow screens — keyboard shortcuts are not
+     relevant on touch-only devices; hints are still present in the DOM for
+     screen readers via aria-keyshortcuts on the buttons themselves. */
+  .shortcut-hints{display:none}
+
+  /* Result panel */
+  .result-content{min-height:240px;max-height:420px;padding:14px}
+  /* Result action buttons wrap instead of overflowing */
+  .result-actions{flex-wrap:wrap;gap:6px;padding:8px 14px}
+  .result-actions .icon-btn{min-height:44px;min-width:44px}
+
+  /* Icon buttons: ensure 44×44px touch target everywhere */
+  .icon-btn{min-height:44px;min-width:44px;width:auto;padding:0 10px}
+
+  /* History / favorites */
   .bottom-grid{gap:14px}
   .history-list,.fav-list{max-height:200px}
+  /* History panel header buttons wrap on narrow screens */
+  #historyList ~ * .btn-clear,
+  .history-controls-row{flex-wrap:wrap}
+
+  /* API config input row wraps cleanly */
+  .api-config-inner{flex-wrap:wrap}
+  #apiUrl{min-width:0;width:100%}
+
+  /* Analytics */
   .score-ring-wrap{flex-direction:column;text-align:center;gap:12px}
   .stat-bar{gap:6px}
   .stat-chip{padding:8px 10px}
   .stat-chip-num{font-size:1.2rem}
+
+  /* Toasts */
   #toastContainer{bottom:12px;right:12px;left:12px}
   .toast{min-width:unset;width:100%}
-  .hero-cta{gap:8px}
-  .btn{padding:11px 18px;font-size:0.85rem}
 }
+
+/* ── 400 px — small phone ───────────────────────────────────── */
 @media(max-width:400px){
-  .app{padding:0 14px 60px}
+  .app{padding:0 12px 60px}
   .hero h1{font-size:1.9rem}
-  .lang-tab{padding:7px 10px;font-size:0.72rem}
-  .result-tab{padding:9px 12px;font-size:0.75rem}
+  /* Navigation: stack logo and links vertically with full-width logo row */
+  nav{padding-left:12px;padding-right:12px}
+  /* Tabs scroll horizontally rather than squeezing */
+  .lang-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .lang-tab{padding:7px 10px;font-size:0.72rem;flex-shrink:0}
+  .result-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .result-tab{padding:9px 12px;font-size:0.75rem;flex-shrink:0}
+  /* Mode buttons: allow horizontal scroll instead of squeezing below 44px */
+  .mode-row{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;scrollbar-width:none}
+  .mode-btn{flex:0 0 auto;min-width:68px}
+  /* Pagination row: ensure buttons stay tappable */
+  .history-pagination-row{gap:8px}
+  #btnPrevHistory,#btnNextHistory{min-height:44px;min-width:44px;padding:8px 12px}
 }
+
 
 /* ── Live Collaboration ── */
 .collab-toolbar-btn {
@@ -2583,7 +2680,7 @@ details.issue-card[open] {
 
     <!-- ── NAV ──────────────────────────────────────────────────── -->
     <nav>
-      <a href="#" class="nav-logo">
+      <a href="#" class="nav-logo" aria-label="QyverixAI home">
         <div class="logo-hex">Q</div>
         QyverixAI
         <span
@@ -2596,21 +2693,22 @@ details.issue-card[open] {
           <option value="hi" data-i18n="lang_option_hi">हिन्दी (Hindi)</option>
           <option value="fr" data-i18n="lang_option_fr">Français (French)</option>
         </select>
-        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+        <a href="https://github.com/imDarshanGK/AI-dev-assistant" target="_blank" class="nav-link" aria-label="View project on GitHub (opens in new tab)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path
               d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
           </svg>
           <span data-i18n="nav_github">GitHub</span>
         </a>
-        <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <a href="https://qyverixai.onrender.com/docs" target="_blank" class="nav-link" aria-label="View API documentation (opens in new tab)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14,2 14,8 20,8" />
           </svg>
           <span data-i18n="nav_api_docs">API Docs</span>
         </a>
         <button class="theme-btn" id="themeToggle" title="Toggle theme" data-i18n-title="btn_toggle_theme" data-i18n-aria-label="btn_toggle_theme" aria-label="Toggle dark mode"
+          aria-keyshortcuts="Control+Shift+T Meta+Shift+T"
           aria-pressed="false">
           <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" aria-hidden="true">
@@ -2629,7 +2727,7 @@ details.issue-card[open] {
     </nav>
 
     <!-- ── HERO ──────────────────────────────────────────────────── -->
-    <section class="hero">
+    <section class="hero" aria-label="Introduction and quick-start actions">
       <div class="hero-badge">
         <div class="badge-dot"></div>
         <span data-i18n="hero_badge">Open Source · AI-Powered · Free</span>
@@ -2640,15 +2738,15 @@ details.issue-card[open] {
         suggestions — no account needed.
       </p>
       <div class="hero-cta">
-        <button class="btn btn-primary"
+        <button class="btn btn-primary" aria-label="Start analyzing — scroll to code editor"
           onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <polygon points="5,3 19,12 5,21" />
           </svg>
           <span data-i18n="btn_start_analyzing">Start Analyzing</span>
         </button>
-        <button class="btn btn-secondary" onclick="loadSample()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="btn btn-secondary" onclick="loadSample()" aria-label="Load sample code into the editor">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <polyline points="16,18 22,12 16,6" />
             <polyline points="8,6 2,12 8,18" />
           </svg>
@@ -2737,7 +2835,7 @@ details.issue-card[open] {
             </button>
             <input type="file" id="fileInput" accept=".py,.js,.ts,.java,.cpp,.cc,.cxx,.c,.h,.hpp,.kt,.kts,.txt,.zip" style="display:none"
               tabindex="-1">
-            <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor">
+            <button class="icon-btn" id="clearBtn" title="Clear" data-i18n-title="btn_clear" data-i18n-aria-label="btn_clear" aria-label="Clear code editor" aria-keyshortcuts="Control+K Meta+K">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <polyline points="3,6 5,6 21,6" />
@@ -2786,10 +2884,10 @@ details.issue-card[open] {
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
             <div class="mode-row" role="tablist" aria-label="Mode selector">
-              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full">Full</button>
-              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain">Explain</button>
-              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
-              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full" aria-keyshortcuts="Alt+1">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain" aria-keyshortcuts="Alt+2">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug" aria-keyshortcuts="Alt+3">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve" aria-keyshortcuts="Alt+4">Improve</button>
             </div>
           </div>
         </div>
@@ -2803,6 +2901,9 @@ details.issue-card[open] {
             <span class="shortcut-hint"><kbd>/</kbd><span data-i18n="shortcut_focus">Focus editor</span></span>
             <span class="shortcut-hint"><kbd>Ctrl/⌘ + Enter</kbd><span data-i18n="shortcut_analyze">Analyze</span></span>
             <span class="shortcut-hint"><kbd>Esc</kbd><span data-i18n="shortcut_leave">Leave editor</span></span>
+            <span class="shortcut-hint"><kbd>Ctrl/⌘ + K</kbd><span data-i18n="shortcut_clear">Clear editor</span></span>
+            <span class="shortcut-hint"><kbd>Ctrl/⌘ + Shift + T</kbd><span data-i18n="shortcut_theme">Toggle theme</span></span>
+            <span class="shortcut-hint"><kbd>Alt + 1–4</kbd><span data-i18n="shortcut_mode">Switch mode</span></span>
           </div>
         </div>
 
@@ -2956,7 +3057,15 @@ details.issue-card[open] {
           </select>
         </div>
         <div class="history-list" id="historyList" aria-live="polite">
-          <div class="list-empty" data-i18n="empty_history">No history yet. Run your first analysis.</div>
+          <div class="list-empty-state" id="emptyHistory" data-i18n-title="empty_history_title" data-i18n-desc="empty_history_desc">
+            <div class="list-empty-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <p class="list-empty-title">No history yet</p>
+            <p class="list-empty-desc">Run your first analysis to see it here</p>
+          </div>
         </div>
         <div class="history-pagination-row" id="historyPagination" style="display:flex; justify-content:space-between; align-items:center; padding:8px 16px; border-top:1px solid var(--border); font-size:0.75rem;">
           <button id="btnPrevHistory" class="btn-clear" style="padding:4px 10px; font-size:0.7rem;" disabled>&laquo; Prev</button>
@@ -2970,7 +3079,15 @@ details.issue-card[open] {
           <button class="btn-clear" id="clearFavsBtn" aria-label="Clear saved favorites" data-i18n-aria-label="btn_clear" data-i18n="btn_clear">Clear</button>
         </div>
         <div class="fav-list" id="favList" aria-live="polite">
-          <div class="list-empty" data-i18n="empty_favorites">No favorites saved yet.</div>
+          <div class="list-empty-state" id="emptyFavorites" data-i18n-title="empty_favorites_title" data-i18n-desc="empty_favorites_desc">
+            <div class="list-empty-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </div>
+            <p class="list-empty-title">No favorites saved</p>
+            <p class="list-empty-desc">Star an analysis result to save it here</p>
+          </div>
         </div>
       </div>
     </div>
@@ -3073,6 +3190,8 @@ details.issue-card[open] {
           history_title: "Query History",
           favorites_title: "Saved Favorites",
           empty_history: "No history yet. Run your first analysis.",
+          empty_history_title: "No history yet",
+          empty_history_desc: "Run your first analysis to see it here",
           history_sort_label: "Sort:",
           history_sort_date: "Date",
           history_sort_score: "Quality Score",
@@ -3081,6 +3200,8 @@ details.issue-card[open] {
           history_order_desc: "Desc",
           history_order_asc: "Asc",
           empty_favorites: "No favorites saved yet.",
+          empty_favorites_title: "No favorites saved",
+          empty_favorites_desc: "Star an analysis result to save it here",
           btn_clear: "Clear",
           footer_license: "MIT License",
           footer_built_for: "Built for the open source community",
@@ -3181,6 +3302,8 @@ details.issue-card[open] {
           history_title: "வினவல் வரலாறு",
           favorites_title: "சேமிக்கப்பட்ட பிடித்தவை",
           empty_history: "இன்னும் வரலாறு இல்லை. உங்கள் முதல் பகுப்பாய்வை இயக்கவும்.",
+          empty_history_title: "இன்னும் வரலாறு இல்லை",
+          empty_history_desc: "இங்கே காண உங்கள் முதல் பகுப்பாய்வை இயக்கவும்",
           history_sort_label: "வரிசைப்படுத்து:",
           history_sort_date: "தேதி",
           history_sort_score: "தர மதிப்பெண்",
@@ -3189,6 +3312,8 @@ details.issue-card[open] {
           history_order_desc: "இறங்குவரிசை",
           history_order_asc: "ஏறுவரிசை",
           empty_favorites: "இன்னும் பிடித்தவை எதுவும் சேமிக்கப்படவில்லை.",
+          empty_favorites_title: "பிடித்தவை எதுவும் இல்லை",
+          empty_favorites_desc: "ஒரு பகுப்பாய்வு முடிவை நட்சத்திரமிட்டு இங்கே சேமிக்கவும்",
           btn_clear: "அழி",
           footer_license: "எம்ஐடி உரிமம் (MIT License)",
           footer_built_for: "திறந்த மூல சமூகத்திற்காக உருவாக்கப்பட்டது",
@@ -3289,6 +3414,8 @@ details.issue-card[open] {
           history_title: "क्वेरी इतिहास",
           favorites_title: "सहेजे गए पसंदीदा",
           empty_history: "अभी तक कोई इतिहास नहीं है। अपना पहला विश्लेषण चलाएं।",
+          empty_history_title: "अभी तक कोई इतिहास नहीं",
+          empty_history_desc: "इसे यहाँ देखने के लिए अपना पहला विश्लेषण चलाएं",
           history_sort_label: "क्रमबद्ध करें:",
           history_sort_date: "तारीख",
           history_sort_score: "गुणवत्ता स्कोर",
@@ -3297,6 +3424,8 @@ details.issue-card[open] {
           history_order_desc: "अवरोही",
           history_order_asc: "आरोही",
           empty_favorites: "अभी तक कोई पसंदीदा सहेजा नहीं गया है।",
+          empty_favorites_title: "कोई पसंदीदा नहीं",
+          empty_favorites_desc: "किसी विश्लेषण को यहाँ सहेजने के लिए उसे स्टार करें",
           btn_clear: "साफ करें",
           footer_license: "एमआईटी लाइसेंस (MIT License)",
           footer_built_for: "ओपन सोर्स समुदाय के लिए निर्मित",
@@ -3397,6 +3526,8 @@ details.issue-card[open] {
           history_title: "Historique des requêtes",
           favorites_title: "Favoris enregistrés",
           empty_history: "Aucun historique pour le moment. Lancez votre première analyse.",
+          empty_history_title: "Aucun historique",
+          empty_history_desc: "Lancez votre première analyse pour la voir ici",
           history_sort_label: "Trier par :",
           history_sort_date: "Date",
           history_sort_score: "Score de qualité",
@@ -3405,6 +3536,8 @@ details.issue-card[open] {
           history_order_desc: "Décroissant",
           history_order_asc: "Croissant",
           empty_favorites: "Aucun favori enregistré pour le moment.",
+          empty_favorites_title: "Aucun favori enregistré",
+          empty_favorites_desc: "Mettez une étoile sur un résultat pour le sauvegarder ici",
           btn_clear: "Effacer",
           footer_license: "Licence MIT",
           footer_built_for: "Conçu pour la communauté open source",
@@ -4008,6 +4141,52 @@ details.issue-card[open] {
           when: () => document.activeElement === editor,
           handler: () => editor.blur(),
         },
+        // Ctrl/⌘ + K — clear the editor
+        {
+          key: 'k',
+          mod: true,
+          handler: () => document.getElementById('clearBtn').click(),
+        },
+        // Ctrl/⌘ + Shift + T — toggle theme
+        {
+          key: 't',
+          mod: true,
+          shift: true,
+          handler: () => document.getElementById('themeToggle').click(),
+        },
+        // Alt + 1–4 — switch analysis mode
+        {
+          key: '1',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="analyze"]');
+            if (btn) btn.click();
+          },
+        },
+        {
+          key: '2',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="explain"]');
+            if (btn) btn.click();
+          },
+        },
+        {
+          key: '3',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="debug"]');
+            if (btn) btn.click();
+          },
+        },
+        {
+          key: '4',
+          alt: true,
+          handler: () => {
+            const btn = document.querySelector('.mode-btn[data-mode="suggest"]');
+            if (btn) btn.click();
+          },
+        },
       ]);
 
       async function doAnalyze() {
@@ -4239,9 +4418,7 @@ details.issue-card[open] {
       }
 
       function renderExplain(exp) {
-        document.getElementById('emptyExplain').style.display = 'none';
-        const el = document.getElementById('explainResult');
-        el.style.display = 'block';
+        const el = showPane('explainResult', 'emptyExplain');
         document.getElementById('explainBadge').textContent = exp.complexity;
 
         el.innerHTML = `
@@ -4314,9 +4491,7 @@ details.issue-card[open] {
       }
 
       function renderDebug(dbg) {
-        document.getElementById('emptyDebug').style.display = 'none';
-        const el = document.getElementById('debugResult');
-        el.style.display = 'block';
+        const el = showPane('debugResult', 'emptyDebug');
 
         const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
         document.getElementById('debugBadge').textContent = badge || '0';
@@ -4540,9 +4715,7 @@ details.issue-card[open] {
          RENDER SUGGESTIONS (with diff view)
       ═══════════════════════════════════════════════════════════════ */
       function renderSuggest(sugg) {
-        document.getElementById('emptySuggest').style.display = 'none';
-        const el = document.getElementById('suggestResult');
-        el.style.display = 'block';
+        const el = showPane('suggestResult', 'emptySuggest');
         document.getElementById('suggestBadge').textContent = sugg.suggestions.length || '0';
 
         const scoreColor = sugg.overall_score >= 80 ? 'var(--green)'
@@ -4942,7 +5115,16 @@ details.issue-card[open] {
         if (!listContainer) return;
 
         if (!history || !history.length) {
-          listContainer.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
+          listContainer.innerHTML = `
+            <div class="list-empty-state" id="emptyHistory">
+              <div class="list-empty-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <p class="list-empty-title">${getTranslation('empty_history_title')}</p>
+              <p class="list-empty-desc">${getTranslation('empty_history_desc')}</p>
+            </div>`;
           return;
         }
 
@@ -5208,7 +5390,16 @@ details.issue-card[open] {
 
       function renderFavorites() {
         if (!favorites.length) {
-          favList.innerHTML = `<div class="list-empty" data-i18n="empty_favorites">${getTranslation('empty_favorites')}</div>`;
+          favList.innerHTML = `
+            <div class="list-empty-state" id="emptyFavorites">
+              <div class="list-empty-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+              <p class="list-empty-title">${getTranslation('empty_favorites_title')}</p>
+              <p class="list-empty-desc">${getTranslation('empty_favorites_desc')}</p>
+            </div>`;
           return;
         }
         favList.innerHTML = favorites.map(f => {
@@ -5456,6 +5647,65 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
       function renderMarkdown(s) {
         return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
           .replace(/`(.+?)`/g, '<code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">$1</code>');
+      }
+
+      /**
+       * Show a result pane and hide its matching empty-state placeholder.
+       *
+       * @param {string} resultId  - ID of the result content div (e.g. 'explainResult').
+       * @param {string} emptyId   - ID of the empty-state div    (e.g. 'emptyExplain').
+       * @param {string} [display] - CSS display value for the result div (default 'block').
+       * @returns {HTMLElement} The result element, ready for innerHTML assignment.
+       */
+      function showPane(resultId, emptyId, display = 'block') {
+        document.getElementById(emptyId).style.display = 'none';
+        const el = document.getElementById(resultId);
+        el.style.display = display;
+        return el;
+      }
+
+      /**
+       * Set a CSS `display` value on a list of elements identified by ID.
+       *
+       * @param {string[]} ids     - Array of element IDs.
+       * @param {string}   display - The display value to apply.
+       */
+      function setDisplayAll(ids, display) {
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = display;
+        });
+      }
+
+      /**
+       * Set a property (e.g. `textContent`) to a value on a list of elements by ID.
+       *
+       * @param {string[]} ids   - Array of element IDs.
+       * @param {string}   prop  - Property name to set.
+       * @param {*}        value - Value to assign.
+       */
+      function setPropAll(ids, prop, value) {
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el[prop] = value;
+        });
+      }
+
+      /**
+       * Deactivate all buttons/tabs matching `selector`, then activate `activeEl`.
+       * Handles both `aria-pressed` (buttons) and `aria-selected` (tabs).
+       *
+       * @param {string}      selector  - CSS selector for the full group.
+       * @param {HTMLElement} activeEl  - The element to mark as active.
+       * @param {string}      ariaAttr  - ARIA attribute to toggle ('aria-pressed' | 'aria-selected').
+       */
+      function activateExclusive(selector, activeEl, ariaAttr) {
+        document.querySelectorAll(selector).forEach(el => {
+          el.classList.remove('active');
+          el.setAttribute(ariaAttr, 'false');
+        });
+        activeEl.classList.add('active');
+        activeEl.setAttribute(ariaAttr, 'true');
       }
 
       /* ═══════════════════════════════════════════════════════════════
