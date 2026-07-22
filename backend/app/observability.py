@@ -112,6 +112,82 @@ def initialise_app_info(version: str, ai_provider: str) -> None:
     APP_INFO.labels(version=version, ai_provider=ai_provider).set(1)
 
 
+# ── Collaboration WebSocket metrics ──────────────────────────────────────────
+# These metrics surface the presence-sync / collaboration WebSocket lifecycle
+# on the same /metrics scrape endpoint as the HTTP metrics above.
+#
+# Label cardinality note: ``session_id`` is used as a label.  In typical
+# deployments the number of distinct session IDs is bounded and short-lived
+# (rooms are torn down when the last client leaves), so cardinality remains
+# acceptable.  If deployments see unbounded session growth, operators should
+# relabel or aggregate in their Prometheus recording rules.
+
+COLLAB_ACTIVE_CONNECTIONS = Gauge(
+    "qyverixai_collaboration_active_connections",
+    "Number of WebSocket clients currently connected to each collaboration session.",
+    labelnames=("session_id",),
+)
+
+COLLAB_CONNECTIONS_TOTAL = Counter(
+    "qyverixai_collaboration_connections_total",
+    "Total number of WebSocket clients that have connected to collaboration sessions since process start.",
+    labelnames=("session_id",),
+)
+
+COLLAB_MESSAGES_TOTAL = Counter(
+    "qyverixai_collaboration_messages_total",
+    "Total number of collaboration messages successfully processed, by session and message type.",
+    labelnames=("session_id", "message_type"),
+)
+
+COLLAB_ERRORS_TOTAL = Counter(
+    "qyverixai_collaboration_errors_total",
+    "Total number of validation rejections and protocol errors in the collaboration WebSocket flow.",
+    labelnames=("session_id", "error_reason"),
+)
+
+
+def record_collab_connect(session_id: str) -> None:
+    """Increment connection metrics when a client joins a session."""
+    if not metrics_enabled():
+        return
+    try:
+        COLLAB_ACTIVE_CONNECTIONS.labels(session_id=session_id).inc()
+        COLLAB_CONNECTIONS_TOTAL.labels(session_id=session_id).inc()
+    except Exception:  # pragma: no cover — metric instrumentation must not crash handlers
+        pass
+
+
+def record_collab_disconnect(session_id: str) -> None:
+    """Decrement the active-connections gauge when a client leaves a session."""
+    if not metrics_enabled():
+        return
+    try:
+        COLLAB_ACTIVE_CONNECTIONS.labels(session_id=session_id).dec()
+    except Exception:  # pragma: no cover
+        pass
+
+
+def record_collab_message(session_id: str, message_type: str) -> None:
+    """Increment the processed-messages counter for a given message type."""
+    if not metrics_enabled():
+        return
+    try:
+        COLLAB_MESSAGES_TOTAL.labels(session_id=session_id, message_type=message_type).inc()
+    except Exception:  # pragma: no cover
+        pass
+
+
+def record_collab_error(session_id: str, error_reason: str) -> None:
+    """Increment the errors counter for a given error reason."""
+    if not metrics_enabled():
+        return
+    try:
+        COLLAB_ERRORS_TOTAL.labels(session_id=session_id, error_reason=error_reason).inc()
+    except Exception:  # pragma: no cover
+        pass
+
+
 # ── Endpoint label resolution ────────────────────────────────────────────────
 def _endpoint_label(request: Request) -> str:
     """Return the route template (low cardinality) rather than the raw path.
