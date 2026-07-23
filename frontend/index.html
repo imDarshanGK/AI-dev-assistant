@@ -833,6 +833,37 @@
       padding: 14px 18px
     }
 
+    .shortcut-hints {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 10px;
+      color: var(--text3);
+      font-size: 0.7rem;
+    }
+
+    .shortcut-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .shortcut-hint kbd {
+      padding: 2px 6px;
+      border: 1px solid var(--border2);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      background: var(--bg3);
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.67rem;
+      line-height: 1.35;
+      box-shadow: var(--shadow2);
+    }
+
     .btn-analyze {
       width: 100%;
       padding: 13px;
@@ -1142,6 +1173,31 @@ details.issue-card[open] {
       font-size: 0.72rem;
       color: var(--text3);
       font-family: var(--font-mono);
+    }
+
+    .complexity-chip {
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: help;
+      white-space: nowrap;
+    }
+
+    .complexity-chip.complexity-easy {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+
+    .complexity-chip.complexity-medium {
+      background: rgba(245, 200, 66, 0.15);
+      color: var(--yellow);
+    }
+
+    .complexity-chip.complexity-hard {
+      background: rgba(242, 87, 87, 0.15);
+      color: var(--red);
     }
 
     .issue-type {
@@ -1784,6 +1840,68 @@ details.issue-card[open] {
       .bottom-grid {
         grid-template-columns: 1fr
       }
+    }
+
+    .analytics-panel{
+      margin-bottom:16px;
+    }
+
+    .analytics-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:16px;
+    padding:16px;
+    }
+
+    .analytics-card{
+    background:transparent;
+    border:none;
+    padding:8px 0;
+    }
+
+    .analytics-card span{
+    display:block;
+    font-size:.72rem;
+    font-weight:600;
+    margin-bottom:2px;
+    color:var(--text3);
+    }
+
+    .analytics-value{
+    margin:0;
+    font-family:var(--font-ui);
+    font-size:1rem;
+    font-weight:600;
+    line-height:1.2;
+    color:var(--text);
+    }
+
+    .analytics-summary{
+    padding:14px 18px;
+    font-family:var(--font-disp);
+    font-size:.82rem;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--text2);
+
+    display:flex;
+    align-items:center;
+    }
+
+    .analytics-summary::-webkit-details-marker{
+        display:none;
+    }
+
+    .analytics-summary::after{
+        content:"▼";
+        margin-left:auto;
+        font-size:.8rem;
+        opacity:.7;
+    }
+
+    details:not([open]) .analytics-summary::after{
+        content:"▶";
     }
 
     .history-list,
@@ -2661,7 +2779,7 @@ details.issue-card[open] {
             <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
           </div>
           <div class="line-numbers" id="lineNumbers">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" aria-keyshortcuts="/ Escape" style="width:100%"></textarea>
         </div>
 
         <div class="editor-footer">
@@ -2677,18 +2795,23 @@ details.issue-card[open] {
         </div>
 
         <div class="analyze-row">
-          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
+          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code" aria-keyshortcuts="Control+Enter Meta+Enter">
             <span class="spinner" id="spinner"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
+          <div class="shortcut-hints" role="note" aria-label="Keyboard shortcuts" data-i18n-aria-label="shortcuts_label">
+            <span class="shortcut-hint"><kbd>/</kbd><span data-i18n="shortcut_focus">Focus editor</span></span>
+            <span class="shortcut-hint"><kbd>Ctrl/⌘ + Enter</kbd><span data-i18n="shortcut_analyze">Analyze</span></span>
+            <span class="shortcut-hint"><kbd>Esc</kbd><span data-i18n="shortcut_leave">Leave editor</span></span>
+          </div>
         </div>
 
         <!-- Result action buttons (hidden until results) -->
         <div id="resultActions" class="result-actions" style="display:none">
-          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
-          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
-          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF">📄</button>
-          <button class="icon-btn" id="export-md-btn" title="Export as Markdown">📝</button>
+          <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save to favorites">★</button>
+          <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">⬇</button>
+          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF"  aria-label="Export analysis results as PDF">📄</button>
+          <button class="icon-btn" id="export-md-btn" title="Export as Markdown" aria-label="Export analysis results as Markdown">📝</button>
         </div>
 
       </div>
@@ -2774,6 +2897,42 @@ details.issue-card[open] {
       </div>
     </div>
 
+    <!-- ── ANALYTICS DASHBOARD ───────────────────────────────────── -->
+
+    <details class="panel analytics-panel">
+
+      <summary class="panel-header analytics-summary">
+          <span class="panel-title">
+              Analytics Dashboard
+          </span>
+      </summary>
+
+      <div class="analytics-grid">
+
+          <div class="analytics-card">
+              <span>Total Analyses</span>
+              <p id="analyticsTotal" class="analytics-value">0</p>
+          </div>
+
+          <div class="analytics-card">
+              <span>Top Language</span>
+              <p id="analyticsLanguage" class="analytics-value">-</p>
+          </div>
+
+          <div class="analytics-card">
+              <span>Average Score</span>
+              <p id="analyticsScore" class="analytics-value">0</p>
+          </div>
+
+          <div class="analytics-card">
+              <span>Total Issues</span>
+              <p id="analyticsIssues" class="analytics-value">0</p>
+          </div>
+
+      </div>
+
+    </details>
+
     <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
     <div class="bottom-grid">
       <div class="panel">
@@ -2847,6 +3006,7 @@ details.issue-card[open] {
     <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
     <div id="toastContainer"></div>
 
+    <script src="security-utils.js"></script>
     <script>
       /* ═══════════════════════════════════════════════════════════════
          STATE & TRANSLATIONS
@@ -2896,6 +3056,10 @@ details.issue-card[open] {
           btn_ping: "Ping",
           btn_analyze_code: "Analyze Code",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "Keyboard shortcuts",
+          shortcut_focus: "Focus editor",
+          shortcut_analyze: "Analyze",
+          shortcut_leave: "Leave editor",
           results_title: "Analysis Results",
           tab_explain: "Explain",
           tab_debug: "Debug",
@@ -3000,6 +3164,10 @@ details.issue-card[open] {
           btn_ping: "பிங்",
           btn_analyze_code: "குறியீட்டை பகுப்பாய்",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "விசைப்பலகை குறுக்குவழிகள்",
+          shortcut_focus: "தொகுப்பானில் கவனம்",
+          shortcut_analyze: "பகுப்பாய்வு",
+          shortcut_leave: "தொகுப்பானிலிருந்து விலகு",
           results_title: "பகுப்பாய்வு முடிவுகள்",
           tab_explain: "விளக்கு",
           tab_debug: "பிழைத்திருத்து",
@@ -3104,6 +3272,10 @@ details.issue-card[open] {
           btn_ping: "पिंग",
           btn_analyze_code: "कोड का विश्लेषण करें",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "कीबोर्ड शॉर्टकट",
+          shortcut_focus: "एडिटर पर फ़ोकस",
+          shortcut_analyze: "विश्लेषण",
+          shortcut_leave: "एडिटर से बाहर",
           results_title: "विश्लेषण के परिणाम",
           tab_explain: "समझाएं",
           tab_debug: "डीबग",
@@ -3208,6 +3380,10 @@ details.issue-card[open] {
           btn_ping: "Ping",
           btn_analyze_code: "Analyser le code",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "Raccourcis clavier",
+          shortcut_focus: "Activer l’éditeur",
+          shortcut_analyze: "Analyser",
+          shortcut_leave: "Quitter l’éditeur",
           results_title: "Résultats de l'analyse",
           tab_explain: "Expliquer",
           tab_debug: "Déboguer",
@@ -3272,6 +3448,7 @@ details.issue-card[open] {
 
       const MAX_HISTORY = 50;
       let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+      let analyticsHistory = [];
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
       let currentResult = null;
       let selectedLang = 'python';
@@ -3811,6 +3988,28 @@ details.issue-card[open] {
       ═══════════════════════════════════════════════════════════════ */
       analyzeBtn.addEventListener('click', doAnalyze);
 
+      window.QyverixSecurity.bindKeyboardShortcuts(document, [
+        {
+          key: 'Enter',
+          mod: true,
+          allowInEditable: true,
+          when: (event) =>
+            !analyzeBtn.disabled &&
+            (event.target === editor || !window.QyverixSecurity.isEditableShortcutTarget(event.target)),
+          handler: doAnalyze,
+        },
+        {
+          key: '/',
+          handler: () => editor.focus(),
+        },
+        {
+          key: 'Escape',
+          allowInEditable: true,
+          when: () => document.activeElement === editor,
+          handler: () => editor.blur(),
+        },
+      ]);
+
       async function doAnalyze() {
         const code = editor.value.trim();
         if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
@@ -3848,7 +4047,7 @@ details.issue-card[open] {
             const data = await res.json();
             currentResult = data;
             renderZipResults(data);
-            addToHistory(`ZIP: ${selectedZipFile.name}`, data);
+            await addToHistory(`ZIP: ${selectedZipFile.name}`, data);
             apiDot?.classList.add('connected');
             if (apiStatusText) apiStatusText.textContent = 'Connected';
             document.getElementById('engineBar').style.display = 'flex';
@@ -3888,7 +4087,7 @@ details.issue-card[open] {
 
           currentResult = result;
           renderResults(result, code);
-          addToHistory(code, result);
+          await addToHistory(code, result);
           apiDot?.classList.add('connected');
           if (apiStatusText) apiStatusText.textContent = getTranslation('api_status_connected');
           document.getElementById('engineBar').style.display = 'flex';
@@ -4069,6 +4268,51 @@ details.issue-card[open] {
   `;
       }
 
+      // ── Issue Complexity Badge ──
+      // Pure frontend heuristic: scores an issue using fields already present on the
+      // issue object (severity, description length, suggestion presence, keywords)
+      // and maps it to Easy / Medium / Hard. No backend involvement required.
+      const COMPLEXITY_KEYWORDS = {
+        hard: ['race condition', 'deadlock', 'memory leak', 'security', 'vulnerability', 'concurrency', 'thread', 'async', 'architecture', 'refactor', 'sql injection', 'recursion', 'algorithm'],
+        medium: ['null', 'undefined', 'exception', 'error handling', 'type', 'performance', 'validation', 'edge case', 'logic'],
+      };
+
+      function scoreIssueComplexity(issue) {
+        let score = 0;
+        const desc = (issue.description || '').toLowerCase();
+        const type = (issue.type || '').toLowerCase();
+        const text = `${desc} ${type}`;
+
+        if (issue.severity === 'error') score += 3;
+        else if (issue.severity === 'warning') score += 2;
+        else if (issue.severity === 'info') score += 1;
+
+        const len = desc.length;
+        if (len > 160) score += 3;
+        else if (len > 80) score += 2;
+        else if (len > 0) score += 1;
+
+        if (COMPLEXITY_KEYWORDS.hard.some(k => text.includes(k))) score += 3;
+        else if (COMPLEXITY_KEYWORDS.medium.some(k => text.includes(k))) score += 1;
+
+        if (!issue.suggestion) score += 1;
+
+        return score;
+      }
+
+      function getIssueComplexity(issue) {
+        const score = scoreIssueComplexity(issue);
+        if (score >= 7) return { level: 'hard', label: 'Hard', emoji: '🔴', score };
+        if (score >= 4) return { level: 'medium', label: 'Medium', emoji: '🟡', score };
+        return { level: 'easy', label: 'Easy', emoji: '🟢', score };
+      }
+
+      function renderComplexityBadge(issue) {
+        const c = getIssueComplexity(issue);
+        const tooltip = `Estimated complexity: ${c.label} (score ${c.score}/11) — based on severity, description length, keywords, and whether a fix suggestion is provided.`;
+        return `<span class="complexity-chip complexity-${c.level}" title="${escHtml(tooltip)}">${c.emoji} ${c.label}</span>`;
+      }
+
       function renderDebug(dbg) {
         document.getElementById('emptyDebug').style.display = 'none';
         const el = document.getElementById('debugResult');
@@ -4109,6 +4353,7 @@ details.issue-card[open] {
 
     <summary class="collapsible-summary">
       <span>${issue.type}</span>
+      ${renderComplexityBadge(issue)}
       ${issue.line
         ? `<span class="issue-line">Line ${issue.line}</span>`
         : ''}
@@ -4466,6 +4711,67 @@ details.issue-card[open] {
         currentResult = null;
       }
 
+      function renderAnalytics() {
+        const entries = analyticsHistory.length ? analyticsHistory : history;
+        const total = entries.length;
+
+        document.getElementById('analyticsTotal').textContent = total;
+
+        if (!total) {
+          document.getElementById('analyticsLanguage').textContent = '-';
+          document.getElementById('analyticsScore').textContent = '0';
+          document.getElementById('analyticsIssues').textContent = '0';
+          return;
+        }
+
+        const languageCounts = {};
+        let totalScore = 0;
+        let totalIssues = 0;
+        let scoreCount = 0;
+        let issueCount = 0;
+
+        entries.forEach(entry => {
+
+        const lang = entry.lang || entry.language || "Unknown";
+        languageCounts[lang] = (languageCounts[lang] || 0) + 1;
+
+        const score =
+            entry.score ??
+            entry.result?.suggestions?.overall_score ??
+            entry.result?.suggestions?.quality_score ??
+            entry.result?.overall_project_score ??
+            entry.result?.quality_score;
+
+        if (typeof score === "number") {
+            totalScore += score;
+            scoreCount++;
+        }
+
+        const issues =
+            entry.issue_count ??
+            entry.result?.debugging?.issues?.length ??
+            0;
+
+        totalIssues += issues;
+        issueCount++;
+      });
+
+        const topLanguage =
+          Object.entries(languageCounts)
+            .sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+
+        document.getElementById("analyticsLanguage").textContent =
+          topLanguage === "-"
+              ? "-"
+              : topLanguage.charAt(0).toUpperCase() + topLanguage.slice(1);
+
+        document.getElementById('analyticsScore').textContent =
+          scoreCount ? (totalScore / scoreCount).toFixed(1) : '0';
+
+        document.getElementById('analyticsIssues').textContent =
+          issueCount ? (totalIssues / issueCount).toFixed(1) : '0';
+      }
+
       /* ═══════════════════════════════════════════════════════════════
          HISTORY (Paginated & Sorted)
       ═══════════════════════════════════════════════════════════════ */
@@ -4518,8 +4824,11 @@ details.issue-card[open] {
           });
           historyOffset = 0;
           await fetchHistory();
+          await fetchAnalyticsHistory();
         } catch (err) {
           loadLocalHistory();
+          renderHistory();
+          renderAnalytics();
         }
       }
 
@@ -4529,18 +4838,45 @@ details.issue-card[open] {
           const res = await fetch(`${apiBase}/history/?limit=${historyLimit}&offset=${historyOffset}&sort_by=${historySortBy}&order=${historyOrder}`);
           if (res.ok) {
             const data = await res.json();
+
             history = data.items;
             historyTotal = data.meta.total;
+
             renderHistory();
+            renderAnalytics();
             updatePaginationUI();
+
             return;
-          }
+        }
         } catch (err) {
           // Fallback to local storage on fetch error
         }
         loadLocalHistory();
+        renderHistory();
+        renderAnalytics();
       }
 
+      async function fetchAnalyticsHistory() {
+        const apiBase = getApiBase();
+
+        try {
+            const res = await fetch(
+                `${apiBase}/history/?limit=100&offset=0&sort_by=timestamp&order=desc`
+            );
+
+            if (!res.ok) return;
+
+            const data = await res.json();
+
+            analyticsHistory = data.items;
+
+            renderAnalytics();
+
+        } catch (err) {
+            analyticsHistory = JSON.parse(localStorage.getItem("qyx_history") || "[]");
+            renderAnalytics();
+        }
+    }
       async function confirmDeleteHistory(id) {
 
         if(!confirm("Delete this history entry?")) return;
@@ -4597,6 +4933,7 @@ details.issue-card[open] {
         history = localHistory.slice(historyOffset, historyOffset + historyLimit);
         
         renderHistory();
+        renderAnalytics();
         updatePaginationUI();
       }
 
@@ -4739,8 +5076,11 @@ details.issue-card[open] {
         } catch (err) {}
 
         localStorage.removeItem('qyx_history');
+        renderHistory();
+        renderAnalytics();
         historyOffset = 0;
         await fetchHistory();
+        await fetchAnalyticsHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
@@ -5253,8 +5593,12 @@ int main() {
       setAppLanguage(appLang);
       syncApiStatusText();
 
+      loadTheme();
       fetchHistory();
       renderFavorites();
+      renderAnalytics();
+      fetchAnalyticsHistory();
+      updateEditor();
 
       // Save API URL
       if (apiUrlInput) {
@@ -5369,8 +5713,8 @@ int main() {
         <span>Session</span>
       </div>
       <div class="collab-panel-top">
-        <input id="collabName" placeholder="Your name" value="Your name" />
-        <input id="collabSession" placeholder="Session ID e.g. review-676" />
+        <input id="collabName" placeholder="Your name" value="Your name"  aria-label="Your name"/>
+        <input id="collabSession" placeholder="Session ID e.g. review-676" aria-label="Session ID"/>
         <button id="collabJoinBtn" type="button">Join Live</button>
         <button id="collabLeaveBtn" type="button" disabled>Leave</button>
       </div>
@@ -5390,8 +5734,8 @@ int main() {
         <span>Review comments</span>
       </div>
       <div class="collab-comment-row">
-        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1" />
-        <input id="collabCommentText" placeholder="Add a live review comment..." />
+        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1"  aria-label="Comment line number"/>
+        <input id="collabCommentText" placeholder="Add a live review comment..." aria-label="Review comment"/>
         <button id="collabCommentBtn" type="button" disabled>Comment</button>
       </div>
       <div id="collabComments" class="collab-comments"></div>
