@@ -1245,6 +1245,149 @@ details.issue-card[open] {
       margin-top: 3px
     }
 
+    .issue-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .suppress-btn {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text2);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .suppress-btn:hover {
+      background: var(--bg2);
+      color: var(--text1);
+      border-color: var(--accent);
+    }
+
+    .suppress-dialog-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 10, 24, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 2000;
+    }
+
+    .suppress-dialog {
+      width: min(100%, 480px);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+      color: var(--text1);
+      overflow: hidden;
+    }
+
+    .suppress-dialog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .suppress-dialog-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .suppress-dialog-close {
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .suppress-dialog-body {
+      padding: 16px 18px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .suppress-dialog-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text2);
+      font-size: 0.9rem;
+    }
+
+    .suppress-dialog-row strong {
+      color: var(--text1);
+      font-weight: 600;
+    }
+
+    .suppress-field {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .suppress-field span {
+      font-size: 0.74rem;
+      color: var(--text3);
+      font-weight: 500;
+    }
+
+    .suppress-textarea {
+      width: 100%;
+      min-height: 92px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: var(--bg);
+      color: var(--text1);
+      resize: vertical;
+      font: inherit;
+    }
+
+    .suppress-scope {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: var(--text2);
+      font-size: 0.85rem;
+    }
+
+    .suppress-scope label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text1);
+    }
+
+    .suppress-dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 14px 18px 18px;
+    }
+
+    .suppress-dialog-actions .btn {
+      min-width: 100px;
+    }
+
     /* ── Explanation Cards ── */
     .explain-summary {
       padding: 16px;
@@ -4268,6 +4411,162 @@ details.issue-card[open] {
   `;
       }
 
+      function closeSuppressDialog() {
+        const modal = document.getElementById('suppressDialog');
+        if (!modal) return;
+        modal.remove();
+        document.body.classList.remove('modal-open');
+        document.removeEventListener('keydown', handleSuppressDialogEscape);
+      }
+
+      function handleSuppressDialogEscape(event) {
+        if (event.key === 'Escape') {
+          closeSuppressDialog();
+        }
+      }
+
+      function removeSuppressedIssue(issueType, issueLine) {
+        if (!currentResult?.debugging?.issues) return;
+
+        const normalizedIssueLine = issueLine ? Number(issueLine) : null;
+        const nextIssues = currentResult.debugging.issues.filter((issue) => {
+          const sameType = issue.type === issueType;
+          const sameLine = issue.line == null ? normalizedIssueLine == null : Number(issue.line) === normalizedIssueLine;
+          return !(sameType && sameLine);
+        });
+
+        const updatedDebugging = {
+          ...currentResult.debugging,
+          issues: nextIssues,
+          clean: nextIssues.length === 0,
+          error_count: nextIssues.filter(issue => issue.severity === 'error').length,
+          warning_count: nextIssues.filter(issue => issue.severity === 'warning').length,
+          info_count: nextIssues.filter(issue => issue.severity === 'info').length,
+          summary: nextIssues.length
+            ? `Found ${nextIssues.length} issue(s): ${nextIssues.filter(issue => issue.severity === 'error').length} error(s), ${nextIssues.filter(issue => issue.severity === 'warning').length} warning(s), ${nextIssues.filter(issue => issue.severity === 'info').length} info.`
+            : '✅ No issues detected!',
+        };
+
+        currentResult = {
+          ...currentResult,
+          debugging: updatedDebugging,
+        };
+
+        renderDebug(updatedDebugging);
+      }
+
+      function openSuppressDialog(issueType, issueLine) {
+        closeSuppressDialog();
+
+        const modal = document.createElement('div');
+        modal.id = 'suppressDialog';
+        modal.className = 'suppress-dialog-backdrop';
+        modal.setAttribute('role', 'presentation');
+        modal.innerHTML = `
+          <div class="suppress-dialog" role="dialog" aria-modal="true" aria-labelledby="suppressDialogTitle">
+            <div class="suppress-dialog-header">
+              <h3 id="suppressDialogTitle">Suppress issue</h3>
+              <button type="button" class="suppress-dialog-close" aria-label="Close">×</button>
+            </div>
+            <div class="suppress-dialog-body">
+              <div class="suppress-dialog-row">
+                <span>Issue Type</span>
+                <strong>${escHtml(issueType || 'Unknown')}</strong>
+              </div>
+              <div class="suppress-dialog-row">
+                <span>Line Number</span>
+                <strong>${escHtml(issueLine ? String(issueLine) : 'N/A')}</strong>
+              </div>
+              <label class="suppress-field" for="suppressReason">
+                Reason
+                <span>(required)</span>
+              </label>
+              <textarea id="suppressReason" class="suppress-textarea" rows="4" required></textarea>
+              <div class="suppress-scope">
+                <span>Scope</span>
+                <label><input type="radio" name="suppressScope" value="project" checked> This Project</label>
+                <label><input type="radio" name="suppressScope" value="global"> Global</label>
+              </div>
+              <div id="suppressError" class="toast error" style="display:none; margin-top:4px;"></div>
+            </div>
+            <div class="suppress-dialog-actions">
+              <button type="button" class="btn btn-secondary suppress-cancel">Cancel</button>
+              <button type="button" class="btn btn-primary suppress-submit" disabled>Suppress</button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+        document.body.classList.add('modal-open');
+        document.addEventListener('keydown', handleSuppressDialogEscape);
+
+        const reasonInput = modal.querySelector('#suppressReason');
+        const submitButton = modal.querySelector('.suppress-submit');
+        const errorBox = modal.querySelector('#suppressError');
+
+        const updateSubmitState = () => {
+          submitButton.disabled = !reasonInput.value.trim();
+        };
+
+        reasonInput.addEventListener('input', updateSubmitState);
+
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) {
+            closeSuppressDialog();
+          }
+        });
+
+        modal.querySelector('.suppress-dialog-close').addEventListener('click', closeSuppressDialog);
+        modal.querySelector('.suppress-cancel').addEventListener('click', closeSuppressDialog);
+        modal.querySelector('.suppress-submit').addEventListener('click', async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const scopeInput = modal.querySelector('input[name="suppressScope"]:checked');
+          const reason = reasonInput.value.trim();
+
+          if (!reason) {
+            reasonInput.focus();
+            errorBox.textContent = 'Please enter a reason before suppressing.';
+            errorBox.style.display = 'flex';
+            return;
+          }
+
+          submitButton.disabled = true;
+          submitButton.textContent = 'Suppressing…';
+          errorBox.style.display = 'none';
+
+          try {
+            const base = getApiBase();
+            const response = await fetchWithApiFallback(base, '/debugging/suppress', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                issue_type: issueType,
+                line: issueLine || null,
+                reason,
+                scope: scopeInput ? scopeInput.value : 'project'
+              }),
+              signal: AbortSignal.timeout(30000),
+            });
+
+            if (!response.response.ok) {
+              const err = await response.response.json().catch(() => ({}));
+              throw new Error(err.detail || err.message || `HTTP ${response.response.status}`);
+            }
+
+            toast('Issue suppressed successfully', 'success');
+            removeSuppressedIssue(issueType, issueLine);
+            closeSuppressDialog();
+          } catch (error) {
+            errorBox.textContent = error.message || 'Unable to suppress issue.';
+            errorBox.style.display = 'flex';
+            submitButton.disabled = false;
+            submitButton.textContent = 'Suppress';
+          }
+        });
+
+        updateSubmitState();
       // ── Issue Complexity Badge ──
       // Pure frontend heuristic: scores an issue using fields already present on the
       // issue object (severity, description length, suggestion presence, keywords)
@@ -4376,6 +4675,15 @@ details.issue-card[open] {
       </div>` : ''}
 
       <div class="issue-fix">${issue.suggestion}</div>
+
+      <div class="issue-actions">
+        <button
+          type="button"
+          class="suppress-btn"
+          onclick="event.preventDefault(); event.stopPropagation(); openSuppressDialog('${issue.type}', ${issue.line || 0})">
+          Suppress
+        </button>
+      </div>
     </div>
 
   </details>
