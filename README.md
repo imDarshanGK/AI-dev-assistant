@@ -316,6 +316,14 @@ Real-time collaboration room. Connect with `?name=YourName`; the server assigns 
 Client → server message types: `ping`, `code_update`, `cursor_update`, `comment_added`.
 Server → client message types: `session_state`, `presence_update`, `pong`, plus broadcasts of the above as other users act. The room is held in memory and is deleted automatically once every participant disconnects - there is no persistence between sessions today.
 
+#### Presence Sync Edge Cases
+
+- A `presence_update` event is broadcast whenever a participant joins or leaves the collaboration session.
+- Newly connected participants receive the current session state, including the active participants already in the room.
+- Presence information exists only while the collaboration room is active and is not persisted between sessions.
+- When the last participant disconnects, the collaboration room is automatically removed from memory.
+
+
 ---
 
 ### `POST /chat` and `POST /chat/message`
