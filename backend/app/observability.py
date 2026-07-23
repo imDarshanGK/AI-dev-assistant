@@ -106,6 +106,19 @@ APP_INFO = Gauge(
     labelnames=("version", "ai_provider"),
 )
 
+EMAIL_SENT_TOTAL = Counter(
+    "qyverixai_email_sent_total",
+    "Total number of emails sent, labelled by type and status.",
+    labelnames=("type", "status"),
+)
+
+EMAIL_SEND_DURATION_SECONDS = Histogram(
+    "qyverixai_email_send_duration_seconds",
+    "Latency of email delivery in seconds, labelled by type.",
+    labelnames=("type",),
+)
+
+
 
 def initialise_app_info(version: str, ai_provider: str) -> None:
     """Set the app_info gauge once at startup so dashboards can display it."""

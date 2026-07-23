@@ -10,9 +10,16 @@ import smtplib
 from urllib.parse import urlencode
 
 from sqlalchemy.orm import Session
+import time
 
 from ..config import settings
 from ..models import QueryHistory, User
+from ..observability import (
+    EMAIL_SEND_DURATION_SECONDS,
+    EMAIL_SENT_TOTAL,
+    metrics_enabled,
+)
+
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -262,6 +269,7 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
     msg.attach(MIMEText(_build_text(stats, unsubscribe_url), "plain"))
     msg.attach(MIMEText(_build_html(stats, unsubscribe_url), "html"))
 
+    start_time = time.perf_counter()
     try:
         with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30) as server:
             if settings.smtp_port == 587:
@@ -269,11 +277,22 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
             if settings.smtp_user:
                 server.login(settings.smtp_user, settings.smtp_pass)
             server.send_message(msg)
+        
+        if metrics_enabled():
+            duration = time.perf_counter() - start_time
+            EMAIL_SEND_DURATION_SECONDS.labels(type="digest").observe(duration)
+            EMAIL_SENT_TOTAL.labels(type="digest", status="success").inc()
         return True
     except Exception as exc:
+        if metrics_enabled():
+            duration = time.perf_counter() - start_time
+            EMAIL_SEND_DURATION_SECONDS.labels(type="digest").observe(duration)
+            EMAIL_SENT_TOTAL.labels(type="digest", status="failed").inc()
+
         import logging
 
         logging.getLogger(__name__).warning(
             "Failed to send digest to %s: %s", stats["email"], exc
         )
         return False
+

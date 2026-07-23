@@ -266,3 +266,120 @@ def test_unsubscribe_url_encodes_query_parameters(monkeypatch):
     assert parsed.path == "/subscribe/unsubscribe"
     assert query["email"] == ["digest.user+weekly@example.com"]
     assert query["token"] == ["token/value+with symbols"]
+
+
+def test_email_observability_metrics_on_success(monkeypatch):
+    from prometheus_client import REGISTRY
+
+    # 1. Capture baseline metrics values
+    baseline_success = REGISTRY.get_sample_value(
+        "qyverixai_email_sent_total", {"type": "digest", "status": "success"}
+    ) or 0.0
+    baseline_duration_count = REGISTRY.get_sample_value(
+        "qyverixai_email_send_duration_seconds_count", {"type": "digest"}
+    ) or 0.0
+
+    class FakeSMTP:
+        def __init__(self, host, port, timeout):
+            pass
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+        def starttls(self):
+            pass
+        def login(self, user, password):
+            pass
+        def send_message(self, message):
+            pass
+
+    monkeypatch.setattr(email_service.settings, "digest_enabled", True)
+    monkeypatch.setattr(email_service.settings, "smtp_host", "smtp.example.com")
+    monkeypatch.setattr(email_service.settings, "smtp_port", 2525)
+    monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
+
+    stats = {
+        "email": "metrics.success@example.com",
+        "total_analyses": 1,
+        "languages": ["Python"],
+        "avg_score": 90,
+        "prev_avg": None,
+        "improvement": None,
+        "trend": "stable",
+        "top_bug": None,
+        "total_issues": 0,
+        "week_start": "May 19",
+        "week_end": "May 26, 2026",
+    }
+
+    assert email_service.send_digest(stats, "token-value") is True
+
+    # 2. Check metrics are incremented
+    new_success = REGISTRY.get_sample_value(
+        "qyverixai_email_sent_total", {"type": "digest", "status": "success"}
+    ) or 0.0
+    new_duration_count = REGISTRY.get_sample_value(
+        "qyverixai_email_send_duration_seconds_count", {"type": "digest"}
+    ) or 0.0
+
+    assert new_success == baseline_success + 1.0
+    assert new_duration_count == baseline_duration_count + 1.0
+
+
+def test_email_observability_metrics_on_failure(monkeypatch):
+    from prometheus_client import REGISTRY
+
+    # 1. Capture baseline metrics values
+    baseline_failed = REGISTRY.get_sample_value(
+        "qyverixai_email_sent_total", {"type": "digest", "status": "failed"}
+    ) or 0.0
+    baseline_duration_count = REGISTRY.get_sample_value(
+        "qyverixai_email_send_duration_seconds_count", {"type": "digest"}
+    ) or 0.0
+
+    class BrokenSMTP:
+        def __init__(self, host, port, timeout):
+            pass
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+        def starttls(self):
+            pass
+        def login(self, user, password):
+            pass
+        def send_message(self, message):
+            raise Exception("SMTP Connection Failed")
+
+    monkeypatch.setattr(email_service.settings, "digest_enabled", True)
+    monkeypatch.setattr(email_service.settings, "smtp_host", "smtp.example.com")
+    monkeypatch.setattr(email_service.settings, "smtp_port", 2525)
+    monkeypatch.setattr(email_service.smtplib, "SMTP", BrokenSMTP)
+
+    stats = {
+        "email": "metrics.fail@example.com",
+        "total_analyses": 1,
+        "languages": ["Python"],
+        "avg_score": 90,
+        "prev_avg": None,
+        "improvement": None,
+        "trend": "stable",
+        "top_bug": None,
+        "total_issues": 0,
+        "week_start": "May 19",
+        "week_end": "May 26, 2026",
+    }
+
+    assert email_service.send_digest(stats, "token-value") is False
+
+    # 2. Check metrics are incremented
+    new_failed = REGISTRY.get_sample_value(
+        "qyverixai_email_sent_total", {"type": "digest", "status": "failed"}
+    ) or 0.0
+    new_duration_count = REGISTRY.get_sample_value(
+        "qyverixai_email_send_duration_seconds_count", {"type": "digest"}
+    ) or 0.0
+
+    assert new_failed == baseline_failed + 1.0
+    assert new_duration_count == baseline_duration_count + 1.0
+
