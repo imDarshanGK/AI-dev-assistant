@@ -388,7 +388,16 @@ curl -F "file=@app.py" http://localhost:8000/upload/validate
 
 ### `POST /subscribe/` and `POST /subscribe/unsubscribe`
 
-Subscribe an email to the weekly digest, or unsubscribe (also available as `GET /subscribe/unsubscribe?token=...` for one-click email unsubscribe links). Full flow documented in [docs/SUBSCRIPTION_GUIDE.md](docs/SUBSCRIPTION_GUIDE.md).
+Subscribe an email to the weekly digest, or unsubscribe (also available as `GET /subscribe/unsubscribe?...`). Full flow documented in [docs/SUBSCRIPTION_GUIDE.md](docs/SUBSCRIPTION_GUIDE.md).
+
+#### Scheduler Service Edge Cases
+
+- If the digest feature is disabled, the scheduled weekly job is skipped.
+- If there are no active subscribers, the scheduler exits without sending emails.
+- Subscribers with no available digest data are skipped without affecting other deliveries.
+- If a digest email fails to send, the failure is logged and processing continues for the remaining subscribers.
+- Duplicate scheduler jobs are prevented if the weekly digest job has already been registered.
+
 
 ---
 
