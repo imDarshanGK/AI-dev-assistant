@@ -43,5 +43,15 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # Optional: only needed to exercise the Redis-backed token denylist locally
+  # (set REDIS_URL=redis://redis:6379/0 in .env to opt in). The backend falls
+  # back to an in-memory denylist when REDIS_URL is unset, which is fine for
+  # this single-replica compose setup, so nothing depends_on this service.
+  redis:
+    image: redis:7-alpine
+    container_name: ai-dev-redis
+    ports:
+      - "6379:6379"
+
 volumes:
   postgres_data:
