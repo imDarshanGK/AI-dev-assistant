@@ -395,24 +395,17 @@
         opacity: 0.3
       }
     }
+.hero h1 {
+    font-family: var(--font-disp);
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.16;
+    margin-bottom: 20px;
 
-    .hero h1 {
-      font-family: var(--font-disp);
-      font-size: clamp(2.8rem, 6vw, 5rem);
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      line-height: 1.16;
-      margin-bottom: 20px;
-    }
-
-    .hero h1 em {
-      font-style: normal;
-      background: linear-gradient(135deg, var(--accent), var(--accent2) 60%, var(--green) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      display: inline-block;
-    }
+    color: var(--text);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
 
     .hero-sub {
       font-size: 1.1rem;
