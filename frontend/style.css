@@ -579,6 +579,40 @@ body {
   border-color: rgba(59, 130, 246, 0.35);
   background: rgba(59, 130, 246, 0.12);
 }
+
+.fix-suggestion-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.fix-suggestion-text {
+  color: var(--accent-green);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.goto-line-btn {
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  background: transparent;
+  color: var(--accent-green);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), transform var(--transition);
+}
+
+.goto-line-btn:hover,
+.goto-line-btn:focus-visible {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
 .engine-badge.llm {
   color: #86efac;
   border-color: rgba(34, 197, 94, 0.35);

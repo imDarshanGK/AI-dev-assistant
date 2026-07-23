@@ -25,11 +25,12 @@ let currentMode = 'analyze';
 let history = JSON.parse(localStorage.getItem('qyverix_history') || '[]');
 let favorites = JSON.parse(localStorage.getItem('qyverix_favorites') || '[]');
 let lastResult = '';
+let chatHistory = [];
 
 // ── DOM refs ──
 const codeEditor = document.getElementById('codeEditor');
-const runBtn = document.getElementById('runBtn');
-const runLabel = document.getElementById('runLabel');
+const runBtn = document.getElementById('analyzeBtn') || document.getElementById('runBtn');
+const runLabel = document.getElementById('runLabel') || document.querySelector('#analyzeBtn .btn-text');
 const outputBox = document.getElementById('outputBox');
 const apiUrlInput = document.getElementById('apiUrl');
 const apiDocsLink = document.getElementById('apiDocsLink');
@@ -40,6 +41,9 @@ const fileInput = document.getElementById('fileInput');
 const historyContainer = document.getElementById('historyContainer');
 const favContainer = document.getElementById('favContainer');
 const themeToggle = document.getElementById('themeToggle');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const chatSendBtn = document.getElementById('chatSendBtn');
 const API_URL_STORAGE_KEY = 'qyverix_api_url';
 
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -476,6 +480,111 @@ function clearLineHighlights() {
   }
 }
 
+function focusEditorAtLine(line) {
+  const lineNumber = parseInt(line, 10);
+  if (Number.isNaN(lineNumber) || lineNumber < 1) return;
+
+  const code = codeEditor.value;
+  const lines = code.split('\n');
+  let offset = 0;
+
+  for (let i = 0; i < lineNumber - 1 && i < lines.length; i += 1) {
+    offset += lines[i].length + 1;
+  }
+
+  codeEditor.focus();
+  codeEditor.setSelectionRange(offset, offset);
+  codeEditor.scrollTop = Math.max(0, (lineNumber - 2) * parseFloat(getComputedStyle(codeEditor).lineHeight || '22'));
+}
+
+function getFixSuggestionMarkup(i) {
+  if (!i.suggestion) return '';
+
+  const suggestionText = `<span class="fix-suggestion-text">→ ${escHtml(i.suggestion)}</span>`;
+  const lineButton = i.line ? `<button type="button" class="goto-line-btn" data-line="${escHtml(i.line)}">Go to line ${escHtml(i.line)}</button>` : '';
+
+  return `<div class="fix-suggestion-row">${suggestionText}${lineButton}</div>`;
+}
+
+outputBox.addEventListener('click', (event) => {
+  const button = event.target.closest('.goto-line-btn');
+  if (!button) return;
+  const targetLine = button.dataset.line;
+  focusEditorAtLine(targetLine);
+});
+
+// ── Chat assistant ──
+function appendChatMessage(role, text) {
+  if (!chatMessages) return;
+  const wrapper = document.createElement('div');
+  wrapper.className = `chat-bubble ${role}`;
+  wrapper.textContent = text;
+  chatMessages.appendChild(wrapper);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function buildChatContext() {
+  const parts = [];
+  const currentCode = sanitizeClientCode(codeEditor.value.trim());
+  if (currentCode) {
+    parts.push(`Code:\n${currentCode.slice(0, 2000)}`);
+  }
+  if (lastResult) {
+    parts.push(`Latest analysis summary:\n${lastResult.slice(0, 3000)}`);
+  }
+  return parts.join('\n\n');
+}
+
+async function sendChatMessage() {
+  if (!chatInput || !chatSendBtn) return;
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  appendChatMessage('user', message);
+  chatInput.value = '';
+  chatSendBtn.disabled = true;
+
+  try {
+    const response = await fetch(`${getApiUrl()}/chat/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        code: sanitizeClientCode(codeEditor.value.trim()),
+        context: buildChatContext(),
+        history: chatHistory.slice(-8)
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Chat service unavailable');
+    }
+
+    const data = await response.json();
+    const reply = data.response || 'I could not generate a reply right now.';
+    appendChatMessage('assistant', reply);
+    chatHistory.push(message, reply);
+  } catch (err) {
+    appendChatMessage('assistant', 'The chat assistant is unavailable right now. Please try again in a moment.');
+  } finally {
+    chatSendBtn.disabled = false;
+    chatInput.focus();
+  }
+}
+
+if (chatInput) {
+  chatInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      sendChatMessage();
+    }
+  });
+}
+
+if (chatSendBtn) {
+  chatSendBtn.addEventListener('click', sendChatMessage);
+}
+
 // ── Main Analysis ──
 async function runAnalysis() {
   const code = sanitizeClientCode(codeEditor.value.trim());
@@ -553,7 +662,7 @@ function renderResult(data, mode) {
             : issues.map(i => `<div style="margin-bottom:10px">
                 <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
                 <p style="margin-top:4px">${escHtml(i.description || '')}</p>
-                ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${escHtml(i.suggestion)}</p>` : ''}
+                ${getFixSuggestionMarkup(i)}
               </div>`).join('')}
         </div>
       </div>`;
@@ -604,7 +713,7 @@ function renderResult(data, mode) {
               <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
               ${i.line ? `<span class="result-tag tag-info">Line ${i.line}</span>` : ''}
               <p style="margin-top:8px">${escHtml(i.description || '')}</p>
-              ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${escHtml(i.suggestion)}</p>` : ''}
+              ${getFixSuggestionMarkup(i)}
             </div>`).join('')}
       </div>
     </div>`;

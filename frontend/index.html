@@ -252,6 +252,96 @@
       gap: 8px
     }
 
+    .chat-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 12px;
+      background: var(--bg2);
+      box-shadow: var(--shadow2);
+    }
+
+    .chat-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .chat-panel-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .chat-panel-subtitle {
+      color: var(--text2);
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 120px;
+      max-height: 220px;
+      overflow: auto;
+      padding: 6px 0 4px;
+      margin-bottom: 8px;
+    }
+
+    .chat-empty {
+      color: var(--text2);
+      font-size: 0.9rem;
+      padding: 12px 4px;
+    }
+
+    .chat-bubble {
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      max-width: 100%;
+    }
+
+    .chat-bubble.user {
+      background: var(--accent);
+      color: white;
+      align-self: flex-end;
+    }
+
+    .chat-bubble.assistant {
+      background: var(--bg3);
+      color: var(--text);
+      align-self: flex-start;
+      border: 1px solid var(--border);
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    .chat-send {
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-weight: 600;
+      padding: 0 14px;
+      cursor: pointer;
+    }
+
     .nav-link {
       display: flex;
       align-items: center;
@@ -2417,6 +2507,22 @@
           </div>
         </div>
 
+        <div class="chat-panel" id="chatPanel" style="margin-top:14px">
+          <div class="chat-panel-header">
+            <div>
+              <div class="chat-panel-title">Ask follow-up questions</div>
+              <div class="chat-panel-subtitle">Use the current analysis as context</div>
+            </div>
+          </div>
+          <div class="chat-messages" id="chatMessages" aria-live="polite">
+            <div class="chat-empty">Ask something like “Why is this bug happening?”</div>
+          </div>
+          <div class="chat-input-row">
+            <input id="chatInput" class="chat-input" type="text" placeholder="Ask about the analysis or bug" aria-label="Chat input" />
+            <button id="chatSendBtn" class="chat-send" type="button">Send</button>
+          </div>
+        </div>
+
         <!-- Analysis time footer -->
         <div id="engineBar"
           style="padding:8px 18px;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);display:none;gap:16px">
@@ -3291,6 +3397,65 @@
         if (!file) return;
         handleUploadedFile(file);
       });
+
+      // Minimal chat wiring: ensure the Send button and Enter key work
+      (function wireChat() {
+        const chatInputEl = document.getElementById('chatInput');
+        const chatSendBtnEl = document.getElementById('chatSendBtn');
+        const chatMessagesEl = document.getElementById('chatMessages');
+        if (!chatInputEl || !chatSendBtnEl || !chatMessagesEl) return;
+
+        function append(role, text) {
+          const el = document.createElement('div');
+          el.className = `chat-bubble ${role}`;
+          el.textContent = text;
+          chatMessagesEl.appendChild(el);
+          chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+        }
+
+        async function send() {
+          const msg = (chatInputEl.value || '').trim();
+          if (!msg) return;
+          append('user', msg);
+          chatInputEl.value = '';
+          chatSendBtnEl.disabled = true;
+          try {
+            const base = typeof getApiBase === 'function' ? getApiBase() : (window.location.protocol === 'file:' ? 'http://localhost:8000' : window.location.origin);
+            const payload = {
+              message: msg,
+              code: (document.getElementById('codeEditor')?.value || ''),
+              context: (typeof currentResult !== 'undefined' && currentResult) ? String(currentResult).slice(0, 2000) : '',
+              history: Array.isArray(window.chatHistory) ? window.chatHistory.slice(-8) : []
+            };
+
+            const resp = await fetch(`${base.replace(/\/$/, '')}/chat/`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (!resp.ok) throw new Error('Chat service unavailable');
+            const data = await resp.json().catch(() => ({}));
+            const reply = data.response || data.reply || data.message || 'No reply available.';
+            append('assistant', reply);
+            // keep a simple history for context
+            window.chatHistory = (Array.isArray(window.chatHistory) ? window.chatHistory : []).concat([msg, reply]).slice(-50);
+          } catch (e) {
+            append('assistant', 'The chat assistant is unavailable right now.');
+          } finally {
+            chatSendBtnEl.disabled = false;
+            chatInputEl.focus();
+          }
+        }
+
+        chatSendBtnEl.addEventListener('click', send);
+        chatInputEl.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter') {
+            ev.preventDefault();
+            send();
+          }
+        });
+      })();
 
       function handleUploadedFile(file) {
         const ext = file.name.split('.').pop().toLowerCase();

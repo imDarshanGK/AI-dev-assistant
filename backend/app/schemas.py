@@ -311,13 +311,25 @@ class ShareRecord(BaseModel):
 
 # ── Chat ──────────────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=4_000)
+    message: str | None = Field(default=None, max_length=4_000)
+    question: str | None = Field(default=None, max_length=4_000)
     code: str | None = Field(default=None, max_length=settings.max_code_chars)
+    context: str | None = Field(default=None, max_length=8_000)
+    analysis_id: str | None = Field(default=None, max_length=200)
     history: list[str] = Field(default_factory=list, max_length=20)
 
-    @field_validator("message")
+    @field_validator("message", "question")
     @classmethod
-    def sanitize_message(cls, v: str) -> str:
+    def sanitize_optional_text(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        return validate_stored_action(v)
+
+    @field_validator("context")
+    @classmethod
+    def sanitize_context(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
         return validate_stored_action(v)
 
     @field_validator("code")
@@ -332,20 +344,40 @@ class ChatRequest(BaseModel):
     def sanitize_history(cls, v: list[str]) -> list[str]:
         return validate_chat_history(v)
 
+    @model_validator(mode="after")
+    def ensure_prompt_present(self) -> "ChatRequest":
+        if not (self.message or self.question):
+            raise ValueError("message or question must be provided")
+        if not self.message and self.question:
+            self.message = self.question
+        return self
+
 
 class ChatResponse(BaseModel):
     response: str
 
 
 class ChatMessageRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=4_000)
+    message: str | None = Field(default=None, max_length=4_000)
+    question: str | None = Field(default=None, max_length=4_000)
     code: str | None = Field(default=None, max_length=settings.max_code_chars)
+    context: str | None = Field(default=None, max_length=8_000)
+    analysis_id: str | None = Field(default=None, max_length=200)
     history: list[str] = Field(default_factory=list, max_length=20)
     level: str = Field(default="beginner")
 
-    @field_validator("message")
+    @field_validator("message", "question")
     @classmethod
-    def sanitize_message(cls, v: str) -> str:
+    def sanitize_optional_text(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        return validate_stored_action(v)
+
+    @field_validator("context")
+    @classmethod
+    def sanitize_context(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
         return validate_stored_action(v)
 
     @field_validator("code")
@@ -364,6 +396,14 @@ class ChatMessageRequest(BaseModel):
     @classmethod
     def sanitize_level(cls, v: str) -> str:
         return validate_stored_action(v)
+
+    @model_validator(mode="after")
+    def ensure_prompt_present(self) -> "ChatMessageRequest":
+        if not (self.message or self.question):
+            raise ValueError("message or question must be provided")
+        if not self.message and self.question:
+            self.message = self.question
+        return self
 
 
 class ChatMessageResponse(BaseModel):

@@ -88,6 +88,69 @@ The entire frontend is `frontend/index.html` - one self-contained file. No build
 
 ---
 
+## Optional LLM / API Key setup (safe for open-source)
+
+QyverixAI can run fully offline using the built-in rule-based engine. If you opt-in to richer LLM-powered replies, follow these steps to provide an API key safely.
+
+- Use the provided example file: copy `.env.example` to `.env` and edit values locally. The repo already includes `.env.example` and `.gitignore` ignores `.env`.
+
+    ```bash
+    # from repo root (Unix/macOS)
+    cp .env.example .env
+    # or on Windows PowerShell
+    Copy-Item .env.example .env
+    ```
+
+- Edit `backend/.env` (or `backend/.env.local`) and set these values:
+
+    ```text
+    LLM_ENABLED=true
+    LLM_API_KEY=sk_your_openai_key_here
+    LLM_BASE_URL=https://api.openai.com/v1
+    LLM_MODEL=gpt-4o-mini
+    ```
+
+- Important: do NOT commit `.env`. The repository `.gitignore` already excludes `.env`. To be safe, check with:
+
+    ```bash
+    git status --ignored -- .env
+    ```
+
+- Alternative: set env vars only for your shell session (no file written):
+
+    PowerShell (temporary for session):
+    ```powershell
+    $env:LLM_ENABLED = "true"
+    $env:LLM_API_KEY = "sk_..."
+    cd backend
+    python -m uvicorn app.main:app --reload
+    ```
+
+    Unix / macOS (temporary for session):
+    ```bash
+    export LLM_ENABLED=true
+    export LLM_API_KEY=sk_...
+    cd backend
+    python -m uvicorn app.main:app --reload
+    ```
+
+- CI / Deployment: configure the provider's secrets or environment variables (GitHub Actions Secrets, Render dashboard, Docker secrets, etc.) rather than storing keys in the repo. Example for GitHub Actions `workflow.yml`:
+
+    ```yaml
+    env:
+        LLM_ENABLED: true
+    secrets:
+        LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+    ```
+
+- Local LLM option: If you prefer no external keys, you can run an on-host LLM (Ollama, local Llama) and set `LLM_BASE_URL` to the local endpoint. This keeps everything on your machine.
+
+- If you want us to improve the built-in fallback (rule-based) to provide more detailed, actionable answers without an API key, we can do that — it's the default behavior.
+
+If you want, I can add a short `LLM_SETUP.md` with screenshots and copy-ready snippets for Render/GitHub Actions — tell me which host you'd like docs for.
+
+---
+
 ## Pull Request Checklist
 
 Before opening a PR, confirm:
