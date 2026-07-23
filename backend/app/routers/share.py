@@ -12,6 +12,10 @@ from ..security import get_current_user
 
 router = APIRouter(prefix="/share", tags=["Share"])
 
+# Maximum size of shared code content, enforced to prevent abuse of the
+# anonymous share endpoint with oversized payloads.
+MAX_SHARE_CODE_BYTES = 50 * 1024  # 50KB
+
 
 @router.post("/", response_model=ShareRecord)
 def create_share(
@@ -22,6 +26,12 @@ def create_share(
     from ..database import Base as _Base
 
     _Base.metadata.create_all(bind=db.get_bind())
+
+    if len(payload.code.encode("utf-8")) > MAX_SHARE_CODE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Code content exceeds {MAX_SHARE_CODE_BYTES // 1024}KB limit",
+        )
 
     token = ""
     for _ in range(5):
