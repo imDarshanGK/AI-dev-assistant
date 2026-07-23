@@ -817,12 +817,20 @@ BUG_PATTERNS: list[BugPattern] = [
         "info",
         ["Rust"],
     ),
+    # ── Swift ──
+    BugPattern(
+        "Force Unwrap",
+        r"(\w+(?:\.\w+)*)(?:\(\))?!(?!=)",
+        "Force unwrapping with `!` will crash at runtime if the value is `nil`.",
+        "Use `if let`, `guard let`, or nil-coalescing `??` for safe unwrapping.",
+        "warning",
+        ["Swift"],
+    ),
 ]
 
 
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
-
     Args:
         code: The source code to analyse.
         language: The detected or selected programming language.
