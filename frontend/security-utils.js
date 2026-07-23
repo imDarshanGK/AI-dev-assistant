@@ -233,6 +233,35 @@
     );
   }
 
+  /** Shared empty-state renderer — consistent messaging across all result lists. */
+  function buildEmptyStateHtml(message, { tag = 'ok' } = {}) {
+    return `<span class="result-tag tag-${safeCssToken(tag, 'ok')}">${escHtml(message)}</span>`;
+  }
+
+  /** Renders a list of issue cards, or a consistent empty state if none exist. */
+  function buildIssuesListHtml(issues, { emptyMessage = '✓ No issues found. Code looks clean!' } = {}) {
+    if (!Array.isArray(issues) || issues.length === 0) {
+      return buildEmptyStateHtml(emptyMessage);
+    }
+    return issues.map(buildIssueCardHtml).join('');
+  }
+
+  /** Renders a list of suggestion cards, or a consistent empty state if none exist. */
+  function buildSuggestionsListHtml(suggestions, { emptyMessage = 'No suggestions available.' } = {}) {
+    if (!Array.isArray(suggestions) || suggestions.length === 0) {
+      return buildEmptyStateHtml(emptyMessage);
+    }
+    return suggestions.map(buildSuggestCardHtml).join('');
+  }
+
+  /** Renders a stored history/favorites list, or a consistent empty state if none exist. */
+  function buildStoredListHtml(entries, loaderOpts, { emptyMessage = 'No entries yet.' } = {}) {
+    if (!Array.isArray(entries) || entries.length === 0) {
+      return `<p class="history-empty">${escHtml(emptyMessage)}</p>`;
+    }
+    return entries.map((e) => buildStoredListItemHtml(e, loaderOpts)).join('');
+  }
+
   global.QyverixSecurity = {
     ALLOWED_PRIORITIES,
     ALLOWED_SEVERITIES,
@@ -256,5 +285,9 @@
     bindKeyboardShortcuts,
     buildIssueCardHtml,
     buildSuggestCardHtml,
+    buildEmptyStateHtml,
+    buildIssuesListHtml,
+    buildSuggestionsListHtml,
+    buildStoredListHtml,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

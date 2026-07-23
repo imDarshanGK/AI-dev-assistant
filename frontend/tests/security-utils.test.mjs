@@ -301,3 +301,60 @@ describe('normal code preserved', () => {
     });
   }
 });
+
+describe('empty-state rendering', () => {
+  it('buildEmptyStateHtml escapes the message and applies a safe tag', () => {
+    const html = SEC.buildEmptyStateHtml('<script>alert(1)</script>');
+    assertPlainTextHtml(html, 'empty state');
+    assert.ok(html.includes('tag-ok'));
+  });
+
+  it('buildEmptyStateHtml falls back to "ok" tag for unsafe tag input', () => {
+    const html = SEC.buildEmptyStateHtml('done', { tag: '<img onerror=alert(1)>' });
+    assert.ok(html.includes('tag-ok'));
+  });
+
+  it('buildIssuesListHtml renders empty state for empty array', () => {
+    const html = SEC.buildIssuesListHtml([]);
+    assertPlainTextHtml(html, 'issues empty state');
+    assert.ok(html.includes('No issues found'));
+  });
+
+  it('buildIssuesListHtml renders empty state for non-array input', () => {
+    const html = SEC.buildIssuesListHtml(null);
+    assert.ok(html.includes('No issues found'));
+  });
+
+  it('buildIssuesListHtml renders cards when issues exist', () => {
+    const html = SEC.buildIssuesListHtml([
+      { type: 'Bug', description: 'x', severity: 'error' },
+    ]);
+    assert.ok(html.includes('issue-card'));
+  });
+
+  it('buildSuggestionsListHtml renders empty state for empty array', () => {
+    const html = SEC.buildSuggestionsListHtml([]);
+    assertPlainTextHtml(html, 'suggestions empty state');
+    assert.ok(html.includes('No suggestions available'));
+  });
+
+  it('buildStoredListHtml renders empty state for empty history', () => {
+    const html = SEC.buildStoredListHtml([]);
+    assert.ok(html.includes('No entries yet'));
+    assert.ok(html.includes('history-empty'));
+  });
+
+  it('buildStoredListHtml renders items when entries exist', () => {
+    const html = SEC.buildStoredListHtml([
+      { id: 1, lang: 'Python', ts: 'now', preview: 'x=1' },
+    ]);
+    assert.ok(html.includes('history-item') || html.includes('fav-item'));
+  });
+
+  for (const payload of XSS_PAYLOADS) {
+    it(`buildEmptyStateHtml is XSS-safe for: ${payload.slice(0, 30)}`, () => {
+      const html = SEC.buildEmptyStateHtml(payload);
+      assertPlainTextHtml(html, 'empty state payload');
+    });
+  }
+});
