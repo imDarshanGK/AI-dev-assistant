@@ -15,6 +15,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from .logging_config import configure_logging
 from .observability import initialise_app_info, prometheus_metrics_middleware
 from .routers import (
     admin,
@@ -71,6 +72,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    configure_logging()
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
     # Static info gauge so dashboards can pin version / provider labels.
