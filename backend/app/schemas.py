@@ -1012,3 +1012,75 @@ class ChatMessageResponse(BaseModel):
         description="The assistant's reply.",
         example="A ZeroDivisionError occurs when you divide by zero.",
     )
+
+
+# ── Test Generation ──────────────────────────────────────────────────────────
+class TestGenerationRequest(BaseModel):
+    """Request body for generating automated unit tests."""
+
+    __test__ = False
+
+    code: str = Field(
+        ...,
+        description="Source code to write tests for. Must be between 1 and 50,000 characters.",
+        example="def divide(a, b):\n    return a / b",
+    )
+    language: str | None = Field(
+        default=None,
+        description="Programming language. E.g. python, javascript, java.",
+        example="python",
+    )
+    framework: str | None = Field(
+        default=None,
+        description="Target testing framework. E.g. pytest, jest, junit.",
+        example="pytest",
+    )
+    mock_external_calls: bool = Field(
+        default=False,
+        description="Toggle to mock external database, HTTP or system calls.",
+        example=False,
+    )
+
+    @field_validator("code")
+    @classmethod
+    def validate_code(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("code must not be empty")
+        if len(v) > 50_000:
+            raise ValueError("code exceeds 50,000 character limit")
+        return v
+
+
+class TestSummary(BaseModel):
+    __test__ = False
+
+    num_test_cases: int = Field(
+        ..., description="Number of test cases generated.", example=3
+    )
+    scenarios_covered: list[str] = Field(
+        ...,
+        description="List of test scenarios covered.",
+        example=["Happy path", "Division by zero"],
+    )
+    mocked_dependencies: list[str] = Field(
+        ...,
+        description="List of mocked variables/modules.",
+        example=["Database client"],
+    )
+
+
+class TestGenerationResponse(BaseModel):
+    """Response returned after successful unit test suite generation."""
+
+    __test__ = False
+
+    test_code: str = Field(
+        ..., description="Run-ready unit test code.", example="def test_divide(): ..."
+    )
+    framework: str = Field(
+        ..., description="The framework used for generating tests.", example="pytest"
+    )
+    summary: TestSummary = Field(
+        ..., description="Summary details of the generated tests."
+    )
