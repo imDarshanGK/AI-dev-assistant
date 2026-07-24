@@ -9,10 +9,50 @@ from ..schemas import (
     FavoriteRecord,
     HistoryCreateRequest,
     HistoryRecord,
+    UserDataPurgePreviewResponse,
+    UserDataPurgeRequest,
+    UserDataPurgeResponse,
 )
 from ..security import get_current_user
+from ..services.user_deletion import preview_user_data_purge, purge_user_data
 
 router = APIRouter(prefix="/user", tags=["User Data"])
+
+
+@router.get("/data-purge/preview", response_model=UserDataPurgePreviewResponse)
+def preview_data_purge(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    preview = preview_user_data_purge(db, current_user)
+    return UserDataPurgePreviewResponse(
+        user_id=preview.user_id,
+        history_records=preview.history_records,
+        favorite_records=preview.favorite_records,
+        account_will_be_deleted=preview.account_will_be_deleted,
+        confirmation_phrase=preview.confirmation_phrase,
+        deletion_status=preview.deletion_status,
+        retention_days=preview.retention_days,
+        deletion_scheduled_for=preview.deletion_scheduled_for,
+    )
+
+
+@router.post("/data-purge", response_model=UserDataPurgeResponse)
+def purge_data(
+    payload: UserDataPurgeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    result = purge_user_data(db, current_user, payload.confirmation)
+    return UserDataPurgeResponse(
+        status=result.status,
+        history_deleted=result.history_deleted,
+        favorites_deleted=result.favorites_deleted,
+        account_deleted=result.account_deleted,
+        audit_recorded=result.audit_recorded,
+        deletion_scheduled_for=result.deletion_scheduled_for,
+        retention_days=result.retention_days,
+    )
 
 
 @router.get("/history", response_model=list[HistoryRecord])
