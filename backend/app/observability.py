@@ -37,13 +37,6 @@ from prometheus_client import (
 )
 
 
-# ── Configuration ─────────────────────────────────────────────────────────────
-# Both flags are intentionally read at **request time** (not import time) so
-# tests, hot-reloads, and operators can flip them without having to recreate
-# the metric objects below. Recreating them would raise
-# ``Duplicated timeseries in CollectorRegistry`` because they live on the
-# module-global ``prometheus_client.REGISTRY``.
-
 def _bool_env(name: str, default: bool) -> bool:
     raw = os.getenv(name)
     if raw is None:
@@ -58,9 +51,7 @@ def metrics_enabled() -> bool:
 def metrics_auth_token() -> str | None:
     return os.getenv("METRICS_AUTH_TOKEN") or None
 
-# Paths the middleware ignores entirely (the /metrics endpoint must not record
-# itself; static files under /app are noisy and high-cardinality if used as
-# labels). Health probes ARE recorded so we can alert on probe failures.
+
 _EXCLUDED_PATH_PREFIXES: tuple[str, ...] = (
     "/metrics",
     "/app",
@@ -68,11 +59,19 @@ _EXCLUDED_PATH_PREFIXES: tuple[str, ...] = (
 )
 
 
-# ── Metric definitions ────────────────────────────────────────────────────────
-# Buckets are chosen for a typical HTTP API: sub-millisecond up to ~30s. The
-# upper bucket of +Inf is added automatically by prometheus_client.
 _LATENCY_BUCKETS_SECONDS: tuple[float, ...] = (
-    0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0,
+    0.005,
+    0.01,
+    0.025,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0,
+    2.5,
+    5.0,
+    10.0,
+    30.0,
 )
 
 REQUESTS_TOTAL = Counter(
@@ -106,6 +105,18 @@ APP_INFO = Gauge(
     labelnames=("version", "ai_provider"),
 )
 
+DB_OPERATIONS_TOTAL = Counter(
+    "qyverixai_db_operations_total",
+    "Total number of database operations executed, labelled by operation and status.",
+    labelnames=("operation", "status"),
+)
+
+DB_OPERATION_DURATION_SECONDS = Histogram(
+    "qyverixai_db_operation_duration_seconds",
+    "Latency of database operations in seconds, labelled by operation.",
+    labelnames=("operation",),
+)
+
 
 def initialise_app_info(version: str, ai_provider: str) -> None:
     """Set the app_info gauge once at startup so dashboards can display it."""
@@ -130,7 +141,10 @@ def _endpoint_label(request: Request) -> str:
 
 
 def _should_skip(path: str) -> bool:
-    return any(path == prefix or path.startswith(prefix + "/") for prefix in _EXCLUDED_PATH_PREFIXES)
+    return any(
+        path == prefix or path.startswith(prefix + "/")
+        for prefix in _EXCLUDED_PATH_PREFIXES
+    )
 
 
 # ── Middleware ────────────────────────────────────────────────────────────────
@@ -153,9 +167,6 @@ async def prometheus_metrics_middleware(
     method = request.method
     start = time.perf_counter()
 
-    # We don't yet know the route template (routing happens after middleware
-    # entry), but a coarse placeholder lets us increment the in-progress gauge
-    # consistently. The placeholder is replaced before observing latency.
     in_progress_label = "in_flight"
     REQUESTS_IN_PROGRESS.labels(method=method, endpoint=in_progress_label).inc()
 
