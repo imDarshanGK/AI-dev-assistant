@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
@@ -11,6 +12,8 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..models import FavoriteResult, QueryHistory, User, UserDataPurgeAudit
+
+logger = logging.getLogger(__name__)
 
 CONFIRMATION_PHRASE = "DELETE MY DATA"
 DATA_PURGE_RETENTION_DAYS = 30
@@ -49,12 +52,12 @@ class UserDataFinalEraseResult:
     history_deleted: int
     favorites_deleted: int
     audits_updated: int
+    users_failed: int
 
 
 def _audit_hash(value: str) -> str:
     """Return a stable audit hash without storing raw user identifiers."""
-
-    key = settings.jwt_secret.encode("utf-8")
+    key = settings.audit_hash_secret.encode("utf-8")
     normalized_value = value.strip().lower().encode("utf-8")
     return hmac.new(key, normalized_value, hashlib.sha256).hexdigest()
 
@@ -82,7 +85,7 @@ def preview_user_data_purge(db: Session, user: User) -> UserDataPurgePreview:
 
 
 def purge_user_data(db: Session, user: User, confirmation: str) -> UserDataPurgeResult:
-    if not hmac.compare_digest(confirmation, CONFIRMATION_PHRASE):
+    if confirmation.strip() != CONFIRMATION_PHRASE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Confirmation phrase does not match.",
@@ -157,9 +160,10 @@ def erase_expired_user_data(
     history_deleted = 0
     favorites_deleted = 0
     audits_updated = 0
+    users_failed = 0
 
-    try:
-        for user in users:
+    for user in users:
+        try:
             user_id_hash = _audit_hash(str(user.id))
 
             user_history_count = _count_user_records(db, QueryHistory, user.id)
@@ -171,7 +175,10 @@ def erase_expired_user_data(
             audit_record = (
                 db.execute(
                     select(UserDataPurgeAudit)
-                    .where(UserDataPurgeAudit.user_id_hash == user_id_hash)
+                    .where(
+                        UserDataPurgeAudit.user_id_hash == user_id_hash,
+                        UserDataPurgeAudit.status == "scheduled"
+                    )
                     .order_by(UserDataPurgeAudit.id.desc())
                 )
                 .scalars()
@@ -186,19 +193,22 @@ def erase_expired_user_data(
                 audits_updated += 1
 
             db.delete(user)
+            
+            db.commit() 
 
             users_erased += 1
             history_deleted += user_history_count
             favorites_deleted += user_favorite_count
 
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
+        except Exception as e:
+            db.rollback()
+            users_failed += 1
+            logger.error(f"Failed to erase data for user {user.id}: {e}", exc_info=True)
 
     return UserDataFinalEraseResult(
         users_erased=users_erased,
         history_deleted=history_deleted,
         favorites_deleted=favorites_deleted,
         audits_updated=audits_updated,
+        users_failed=users_failed,
     )
