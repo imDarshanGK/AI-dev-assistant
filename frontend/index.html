@@ -2252,7 +2252,63 @@ details.issue-card[open] {
 .stat-chip.error-chip .stat-chip-num{color:var(--red)}
 .stat-chip.warn-chip .stat-chip-num{color:var(--yellow)}
 .stat-chip.info-chip .stat-chip-num{color:var(--accent)}
+.issue-summary-card {
+  margin-bottom: 1.5rem;
+}
 
+.summary-card {
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  background: var(--card-bg, #1e2327);
+  border: 1px solid var(--border-color, #333);
+}
+
+.summary-header {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.summary-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 90px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.stat-error .stat-value { color: #ef4444; }
+.stat-warning .stat-value { color: #f59e0b; }
+.stat-info .stat-value { color: #3b82f6; }
+
+.summary-success {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.summary-icon { font-size: 1.5rem; }
+.summary-title { font-weight: 600; }
+.summary-subtitle { font-size: 0.85rem; opacity: 0.8; }
+
+@media (max-width: 480px) {
+  .summary-stats { gap: 0.75rem; }
+  .stat-item { min-width: 70px; }
+}  
 /* responsive */
 @media(max-width:600px){
   .hero h1{font-size:2.2rem}
@@ -2822,7 +2878,7 @@ details.issue-card[open] {
           <div class="panel-title" data-i18n="results_title">Analysis Results</div>
           <div class="panel-actions"></div>
         </div>
-
+<div id="issue-summary-card" style="display:none; margin:14px 18px 0;"></div>
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
           <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
@@ -4115,7 +4171,10 @@ details.issue-card[open] {
           return;
         }
         if (result.explanation) renderExplain(result.explanation);
-        if (result.debugging) renderDebug(result.debugging);
+       if (result.debugging) {
+  renderDebug(result.debugging);
+  renderIssueSummaryCard(result.debugging);
+}
         if (result.suggestions) renderSuggest(result.suggestions);
 
         // Auto-switch to relevant tab
@@ -4124,6 +4183,54 @@ details.issue-card[open] {
         document.querySelector(`[data-rtab="${targetTab}"]`).click();
       }
 
+      function renderIssueSummaryCard(debugging) {
+  const card = document.getElementById('issue-summary-card');
+  if (!card || !debugging) return;
+
+  const total = debugging.issues ? debugging.issues.length : 0;
+  const errors = debugging.error_count || 0;
+  const warnings = debugging.warning_count || 0;
+  const info = debugging.info_count || 0;
+
+  card.style.display = 'block';
+
+  if (total === 0) {
+    card.innerHTML = `
+      <div class="summary-card summary-success">
+        <span class="summary-icon">✅</span>
+        <div>
+          <div class="summary-title">Great Job!</div>
+          <div class="summary-subtitle">No issues detected.</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  card.innerHTML = `
+    <div class="summary-card">
+      <div class="summary-header">🐞 Analysis Summary</div>
+      <div class="summary-stats">
+        <div class="stat-item">
+          <span class="stat-label">Total Issues</span>
+          <span class="stat-value">${total}</span>
+        </div>
+        <div class="stat-item stat-error">
+          <span class="stat-label">❌ Errors</span>
+          <span class="stat-value">${errors}</span>
+        </div>
+        <div class="stat-item stat-warning">
+          <span class="stat-label">⚠️ Warnings</span>
+          <span class="stat-value">${warnings}</span>
+        </div>
+        <div class="stat-item stat-info">
+          <span class="stat-label">ℹ️ Info</span>
+          <span class="stat-value">${info}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
       function renderZipResults(project) {
         ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
           document.getElementById(id).style.display = 'none';
@@ -4709,6 +4816,7 @@ details.issue-card[open] {
         engineInfo.textContent = '';
         timeInfo.textContent = '';
         currentResult = null;
+        document.getElementById('issue-summary-card').style.display = 'none';
       }
 
       function renderAnalytics() {
