@@ -46,3 +46,19 @@ def test_chat_fallback_reply_for_error_query_suggests_common_issues() -> None:
 
     assert "common issues" in reply
     assert "incorrect indentation" in reply or "missing imports" in reply
+
+
+def test_chat_fallback_reply_explains_python_syntax_error() -> None:
+    reply = chat_fallback_reply(
+        "What is the issue in the above code?",
+        "print(hello);;",
+        [],
+        "beginner",
+    )
+
+    assert "issue found" in reply.lower()
+    assert "line 1 has a python syntax error" in reply.lower()
+    assert "changes to make" in reply.lower()
+    assert "correct code" in reply.lower()
+    assert "extra semicolon" in reply.lower()
+    assert 'print("hello")' in reply

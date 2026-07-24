@@ -3208,7 +3208,10 @@
       function getApiBase() {
         const configuredBase = ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || '').trim();
         if (configuredBase) return configuredBase.replace(/\/$/, '');
-        return window.location.protocol === 'file:' ? REMOTE_API_BASE : LOCAL_API_BASE;
+        // Prefer the local API for the local HTML file so edits to this
+        // checkout are reflected immediately. fetchWithApiFallback still uses
+        // the deployed API when the local server is unavailable.
+        return LOCAL_API_BASE;
       }
 
       function getApiFallbackBase(base) {

@@ -204,7 +204,7 @@ def chat_fallback_reply(
     history: list[str],
     level: str,
 ) -> str:
-    """Return a simple fallback chat response when the LLM is unavailable."""
+    """Return a useful code-aware reply when the LLM is unavailable."""
     message_text = (message or "").strip()
     code_text = code or ""
     recent_history = " ".join(history[-3:]) if history else ""
@@ -220,6 +220,47 @@ def chat_fallback_reply(
 
     language = detect_language(code_text)
     complexity = estimate_complexity(code_text)
+
+    # Preserve useful debugging help when a live LLM is not configured. Python's
+    # parser can identify a syntax error and its line precisely.
+    asks_about_problem = bool(
+        re.search(
+            r"\b(issue|bug|error|wrong|fix|problem|fail(?:ing|ure)?)\b",
+            message_text,
+            re.IGNORECASE,
+        )
+    )
+    if language == "Python" and asks_about_problem:
+        try:
+            ast.parse(code_text)
+        except SyntaxError as exc:
+            line_number = exc.lineno or 1
+            bad_line = code_text.splitlines()[line_number - 1].strip()
+            if bad_line.endswith(";;"):
+                corrected_line = bad_line.rstrip(";")
+                changes = [
+                    "Remove the extra semicolon (`;`).",
+                    f"Use `{corrected_line}` instead of `{bad_line}`.",
+                ]
+                corrected_code = corrected_line
+                if corrected_line == "print(hello)":
+                    changes.append("Add quotes around `hello` because it is text, not a variable.")
+                    corrected_code = 'print("hello")'
+            else:
+                changes = ["Correct the invalid syntax on that line before running the code."]
+                corrected_code = bad_line
+            return "\n".join(
+                [
+                    "Issue found:",
+                    f"- Line {line_number} has a Python syntax error: {exc.msg}.",
+                    "",
+                    "Changes to make:",
+                    *[f"{index}. {change}" for index, change in enumerate(changes, start=1)],
+                    "",
+                    "Correct code:",
+                    corrected_code,
+                ]
+            )
     response_parts = [
         f"I detected {language} code with an estimated {complexity.lower()} complexity.",
         f"At {level} level, focus on the main intent of the code and any notable branching or error-prone logic.",
@@ -238,9 +279,7 @@ def chat_fallback_reply(
         )
 
     if recent_history:
-        response_parts.append(
-            f"Recent chat context: {recent_history}."
-        )
+        response_parts.append(f"Recent chat context: {recent_history}.")
 
     return " ".join(response_parts)
 

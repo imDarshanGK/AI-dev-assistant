@@ -151,6 +151,53 @@ If you want, I can add a short `LLM_SETUP.md` with screenshots and copy-ready sn
 
 ---
 
+## Large Files Policy
+
+CI automatically rejects PRs that contain files larger than **5 MB**. This keeps the repo lean and CI fast.
+
+### What to do if your PR fails
+
+- Check which files triggered the failure in the CI logs
+- Remove the oversized files from the commit
+- For large assets (screenshots, datasets, binaries), use **Git LFS** or an external hosting service and link to them in the README
+
+### Configure exceptions
+
+If you believe a file legitimately needs to exceed 5 MB (e.g., a bundled model or a large screenshot), add an exception to the check by modifying the comparison in `.github/workflows/check-large-files.yml`.
+
+---
+
+## Code Formatting
+
+CI enforces consistent Python formatting on every pull request using `black` and `isort`. PRs with improperly formatted code will fail the `format` check automatically.
+
+### Install the tools
+
+```bash
+cd backend
+pip install black==24.10.0 isort==5.13.2
+```
+
+### Format before every PR
+
+Run both from the repo root:
+
+```bash
+black backend/
+isort backend/
+```
+
+To check without modifying files (mirrors exactly what CI runs):
+
+```bash
+black --check backend/
+isort --check-only backend/
+```
+
+Both tools are pre-configured in `pyproject.toml` at the repo root so they stay compatible with each other — no manual flag juggling needed.
+
+---
+
 ## Pull Request Checklist
 
 Before opening a PR, confirm:
