@@ -24,7 +24,13 @@ from .routers import (
     collaboration,
     debugging,
     explanation,
+)
+from .routers import health as health_router
+from .routers import (
     history,
+)
+from .routers import metrics as metrics_router
+from .routers import (
     preview,
     share,
     subscribe,
@@ -32,8 +38,6 @@ from .routers import (
     upload_file,
     user_data,
 )
-from .routers import health as health_router
-from .routers import metrics as metrics_router
 from .schemas import HealthResponse
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler

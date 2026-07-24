@@ -1,7 +1,8 @@
+import re
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional
-import re
 
 router = APIRouter(tags=["admin"])
 
