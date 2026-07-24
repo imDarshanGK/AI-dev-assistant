@@ -42,6 +42,7 @@ const historyContainer = document.getElementById('historyContainer');
 const favContainer = document.getElementById('favContainer');
 const themeToggle = document.getElementById('themeToggle');
 const API_URL_STORAGE_KEY = 'qyverix_api_url';
+const DOWNLOAD_URL_REVOKE_DELAY_MS = 1000;
 
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const savedTheme = localStorage.getItem('qyverix_theme') || (systemDark ? 'dark' : 'light');
@@ -64,6 +65,10 @@ const themeToggleBtnInit = document.getElementById('themeToggle');
 if (themeToggleBtnInit) {
   themeToggleBtnInit.setAttribute('aria-label', initialTheme === 'dark' ? 'Toggle light mode' : 'Toggle dark mode');
   themeToggleBtnInit.setAttribute('aria-pressed', initialTheme === 'dark' ? 'false' : 'true');
+}
+
+function revokeDownloadUrlLater(url) {
+  setTimeout(() => URL.revokeObjectURL(url), DOWNLOAD_URL_REVOKE_DELAY_MS);
 }
 
 // ── Tabs ──
@@ -175,10 +180,11 @@ document.getElementById('downloadJsonBtn').addEventListener('click', () => {
   );
 
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const downloadUrl = URL.createObjectURL(blob);
+  a.href = downloadUrl;
   a.download = 'analysis-history.json';
   a.click();
-  URL.revokeObjectURL(a.href);
+  revokeDownloadUrlLater(downloadUrl);
 
 });
 // ── Download History CSV ──
@@ -211,10 +217,11 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
   );
 
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const downloadUrl = URL.createObjectURL(blob);
+  a.href = downloadUrl;
   a.download = 'analysis-history.csv';
   a.click();
-URL.revokeObjectURL(a.href);
+  revokeDownloadUrlLater(downloadUrl);
 });
 
 // ── Run Button ──
