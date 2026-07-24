@@ -13,8 +13,8 @@ import time
 import aiosqlite
 
 from ..observability import (
-    DB_OPERATIONS_TOTAL,
     DB_OPERATION_DURATION_SECONDS,
+    DB_OPERATIONS_TOTAL,
     metrics_enabled,
 )
 
@@ -38,7 +38,6 @@ def record_db_metric(operation: str):
         duration = time.perf_counter() - start_time
         DB_OPERATION_DURATION_SECONDS.labels(operation=operation).observe(duration)
         DB_OPERATIONS_TOTAL.labels(operation=operation, status=status).inc()
-
 
 
 async def init_db() -> None:
@@ -79,7 +78,6 @@ async def init_db() -> None:
             await db.commit()
 
 
-
 def hash_code(code: str) -> str:
     return hashlib.sha256(code.encode()).hexdigest()
 
@@ -111,14 +109,12 @@ async def save_entry(
             return row_id
 
 
-
 async def count_entries() -> int:
     with record_db_metric("count_entries"):
         async with aiosqlite.connect(DB_PATH) as db:
             cursor = await db.execute("SELECT COUNT(*) FROM history")
             row = await cursor.fetchone()
             return row[0] if row else 0
-
 
 
 async def get_entries(
@@ -145,7 +141,6 @@ async def get_entries(
             return [dict(row) for row in rows]
 
 
-
 async def search_entries(q: str, limit: int = 20) -> list[dict]:
     with record_db_metric("search_entries"):
         q = q[:200]
@@ -168,7 +163,6 @@ async def search_entries(q: str, limit: int = 20) -> list[dict]:
             return [dict(row) for row in rows]
 
 
-
 async def delete_entry(entry_id: int) -> bool:
     with record_db_metric("delete_entry"):
         async with aiosqlite.connect(DB_PATH) as db:
@@ -176,7 +170,6 @@ async def delete_entry(entry_id: int) -> bool:
             await db.execute("DELETE FROM fts_history WHERE rowid = ?", (entry_id,))
             await db.commit()
             return cursor.rowcount > 0
-
 
 
 async def get_entry(entry_id: int) -> dict | None:
@@ -195,7 +188,6 @@ async def get_entry(entry_id: int) -> dict | None:
             return dict(row) if row else None
 
 
-
 async def clear_entries() -> int:
     with record_db_metric("clear_entries"):
         async with aiosqlite.connect(DB_PATH) as db:
@@ -203,4 +195,3 @@ async def clear_entries() -> int:
             await db.execute("DELETE FROM fts_history")
             await db.commit()
             return cursor.rowcount
-
