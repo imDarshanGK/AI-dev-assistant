@@ -1255,6 +1255,30 @@ details.issue-card[open] {
       margin-top: 3px
     }
 
+    /* ── Error Cards ── */
+    .analysis-error {
+      text-align: center;
+      padding: 24px;
+    }
+
+    .analysis-error-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    .analysis-error h3 {
+      margin-bottom: 8px;
+    }
+
+    .analysis-error p {
+      margin-bottom: 12px;
+      color: var(--muted-text);
+    }
+
+    .analysis-hint {
+      font-size: 14px;
+    }
+
     /* ── Explanation Cards ── */
     .explain-summary {
       padding: 16px;
@@ -4130,8 +4154,8 @@ details.issue-card[open] {
 
         } catch (err) {
           toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
-         
-          resetResults();
+          // resetResults();
+          showAnalysisError(err.message);
         } finally {
           analyzeBtn.classList.remove('loading');
           analyzeBtn.disabled = false;
@@ -4743,6 +4767,23 @@ details.issue-card[open] {
         currentResult = null;
       }
 
+      function showAnalysisError(message) {
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'none';
+        });
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          const el = document.getElementById(id);
+          el.style.display = 'block';
+          el.innerHTML = `
+          <div class="analysis-error">
+            <h3>⚠️ Analysis Failed - check your connection</h3>
+              <p>${escHtml(message)}</p>
+              <button class="btn btn-primary" onclick="doAnalyze()">Try Again</button>
+            </div>
+            `;
+        });
+      }
+      
       function renderAnalytics() {
         const entries = analyticsHistory.length ? analyticsHistory : history;
         const total = entries.length;
