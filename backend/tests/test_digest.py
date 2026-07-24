@@ -20,6 +20,7 @@ from app.database import Base, get_db
 from app.main import app as fastapi_app
 from app.models import DigestSubscription
 from app.services import email_service
+from app.services import scheduler
 from sqlalchemy.pool import StaticPool
 
 TEST_ENGINE = create_engine(
@@ -252,6 +253,8 @@ def test_unsubscribe_url_handles_base_url_slashes(
     assert "//subscribe" not in unsubscribe_url
 
 
+
+
 def test_unsubscribe_url_encodes_query_parameters(monkeypatch):
     monkeypatch.setattr(
         email_service.settings, "digest_base_url", "https://qyverixai.onrender.com"
@@ -266,3 +269,56 @@ def test_unsubscribe_url_encodes_query_parameters(monkeypatch):
     assert parsed.path == "/subscribe/unsubscribe"
     assert query["email"] == ["digest.user+weekly@example.com"]
     assert query["token"] == ["token/value+with symbols"]
+
+def test_scheduler_continues_after_subscriber_exception(monkeypatch):
+    class FakeSubscription:
+        def __init__(self, email):
+            self.email = email
+            self.unsubscribe_token = "token"
+            self.last_sent_at = None
+
+    subscribers = [
+        FakeSubscription("fail@example.com"),
+        FakeSubscription("success@example.com"),
+    ]
+
+    class FakeQuery:
+        def filter(self, *_args, **_kwargs):
+            return self
+
+        def all(self):
+            return subscribers
+
+    class FakeDB:
+        def query(self, *_args, **_kwargs):
+            return FakeQuery()
+
+        def commit(self):
+            pass
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(scheduler.settings, "digest_enabled", True)
+    monkeypatch.setattr(scheduler, "SessionLocal", lambda: FakeDB())
+
+    def fake_compute(_db, email):
+        if email == "fail@example.com":
+            raise RuntimeError("Simulated failure")
+        return {"email": email}
+
+    sent = []
+
+    monkeypatch.setattr(scheduler, "compute_subscriber_stats", fake_compute)
+    monkeypatch.setattr(
+        scheduler,
+        "send_digest",
+        lambda stats, token: sent.append(stats["email"]) or True,
+    )
+
+    scheduler._send_weekly_digests()
+
+    assert sent == ["success@example.com"]
+    
+    
+    
