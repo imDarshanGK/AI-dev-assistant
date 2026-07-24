@@ -777,6 +777,16 @@
       color: var(--text3)
     }
 
+    .shortcut-hint {
+      align-self: center;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text3);
+      background: rgba(255,255,255,0.03);
+      white-space: nowrap;
+    }
+
     /* ── Mode Selector ── */
     .mode-row {
       display: flex;
@@ -2810,11 +2820,12 @@ details.issue-card[open] {
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
             <div class="mode-row" role="tablist" aria-label="Mode selector">
-              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full">Full</button>
-              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain">Explain</button>
-              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
-              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" aria-keyshortcuts="Control+Alt+1" data-i18n="mode_full">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false" aria-keyshortcuts="Control+Alt+2" data-i18n="tab_explain">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false" aria-keyshortcuts="Control+Alt+3" data-i18n="mode_debug">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false" aria-keyshortcuts="Control+Alt+4" data-i18n="tab_improve">Improve</button>
             </div>
+            <span class="shortcut-hint" title="Use Control Alt 1 through 4 to switch analysis modes">Ctrl+Alt+1-4 modes</span>
           </div>
         </div>
 
@@ -3923,16 +3934,37 @@ details.issue-card[open] {
       /* ═══════════════════════════════════════════════════════════════
          MODE BUTTONS
       ═══════════════════════════════════════════════════════════════ */
-      document.querySelectorAll('.mode-btn').forEach(b => {
-        b.addEventListener('click', () => {
-          selectedMode = b.dataset.mode;
-          document.querySelectorAll('.mode-btn').forEach(x => {
-            x.classList.remove('active');
-            x.setAttribute('aria-pressed', 'false');
-          });
-          b.classList.add('active');
-          b.setAttribute('aria-pressed', 'true');
+      function setMode(mode) {
+        const button = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+        if (!button) return;
+
+        selectedMode = mode;
+        document.querySelectorAll('.mode-btn').forEach(x => {
+          x.classList.remove('active');
+          x.setAttribute('aria-pressed', 'false');
         });
+        button.classList.add('active');
+        button.setAttribute('aria-pressed', 'true');
+      }
+
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.addEventListener('click', () => setMode(b.dataset.mode));
+      });
+
+      document.addEventListener('keydown', e => {
+        if (!(e.ctrlKey || e.metaKey) || !e.altKey) return;
+
+        const shortcutModes = {
+          '1': 'analyze',
+          '2': 'explain',
+          '3': 'debug',
+          '4': 'suggest'
+        };
+        const mode = shortcutModes[e.key];
+        if (!mode) return;
+
+        e.preventDefault();
+        setMode(mode);
       });
 
       /* ═══════════════════════════════════════════════════════════════
