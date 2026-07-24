@@ -14,6 +14,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
+load_dotenv()
+import time
+import os
+from collections import defaultdict
+import logging
+from contextlib import asynccontextmanager
 
 from .logging_config import configure_logging
 from .observability import initialise_app_info, prometheus_metrics_middleware
