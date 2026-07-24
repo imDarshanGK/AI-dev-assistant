@@ -1,6 +1,7 @@
 """Weekly digest email — SMTP sending and HTML template."""
 
 from __future__ import annotations
+from typing import cast
 import secrets
 from datetime import UTC, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
@@ -102,7 +103,7 @@ def compute_subscriber_stats(db: Session, email: str) -> dict | None:
 
     for h in this_week:
         try:
-            data = json.loads(h.result_json)
+            data = json.loads(cast(str, h.result_json))
         except json.JSONDecodeError:
             continue
 
@@ -125,7 +126,7 @@ def compute_subscriber_stats(db: Session, email: str) -> dict | None:
     # Last week average for comparison
     last_scores: list[int] = []
     for h in last_week:
-        s = _parse_score(h.result_json)
+        s = _parse_score(cast(str, h.result_json))
         if s is not None:
             last_scores.append(s)
     prev_avg = round(sum(last_scores) / len(last_scores), 1) if last_scores else None
@@ -277,7 +278,7 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
             if settings.smtp_user:
                 server.login(settings.smtp_user, settings.smtp_pass)
             server.send_message(msg)
-        
+
         if metrics_enabled():
             duration = time.perf_counter() - start_time
             EMAIL_SEND_DURATION_SECONDS.labels(type="digest").observe(duration)

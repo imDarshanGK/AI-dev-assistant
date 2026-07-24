@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import delete, select
+from typing import cast
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from sqlalchemy import CursorResult, delete, select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -113,7 +114,7 @@ def create_history(
 
 @router.delete("/history/{history_id}")
 def delete_history(
-    history_id: int,
+    history_id: int = Path(..., ge=1),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -141,7 +142,7 @@ def clear_history(
         delete(QueryHistory).where(QueryHistory.user_id == current_user.id)
     )
     db.commit()
-    return {"status": "cleared", "deleted": result.rowcount or 0}
+    return {"status": "cleared", "deleted": cast(CursorResult, result).rowcount or 0}
 
 
 @router.get("/favorites", response_model=list[FavoriteRecord])
@@ -205,7 +206,7 @@ def create_favorite(
 
 @router.delete("/favorites/{favorite_id}")
 def delete_favorite(
-    favorite_id: int,
+    favorite_id: int = Path(..., ge=1),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -233,4 +234,4 @@ def clear_favorites(
         delete(FavoriteResult).where(FavoriteResult.user_id == current_user.id)
     )
     db.commit()
-    return {"status": "cleared", "deleted": result.rowcount or 0}
+    return {"status": "cleared", "deleted": cast(CursorResult, result).rowcount or 0}
