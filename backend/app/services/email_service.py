@@ -1,16 +1,17 @@
 """Weekly digest email — SMTP sending and HTML template."""
 
 from __future__ import annotations
+
+import json
 import secrets
+import smtplib
+import time
 from datetime import UTC, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import json
-import smtplib
 from urllib.parse import urlencode
 
 from sqlalchemy.orm import Session
-import time
 
 from ..config import settings
 from ..models import QueryHistory, User
@@ -19,7 +20,6 @@ from ..observability import (
     EMAIL_SENT_TOTAL,
     metrics_enabled,
 )
-
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 

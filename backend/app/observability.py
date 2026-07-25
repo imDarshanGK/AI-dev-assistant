@@ -36,7 +36,6 @@ from prometheus_client import (
     multiprocess,
 )
 
-
 # ── Configuration ─────────────────────────────────────────────────────────────
 # Both flags are intentionally read at **request time** (not import time) so
 # tests, hot-reloads, and operators can flip them without having to recreate
