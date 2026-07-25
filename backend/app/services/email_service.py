@@ -277,7 +277,7 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
             if settings.smtp_user:
                 server.login(settings.smtp_user, settings.smtp_pass)
             server.send_message(msg)
-        
+
         if metrics_enabled():
             duration = time.perf_counter() - start_time
             EMAIL_SEND_DURATION_SECONDS.labels(type="digest").observe(duration)
@@ -295,4 +295,3 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
             "Failed to send digest to %s: %s", stats["email"], exc
         )
         return False
-
