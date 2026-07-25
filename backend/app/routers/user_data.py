@@ -1,4 +1,5 @@
 from typing import cast
+
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy import CursorResult, delete, select
 from sqlalchemy.orm import Session
