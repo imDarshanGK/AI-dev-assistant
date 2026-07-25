@@ -13,8 +13,8 @@ import time
 import aiosqlite
 
 from ..observability import (
-    DB_OPERATIONS_TOTAL,
     DB_OPERATION_DURATION_SECONDS,
+    DB_OPERATIONS_TOTAL,
     metrics_enabled,
 )
 
