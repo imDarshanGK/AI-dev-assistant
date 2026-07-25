@@ -296,4 +296,3 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
             "Failed to send digest to %s: %s", stats["email"], exc
         )
         return False
-

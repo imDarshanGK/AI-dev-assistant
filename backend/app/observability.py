@@ -60,7 +60,18 @@ _EXCLUDED_PATH_PREFIXES: tuple[str, ...] = (
 
 
 _LATENCY_BUCKETS_SECONDS: tuple[float, ...] = (
-    0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0,
+    0.005,
+    0.01,
+    0.025,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0,
+    2.5,
+    5.0,
+    10.0,
+    30.0,
 )
 
 REQUESTS_TOTAL = Counter(
@@ -119,8 +130,6 @@ DB_OPERATION_DURATION_SECONDS = Histogram(
 )
 
 
-
-
 def initialise_app_info(version: str, ai_provider: str) -> None:
     """Set the app_info gauge once at startup so dashboards can display it."""
     APP_INFO.labels(version=version, ai_provider=ai_provider).set(1)
@@ -144,7 +153,10 @@ def _endpoint_label(request: Request) -> str:
 
 
 def _should_skip(path: str) -> bool:
-    return any(path == prefix or path.startswith(prefix + "/") for prefix in _EXCLUDED_PATH_PREFIXES)
+    return any(
+        path == prefix or path.startswith(prefix + "/")
+        for prefix in _EXCLUDED_PATH_PREFIXES
+    )
 
 
 # ── Middleware ────────────────────────────────────────────────────────────────

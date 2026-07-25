@@ -15,6 +15,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from .database import Base, engine
 from .logging_config import configure_logging
 from .observability import initialise_app_info, prometheus_metrics_middleware
 from .routers import admin, analyze, auth, chat, collaboration, debugging, explanation
@@ -56,6 +57,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
+    Base.metadata.create_all(bind=engine)
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
     initialise_app_info(
