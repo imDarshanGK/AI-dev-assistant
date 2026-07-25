@@ -316,6 +316,14 @@ Real-time collaboration room. Connect with `?name=YourName`; the server assigns 
 Client → server message types: `ping`, `code_update`, `cursor_update`, `comment_added`.
 Server → client message types: `session_state`, `presence_update`, `pong`, plus broadcasts of the above as other users act. The room is held in memory and is deleted automatically once every participant disconnects - there is no persistence between sessions today.
 
+#### Presence Sync Edge Cases
+
+- A `presence_update` event is broadcast whenever a participant joins or leaves the collaboration session.
+- Newly connected participants receive the current session state, including the active participants already in the room.
+- Presence information exists only while the collaboration room is active and is not persisted between sessions.
+- When the last participant disconnects, the collaboration room is automatically removed from memory.
+
+
 ---
 
 ### `POST /chat` and `POST /chat/message`
@@ -380,7 +388,16 @@ curl -F "file=@app.py" http://localhost:8000/upload/validate
 
 ### `POST /subscribe/` and `POST /subscribe/unsubscribe`
 
-Subscribe an email to the weekly digest, or unsubscribe (also available as `GET /subscribe/unsubscribe?token=...` for one-click email unsubscribe links). Full flow documented in [docs/SUBSCRIPTION_GUIDE.md](docs/SUBSCRIPTION_GUIDE.md).
+Subscribe an email to the weekly digest, or unsubscribe (also available as `GET /subscribe/unsubscribe?...`). Full flow documented in [docs/SUBSCRIPTION_GUIDE.md](docs/SUBSCRIPTION_GUIDE.md).
+
+#### Scheduler Service Edge Cases
+
+- If the digest feature is disabled, the scheduled weekly job is skipped.
+- If there are no active subscribers, the scheduler exits without sending emails.
+- Subscribers with no available digest data are skipped without affecting other deliveries.
+- If a digest email fails to send, the failure is logged and processing continues for the remaining subscribers.
+- Duplicate scheduler jobs are prevented if the weekly digest job has already been registered.
+
 
 ---
 
