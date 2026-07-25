@@ -14,13 +14,14 @@ from sqlalchemy.orm import sessionmaker
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+from sqlalchemy.pool import StaticPool
+
 from app.database import Base, get_db
 
 # Now import the FastAPI app and wire up the test DB override.
 from app.main import app as fastapi_app
 from app.models import DigestSubscription
 from app.services import email_service
-from sqlalchemy.pool import StaticPool
 
 TEST_ENGINE = create_engine(
     "sqlite:///:memory:",

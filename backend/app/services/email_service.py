@@ -1,12 +1,13 @@
 """Weekly digest email — SMTP sending and HTML template."""
 
 from __future__ import annotations
+
+import json
 import secrets
+import smtplib
 from datetime import UTC, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import json
-import smtplib
 from urllib.parse import urlencode
 
 from sqlalchemy.orm import Session

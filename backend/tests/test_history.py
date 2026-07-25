@@ -9,9 +9,10 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+from fastapi.testclient import TestClient
+
 from app.main import app
 from app.services import database
-from fastapi.testclient import TestClient
 
 _tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 _tmp.close()
