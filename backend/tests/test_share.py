@@ -133,13 +133,19 @@ def test_delete_share_authorization(client):
     # 1. Create our pretend users in the database
     owner = User(email="owner@test.com", password_hash="fake_pass", is_admin=False)
     admin = User(email="admin@test.com", password_hash="fake_pass", is_admin=True)
-    stranger = User(email="stranger@test.com", password_hash="fake_pass", is_admin=False)
+    stranger = User(
+        email="stranger@test.com", password_hash="fake_pass", is_admin=False
+    )
     db.add_all([owner, admin, stranger])
     db.commit()
 
     # 2. Create pretend shares owned by the 'owner'
-    share1 = SharedSnippet(token="token1", code="print('1')", result_json="{}", user_id=owner.id)
-    share2 = SharedSnippet(token="token2", code="print('2')", result_json="{}", user_id=owner.id)
+    share1 = SharedSnippet(
+        token="token1", code="print('1')", result_json="{}", user_id=owner.id
+    )
+    share2 = SharedSnippet(
+        token="token2", code="print('2')", result_json="{}", user_id=owner.id
+    )
     db.add_all([share1, share2])
     db.commit()
 
