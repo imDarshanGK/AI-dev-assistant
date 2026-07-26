@@ -22,6 +22,7 @@ All notable changes to QyverixAI are documented in this file.
   server-side denylist until they expire.
 - Audit-log entries redact sensitive fields (passwords, tokens, secrets, API
   keys) before they are persisted.
+- Prevent resource exhaustion by adding size constraints (max_length=200) and truncation rules on search query parameter q in GET /history/search.
 
 ## [3.0.0] - 2026-06-06
 
