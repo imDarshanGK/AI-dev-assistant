@@ -110,7 +110,6 @@ def test_share_accessible_after_owner_logout(client):
 
 def test_expired_share_returns_404(client):
     db = TEST_SESSION_LOCAL()
-    
 
     record = SharedSnippet(
         token="expired123",
