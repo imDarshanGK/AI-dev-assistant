@@ -4069,6 +4069,19 @@
       /* ═══════════════════════════════════════════════════════════════
          RENDER SUGGESTIONS (with diff view)
       ═══════════════════════════════════════════════════════════════ */
+      function buildExampleHtml(example) {
+        const lines = example.split('\n').map((text, idx) => ({ type: 'added', text, num: idx + 1 }));
+        return `
+        <div class="diff-wrapper">
+          <div class="diff-header">
+            <div class="diff-header-labels">
+              <span class="diff-label"><span class="diff-label-dot"></span>Example</span>
+            </div>
+          </div>
+          <div class="diff-col" style="width:100%">${renderDiffCol(lines)}</div>
+        </div>`;
+      }
+
       function renderSuggest(sugg) {
         document.getElementById('emptySuggest').style.display = 'none';
         const el = document.getElementById('suggestResult');
@@ -4109,7 +4122,7 @@
           : sugg.suggestions.map((s, i) => {
 
             let exampleHtml = '';
-            if (s.example) {
+            if (s.example && s.example_type === 'fix') {
               const copyId  = `copy-fix-${i}`;
               const rawLines = s.example.split('\n');
 
@@ -4153,6 +4166,8 @@
                   }
                 }
               }
+            } else if (s.example) {
+              exampleHtml = buildExampleHtml(s.example);
             }
 
             return `
@@ -4170,7 +4185,7 @@
 
         // Wire up "Copy fixed" buttons after DOM insertion
         sugg.suggestions.forEach((s, i) => {
-          if (!s.example) return;
+          if (!s.example || s.example_type !== 'fix') return;
           const btn = document.getElementById(`copy-fix-${i}`);
           if (!btn) return;
 

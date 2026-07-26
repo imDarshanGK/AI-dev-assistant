@@ -8,6 +8,7 @@ import ast
 import re
 import time
 from .ast_analyzer import analyze as ast_analyze
+from .line_utils import format_code_snippet
 from dataclasses import dataclass, field
 
 # ── Language Detection ─────────────────────────────────────────────────────────
@@ -914,6 +915,66 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
 
 # ── Suggestion Engine ──────────────────────────────────────────────────────────
+def _python_syntax_correction(code: str) -> dict | None:
+    """Return a safe, parseable correction for simple Python syntax mistakes."""
+    try:
+        ast.parse(code)
+        return None
+    except SyntaxError as exc:
+        line_number = exc.lineno or 1
+
+    lines = code.splitlines()
+    if not 0 < line_number <= len(lines):
+        return None
+
+    # Remove trailing semicolons and closing delimiters that do not have a
+    # matching opener. This covers common paste mistakes such as `print(1));;`
+    # without guessing at a rewrite of the user's program.
+    corrected_lines = lines.copy()
+    candidate = re.sub(r";+\s*$", "", corrected_lines[line_number - 1])
+    opener_for = {")": "(", "]": "[", "}": "{"}
+    closer_for = {"(": ")", "[": "]", "{": "}"}
+    stack: list[str] = []
+    corrected: list[str] = []
+    for char in candidate:
+        if char in "([{":
+            stack.append(char)
+        elif char in opener_for:
+            if stack and stack[-1] == opener_for[char]:
+                stack.pop()
+            else:
+                continue
+        corrected.append(char)
+    # Complete delimiters left open on the invalid line (for example,
+    # `print(1` becomes `print(1)`).
+    corrected.extend(closer_for[opener] for opener in reversed(stack))
+    corrected_lines[line_number - 1] = "".join(corrected)
+    corrected_code = "\n".join(corrected_lines)
+
+    try:
+        ast.parse(corrected_code)
+    except SyntaxError:
+        return {
+            "category": "Syntax Error",
+            "description": f"Line {line_number} has invalid Python syntax. Fix it before applying other improvements.",
+            "line_number": line_number,
+            "line_range": [line_number],
+            "code_context": format_code_snippet(code, [line_number]),
+            "priority": "high",
+        }
+
+    return {
+        "category": "Syntax Correction",
+        "description": f"Line {line_number} has invalid Python syntax. Fix it before applying other improvements.",
+        "line_number": line_number,
+        "line_range": [line_number],
+        "code_context": format_code_snippet(code, [line_number]),
+        "example": corrected_code,
+        "example_type": "fix",
+        "priority": "high",
+    }
+
+
 def run_suggestions(code: str, language: str) -> dict:
     """Generate improvement suggestions for the provided source code.
 
@@ -935,6 +996,19 @@ def run_suggestions(code: str, language: str) -> dict:
     suggestions: list[dict] = []
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
+
+    # A syntax error makes style-oriented suggestions misleading. Return a
+    # verified correction instead of generic documentation, test, or logging
+    # templates.
+    if language == "Python":
+        syntax_suggestion = _python_syntax_correction(code)
+        if syntax_suggestion:
+            return {
+                "suggestions": [syntax_suggestion],
+                "overall_score": 0,
+                "grade": "F",
+                "next_step": "Fix the syntax error, then run improvement analysis again.",
+            }
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 1: Documentation Quality

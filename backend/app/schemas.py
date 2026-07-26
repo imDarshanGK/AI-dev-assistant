@@ -76,6 +76,7 @@ class Suggestion(BaseModel):
     line_range: list[int] | None = None
     code_context: str | None = None
     example: str | None = None
+    example_type: str | None = None
     priority: str
 
 

@@ -593,6 +593,41 @@ def test_suggestions_observability_print_only_python():
     assert "Observability" in s_py
 
 
+def test_suggestions_prioritize_a_verified_python_syntax_correction():
+    r = client.post("/suggestions/", json={"code": "print(1));;", "language": "python"})
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["overall_score"] == 0
+    assert data["grade"] == "F"
+    assert len(data["suggestions"]) == 1
+
+    correction = data["suggestions"][0]
+    assert correction["category"] == "Syntax Correction"
+    assert correction["example"] == "print(1)"
+    assert correction["example_type"] == "fix"
+
+
+def test_suggestions_fix_an_unclosed_python_delimiter_before_improving():
+    r = client.post("/suggestions/", json={"code": "print(1", "language": "python"})
+
+    assert r.status_code == 200
+    suggestions = r.json()["suggestions"]
+    assert len(suggestions) == 1
+    assert suggestions[0]["category"] == "Syntax Correction"
+    assert suggestions[0]["example"] == "print(1)"
+
+
+def test_full_analysis_does_not_return_generic_suggestions_for_syntax_errors():
+    r = client.post("/analyze/", json={"code": "print(1", "language": "python"})
+
+    assert r.status_code == 200
+    suggestions = r.json()["suggestions"]["suggestions"]
+    assert len(suggestions) == 1
+    assert suggestions[0]["category"] == "Syntax Correction"
+    assert suggestions[0]["example"] == "print(1)"
+
+
 # ── Full Analysis ─────────────────────────────────────────────────────────────
 def test_full_analyze():
     r = client.post("/analyze/", json={"code": PYTHON_BUGGY})
