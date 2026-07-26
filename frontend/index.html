@@ -5321,10 +5321,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         const text = buildReport(currentResult, editor.value);
         const blob = new Blob([text], { type: 'text/plain' });
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        a.href = url;
         a.download = `qyverixai-report-${Date.now()}.txt`;
         a.click();
-        URL.revokeObjectURL(a.href);
+        // Delay Blob URL revocation to allow browser download stream initialization
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 1000);
         toast(getTranslation('toast_report_downloaded'), 'success');
       });
 
@@ -5339,10 +5343,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
             
             const blob = new Blob([mdText], { type: 'text/markdown' });
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
+            a.href = url;
             a.download = `qyverixai-report-${Date.now()}.md`;
             a.click();
-            URL.revokeObjectURL(a.href);
+            // Delay Blob URL revocation to allow browser download stream initialization
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 1000);
             
             if (typeof toast === 'function') toast('Downloaded as Markdown', 'success');
         } catch (error) {
