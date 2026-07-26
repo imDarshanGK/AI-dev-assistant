@@ -1,4 +1,5 @@
 """Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
+
 from __future__ import annotations
 
 import asyncio
@@ -11,6 +12,7 @@ from pathlib import PurePosixPath
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 
+from ..sanitize import sanitize_code_input, sanitize_language_hint
 from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
 from ..services.cache import cache
 from ..services.code_assistant import (
@@ -20,7 +22,7 @@ from ..services.code_assistant import (
     run_explanation,
     run_suggestions,
 )
-from ..sanitize import sanitize_code_input, sanitize_language_hint
+
 router = APIRouter()
 
 _SSE_HEADERS = {
@@ -139,11 +141,7 @@ def _safe_zip_name(name: str) -> str:
 def _is_safe_member(name: str) -> bool:
     path = PurePosixPath(name.replace("\\", "/"))
     has_drive = bool(path.parts and path.parts[0].endswith(":"))
-    return (
-        not path.is_absolute()
-        and ".." not in path.parts
-        and not has_drive
-    )
+    return not path.is_absolute() and ".." not in path.parts and not has_drive
 
 
 def _is_ignored_member(name: str) -> bool:
@@ -175,11 +173,15 @@ async def analyze_stream(req: CodeRequest):
     response_class=StreamingResponse,
 )
 async def analyze_stream_get(
-    code: str = Query(..., min_length=1, max_length=50000, description="Source code to analyze"),
+    code: str = Query(
+        ..., min_length=1, max_length=50000, description="Source code to analyze"
+    ),
     language: str | None = Query(None, description="Optional language hint"),
 ):
     if not code.strip():
-        raise HTTPException(status_code=400, detail="code must not be empty or whitespace")
+        raise HTTPException(
+            status_code=400, detail="code must not be empty or whitespace"
+        )
     return StreamingResponse(
         _stream_analysis(code.strip(), language),
         media_type="text/event-stream",
@@ -266,12 +268,10 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
     results: list[dict] = []
     skipped_files: list[str] = []
     total_size = 0
+    MAX_PER_FILE_BYTES = 2 * 1024 * 1024  # 2MB per file
 
     with archive:
-        members = [
-            info for info in archive.infolist()
-            if not info.is_dir()
-        ]
+        members = [info for info in archive.infolist() if not info.is_dir()]
 
         if not members:
             raise HTTPException(
@@ -307,14 +307,22 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                 )
                 continue
 
-            if total_size + info.file_size > MAX_ZIP_TOTAL_BYTES:
+            raw = archive.read(info)
+            decompressed_size = len(raw)
+
+            if decompressed_size > MAX_PER_FILE_BYTES:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"File '{safe_name}' exceeds 2MB limit after decompression",
+                )
+
+            if total_size + decompressed_size > MAX_ZIP_TOTAL_BYTES:
                 raise HTTPException(
                     status_code=400,
                     detail="ZIP source files exceed the 5MB total limit",
                 )
 
-            raw = archive.read(info)
-            total_size += len(raw)
+            total_size += decompressed_size
 
             try:
                 code = raw.decode("utf-8")
@@ -354,10 +362,7 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
             detail="ZIP file does not contain readable source files",
         )
 
-    scores = [
-        item["analysis"]["suggestions"]["overall_score"]
-        for item in results
-    ]
+    scores = [item["analysis"]["suggestions"]["overall_score"] for item in results]
 
     overall_score = round(sum(scores) / len(scores))
 
