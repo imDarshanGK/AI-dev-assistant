@@ -426,6 +426,55 @@ async function runAnalysis() {
   }
 }
 
+// ── Issue Complexity Badge ──
+// Pure frontend heuristic: scores an issue using fields already present on the
+// issue object (severity, description length, suggestion presence, keywords)
+// and maps it to Easy / Medium / Hard. No backend involvement required.
+const COMPLEXITY_KEYWORDS = {
+  hard: ['race condition', 'deadlock', 'memory leak', 'security', 'vulnerability', 'concurrency', 'thread', 'async', 'architecture', 'refactor', 'sql injection', 'recursion', 'algorithm'],
+  medium: ['null', 'undefined', 'exception', 'error handling', 'type', 'performance', 'validation', 'edge case', 'logic'],
+};
+
+function scoreIssueComplexity(issue) {
+  let score = 0;
+  const desc = (issue.description || '').toLowerCase();
+  const type = (issue.type || '').toLowerCase();
+  const text = `${desc} ${type}`;
+
+  // Severity contributes the most signal when available.
+  if (issue.severity === 'error') score += 3;
+  else if (issue.severity === 'warning') score += 2;
+  else if (issue.severity === 'info') score += 1;
+
+  // Longer descriptions tend to indicate more nuanced/complex issues.
+  const len = desc.length;
+  if (len > 160) score += 3;
+  else if (len > 80) score += 2;
+  else if (len > 0) score += 1;
+
+  // Keyword heuristics.
+  if (COMPLEXITY_KEYWORDS.hard.some(k => text.includes(k))) score += 3;
+  else if (COMPLEXITY_KEYWORDS.medium.some(k => text.includes(k))) score += 1;
+
+  // A missing fix suggestion usually means the issue needs more judgment to resolve.
+  if (!issue.suggestion) score += 1;
+
+  return score;
+}
+
+function getIssueComplexity(issue) {
+  const score = scoreIssueComplexity(issue);
+  if (score >= 7) return { level: 'hard', label: 'Hard', emoji: '🔴', score };
+  if (score >= 4) return { level: 'medium', label: 'Medium', emoji: '🟡', score };
+  return { level: 'easy', label: 'Easy', emoji: '🟢', score };
+}
+
+function renderComplexityBadge(issue) {
+  const c = getIssueComplexity(issue);
+  const tooltip = `Estimated complexity: ${c.label} (score ${c.score}/11) — based on severity, description length, keywords, and whether a fix suggestion is provided.`;
+  return `<span class="result-tag complexity-badge complexity-${c.level}" title="${escHtml(tooltip)}">${c.emoji} ${c.label}</span>`;
+}
+
 // ── Render Output ──
 function renderResult(data, mode) {
   let html = '';
@@ -457,6 +506,7 @@ function renderResult(data, mode) {
             ? '<span class="result-tag tag-ok">✓ No issues found</span>'
             : issues.map(i => `<div style="margin-bottom:10px">
                 <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
+                ${renderComplexityBadge(i)}
                 <p style="margin-top:4px">${escHtml(i.description || '')}</p>
                 ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${escHtml(i.suggestion)}</p>` : ''}
               </div>`).join('')}
@@ -503,6 +553,7 @@ function renderResult(data, mode) {
           : issues.map(i => `<div style="margin-bottom:14px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
               <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
               ${i.line ? `<span class="result-tag tag-info">Line ${i.line}</span>` : ''}
+              ${renderComplexityBadge(i)}
               <p style="margin-top:8px">${escHtml(i.description || '')}</p>
               ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${escHtml(i.suggestion)}</p>` : ''}
             </div>`).join('')}
@@ -637,3 +688,4 @@ if (digestForm) {
 // ── Init ──
 renderHistory();
 renderFavorites();
+
