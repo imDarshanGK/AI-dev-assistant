@@ -76,7 +76,7 @@ def get_share(token: str, db: Session = Depends(get_db)):
 
         raw = db.execute(
             text(
-                "SELECT token, user_id, code, result_json, created_at FROM shares WHERE token = :t"
+                "SELECT token, code, result_json, created_at FROM shares WHERE token = :t"
             ),
             {"t": token},
         ).first()
@@ -118,7 +118,6 @@ def get_share(token: str, db: Session = Depends(get_db)):
 
         return ShareRecord(
             id=token_val,
-            user_id=user_id_val,
             action="share",
             code=code_val,
             result=json.loads(result_json_val),

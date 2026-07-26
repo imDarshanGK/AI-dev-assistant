@@ -1,0 +1,2 @@
+[lint.per-file-ignores]
+"backend/tests/fixtures/*.py" = ["E722", "E402", "F403"]
