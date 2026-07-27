@@ -1,3 +1,5 @@
+"""AST-based Python code analyzer using the built-in ast module."""
+
 from __future__ import annotations
 import ast
 
@@ -106,7 +108,7 @@ def detect_unreachable_code(tree: ast.AST, code: str) -> list[dict]:
         for field, value in ast.iter_fields(node):
             if not isinstance(value, list):
                 continue
-            
+
             terminal_line = None
             for stmt in value:
                 if not isinstance(stmt, ast.AST):
@@ -118,8 +120,8 @@ def detect_unreachable_code(tree: ast.AST, code: str) -> list[dict]:
                         "Remove the unreachable code or fix the control flow.",
                         "warning", code
                     ))
-                    break # Only report the first unreachable statement in a block
-                
+                    break  # Only report the first unreachable statement in a block
+
                 if isinstance(stmt, terminal):
                     terminal_line = getattr(stmt, "lineno", None)
     return issues
@@ -167,10 +169,10 @@ def detect_deep_nesting(tree: ast.AST, code: str) -> list[dict]:
         for child in ast.iter_child_nodes(node):
             # FIX: Ignore elif chains adding to depth
             if isinstance(child, ast.If) and isinstance(node, ast.If) and child in node.orelse:
-                d = depth 
+                d = depth
             else:
                 d = depth + 1 if isinstance(child, nesting_types) else depth
-                
+
             if isinstance(child, nesting_types) and d > 3:
                 issues.append(_make_issue(
                     "Deep Nesting", child.lineno,
@@ -197,12 +199,12 @@ def analyze(source: str) -> list[dict]:
         )]
 
     issues = []
-    
+
     # 1. Run Visitor-based analysis
     analyzer = PythonASTAnalyzer(source)
     analyzer.visit(tree)
     issues.extend(analyzer.issues)
-    
+
     # 2. Run Procedural analysis
     issues.extend(detect_unreachable_code(tree, source))
     issues.extend(detect_too_many_returns(tree, source))
