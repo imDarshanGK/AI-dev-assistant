@@ -13,7 +13,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.database import Base, get_db
 from app.main import app as fastapi_app
-
+from app.security import decode_token
+from app.token_denylist import token_denylist
 
 TEST_ENGINE = create_engine(
     "sqlite:///:memory:",
@@ -50,6 +51,15 @@ def _recreate_tables():
     Base.metadata.drop_all(bind=TEST_ENGINE)
 
 
+@pytest.fixture(autouse=True)
+def _reset_denylist():
+    # The denylist is a process-wide singleton; reset it so revocations from one
+    # test never leak into another.
+    token_denylist.clear()
+    yield
+    token_denylist.clear()
+
+
 def test_auth_routes_are_exposed_in_openapi(client):
     response = client.get("/openapi.json")
     assert response.status_code == 200
@@ -58,6 +68,7 @@ def test_auth_routes_are_exposed_in_openapi(client):
     assert "/auth/signup" in paths
     assert "/auth/login" in paths
     assert "/auth/me" in paths
+    assert "/auth/logout" in paths
 
 
 def test_signup_login_and_me_happy_path(client):
@@ -111,3 +122,74 @@ def test_me_rejects_missing_and_invalid_token(client):
     )
     assert invalid_token_response.status_code == 401
     assert "invalid token" in invalid_token_response.json()["detail"].lower()
+
+
+def _signup_and_get_token(client, email: str = "replay@example.com") -> str:
+    response = client.post(
+        "/auth/signup",
+        json={"email": email, "password": "StrongPass123!"},
+    )
+    assert response.status_code == 200
+    return response.json()["access_token"]
+
+
+def test_access_token_carries_unique_jti_and_iat(client):
+    first = decode_token(_signup_and_get_token(client, "jti.one@example.com"))
+    second_token = client.post(
+        "/auth/login",
+        json={"email": "jti.one@example.com", "password": "StrongPass123!"},
+    ).json()["access_token"]
+    second = decode_token(second_token)
+
+    assert first["jti"] and second["jti"]
+    assert "iat" in first
+    # Every minted token must have a distinct id so it can be revoked on its own.
+    assert first["jti"] != second["jti"]
+
+
+def test_logout_revokes_token_and_blocks_replay(client):
+    token = _signup_and_get_token(client)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # The token works before logout.
+    assert client.get("/auth/me", headers=headers).status_code == 200
+
+    logout_response = client.post("/auth/logout", headers=headers)
+    assert logout_response.status_code == 200
+    assert "revoked" in logout_response.json()["message"].lower()
+
+    # Replaying the exact same (still cryptographically valid) token now fails.
+    replay_response = client.get("/auth/me", headers=headers)
+    assert replay_response.status_code == 401
+    assert "revoked" in replay_response.json()["detail"].lower()
+
+
+def test_logout_requires_authentication(client):
+    assert client.post("/auth/logout").status_code == 401
+
+
+def test_revoking_one_token_leaves_other_sessions_valid(client):
+    first = _signup_and_get_token(client, "multi@example.com")
+    second = client.post(
+        "/auth/login",
+        json={"email": "multi@example.com", "password": "StrongPass123!"},
+    ).json()["access_token"]
+
+    # Log out only the first session.
+    assert (
+        client.post(
+            "/auth/logout", headers={"Authorization": f"Bearer {first}"}
+        ).status_code
+        == 200
+    )
+
+    assert (
+        client.get("/auth/me", headers={"Authorization": f"Bearer {first}"}).status_code
+        == 401
+    )
+    assert (
+        client.get(
+            "/auth/me", headers={"Authorization": f"Bearer {second}"}
+        ).status_code
+        == 200
+    )

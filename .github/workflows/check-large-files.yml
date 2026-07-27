@@ -1,0 +1,43 @@
+name: Check Large Files
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for oversized files in PR changes
+        env:
+          THRESHOLD_MB: 5
+        run: |
+          git fetch origin main
+          CHANGED=$(git diff --name-only --diff-filter=AM origin/main...HEAD)
+          if [ -z "$CHANGED" ]; then
+            echo "✓ No files added or modified in this PR"
+            exit 0
+          fi
+          FAILED=0
+          while IFS= read -r f; do
+            if [ -f "$f" ]; then
+              SIZE=$(stat --format=%s "$f")
+              if [ "$SIZE" -gt $(( THRESHOLD_MB * 1024 * 1024 )) ]; then
+                echo "::error::$(du -h "$f" | cut -f1)  $f"
+                FAILED=1
+              fi
+            fi
+          done <<< "$CHANGED"
+          if [ "$FAILED" -eq 1 ]; then
+            echo ""
+            echo "Large files bloat repo size and slow CI."
+            echo "Remove them or use Git LFS / external storage."
+            exit 1
+          fi
+          echo "✓ No files exceed ${THRESHOLD_MB}MB in this PR"

@@ -17,6 +17,7 @@ npm test
 
 - `escHtml` / `sanitizeClientCode` / allowlist helpers
 - History HTML builders (no inline handlers, escaped previews)
+- Keyboard shortcut matching, editable-field safety, and cleanup
 - Simulated analysis panel rendering (all XSS payload categories)
 - Stored `localStorage` attack normalization
 
