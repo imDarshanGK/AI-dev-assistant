@@ -243,6 +243,15 @@ Returns detected issues with line numbers, code snippets, and fix suggestions. F
   "warning_count": 0,
   "info_count": 0
 }
+```
+#### AST Analyzer Edge Cases
+
+- If the submitted Python code contains a syntax error, the analyzer returns a syntax error issue instead of crashing.
+- Code with no detectable AST issues is treated as clean and returns no AST-based findings.
+- Wildcard imports (`from module import *`) are excluded from unused import detection.
+- Parameters named `self`, `cls`, or prefixed with `_` are ignored during unused argument detection.
+- Deep nesting warnings are generated only when the nesting depth exceeds three levels.
+---
 
 
   "suggestions": [
