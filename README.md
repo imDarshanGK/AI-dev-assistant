@@ -174,7 +174,9 @@ open frontend/index.html
 
 Set the API URL field to `http://localhost:8000`, click **Ping** to confirm the green Connected status, then paste any code and click **Analyze Code**.
 
-> `frontend/index.html` is the single self-contained file actually served — it does not load `frontend/script.js` or `frontend/style.css`. Those two files (plus `security-utils.js`) hold the same logic in separately testable modules and exist primarily so `frontend/tests/` can run focused security/XSS regression tests against them without parsing the full page.
+Keyboard shortcuts: press `Ctrl+Enter` (`Cmd+Enter` on macOS) to analyze, `/` to focus the code editor, and `Escape` to leave the editor.
+
+> `frontend/index.html` is the page actually served. It loads `frontend/security-utils.js` for shared security and keyboard helpers, while its remaining styles and application logic are inline. `frontend/script.js` and `frontend/style.css` are retained as separately testable/reference modules.
 
 ---
 
@@ -210,7 +212,13 @@ Returns a plain-English breakdown of the code.
   "class_count": 0
 }
 ```
+#### Edge Cases
 
+- If `language` is omitted, the service automatically detects the programming language from the submitted code.
+- If the language cannot be confidently identified, the response falls back to `"Unknown"` while still generating an explanation.
+- Code without functions or classes still receives a plain-English summary and basic code statistics.
+- Recursive functions may be identified and reflected in the generated key points.
+- The reported complexity is an estimated difficulty level based on the analyzed code structure and should not be interpreted as a runtime performance measurement.
 ---
 
 ### `POST /debugging/`
@@ -236,15 +244,16 @@ Returns detected issues with line numbers, code snippets, and fix suggestions. F
   "info_count": 0
 }
 ```
+#### AST Analyzer Edge Cases
 
+- If the submitted Python code contains a syntax error, the analyzer returns a syntax error issue instead of crashing.
+- Code with no detectable AST issues is treated as clean and returns no AST-based findings.
+- Wildcard imports (`from module import *`) are excluded from unused import detection.
+- Parameters named `self`, `cls`, or prefixed with `_` are ignored during unused argument detection.
+- Deep nesting warnings are generated only when the nesting depth exceeds three levels.
 ---
 
-### `POST /suggestions/`
 
-Returns improvement suggestion cards with a quality score. Each suggestion with an `example` renders as a before/after diff in the frontend.
-
-```json
-{
   "suggestions": [
     {
       "category": "Documentation",
@@ -314,6 +323,14 @@ Real-time collaboration room. Connect with `?name=YourName`; the server assigns 
 Client → server message types: `ping`, `code_update`, `cursor_update`, `comment_added`.
 Server → client message types: `session_state`, `presence_update`, `pong`, plus broadcasts of the above as other users act. The room is held in memory and is deleted automatically once every participant disconnects - there is no persistence between sessions today.
 
+#### Presence Sync Edge Cases
+
+- A `presence_update` event is broadcast whenever a participant joins or leaves the collaboration session.
+- Newly connected participants receive the current session state, including the active participants already in the room.
+- Presence information exists only while the collaboration room is active and is not persisted between sessions.
+- When the last participant disconnects, the collaboration room is automatically removed from memory.
+
+
 ---
 
 ### `POST /chat` and `POST /chat/message`
@@ -378,7 +395,16 @@ curl -F "file=@app.py" http://localhost:8000/upload/validate
 
 ### `POST /subscribe/` and `POST /subscribe/unsubscribe`
 
-Subscribe an email to the weekly digest, or unsubscribe (also available as `GET /subscribe/unsubscribe?token=...` for one-click email unsubscribe links). Full flow documented in [docs/SUBSCRIPTION_GUIDE.md](docs/SUBSCRIPTION_GUIDE.md).
+Subscribe an email to the weekly digest, or unsubscribe (also available as `GET /subscribe/unsubscribe?...`). Full flow documented in [docs/SUBSCRIPTION_GUIDE.md](docs/SUBSCRIPTION_GUIDE.md).
+
+#### Scheduler Service Edge Cases
+
+- If the digest feature is disabled, the scheduled weekly job is skipped.
+- If there are no active subscribers, the scheduler exits without sending emails.
+- Subscribers with no available digest data are skipped without affecting other deliveries.
+- If a digest email fails to send, the failure is logged and processing continues for the remaining subscribers.
+- Duplicate scheduler jobs are prevented if the weekly digest job has already been registered.
+
 
 ---
 
@@ -521,6 +547,32 @@ All of this runs automatically via GitHub Actions - see [CI workflows](#tech-sta
 ## Docker Compose - Full Local Dev Environment
 
 Run the complete stack (backend + frontend + PostgreSQL) with a single command.
+
+## 🌱 Good First Issues
+
+New to AI Dev Assistant? Start here!
+
+We maintain a collection of beginner-friendly issues that are ideal for first-time contributors. These issues usually require minimal project familiarity and are a great way to get started.
+
+### Find beginner-friendly issues
+
+- ⭐ Good First Issues:
+  https://github.com/imDarshanGK/AI-dev-assistant/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
+
+- 🛠️ Help Wanted:
+  https://github.com/imDarshanGK/AI-dev-assistant/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
+
+### How to claim an issue
+
+1. Browse the available issues.
+2. Read the issue description carefully.
+3. Comment on the issue to express your interest.
+4. Wait for a maintainer to assign or acknowledge your request (if required).
+5. Fork the repository and create a new branch.
+6. Make your changes and test them.
+7. Submit a Pull Request referencing the issue number.
+
+> **Note:** This list is updated periodically. If you don't find a suitable issue, check the Issues page for newly opened tasks.
 
 ### Prerequisites
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed
