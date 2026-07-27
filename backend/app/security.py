@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
 import os
+import uuid
+from datetime import datetime, timedelta, timezone
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -11,6 +12,7 @@ from sqlalchemy.orm import Session
 from .config import settings
 from .database import get_db
 from .models import User
+from .token_denylist import token_denylist
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -34,18 +36,34 @@ def verify_password(password: str, encoded: str) -> bool:
 
 
 def create_access_token(user_id: int) -> str:
-    expires = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.access_token_minutes
-    )
-    payload = {"sub": str(user_id), "exp": expires}
+    """Mint a signed access token for ``user_id``.
+
+    Each token carries a unique ``jti`` so it can be individually revoked (see
+    ``token_denylist``), plus ``iat`` to record when it was issued.
+    """
+    now = datetime.now(timezone.utc)
+    expires = now + timedelta(minutes=settings.access_token_minutes)
+    payload = {
+        "sub": str(user_id),
+        "iat": now,
+        "exp": expires,
+        "jti": uuid.uuid4().hex,
+    }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
+def decode_token(token: str) -> dict:
+    """Decode and verify a JWT, returning its claims.
+
+    Raises ``jwt.PyJWTError`` (or a subclass) if the token is malformed, has an
+    invalid signature, or has expired.
+    """
+    return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+
+
 def decode_access_token(token: str) -> int:
-    payload = jwt.decode(
-        token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
-    )
-    return int(payload["sub"])
+    """Return the user id (``sub``) encoded in a valid access token."""
+    return int(decode_token(token)["sub"])
 
 
 def get_current_user(
@@ -58,10 +76,16 @@ def get_current_user(
         )
 
     try:
-        user_id = decode_access_token(credentials.credentials)
+        claims = decode_token(credentials.credentials)
+        user_id = int(claims["sub"])
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
+
+    if token_denylist.is_revoked(claims.get("jti", "")):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked"
         )
 
     user = db.get(User, user_id)
