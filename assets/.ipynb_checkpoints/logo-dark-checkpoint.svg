@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 80" width="340" height="80" role="img">
+  <title>QyverixAI</title>
+  <desc>QyverixAI — AI Developer Assistant, dark background version</desc>
+  <defs>
+    <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5b9cf6"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#5b9cf6"/>
+      <stop offset="52%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#22d47b"/>
+    </linearGradient>
+  </defs>
+  <!-- hexagon -->
+  <polygon points="38,4 72,23 72,61 38,80 4,61 4,23" fill="url(#hg)"/>
+  <!-- search circle -->
+  <circle cx="38" cy="42" r="15" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <!-- search handle -->
+  <line x1="49" y1="53" x2="59" y2="63" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <!-- centre dot -->
+  <circle cx="38" cy="42" r="4" fill="#ffffff"/>
+  <!-- wordmark -->
+  <text
+    x="86" y="52"
+    font-family="'Syne','Arial Black',Arial,sans-serif"
+    font-weight="800"
+    font-size="36"
+    letter-spacing="-1.5"
+    fill="url(#tg)">QyverixAI</text>
+</svg>

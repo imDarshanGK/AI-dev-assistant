@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" role="img">
+  <title>QyverixAI icon</title>
+  <desc>QyverixAI hexagon icon mark with search lens</desc>
+  <defs>
+    <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5b9cf6"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <polygon points="40,2 76,21 76,59 40,78 4,59 4,21" fill="url(#hg)"/>
+  <circle cx="40" cy="40" r="16" fill="none" stroke="#ffffff" stroke-width="3.5"/>
+  <line x1="52" y1="52" x2="63" y2="63" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="40" cy="40" r="4.5" fill="#ffffff"/>
+</svg>
