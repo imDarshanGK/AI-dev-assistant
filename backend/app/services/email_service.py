@@ -9,6 +9,7 @@ import time
 from datetime import UTC, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from typing import cast
 from urllib.parse import urlencode
 
 from sqlalchemy.orm import Session
@@ -102,7 +103,7 @@ def compute_subscriber_stats(db: Session, email: str) -> dict | None:
 
     for h in this_week:
         try:
-            data = json.loads(h.result_json)
+            data = json.loads(cast(str, h.result_json))
         except json.JSONDecodeError:
             continue
 
@@ -125,7 +126,7 @@ def compute_subscriber_stats(db: Session, email: str) -> dict | None:
     # Last week average for comparison
     last_scores: list[int] = []
     for h in last_week:
-        s = _parse_score(h.result_json)
+        s = _parse_score(cast(str, h.result_json))
         if s is not None:
             last_scores.append(s)
     prev_avg = round(sum(last_scores) / len(last_scores), 1) if last_scores else None
