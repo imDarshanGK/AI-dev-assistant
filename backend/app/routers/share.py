@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import SharedSnippet, User
+from ..models import AuditLog, SharedSnippet, User
 from ..schemas import ShareCreateRequest, ShareRecord
 from ..security import get_current_user
 
@@ -145,3 +145,42 @@ def get_share(token: str, db: Session = Depends(get_db)):
         result=json.loads(record.result_json),
         created_at=created_at.isoformat(),
     )
+
+
+@router.delete("/{token}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_share(
+    token: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    record = db.execute(
+        select(SharedSnippet).where(SharedSnippet.token == token)
+    ).scalar_one_or_none()
+
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shared result not found"
+        )
+
+    # Enforce authorization: only admins or the snippet owner can delete
+    if not current_user.is_admin and record.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to delete this share",
+        )
+
+    # Record deletion in audit log
+    audit_log = AuditLog(
+        actor_id=current_user.id,
+        actor_email=current_user.email,
+        action="delete_share",
+        target_type="SharedSnippet",
+        target_id=str(record.id),
+        details=f"Deleted shared snippet with token: {token}",
+    )
+    db.add(audit_log)
+
+    db.delete(record)
+    db.commit()
+
+    return
