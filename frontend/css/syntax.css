@@ -1,4 +1,23 @@
 /* ── Syntax Highlighted Code Blocks ── */
+pre {
+  margin: 8px 0;
+  padding: 0;
+  background: transparent;
+  overflow-x: auto;
+}
+
+pre code {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  border-radius: 6px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  white-space: pre;
+  background: var(--bg) !important;
+}
+
 .issue-snippet pre,
 .suggest-example pre {
   margin: 0;

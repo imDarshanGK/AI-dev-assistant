@@ -13,19 +13,37 @@
 
   function highlightAllCode() {
     if (typeof hljs === 'undefined') return;
-    document.querySelectorAll('.issue-snippet pre code, .suggest-example pre code').forEach(block => {
+    document.querySelectorAll('pre code').forEach(block => {
       if (block.dataset.highlighted) return;
       hljs.highlightElement(block);
     });
   }
 
-  // Expose globally so renderDebug / renderSuggest etc. can call it
-  window.highlightAllCode = highlightAllCode;
+  function renderMarkdownWithSyntaxHighlight(markdown) {
+    if (typeof marked === 'undefined' || typeof hljs === 'undefined') {
+      return markdown;
+    }
 
-  // Re-apply theme whenever data-theme changes
+    const renderer = new marked.Renderer();
+    renderer.code = function(code, language) {
+      const validLanguage = language && hljs.getLanguage(language) ? language : 'plaintext';
+      const highlighted = hljs.highlight(code, { language: validLanguage }).value;
+      return `<pre><code class="language-${validLanguage} hljs">${highlighted}</code></pre>`;
+    };
+
+    try {
+      return marked.parse(markdown, { renderer });
+    } catch (e) {
+      console.warn('Markdown parsing failed:', e);
+      return markdown;
+    }
+  }
+
+  window.highlightAllCode = highlightAllCode;
+  window.renderMarkdownWithSyntaxHighlight = renderMarkdownWithSyntaxHighlight;
+
   const observer = new MutationObserver(applyTheme);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-  // Run once on load
   applyTheme();
 })();
