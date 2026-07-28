@@ -14,7 +14,10 @@
   <!-- Syntax Highlighting -->
 <link rel="stylesheet" id="hljs-dark"  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 <link rel="stylesheet" id="hljs-light" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" disabled>
-<link rel="stylesheet" href="css/syntax.css">  <script>
+<link rel="stylesheet" href="css/syntax.css">
+  <!-- Internationalization (i18n) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.6/i18next.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-browser-languagedetector/7.2.0/i18nextBrowserLanguageDetector.min.js"></script>  <script>
     (function() {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const savedTheme = localStorage.getItem('qyx_theme') || (systemDark ? 'dark' : 'light');
@@ -6276,6 +6279,8 @@ int main() {
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="js/syntax-highlighting.js"></script>
+<script src="js/i18n-init.js"></script>
+<script src="js/language-selector.js"></script>
 </body>
 
 </html>

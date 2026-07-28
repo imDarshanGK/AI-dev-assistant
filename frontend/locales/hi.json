@@ -1,0 +1,84 @@
+{
+  "app": {
+    "title": "QyverixAI — AI डेवलपर सहायक",
+    "description": "AI द्वारा संचालित बुद्धिमान कोड विश्लेषण और प्रलेखन"
+  },
+  "navigation": {
+    "home": "होम",
+    "analyze": "विश्लेषण करें",
+    "chat": "चैट",
+    "settings": "सेटिंग्स",
+    "about": "बारे में",
+    "logout": "लॉग आउट"
+  },
+  "buttons": {
+    "submit": "जमा करें",
+    "analyze": "विश्लेषण करें",
+    "send": "भेजें",
+    "copy": "कॉपी करें",
+    "clear": "साफ करें",
+    "reset": "रीसेट करें",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "download": "डाउनलोड करें",
+    "upload": "अपलोड करें"
+  },
+  "labels": {
+    "inputCode": "अपना कोड दर्ज करें",
+    "selectLanguage": "भाषा चुनें",
+    "codeSnippet": "कोड स्निपेट",
+    "result": "परिणाम",
+    "analysis": "विश्लेषण",
+    "suggestions": "सुझाव",
+    "issues": "समस्याएं मिलीं",
+    "history": "इतिहास",
+    "favorites": "पसंदीदा"
+  },
+  "messages": {
+    "loading": "लोड हो रहा है...",
+    "processing": "आपके अनुरोध को प्रोसेस किया जा रहा है...",
+    "success": "सफल",
+    "error": "त्रुटि हुई",
+    "warning": "चेतावनी",
+    "info": "जानकारी",
+    "noResults": "कोई परिणाम नहीं मिला",
+    "noHistory": "अभी तक कोई इतिहास नहीं है",
+    "noFavorites": "अभी तक कोई पसंदीदा सहेजा नहीं गया है",
+    "emptyInput": "विश्लेषण के लिए कुछ कोड दर्ज करें"
+  },
+  "errors": {
+    "networkError": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+    "serverError": "सर्वर त्रुटि। कृपया बाद में फिर से प्रयास करें।",
+    "validationError": "कृपया अपनी इनपुट जांचें और फिर से प्रयास करें",
+    "timeoutError": "अनुरोध समय समाप्त हो गया। कृपया पुनः प्रयास करें।"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "language": "भाषा",
+    "theme": "थीम",
+    "darkMode": "डार्क मोड",
+    "lightMode": "लाइट मोड",
+    "autoTheme": "स्वचालित (सिस्टम)",
+    "notifications": "सूचनाएं",
+    "codeStyle": "कोड स्टाइल",
+    "privacy": "गोपनीयता और सुरक्षा"
+  },
+  "auth": {
+    "login": "लॉगिन करें",
+    "signup": "साइन अप करें",
+    "logout": "लॉग आउट",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "rememberMe": "मुझे याद रखें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "signupMessage": "खाता नहीं है?",
+    "loginMessage": "पहले से खाता है?"
+  },
+  "shortcuts": {
+    "submit": "जमा करने के लिए Ctrl+Enter या Cmd+Enter दबाएं",
+    "copy": "कॉपी करने के लिए क्लिक करें",
+    "close": "बंद करने के लिए ESC दबाएं"
+  }
+}
