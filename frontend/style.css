@@ -620,4 +620,57 @@ body {
     text-align: center;
   }
 }
+/* Prompt Version History */
+.version-history-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 140px;
+    height: 40px;
+    padding: 0 16px;
+    white-space: nowrap;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
+.version-history-btn:hover {
+  border-color: #6c63ff;
+}
+
+.version-history-panel {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.version-history-panel[hidden] {
+  display: none;
+}
+
+.version-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.version-history-header strong {
+  font-size: 16px;
+}
+
+#closeVersionHistoryBtn {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 4px 8px;
+}
+
+#versionHistoryList p {
+  margin: 0;
+  opacity: 0.7;
+}

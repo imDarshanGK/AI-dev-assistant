@@ -2795,6 +2795,12 @@ details.issue-card[open] {
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
+          <button
+    type="button"
+    id="versionHistoryBtn"
+    class="mode-btn">
+    Version History
+</button>
             <div class="mode-row" role="tablist" aria-label="Mode selector">
               <button class="mode-btn active" data-mode="analyze" aria-pressed="true" aria-keyshortcuts="Control+Alt+1" data-i18n="mode_full">Full</button>
               <button class="mode-btn" data-mode="explain" aria-pressed="false" aria-keyshortcuts="Control+Alt+2" data-i18n="tab_explain">Explain</button>
@@ -2804,6 +2810,19 @@ details.issue-card[open] {
             <span class="shortcut-hint" title="Use Control Alt 1 through 4 to switch analysis modes">Ctrl+Alt+1-4 modes</span>
           </div>
         </div>
+        <!-- Prompt Version History Panel -->
+<div id="versionHistoryPanel" class="version-history-panel" hidden>
+  <div class="version-history-header">
+    <strong>Version History</strong>
+    <button type="button" id="closeVersionHistoryBtn" aria-label="Close version history">
+       ×
+    </button>
+  </div>
+
+  <div id="versionHistoryList">
+    <p>No versions saved yet.</p>
+  </div>
+</div>
 
         <div class="analyze-row">
           <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code" aria-keyshortcuts="Control+Enter Meta+Enter">
@@ -6275,6 +6294,7 @@ int main() {
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="js/prompt-versioning.js"></script>
 <script src="js/syntax-highlighting.js"></script>
 </body>
 
