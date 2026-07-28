@@ -16,6 +16,9 @@ All notable changes to QyverixAI are documented in this file.
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.
 
+### Fixed
+- Fixed frontend result tabs visibility to dynamically show only tabs with data present in the analysis result and default to the first available tab, resolving visual ambiguity between Full and Explain analysis modes.
+
 ### Security
 - Hardened authentication against token replay: access tokens now carry a
   unique `jti`, and revoked tokens (e.g. after logout) are rejected via a

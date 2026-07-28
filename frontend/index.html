@@ -4150,13 +4150,27 @@ details.issue-card[open] {
         if (result.debugging) renderDebug(result.debugging);
         if (result.suggestions) renderSuggest(result.suggestions);
 
+        const hasExplain = Boolean(result.explanation);
+        const hasDebug = Boolean(result.debugging);
+        const hasSuggest = Boolean(result.suggestions);
+
+        document.getElementById('tab-explain').style.display = hasExplain ? 'flex' : 'none';
+        document.getElementById('tab-debug').style.display = hasDebug ? 'flex' : 'none';
+        document.getElementById('tab-suggest').style.display = hasSuggest ? 'flex' : 'none';
+
         // Auto-switch to relevant tab
         const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
-        const targetTab = tabOrder[selectedMode] || 'explain';
-        document.querySelector(`[data-rtab="${targetTab}"]`).click();
+        const availableTabs = { explain: hasExplain, debug: hasDebug, suggest: hasSuggest };
+        const firstAvailableTab = hasExplain ? 'explain' : (hasDebug ? 'debug' : (hasSuggest ? 'suggest' : 'explain'));
+        const targetTab = availableTabs[tabOrder[selectedMode]] ? tabOrder[selectedMode] : firstAvailableTab;
+        const tabEl = document.querySelector(`[data-rtab="${targetTab}"]`);
+        if (tabEl) tabEl.click();
       }
 
       function renderZipResults(project) {
+        ['tab-explain', 'tab-debug', 'tab-suggest'].forEach(id => {
+          document.getElementById(id).style.display = 'flex';
+        });
         ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
           document.getElementById(id).style.display = 'none';
         });
@@ -4725,6 +4739,9 @@ details.issue-card[open] {
       }
 
       function resetResults() {
+        ['tab-explain', 'tab-debug', 'tab-suggest'].forEach(id => {
+          document.getElementById(id).style.display = 'flex';
+        });
         ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
           const el = document.getElementById(id);
           el.style.display = 'none';
