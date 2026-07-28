@@ -93,6 +93,35 @@ int main() {
 }
 """
 
+CSHARP_CODE = """
+using System;
+
+namespace DemoApp {
+    public class Worker {
+        public static void Main() {
+            var service = new Worker();
+            Console.WriteLine("Ready");
+        }
+    }
+}
+"""
+
+CSHARP_BUGGY = """
+using System;
+using System.Threading;
+
+namespace DemoApp {
+    public class Worker {
+        public async void Run() {
+            string connectionString = "Server=localhost;Database=prod;";
+            try {
+                Thread.Sleep(1000);
+            } catch (Exception ex) {}
+        }
+    }
+}
+"""
+
 RUST_CODE = """
 use std::collections::HashMap;
 
@@ -240,6 +269,20 @@ def test_explanation_cpp():
     assert r.status_code == 200
     d = r.json()
     assert d["language"] == "C++"
+
+
+def test_explanation_detects_csharp_without_hint():
+    r = client.post("/explanation/", json={"code": CSHARP_CODE})
+    assert r.status_code == 200
+    assert r.json()["language"] == "C#"
+
+
+def test_explanation_accepts_csharp_hint_alias():
+    r = client.post(
+        "/explanation/", json={"code": 'Console.WriteLine("Hi");', "language": "cs"}
+    )
+    assert r.status_code == 200
+    assert r.json()["language"] == "C#"
 
 
 # ── Cyclomatic Complexity ─────────────────────────────────────────────────────
@@ -425,6 +468,15 @@ def test_debug_cpp():
     assert r.status_code == 200
     d = r.json()
     assert len(d["issues"]) > 0
+
+
+def test_debug_csharp_buggy_patterns():
+    r = client.post("/debugging/", json={"code": CSHARP_BUGGY, "language": "csharp"})
+    assert r.status_code == 200
+    types = [i["type"] for i in r.json()["issues"]]
+    assert "C# Empty Catch Block" in types
+    assert "C# Hardcoded Connection String" in types
+    assert "C# Thread.Sleep in Async Method" in types
 
 
 def test_explanation_php():
@@ -650,6 +702,7 @@ def test_full_analyze_all_languages():
         (JS_CODE, "javascript"),
         (TS_CODE, "typescript"),
         (JAVA_CODE, "java"),
+        (CSHARP_CODE, "csharp"),
         (CPP_CODE, "cpp"),
         (PHP_CODE, "php"),
         (RUST_CODE, "rust"),

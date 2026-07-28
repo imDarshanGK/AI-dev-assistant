@@ -47,6 +47,13 @@ LANG_SIGNATURES: dict[str, list[str]] = {
         r"@Override",
         r"\bnew\s+\w+\s*\(",
     ],
+    "C#": [
+        r"\busing\s+System",
+        r"\bnamespace\s+\w+",
+        r"\bpublic\s+(class|void|static)\b",
+        r"\bConsole\.Write",
+        r"\bnew\s+\w+\s*\(",
+    ],
     "C++": [
         r"#include\s*<",
         r"\bstd::\w+",
@@ -105,6 +112,9 @@ def detect_language(code: str, hint: str | None = None) -> str:
         "typescript": "TypeScript",
         "ts": "TypeScript",
         "java": "Java",
+        "csharp": "C#",
+        "c#": "C#",
+        "cs": "C#",
         "cpp": "C++",
         "c++": "C++",
         "cxx": "C++",
@@ -276,6 +286,7 @@ class BugPattern:
             "JavaScript",
             "TypeScript",
             "Java",
+            "C#",
             "C++",
             "PHP",
             "Rust",
@@ -549,6 +560,31 @@ BUG_PATTERNS: list[BugPattern] = [
         "Throw an exception instead and let the caller decide.",
         "error",
         ["Java"],
+    ),
+    # C#
+    BugPattern(
+        "C# Empty Catch Block",
+        r"catch\s*\([^)]*\)\s*\{\s*\}",
+        "Empty catch block swallows exceptions and hides failures.",
+        "Log the exception or handle the specific recovery path explicitly.",
+        "error",
+        ["C#"],
+    ),
+    BugPattern(
+        "C# Hardcoded Connection String",
+        r"\bconnectionString\s*=\s*\"",
+        "Hardcoded connection string found in source code.",
+        "Move connection strings to environment variables or a secure configuration provider.",
+        "error",
+        ["C#"],
+    ),
+    BugPattern(
+        "C# Thread.Sleep in Async Method",
+        r"Thread\.Sleep\s*\(",
+        "`Thread.Sleep()` blocks the thread and is unsafe inside async workflows.",
+        "Use `await Task.Delay(...)` in async methods.",
+        "warning",
+        ["C#"],
     ),
     # ── C++ ──
     BugPattern(
