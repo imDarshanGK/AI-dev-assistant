@@ -911,9 +911,21 @@
     .mode-row {
       display: flex;
       gap: 8px;
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border);
       flex-wrap: wrap;
+    }
+
+    .mode-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    .mode-helper {
+      margin: 0;
+      color: var(--text3);
+      font-size: 0.72rem;
+      text-align: right;
     }
 
     .mode-btn {
@@ -2182,7 +2194,8 @@
   .feat-pill{padding:10px 14px;min-width:140px}
   .workspace{gap:14px}
   .panel-header{padding:12px 14px}
-  .mode-row{gap:6px;padding:10px 14px}
+  .mode-row{gap:6px}
+  .mode-helper{font-size:0.68rem}
   .mode-btn{padding:8px 4px;font-size:0.74rem}
   .analyze-row{padding:10px 14px}
   .btn-analyze{padding:14px}
@@ -2410,13 +2423,14 @@
 
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
-          <div style="display:flex;gap:8px">
+          <div class="mode-controls">
             <div class="mode-row" role="tablist" aria-label="Mode selector">
               <button class="mode-btn active" data-mode="analyze" aria-pressed="true">Full</button>
               <button class="mode-btn" data-mode="explain" aria-pressed="false">Explain</button>
               <button class="mode-btn" data-mode="debug" aria-pressed="false">Debug</button>
               <button class="mode-btn" data-mode="suggest" aria-pressed="false">Improve</button>
             </div>
+            <p class="mode-helper" data-i18n="mode_helper">Select an analysis mode, then click “Analyze Code”.</p>
           </div>
         </div>
 
@@ -2625,6 +2639,7 @@
           editor_placeholder: "# Paste your code here or click 'Try Sample Code' above…",
           char_count_initial: "Paste or type code to begin",
           char_count_format: "{chars} chars · {lines} lines · {nonBlank} non-blank",
+          mode_helper: "Select an analysis mode, then click “Analyze Code”.",
           ctrl_enter_hint: "Ctrl+Enter to analyze",
           mode_full: "Full",
           mode_debug: "Debug",
@@ -2722,6 +2737,7 @@
           editor_placeholder: "# உங்கள் குறியீட்டை இங்கே ஒட்டவும் அல்லது மேலே உள்ள 'மாதிரிக் குறியீட்டை முயல்க' என்பதைக் கிளிக் செய்யவும்…",
           char_count_initial: "தொடங்குவதற்கு குறியீட்டை ஒட்டவும் அல்லது தட்டச்சு செய்யவும்",
           char_count_format: "{chars} எழுத்துக்கள் · {lines} வரிகள் · {nonBlank} வெற்று அல்லாத வரிகள்",
+          mode_helper: "பகுப்பாய்வு முறையைத் தேர்ந்தெடுத்து, பின்னர் “குறியீட்டை பகுப்பாய்” என்பதைக் கிளிக் செய்யவும்.",
           ctrl_enter_hint: "பகுப்பாய்வு செய்ய Ctrl+Enter அழுத்தவும்",
           mode_full: "முழுமையான",
           mode_debug: "பிழைத்திருத்தம்",
@@ -2819,6 +2835,7 @@
           editor_placeholder: "# अपना कोड यहाँ पेस्ट करें या ऊपर 'सैंपल कोड आज़माएं' पर क्लिक करें…",
           char_count_initial: "शुरू करने के लिए कोड पेस्ट करें या टाइप करें",
           char_count_format: "{chars} वर्ण · {lines} पंक्तियाँ · {nonBlank} गैर-रिक्त",
+          mode_helper: "विश्लेषण मोड चुनें, फिर “कोड का विश्लेषण करें” पर क्लिक करें।",
           ctrl_enter_hint: "विश्लेषण करने के लिए Ctrl+Enter दबाएं",
           mode_full: "पूर्ण",
           mode_debug: "डीबग",
@@ -2916,6 +2933,7 @@
           editor_placeholder: "# Collez votre code ici ou cliquez sur 'Essayer l'exemple' ci-dessus…",
           char_count_initial: "Collez ou tapez du code pour commencer",
           char_count_format: "{chars} chars · {lines} lignes · {nonBlank} non vides",
+          mode_helper: "Sélectionnez un mode d’analyse, puis cliquez sur « Analyser le code ».",
           ctrl_enter_hint: "Ctrl+Enter pour analyser",
           mode_full: "Complet",
           mode_debug: "Débogage",
