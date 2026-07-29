@@ -133,6 +133,25 @@ class ExplanationResponse(BaseModel):
         description="Detected or supplied programming language.",
         example="Python",
     )
+    overview: str = Field(
+        ...,
+        description="High-level overview of the program.",
+    )
+
+    purpose: str = Field(
+        ...,
+        description="Purpose of the code.",
+    )
+
+    functions: list[dict] = Field(
+        default_factory=list,
+        description="Functions detected in the code.",
+    )
+
+    constructs: list[str] = Field(
+        default_factory=list,
+        description="Programming constructs detected.",
+    )
     summary: str = Field(
         ...,
         description="One- or two-sentence plain-English description of what the code does.",

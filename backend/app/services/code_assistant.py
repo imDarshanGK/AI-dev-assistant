@@ -124,7 +124,8 @@ def detect_language(code: str, hint: str | None = None) -> str:
             if re.search(pat, code, re.MULTILINE):
                 scores[lang] += 1
 
-    best_language = max(scores, key=scores.get)
+    # Use items() to avoid typing issues with max and a dict-key function
+    best_language = max(scores.items(), key=lambda kv: kv[1])[0]
     best_score = scores[best_language]
 
     # If no language signatures matched, fall back to the hint (if valid)
@@ -1159,8 +1160,78 @@ def run_suggestions(code: str, language: str) -> dict:
         "next_step": next_step,
     }
 
-
 # ── Explanation Engine ─────────────────────────────────────────────────────────
+def generate_overview(language, funcs, class_names, has_loops):
+    if funcs:
+        return (
+            f"This {language} program defines "
+            f"{len(funcs)} function(s)"
+            + (" and processes data using loops." if has_loops else ".")
+        )
+
+    if class_names:
+        return (
+            f"This {language} program defines "
+            f"{len(class_names)} class(es)."
+        )
+
+    return f"This is a {language} program."
+
+def generate_purpose(code):
+    lower = code.lower()
+
+    if "input(" in lower and "print(" in lower:
+        return "This program interacts with the user through console input and output."
+
+    if "open(" in lower:
+        return "This program performs file operations."
+
+    if "requests." in lower:
+        return "This program communicates with an external API."
+
+    if "sqlite" in lower or "mysql" in lower:
+        return "This program performs database operations."
+
+    return "This program performs a specific computational task."
+
+def extract_constructs(
+    has_loops,
+    has_conditions,
+    has_recursion,
+    funcs,
+    class_names,
+):
+    constructs = []
+
+    if funcs:
+        constructs.append("Function Definition")
+
+    if class_names:
+        constructs.append("Class Definition")
+
+    if has_loops:
+        constructs.append("Loop")
+
+    if has_conditions:
+        constructs.append("Conditional Statement")
+
+    if has_recursion:
+        constructs.append("Recursion")
+
+    return constructs
+
+
+def describe_functions(funcs: list[str]) -> list[dict]:
+    """Return a simple description for each detected function."""
+    return [
+        {
+            "name": func,
+            "description": f"The function '{func}' performs part of the program logic."
+        }
+        for func in funcs
+    ]
+
+
 def run_explanation(code: str, language: str) -> dict:
     """Generate a plain-English explanation of the provided source code.
 
@@ -1197,6 +1268,25 @@ def run_explanation(code: str, language: str) -> dict:
     has_conditions = bool(re.search(r"\bif\b|\belif\b|\bswitch\b", code))
     has_recursion = any(
         f and re.search(rf"\b{f}\s*\(", code.replace(f"def {f}", "")) for f in funcs
+    )
+
+    overview = generate_overview(
+        language,
+        funcs,
+        class_names,
+        has_loops,
+    )
+
+    purpose = generate_purpose(code)
+
+    functions = describe_functions(funcs)
+
+    constructs = extract_constructs(
+        has_loops,
+        has_conditions,
+        has_recursion,
+        funcs,
+        class_names,
     )
 
     key_points = [
@@ -1241,6 +1331,10 @@ def run_explanation(code: str, language: str) -> dict:
         "class_count": len(class_names),
         "cyclomatic_complexity": cyclomatic_complexity,
         "complexity_risk": complexity_risk,
+        "overview": overview,
+        "purpose": purpose,
+        "functions": functions,
+        "constructs": constructs,
     }
 
 

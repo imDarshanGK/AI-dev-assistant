@@ -26,6 +26,44 @@ def reset_rate_limit_state():
     yield
     app_main._request_counts.clear()
 
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_explanation_contains_new_fields():
+    response = client.post(
+        "/explanation/",
+        json={
+            "code": "def add(a, b):\n    return a + b",
+            "language": "python",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "overview" in data
+    assert "purpose" in data
+    assert "functions" in data
+    assert "constructs" in data
+
+def test_explanation_detects_function_definition():
+    response = client.post(
+        "/explanation/",
+        json={
+            "code": "def multiply(a, b):\n    return a * b",
+            "language": "python",
+        },
+    )
+
+    data = response.json()
+
+    assert len(data["functions"]) == 1
+    assert data["functions"][0]["name"] == "multiply"
+    assert "Function Definition" in data["constructs"]
+
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 PHP_CODE = """
