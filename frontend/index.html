@@ -3506,6 +3506,7 @@
          LANGUAGE TABS
       ═══════════════════════════════════════════════════════════════ */
       function setLanguage(lang) {
+        const languageChanged = selectedLang !== lang;
         selectedLang = lang;
 
         // 1. Update the visual tabs
@@ -3515,14 +3516,13 @@
           t.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
 
-        // 2. Check if the editor currently contains one of the samples
-        const currentCode = editor.value.trim();
-        const isSample = Object.values(SAMPLES).map(s => s.trim()).includes(currentCode);
-
-        // 3. If it is a sample, swap it to the new language's sample automatically
-        if (isSample) {
-          editor.value = SAMPLES[lang] || SAMPLES.python;
-          clearIssueHighlights();
+        // A language tab selects the language used for analysis.  Never carry
+        // code or diagnostics into a different language, as that would make
+        // valid code appear to have syntax errors in the newly selected one.
+        if (languageChanged) {
+          selectedZipFile = null;
+          editor.value = '';
+          resetResults();
           updateEditor();
         }
       }

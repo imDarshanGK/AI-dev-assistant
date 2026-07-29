@@ -19,3 +19,14 @@ test('uploads a sample file and renders analysis results', async ({ page }) => {
     'A short Python snippet (3 lines) that performs a focused task. Good starting point for learners.'
   );
 });
+
+test('clears code when switching the analysis language', async ({ page }) => {
+  await page.goto('/app/');
+
+  const editor = page.locator('#codeEditor').first();
+  await editor.fill('print(1)');
+  await page.getByRole('button', { name: 'C++' }).click();
+
+  await expect(editor).toHaveValue('');
+  await expect(page.getByRole('button', { name: 'C++' })).toHaveClass(/active/);
+});
