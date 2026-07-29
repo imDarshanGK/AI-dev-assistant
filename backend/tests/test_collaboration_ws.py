@@ -168,19 +168,23 @@ def test_collaboration_ping_returns_pong():
 
 def test_presence_sync_broadcasts_on_join_and_leave():
     # Alice connects
-    with client.websocket_connect("/collaboration/ws/presence-test?name=Alice") as alice:
+    with client.websocket_connect(
+        "/collaboration/ws/presence-test?name=Alice"
+    ) as alice:
         alice_state = alice.receive_json()
         alice_presence1 = alice.receive_json()
-        
+
         assert alice_state["type"] == "session_state"
         assert alice_presence1["type"] == "presence_update"
         assert len(alice_presence1["users"]) == 1
         assert alice_presence1["users"][0]["name"] == "Alice"
 
         # Bob connects
-        with client.websocket_connect("/collaboration/ws/presence-test?name=Bob") as bob:
+        with client.websocket_connect(
+            "/collaboration/ws/presence-test?name=Bob"
+        ) as bob:
             bob_state = bob.receive_json()
-            
+
             # Alice receives presence update for Bob's join
             alice_presence2 = alice.receive_json()
             # Bob receives presence update after joining
@@ -244,4 +248,3 @@ def test_presence_sync_session_cleanup():
         assert bob_state["version"] == 0
         assert len(bob_state["users"]) == 1
         assert bob_state["users"][0]["name"] == "Bob"
-
