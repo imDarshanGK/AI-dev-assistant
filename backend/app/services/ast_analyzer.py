@@ -32,11 +32,15 @@ def _issue(type_: str, description: str, suggestion: str, severity: str, line: i
 class PythonASTAnalyzer(ast.NodeVisitor):
     def __init__(self) -> None:
         self.issues: list[dict] = []
-
+        self.defined_vars = set(_PYTHON_BUILTINS) #track defined variables so we don't flag len, print, etc.
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self.defined_vars.add(node.name)  # Track defined function names to avoid false positives
+        for arg in node.args.args:
+            self.defined_vars.add(arg.arg)  # function arguments are also defined variables
         self._check_mutable_defaults(node)
         self._check_unreachable_code(node)
         self.generic_visit(node)
+        
 
     visit_AsyncFunctionDef = visit_FunctionDef
 
@@ -66,12 +70,26 @@ class PythonASTAnalyzer(ast.NodeVisitor):
 
     def visit_Assign(self, node: ast.Assign) -> None:
         for target in node.targets:
-            if isinstance(target, ast.Name) and target.id in _PYTHON_BUILTINS:
+            if isinstance(target, ast.Name):
+                self.defined_vars.add(target.id)  # Track defined variable names
+            if target.id in _PYTHON_BUILTINS:
                 self.issues.append(_issue(
                     "Builtin Shadowing",
                     f"Name `{target.id}` shadows a Python builtin.",
                     f"Rename the variable to avoid masking the builtin `{target.id}`.",
                     "warning",
+                    node.lineno,
+                ))
+        self.generic_visit(node)
+
+    def visit_Name(self, node: ast.Name) -> None:
+        if isinstance(node.ctx, ast.Load):
+            if node.id not in self.defined_vars:
+                self.issues.append(_issue(
+                    "Undefined Variable",
+                    f"Variable `{node.id}` is used but not defined in the current scope.",
+                    "Define the variable before use or check for typos.",
+                    "error",
                     node.lineno,
                 ))
         self.generic_visit(node)
