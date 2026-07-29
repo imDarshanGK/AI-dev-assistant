@@ -1,7 +1,7 @@
 """Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
 
 from __future__ import annotations
-
+from fastapi.responses import HTMLResponse, StreamingResponse
 import asyncio
 import json
 import time
@@ -386,3 +386,61 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
         "skipped_files": skipped_files,
         "analysis_time_ms": round(elapsed_ms, 2),
     }
+def _generate_html_report(analysis: dict, code: str) -> str:
+    explanation = analysis.get("explanation", {})
+    debugging = analysis.get("debugging", {})
+    suggestions = analysis.get("suggestions", {})
+    issues = debugging.get("issues", [])
+    issues_html = "".join(
+        f"<li class='issue {i.get('severity')}'><strong>[{i.get('severity').upper()}]</strong> Line {i.get('line', 'N/A')}: {i.get('message')}</li>"
+        for i in issues
+    ) or "<li>No issues found!</li>"
+    recs = suggestions.get("suggestions", [])
+    recs_html = "".join(f"<li>{s}</li>" for s in recs) or "<li>No suggestions available.</li>"
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Code Analysis Report</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f4f6f9; color: #333; }}
+        .container {{ max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
+        h1, h2 {{ color: #1e293b; }}
+        .card {{ background: #f8fafc; padding: 15px; border-left: 4px solid #0284c7; border-radius: 4px; margin-bottom: 20px; }}
+        ul {{ padding-left: 20px; }}
+        .issue {{ margin-bottom: 8px; }}
+        .issue.error {{ color: #dc2626; }}
+        .issue.warning {{ color: #d97706; }}
+        .issue.info {{ color: #2563eb; }}
+        pre {{ background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 6px; overflow-x: auto; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Code Analysis Report</h1>
+        <div class="card">
+            <h2>Overview</h2>
+            <p><strong>Language:</strong> {explanation.get('language', 'Unknown')}</p>
+            <p><strong>Summary:</strong> {debugging.get('summary', 'N/A')}</p>
+            <p><strong>Overall Score:</strong> {suggestions.get('overall_score', 'N/A')}/100</p>
+        </div>
+        <h2>Explanation</h2>
+        <p>{explanation.get('summary', 'No summary provided.')}</p>
+        <h2>Issues Detected</h2>
+        <ul>{issues_html}</ul>
+        <h2>Suggestions & Improvements</h2>
+        <ul>{recs_html}</ul>
+        <h2>Analyzed Code</h2>
+        <pre><code>{code}</code></pre>
+    </div>
+</body>
+</html>"""
+@router.post(
+    "/export/html",
+    response_class=HTMLResponse,
+    summary="Export code analysis as an interactive HTML report",
+)
+async def export_html(req: CodeRequest):
+    analysis = full_analysis(req.code, req.language)
+    html_content = _generate_html_report(analysis, req.code)
+    return HTMLResponse(content=html_content, status_code=200)
