@@ -46,14 +46,14 @@ Read the release history and notable changes in the project changelog: **[docs/C
 
 QyverixAI is a code analysis workspace. Paste any code - or drop a whole project as a `.zip` - and get this back instantly:
 
-| | What you get |
-|---|---|
-| **Explain** | Language detection, plain-English summary, complexity estimate, function and class inventory |
-| **Debug** | 45+ pattern checks across 5 languages (plus AST-based deep analysis for Python), with exact line numbers, code snippets, and fix suggestions |
-| **Improve** | Documentation gaps, error handling, testing, type safety - plus a 0-100 quality score, letter grade A–F, and a before/after diff view |
-| **Project Mode** | Upload a `.zip`, get one aggregated score across every file inside it |
-| **Ask AI** | Chat about your specific code - answered by an LLM when configured, or a rule-based fallback when not |
-| **Collaborate Live** | Open a shared session and edit code, see teammates' cursors, and leave comments together in real time over WebSockets |
+|                      | What you get                                                                                                                                 |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Explain**          | Language detection, plain-English summary, complexity estimate, function and class inventory                                                 |
+| **Debug**            | 45+ pattern checks across 5 languages (plus AST-based deep analysis for Python), with exact line numbers, code snippets, and fix suggestions |
+| **Improve**          | Documentation gaps, error handling, testing, type safety - plus a 0-100 quality score, letter grade A–F, and a before/after diff view        |
+| **Project Mode**     | Upload a `.zip`, get one aggregated score across every file inside it                                                                        |
+| **Ask AI**           | Chat about your specific code - answered by an LLM when configured, or a rule-based fallback when not                                        |
+| **Collaborate Live** | Open a shared session and edit code, see teammates' cursors, and leave comments together in real time over WebSockets                        |
 
 No account required for the core analysis. No API key needed. Works fully offline. Fully open source. An optional account unlocks server-side synced history and favorites across devices.
 
@@ -67,8 +67,8 @@ No account required for the core analysis. No API key needed. Works fully offlin
 
 ## Features
 
-| Feature | Detail |
-|---|---|
+| Feature              | Detail                                                                                                                             |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | **40+ Bug Patterns** | ZeroDivisionError, bare except, hardcoded secrets, eval/exec, memory leaks, XSS, NullPointerException, unsafe `unwrap()`, and more |
 
 | **5 Languages Detected** | Python, JavaScript, TypeScript, Java, C++ - the first 5 have dedicated bug-pattern checks today |
@@ -97,16 +97,16 @@ No account required for the core analysis. No API key needed. Works fully offlin
 
 ### Languages and patterns
 
-| Language | Patterns detected |
-|---|---|
-| **Python** | ZeroDivisionError, bare except, eval/exec, mutable defaults, hardcoded secrets, wildcard imports, global variables, string concat in loops, comparison to `None`, assert in production, incomplete assignment, float equality - **plus** AST-based unused imports, unused arguments, and dead code |
-| **JavaScript** | `var` usage, loose equality, `console.log` left in, unhandled promises, `innerHTML` XSS, `setTimeout` with a string, async/await without try/catch, unsafe `window.location` assignment, prototype pollution risk, eval usage |
-| **TypeScript** | `any` type, unhandled promises, `innerHTML` XSS, `setTimeout` with a string, async/await without try/catch, unsafe `window.location` assignment, prototype pollution risk, `var` usage, `console.log` left in |
-| **Java** | Null pointer risk, raw generic types, overly broad `catch (Exception)`, `System.exit()` inside a library, incomplete assignment, float equality |
-| **C++** | Memory leaks, unsafe `gets`/`scanf`, `using namespace std`, `void main()`, dangling pointer return, vector unsigned underflow, `malloc` in C++, missing header guard, incomplete assignment, float equality |
-| **PHP** | Deprecated `mysql_*` functions, reflected XSS, `extract()` misuse, variable variables (`$$var`), `@`-suppressed errors |
-| **Rust** | `unwrap()` overuse, `unsafe` blocks, `panic!()` usage, `expect()` overuse, excessive `.clone()` |
-| **Swift / Kotlin** | Auto-detected for explanation and suggestions today; dedicated bug-pattern checks are not written yet - **a good first issue if you want to add them** |
+| Language           | Patterns detected                                                                                                                                                                                                                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Python**         | ZeroDivisionError, bare except, eval/exec, mutable defaults, hardcoded secrets, wildcard imports, global variables, string concat in loops, comparison to `None`, assert in production, incomplete assignment, float equality - **plus** AST-based unused imports, unused arguments, and dead code |
+| **JavaScript**     | `var` usage, loose equality, `console.log` left in, unhandled promises, `innerHTML` XSS, `setTimeout` with a string, async/await without try/catch, unsafe `window.location` assignment, prototype pollution risk, eval usage                                                                      |
+| **TypeScript**     | `any` type, unhandled promises, `innerHTML` XSS, `setTimeout` with a string, async/await without try/catch, unsafe `window.location` assignment, prototype pollution risk, `var` usage, `console.log` left in                                                                                      |
+| **Java**           | Null pointer risk, raw generic types, overly broad `catch (Exception)`, `System.exit()` inside a library, incomplete assignment, float equality                                                                                                                                                    |
+| **C++**            | Memory leaks, unsafe `gets`/`scanf`, `using namespace std`, `void main()`, dangling pointer return, vector unsigned underflow, `malloc` in C++, missing header guard, incomplete assignment, float equality                                                                                        |
+| **PHP**            | Deprecated `mysql_*` functions, reflected XSS, `extract()` misuse, variable variables (`$$var`), `@`-suppressed errors                                                                                                                                                                             |
+| **Rust**           | `unwrap()` overuse, `unsafe` blocks, `panic!()` usage, `expect()` overuse, excessive `.clone()`                                                                                                                                                                                                    |
+| **Swift / Kotlin** | Auto-detected for explanation and suggestions today; dedicated bug-pattern checks are not written yet - **a good first issue if you want to add them**                                                                                                                                             |
 
 ---
 
@@ -132,6 +132,7 @@ cd backend
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
+
 ### Environment Setup
 
 Copy `.env.example` to `.env`
@@ -143,6 +144,7 @@ cp .env.example .env
 Update the environment variable values if needed before running the app.
 
 Important variables:
+
 - `JWT_SECRET`
 - `DATABASE_URL`
 - `RATE_LIMIT_PER_MINUTE`
@@ -150,18 +152,18 @@ Important variables:
 
 The app can still run without external AI providers when `LLM_ENABLED=false`. Accounts, history, favorites, and live collaboration all work without `LLM_API_KEY` too - only `/chat` upgrades from rule-based to LLM-backed when a key is set.
 
-| Endpoint | URL |
-|---|---|
-| API root | http://localhost:8000/ |
-| Interactive docs | http://localhost:8000/docs |
-| Health check | http://localhost:8000/health |
-| Liveness probe | http://localhost:8000/healthz/live |
-| Readiness probe | http://localhost:8000/healthz/ready |
-| Prometheus metrics | http://localhost:8000/metrics |
-| Signup | http://localhost:8000/auth/signup |
-| Login | http://localhost:8000/auth/login |
-| Current user | http://localhost:8000/auth/me |
-| Logout | http://localhost:8000/auth/logout |
+| Endpoint           | URL                                 |
+| ------------------ | ----------------------------------- |
+| API root           | http://localhost:8000/              |
+| Interactive docs   | http://localhost:8000/docs          |
+| Health check       | http://localhost:8000/health        |
+| Liveness probe     | http://localhost:8000/healthz/live  |
+| Readiness probe    | http://localhost:8000/healthz/ready |
+| Prometheus metrics | http://localhost:8000/metrics       |
+| Signup             | http://localhost:8000/auth/signup   |
+| Login              | http://localhost:8000/auth/login    |
+| Current user       | http://localhost:8000/auth/me       |
+| Logout             | http://localhost:8000/auth/logout   |
 
 The full endpoint list - including project ZIP analysis, AI chat, and live collaboration - is in [API Reference](#api-reference) below.
 
@@ -185,6 +187,7 @@ Keyboard shortcuts: press `Ctrl+Enter` (`Cmd+Enter` on macOS) to analyze, `/` to
 All endpoints accept `POST` with `Content-Type: application/json` unless noted otherwise.
 
 **Request body**
+
 ```json
 { "code": "your code here", "language": "python" }
 ```
@@ -212,6 +215,7 @@ Returns a plain-English breakdown of the code.
   "class_count": 0
 }
 ```
+
 #### Edge Cases
 
 - If `language` is omitted, the service automatically detects the programming language from the submitted code.
@@ -219,6 +223,7 @@ Returns a plain-English breakdown of the code.
 - Code without functions or classes still receives a plain-English summary and basic code statistics.
 - Recursive functions may be identified and reflected in the generated key points.
 - The reported complexity is an estimated difficulty level based on the analyzed code structure and should not be interpreted as a runtime performance measurement.
+
 ---
 
 ### `POST /debugging/`
@@ -244,6 +249,7 @@ Returns detected issues with line numbers, code snippets, and fix suggestions. F
   "info_count": 0
 }
 ```
+
 #### AST Analyzer Edge Cases
 
 - If the submitted Python code contains a syntax error, the analyzer returns a syntax error issue instead of crashing.
@@ -251,9 +257,15 @@ Returns detected issues with line numbers, code snippets, and fix suggestions. F
 - Wildcard imports (`from module import *`) are excluded from unused import detection.
 - Parameters named `self`, `cls`, or prefixed with `_` are ignored during unused argument detection.
 - Deep nesting warnings are generated only when the nesting depth exceeds three levels.
+
 ---
 
+### POST /suggestions/
 
+Returns improvement suggestions with a quality score and letter grade.
+
+```json
+{
   "suggestions": [
     {
       "category": "Documentation",
@@ -268,7 +280,7 @@ Returns detected issues with line numbers, code snippets, and fix suggestions. F
 }
 ```
 
----
+## `
 
 ### `POST /analyze/`
 
@@ -279,7 +291,7 @@ All three analyses in one response with timing. Cached - repeat requests with id
   "provider": "rule-based",
   "model": "qyverix-engine-v3",
   "explanation": { "...": "..." },
-  "debugging":   { "...": "..." },
+  "debugging": { "...": "..." },
   "suggestions": { "...": "..." },
   "analysis_time_ms": 1.84
 }
@@ -307,7 +319,12 @@ Upload a `.zip` (multipart form, field name `file`) and get an aggregated report
   "grade": "B",
   "summary": "Analyzed 4 file(s). Skipped 1 file(s). Overall project score: 81/100.",
   "files": [
-    { "filename": "src/main.py", "language": "Python", "size_bytes": 4096, "analysis": { "...": "..." } }
+    {
+      "filename": "src/main.py",
+      "language": "Python",
+      "size_bytes": 4096,
+      "analysis": { "...": "..." }
+    }
   ],
   "skipped_files": ["node_modules/index.js (unsupported file type)"],
   "analysis_time_ms": 22.4
@@ -330,7 +347,6 @@ Server → client message types: `session_state`, `presence_update`, `pong`, plu
 - Presence information exists only while the collaboration room is active and is not persisted between sessions.
 - When the last participant disconnects, the collaboration room is automatically removed from memory.
 
-
 ---
 
 ### `POST /chat` and `POST /chat/message`
@@ -339,7 +355,11 @@ Ask a follow-up question about a piece of code. `POST /chat` returns a simple `{
 
 ```json
 // POST /chat/message
-{ "message": "Why is line 2 risky?", "code": "result = a / b", "level": "beginner" }
+{
+  "message": "Why is line 2 risky?",
+  "code": "result = a / b",
+  "level": "beginner"
+}
 ```
 
 ```json
@@ -385,7 +405,7 @@ Standard JWT auth. `logout` records the token's `jti` in a server-side, TTL-boun
 
 ### `POST /upload/validate`
 
-Multipart upload (field name `file`). Validates file extension, blocks executable types (`.exe`, `.sh`, `.dll`, …), and checks the *actual* MIME type of the bytes - not just the filename - before the file is accepted for analysis.
+Multipart upload (field name `file`). Validates file extension, blocks executable types (`.exe`, `.sh`, `.dll`, …), and checks the _actual_ MIME type of the bytes - not just the filename - before the file is accepted for analysis.
 
 ```bash
 curl -F "file=@app.py" http://localhost:8000/upload/validate
@@ -404,7 +424,6 @@ Subscribe an email to the weekly digest, or unsubscribe (also available as `GET 
 - Subscribers with no available digest data are skipped without affecting other deliveries.
 - If a digest email fails to send, the failure is logged and processing continues for the remaining subscribers.
 - Duplicate scheduler jobs are prevented if the weekly digest job has already been registered.
-
 
 ---
 
@@ -544,6 +563,7 @@ All of this runs automatically via GitHub Actions - see [CI workflows](#tech-sta
 > **Note:** The free tier sleeps after 15 minutes of inactivity. The first request after sleep takes 30-60 seconds to wake up. This is expected.
 
 ---
+
 ## Docker Compose - Full Local Dev Environment
 
 Run the complete stack (backend + frontend + PostgreSQL) with a single command.
@@ -575,40 +595,47 @@ We maintain a collection of beginner-friendly issues that are ideal for first-ti
 > **Note:** This list is updated periodically. If you don't find a suitable issue, check the Issues page for newly opened tasks.
 
 ### Prerequisites
+
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed
 
 ### 1. Clone the repo
+
 ```bash
 git clone https://github.com/imDarshanGK/AI-dev-assistant.git
 cd AI-dev-assistant
 ```
 
 ### 2. Set up environment variables
+
 ```bash
 cp .env.example .env
 ```
+
 Open `.env` and fill in the required values (see [Configuration](#configuration-reference)).
 The database is pre-configured in `docker-compose.yml`:
+
 - **User:** `postgres`
 - **Password:** `postgres`
 - **Database:** `aidevdb`
 
 ### 3. Start all services
+
 ```bash
 docker compose up --build
 ```
 
 This starts three services:
 
-| Service  | URL                        | Description              |
-|----------|----------------------------|--------------------------|
-| Frontend | http://localhost:3000      | Nginx-served UI          |
-| Backend  | http://localhost:8000      | FastAPI + rule-based engine |
-| Database | localhost:5432             | PostgreSQL 16            |
+| Service  | URL                   | Description                 |
+| -------- | --------------------- | --------------------------- |
+| Frontend | http://localhost:3000 | Nginx-served UI             |
+| Backend  | http://localhost:8000 | FastAPI + rule-based engine |
+| Database | localhost:5432        | PostgreSQL 16               |
 
 The backend includes a health check - wait for the log line `Application startup complete` before sending requests.
 
 ### 4. Verify everything is running
+
 ```bash
 # Check all containers are up
 docker compose ps
@@ -620,14 +647,17 @@ curl http://localhost:8000/healthz/ready
 You should see `{"status": "ok"}` (or a `degraded` breakdown if the DB isn't ready yet).
 
 ### 5. Open the app
+
 Navigate to **http://localhost:3000**, set the API URL to `http://localhost:8000`, click **Ping** to confirm the green Connected status, then paste any code and click **Analyze Code**.
 
 ### Stop containers
+
 ```bash
 docker compose down
 ```
 
 To also remove the database volume (wipes all stored data):
+
 ```bash
 docker compose down -v
 ```
@@ -638,11 +668,11 @@ QyverixAI exposes operational endpoints designed for container orchestration and
 
 ### Health probes
 
-| Endpoint | Purpose | Behaviour |
-|---|---|---|
-| `GET /healthz/live` | Liveness probe | Returns `200` while the process can answer HTTP. Does **not** check external dependencies - Kubernetes restarts the container on failure, so this must never depend on recoverable backends. |
-| `GET /healthz/ready` | Readiness probe | Returns `200` only when every dependency check (currently: database) passes. Returns `503` with a per-check breakdown otherwise. Kubernetes removes the pod from service load balancers on failure but does **not** restart it. |
-| `GET /health` | Legacy combined check | Retained for backward compatibility with anything already pointing at it. |
+| Endpoint             | Purpose               | Behaviour                                                                                                                                                                                                                       |
+| -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /healthz/live`  | Liveness probe        | Returns `200` while the process can answer HTTP. Does **not** check external dependencies - Kubernetes restarts the container on failure, so this must never depend on recoverable backends.                                    |
+| `GET /healthz/ready` | Readiness probe       | Returns `200` only when every dependency check (currently: database) passes. Returns `503` with a per-check breakdown otherwise. Kubernetes removes the pod from service load balancers on failure but does **not** restart it. |
+| `GET /health`        | Legacy combined check | Retained for backward compatibility with anything already pointing at it.                                                                                                                                                       |
 
 Example response from `/healthz/ready` when degraded:
 
@@ -665,13 +695,13 @@ A ready-to-copy Kubernetes manifest with probes wired up lives at [`deploy/k8s/d
 
 `GET /metrics` exposes the Prometheus exposition format. Metric families:
 
-| Metric | Type | Labels | Description |
-|---|---|---|---|
-| `qyverixai_http_requests_total` | Counter | `method`, `endpoint`, `status_code` | Total requests processed. |
-| `qyverixai_http_request_duration_seconds` | Histogram | `method`, `endpoint` | Request latency. Buckets: 5ms → 30s. |
-| `qyverixai_http_requests_in_progress` | Gauge | `method`, `endpoint` | Concurrent in-flight requests. |
-| `qyverixai_http_request_exceptions_total` | Counter | `method`, `endpoint`, `exception_type` | Unhandled exceptions raised during request handling. |
-| `qyverixai_app_info` | Gauge | `version`, `ai_provider` | Static identity, always `1`. |
+| Metric                                    | Type      | Labels                                 | Description                                          |
+| ----------------------------------------- | --------- | -------------------------------------- | ---------------------------------------------------- |
+| `qyverixai_http_requests_total`           | Counter   | `method`, `endpoint`, `status_code`    | Total requests processed.                            |
+| `qyverixai_http_request_duration_seconds` | Histogram | `method`, `endpoint`                   | Request latency. Buckets: 5ms → 30s.                 |
+| `qyverixai_http_requests_in_progress`     | Gauge     | `method`, `endpoint`                   | Concurrent in-flight requests.                       |
+| `qyverixai_http_request_exceptions_total` | Counter   | `method`, `endpoint`, `exception_type` | Unhandled exceptions raised during request handling. |
+| `qyverixai_app_info`                      | Gauge     | `version`, `ai_provider`               | Static identity, always `1`.                         |
 
 The `endpoint` label is the matched **route template** (e.g. `/share/{token}`), not the raw URL - this keeps label cardinality bounded as IDs flow through the system. The `/metrics` endpoint itself is excluded from observation to prevent a scrape feedback loop.
 
@@ -679,11 +709,11 @@ A drop-in Prometheus scrape config is provided at [`deploy/prometheus/scrape-con
 
 #### Configuration
 
-| Variable | Default | Description |
-|---|---|---|
-| `METRICS_ENABLED` | `true` | Set to `false` to disable `/metrics` and skip the middleware entirely. |
-| `METRICS_AUTH_TOKEN` | - | Optional bearer token. When set, scrapers must send `Authorization: Bearer <token>`. |
-| `PROMETHEUS_MULTIPROC_DIR` | - | Set when running `uvicorn --workers N > 1` so scrapes aggregate across workers. The directory must exist and be writable. |
+| Variable                   | Default | Description                                                                                                               |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `METRICS_ENABLED`          | `true`  | Set to `false` to disable `/metrics` and skip the middleware entirely.                                                    |
+| `METRICS_AUTH_TOKEN`       | -       | Optional bearer token. When set, scrapers must send `Authorization: Bearer <token>`.                                      |
+| `PROMETHEUS_MULTIPROC_DIR` | -       | Set when running `uvicorn --workers N > 1` so scrapes aggregate across workers. The directory must exist and be writable. |
 
 ---
 
@@ -704,7 +734,9 @@ Compatible with **OpenAI**, **Groq** (free tier), **Together AI**, **Ollama** (l
 > Never commit API keys. Use environment variables or your host's secrets manager. CI also runs Gitleaks secret scanning on every push and PR - see [SECURITY.md](SECURITY.md) for what to do if one ever slips through.
 
 ### Provider Reliability
+
 The backend includes built-in resilience for LLM requests:
+
 - **Exponential Backoff**: Automatic retries on timeouts and connection failures.
 - **Rate Limit Handling**: Pauses and retries on HTTP 429 Rate Limit responses.
 - **Graceful Fallback**: Preserves offline/rule-based features seamlessly if the LLM provider becomes fully unavailable - `/chat` and `/analyze/` keep answering even when the LLM is down.
@@ -713,18 +745,18 @@ The backend includes built-in resilience for LLM requests:
 
 ## Configuration Reference
 
-| Variable | Default | Description |
-|---|---|---|
-| `JWT_SECRET` | - | Signing secret for auth session tokens. Required for `/auth/*` and `/user/*` endpoints. |
-| `DATABASE_URL` | SQLite file | Connection string for history, favorites, auth, and share storage. Use a PostgreSQL URL in production. |
-| `RATE_LIMIT_PER_MINUTE` | `30` | Max requests per IP per minute |
-| `LLM_ENABLED` | `false` | Enable LLM provider for `/analyze/` and `/chat` |
-| `LLM_API_KEY` | - | API key for your LLM provider |
-| `LLM_BASE_URL` | `https://api.openai.com/v1` | LLM base URL |
-| `LLM_MODEL` | `gpt-4o-mini` | Model name |
-| `LLM_TIMEOUT_SECONDS` | `30` | Request timeout in seconds |
-| `METRICS_ENABLED` | `true` | Enable `/metrics` — see [Observability](#observability) |
-| `METRICS_AUTH_TOKEN` | - | Optional bearer token to protect `/metrics` |
+| Variable                | Default                     | Description                                                                                            |
+| ----------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `JWT_SECRET`            | -                           | Signing secret for auth session tokens. Required for `/auth/*` and `/user/*` endpoints.                |
+| `DATABASE_URL`          | SQLite file                 | Connection string for history, favorites, auth, and share storage. Use a PostgreSQL URL in production. |
+| `RATE_LIMIT_PER_MINUTE` | `30`                        | Max requests per IP per minute                                                                         |
+| `LLM_ENABLED`           | `false`                     | Enable LLM provider for `/analyze/` and `/chat`                                                        |
+| `LLM_API_KEY`           | -                           | API key for your LLM provider                                                                          |
+| `LLM_BASE_URL`          | `https://api.openai.com/v1` | LLM base URL                                                                                           |
+| `LLM_MODEL`             | `gpt-4o-mini`               | Model name                                                                                             |
+| `LLM_TIMEOUT_SECONDS`   | `30`                        | Request timeout in seconds                                                                             |
+| `METRICS_ENABLED`       | `true`                      | Enable `/metrics` — see [Observability](#observability)                                                |
+| `METRICS_AUTH_TOKEN`    | -                           | Optional bearer token to protect `/metrics`                                                            |
 
 Copy `.env.example` to `.env` and fill in values as needed.
 
@@ -732,23 +764,23 @@ Copy `.env.example` to `.env` and fill in values as needed.
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Backend | FastAPI 0.115+, Pydantic v2, Python 3.12 |
-| Real-time | Native WebSockets (`fastapi.WebSocket`) for live collaboration, Server-Sent Events for streaming analysis |
-| Database / ORM | SQLAlchemy 2.0+, SQLite (default) or PostgreSQL, `aiosqlite` for async access |
-| Auth | PyJWT for session tokens, in-memory `jti` denylist for logout/revocation |
-| Background jobs | APScheduler (weekly digest emails) |
-| File validation | `python-magic` for real MIME-type sniffing |
-| Metrics | `prometheus-client` |
-| Frontend | HTML5, CSS3, Vanilla JS — single self-contained `index.html`, no build step |
-| Frontend testing | Node's built-in test runner (XSS/injection regression tests) + Playwright e2e |
-| Editor extension | TypeScript (VS Code extension API) |
-| Backend testing | Pytest, pytest-asyncio, FastAPI TestClient |
-| Linting / formatting | Ruff, Black, isort |
-| Security | Gitleaks secret scanning in CI |
-| Deployment | Docker, Docker Compose, Render, Kubernetes-ready |
-| CI | 7 GitHub Actions workflows: `ci.yml` (tests + lint + secret scan), `backend-tests.yml`, `frontend-checks.yml`, `check-large-files.yml`, `pr-analysis.yml` (PR bot), `schema-tests.yml`, `stale.yml` |
+| Layer                | Technology                                                                                                                                                                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend              | FastAPI 0.115+, Pydantic v2, Python 3.12                                                                                                                                                            |
+| Real-time            | Native WebSockets (`fastapi.WebSocket`) for live collaboration, Server-Sent Events for streaming analysis                                                                                           |
+| Database / ORM       | SQLAlchemy 2.0+, SQLite (default) or PostgreSQL, `aiosqlite` for async access                                                                                                                       |
+| Auth                 | PyJWT for session tokens, in-memory `jti` denylist for logout/revocation                                                                                                                            |
+| Background jobs      | APScheduler (weekly digest emails)                                                                                                                                                                  |
+| File validation      | `python-magic` for real MIME-type sniffing                                                                                                                                                          |
+| Metrics              | `prometheus-client`                                                                                                                                                                                 |
+| Frontend             | HTML5, CSS3, Vanilla JS — single self-contained `index.html`, no build step                                                                                                                         |
+| Frontend testing     | Node's built-in test runner (XSS/injection regression tests) + Playwright e2e                                                                                                                       |
+| Editor extension     | TypeScript (VS Code extension API)                                                                                                                                                                  |
+| Backend testing      | Pytest, pytest-asyncio, FastAPI TestClient                                                                                                                                                          |
+| Linting / formatting | Ruff, Black, isort                                                                                                                                                                                  |
+| Security             | Gitleaks secret scanning in CI                                                                                                                                                                      |
+| Deployment           | Docker, Docker Compose, Render, Kubernetes-ready                                                                                                                                                    |
+| CI                   | 7 GitHub Actions workflows: `ci.yml` (tests + lint + secret scan), `backend-tests.yml`, `frontend-checks.yml`, `check-large-files.yml`, `pr-analysis.yml` (PR bot), `schema-tests.yml`, `stale.yml` |
 
 ---
 
@@ -775,21 +807,21 @@ Read the full workflow, code standards, and pattern guide in [CONTRIBUTING.md](C
 
 ### Good first issues for GSSoC contributors
 
-| Task | Label |
-|---|---|
-| Add bug-detection patterns for Swift (currently detection-only) | `easy` |
-| Add bug-detection patterns for Kotlin (currently detection-only) | `easy` |
-| Update `docs/ARCHITECTURE.md` to reflect collaboration, chat, and ZIP analysis | `easy` |
-| Add test cases for edge cases | `easy` |
-| Improve explanation key points for a specific language | `easy` |
-| Add ARIA labels and keyboard navigation improvements to frontend | `medium` |
+| Task                                                                            | Label    |
+| ------------------------------------------------------------------------------- | -------- |
+| Add bug-detection patterns for Swift (currently detection-only)                 | `easy`   |
+| Add bug-detection patterns for Kotlin (currently detection-only)                | `easy`   |
+| Update `docs/ARCHITECTURE.md` to reflect collaboration, chat, and ZIP analysis  | `easy`   |
+| Add test cases for edge cases                                                   | `easy`   |
+| Improve explanation key points for a specific language                          | `easy`   |
+| Add ARIA labels and keyboard navigation improvements to frontend                | `medium` |
 | Add inline editor annotations (highlight the buggy line directly in the editor) | `medium` |
-| Add a per-function complexity breakdown instead of one whole-file score | `medium` |
-| Add a quality-score trend chart from saved history | `medium` |
-| Persist collaboration room state so a session survives a server restart | `hard` |
-| Add a duplicate / copy-paste code detector | `hard` |
-| Publish the VS Code extension to the Marketplace | `hard` |
-| Add a `qyverix` CLI / pre-commit hook that runs the rule engine locally in CI | `hard` |
+| Add a per-function complexity breakdown instead of one whole-file score         | `medium` |
+| Add a quality-score trend chart from saved history                              | `medium` |
+| Persist collaboration room state so a session survives a server restart         | `hard`   |
+| Add a duplicate / copy-paste code detector                                      | `hard`   |
+| Publish the VS Code extension to the Marketplace                                | `hard`   |
+| Add a `qyverix` CLI / pre-commit hook that runs the rule engine locally in CI   | `hard`   |
 
 Browse all open issues: [github.com/imDarshanGK/AI-dev-assistant/issues](https://github.com/imDarshanGK/AI-dev-assistant/issues)
 
@@ -849,3 +881,4 @@ MIT © [Darshan G K](https://github.com/imDarshanGK)
 Built for the open source community &nbsp;·&nbsp; GSSoC 2026
 
 </div>
+`````
