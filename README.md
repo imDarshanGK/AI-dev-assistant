@@ -1,6 +1,5 @@
 <div align="center">
 
-
 <img src="./assets/logo-dark.svg" alt="QyverixAI" width="300"/>
 
 <br/>
