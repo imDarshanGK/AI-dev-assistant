@@ -1,5 +1,6 @@
 """Tests for real-time collaboration WebSocket sessions."""
 
+
 import pytest
 from app import main as app_main
 from app.routers.collaboration import manager
