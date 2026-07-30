@@ -2954,6 +2954,58 @@ details.issue-card[open] {
           <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
         <div class="history-controls-row" style="display:flex; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 0.72rem; align-items:center; flex-wrap:wrap;">
+           <input
+      type="text"
+      id="historySearchInput"
+      placeholder="Search history..."
+      style="
+        background:var(--bg);
+        border:1px solid var(--border);
+        color:var(--text);
+        border-radius:4px;
+        padding:4px 8px;
+        font-size:0.72rem;
+        min-width:220px;
+      "
+    >
+        <span style="color:var(--text3);">Language:</span>
+
+<select id="historyLanguageFilter"
+style="
+background:var(--bg);
+border:1px solid var(--border);
+color:var(--text);
+border-radius:4px;
+padding:2px 6px;
+font-size:0.72rem;
+cursor:pointer;
+">
+  <option value="">All</option>
+  <option value="python">Python</option>
+  <option value="java">Java</option>
+  <option value="javascript">JavaScript</option>
+  <option value="typescript">TypeScript</option>
+  <option value="cpp">C++</option>
+</select>
+
+<span style="color:var(--text3);">Issues:</span>
+
+<select id="historyIssueFilter"
+style="
+background:var(--bg);
+border:1px solid var(--border);
+color:var(--text);
+border-radius:4px;
+padding:2px 6px;
+font-size:0.72rem;
+cursor:pointer;
+">
+  <option value="">Any</option>
+  <option value="0">0 Issues</option>
+  <option value="1-5">1-5 Issues</option>
+  <option value="5+">5+ Issues</option>
+</select>
+
           <span style="color:var(--text3);" data-i18n="history_sort_label">Sort:</span>
           <select id="historySortSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
             <option value="timestamp" data-i18n="history_sort_date">Date</option>
@@ -3461,6 +3513,9 @@ details.issue-card[open] {
       let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
       let analyticsHistory = [];
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
+      let historySearchTerm = "";
+      let historyLanguageFilter = "";
+      let historyIssueFilter = "";
       let currentResult = null;
       let selectedLang = 'python';
       const LOCAL_API_BASE = 'http://localhost:8000';
@@ -4972,13 +5027,51 @@ details.issue-card[open] {
       function renderHistory() {
         const listContainer = document.getElementById('historyList');
         if (!listContainer) return;
+         
+        let filteredHistory = history;
 
-        if (!history || !history.length) {
+  if (historySearchTerm) {
+  filteredHistory = history.filter(h => {
+    const preview = (h.code_preview || h.preview || "").toLowerCase();
+    const lang = (h.language || h.lang || "").toLowerCase();
+
+    return preview.includes(historySearchTerm) ||
+           lang.includes(historySearchTerm);
+  });
+}
+
+if (historyLanguageFilter) {
+  filteredHistory = filteredHistory.filter(h =>
+    (h.language || h.lang || '')
+      .toLowerCase() === historyLanguageFilter
+  );
+}
+
+if (historyIssueFilter === "0") {
+  filteredHistory = filteredHistory.filter(
+    h => (h.issue_count || 0) === 0
+  );
+}
+
+else if (historyIssueFilter === "1-5") {
+  filteredHistory = filteredHistory.filter(h => {
+    const count = h.issue_count || 0;
+    return count >= 1 && count <= 5;
+  });
+}
+
+else if (historyIssueFilter === "5+") {
+  filteredHistory = filteredHistory.filter(h => {
+    const count = h.issue_count || 0;
+    return count > 5;
+  });
+}
+        if (!filteredHistory || !filteredHistory.length) {
           listContainer.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
 
-        listContainer.innerHTML = history.map(h => {
+        listContainer.innerHTML = filteredHistory.map(h => {
           const lang = h.language || h.lang || '?';
           const preview = h.code_preview || h.preview || '';
           
@@ -5098,6 +5191,25 @@ details.issue-card[open] {
         historyOffset = 0;
         fetchHistory();
       });
+      document.getElementById('historySearchInput')?.addEventListener('input', (e) => {
+  historySearchTerm = e.target.value.toLowerCase().trim();
+  historyOffset = 0;
+  fetchHistory();
+});
+
+document.getElementById('historyLanguageFilter')
+?.addEventListener('change', (e) => {
+  historyLanguageFilter = e.target.value;
+  historyOffset = 0;
+  renderHistory();
+});
+
+document.getElementById('historyIssueFilter')
+?.addEventListener('change', (e) => {
+  historyIssueFilter = e.target.value;
+  historyOffset = 0;
+  renderHistory();
+});
 
       document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
@@ -5353,10 +5465,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         const text = buildReport(currentResult, editor.value);
         const blob = new Blob([text], { type: 'text/plain' });
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        a.href = url;
         a.download = `qyverixai-report-${Date.now()}.txt`;
         a.click();
-        URL.revokeObjectURL(a.href);
+        // Delay Blob URL revocation to allow browser download stream initialization
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 1000);
         toast(getTranslation('toast_report_downloaded'), 'success');
       });
 
@@ -5371,10 +5487,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
             
             const blob = new Blob([mdText], { type: 'text/markdown' });
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
+            a.href = url;
             a.download = `qyverixai-report-${Date.now()}.md`;
             a.click();
-            URL.revokeObjectURL(a.href);
+            // Delay Blob URL revocation to allow browser download stream initialization
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 1000);
             
             if (typeof toast === 'function') toast('Downloaded as Markdown', 'success');
         } catch (error) {
