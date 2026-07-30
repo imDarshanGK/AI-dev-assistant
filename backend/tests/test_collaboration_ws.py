@@ -1,9 +1,9 @@
 """Tests for real-time collaboration WebSocket sessions."""
 
 import pytest
-from fastapi import WebSocketDisconnect
 from app import main as app_main
 from app.routers.collaboration import manager
+from fastapi import WebSocketDisconnect
 from fastapi.testclient import TestClient
 
 client = TestClient(app_main.app)
