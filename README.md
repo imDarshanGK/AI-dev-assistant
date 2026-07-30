@@ -253,7 +253,12 @@ Returns detected issues with line numbers, code snippets, and fix suggestions. F
 - Deep nesting warnings are generated only when the nesting depth exceeds three levels.
 ---
 
+### `POST /suggestions/`
 
+Returns improvement suggestions with a quality score and letter grade.
+
+```json
+{
   "suggestions": [
     {
       "category": "Documentation",
