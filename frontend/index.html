@@ -3778,6 +3778,18 @@ cursor:pointer;
       const issueLineHighlights = document.getElementById('issueLineHighlights');
       let activeIssueLines = new Map();
 
+      const resultActionLabels = {
+        favBtn: 'Save current analysis to favorites',
+        downloadBtn: 'Download analysis results',
+        'export-pdf-btn': 'Export analysis as PDF',
+        'export-md-btn': 'Export analysis as Markdown'
+      };
+
+      Object.entries(resultActionLabels).forEach(([id, label]) => {
+        const button = document.getElementById(id);
+        if (button) button.setAttribute('aria-label', label);
+      });
+
       /* ═══════════════════════════════════════════════════════════════
          THEME
       ═══════════════════════════════════════════════════════════════ */
