@@ -1,16 +1,17 @@
 """Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
 
 from __future__ import annotations
-from fastapi.responses import HTMLResponse, StreamingResponse
+
 import asyncio
 import json
 import time
 import zipfile
 from io import BytesIO
 from pathlib import PurePosixPath
+from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 
 from ..sanitize import sanitize_code_input, sanitize_language_hint
 from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
@@ -215,7 +216,7 @@ async def analyze(req: CodeRequest, response: Response):
     response_model=ZipAnalyzeResponse,
     summary="Run full analysis for source files in a ZIP",
 )
-async def analyze_zip(request: Request, file: UploadFile = File(...)):
+async def analyze_zip(request: Request, file: Annotated[UploadFile, File()]):
     """Analyze up to 20 source files from an uploaded ZIP archive."""
 
     # 1. Fast check via Content-Length header to reject large uploads early
@@ -386,17 +387,24 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
         "skipped_files": skipped_files,
         "analysis_time_ms": round(elapsed_ms, 2),
     }
+
+
 def _generate_html_report(analysis: dict, code: str) -> str:
     explanation = analysis.get("explanation", {})
     debugging = analysis.get("debugging", {})
     suggestions = analysis.get("suggestions", {})
     issues = debugging.get("issues", [])
-    issues_html = "".join(
-        f"<li class='issue {i.get('severity')}'><strong>[{i.get('severity').upper()}]</strong> Line {i.get('line', 'N/A')}: {i.get('message')}</li>"
-        for i in issues
-    ) or "<li>No issues found!</li>"
+    issues_html = (
+        "".join(
+            f"<li class='issue {i.get('severity')}'><strong>[{i.get('severity').upper()}]</strong> Line {i.get('line', 'N/A')}: {i.get('message')}</li>"
+            for i in issues
+        )
+        or "<li>No issues found!</li>"
+    )
     recs = suggestions.get("suggestions", [])
-    recs_html = "".join(f"<li>{s}</li>" for s in recs) or "<li>No suggestions available.</li>"
+    recs_html = (
+        "".join(f"<li>{s}</li>" for s in recs) or "<li>No suggestions available.</li>"
+    )
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -435,6 +443,8 @@ def _generate_html_report(analysis: dict, code: str) -> str:
     </div>
 </body>
 </html>"""
+
+
 @router.post(
     "/export/html",
     response_class=HTMLResponse,
