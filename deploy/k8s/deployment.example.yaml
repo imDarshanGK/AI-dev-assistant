@@ -38,6 +38,16 @@ spec:
               value: "true"
             - name: RATE_LIMIT_PER_MINUTE
               value: "120"
+            # Required with replicas > 1 (as below): without it, each pod
+            # revokes tokens into its own process-local denylist, so a token
+            # revoked via /logout on one pod is still accepted by the others
+            # until it naturally expires. Point this at a Redis reachable
+            # from every pod (e.g. a managed Redis or an in-cluster Service).
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: qyverixai-redis
+                  key: url
           # Liveness — restarts the container when the process can no longer
           # respond. Must NOT depend on external services.
           livenessProbe:
