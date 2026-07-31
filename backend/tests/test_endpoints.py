@@ -8,23 +8,63 @@ import json
 import pytest
 from pathlib import Path
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app import main as app_main
+from app.database import Base, get_db
+from app.models import Suppression
 
 client = TestClient(app_main.app)
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
+
 def load_fixture(filename: str) -> str:
     return (FIXTURES_DIR / filename).read_text(encoding="utf-8")
+
+
 @pytest.fixture(autouse=True)
 def reset_rate_limit_state():
     app_main._request_counts.clear()
     yield
     app_main._request_counts.clear()
+
+
+@pytest.fixture
+def isolated_debug_client():
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+    def override_get_db():
+        db = TestingSessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    previous_override = app_main.app.dependency_overrides.get(get_db)
+    app_main.app.dependency_overrides[get_db] = override_get_db
+
+    try:
+        with TestClient(app_main.app) as test_client:
+            yield test_client, TestingSessionLocal
+    finally:
+        if previous_override is None:
+            app_main.app.dependency_overrides.pop(get_db, None)
+        else:
+            app_main.app.dependency_overrides[get_db] = previous_override
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -371,6 +411,133 @@ def test_debug_detects_zero_division():
     assert "ZeroDivisionError" in types
 
 
+def test_debug_suppression_endpoint_persists_record(isolated_debug_client):
+    test_client, TestingSessionLocal = isolated_debug_client
+    payload = {
+        "issue_type": "ZeroDivisionError",
+        "line": 1,
+        "reason": "False positive",
+        "scope": "project",
+    }
+
+    r = test_client.post("/debugging/suppress", json=payload)
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["success"] is True
+    assert data["message"] == "Issue suppressed"
+    assert data["issue_type"] == payload["issue_type"]
+    assert data["line"] == payload["line"]
+    assert data["scope"] == payload["scope"]
+
+    db = TestingSessionLocal()
+    try:
+        record = db.execute(select(Suppression)).scalar_one()
+        assert record.issue_type == payload["issue_type"]
+        assert record.line == payload["line"]
+        assert record.reason == payload["reason"]
+        assert record.scope == payload["scope"]
+        assert record.created_at is not None
+    finally:
+        db.close()
+
+
+def test_debug_filters_suppressed_findings(isolated_debug_client):
+    test_client, TestingSessionLocal = isolated_debug_client
+    db = TestingSessionLocal()
+    try:
+        db.add(
+            Suppression(
+                issue_type="ZeroDivisionError",
+                line=1,
+                reason="Known false positive",
+                scope="project",
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    r = test_client.post(
+        "/debugging/",
+        json={
+            "code": 'result = a / b\npassword = "abc123"',
+            "language": "python",
+        },
+    )
+
+    assert r.status_code == 200
+    data = r.json()
+    issue_types = [issue["type"] for issue in data["issues"]]
+    assert "ZeroDivisionError" not in issue_types
+    assert "Hardcoded Secret" in issue_types
+    assert data["clean"] is False
+    assert data["error_count"] + data["warning_count"] + data["info_count"] == len(
+        data["issues"]
+    )
+    assert data["summary"] == (
+        f"Found {len(data['issues'])} issue(s): "
+        f"{data['error_count']} error(s), "
+        f"{data['warning_count']} warning(s), "
+        f"{data['info_count']} info."
+    )
+
+
+def test_debug_keeps_unsuppressed_findings(isolated_debug_client):
+    test_client, TestingSessionLocal = isolated_debug_client
+    db = TestingSessionLocal()
+    try:
+        db.add(
+            Suppression(
+                issue_type="ZeroDivisionError",
+                line=2,
+                reason="Only suppress the second line",
+                scope="project",
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    r = test_client.post(
+        "/debugging/", json={"code": "result = a / b", "language": "python"}
+    )
+
+    assert r.status_code == 200
+    issue_types = [issue["type"] for issue in r.json()["issues"]]
+    assert "ZeroDivisionError" in issue_types
+
+
+def test_debug_recalculates_counts_after_suppression(isolated_debug_client):
+    test_client, TestingSessionLocal = isolated_debug_client
+    db = TestingSessionLocal()
+    try:
+        db.add(
+            Suppression(
+                issue_type="ZeroDivisionError",
+                line=1,
+                reason="Known false positive",
+                scope="global",
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    r = test_client.post(
+        "/debugging/", json={"code": "result = a / b", "language": "python"}
+    )
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["issues"] == []
+    assert data["clean"] is True
+    assert data["error_count"] == 0
+    assert data["warning_count"] == 0
+    assert data["info_count"] == 0
+    assert data["summary"] == "✅ No issues detected!"
+
+
 def test_debug_detects_hardcoded_secret():
     r = client.post(
         "/debugging/", json={"code": 'password = "abc123"', "language": "python"}
@@ -481,7 +648,6 @@ def test_debug_kotlin():
     assert d is not None
 
 
-
 def test_debug_cpp_syntax_errors():
     code = "void main() {\n    cout << 'Hello World'\n}"
     r = client.post("/debugging/", json={"code": code, "language": "cpp"})
@@ -562,15 +728,20 @@ def test_add():
     d = r.json()
     assert d["overall_score"] >= 60  # clean code should score reasonably
 
+
 def test_suggestions_observability_print_only_python():
     # Pasting code with print() in Java should NOT trigger the Observability suggestion
-    r_java = client.post("/suggestions/", json={"code": 'print("hello");', "language": "java"})
+    r_java = client.post(
+        "/suggestions/", json={"code": 'print("hello");', "language": "java"}
+    )
     assert r_java.status_code == 200
     s_java = [s["category"] for s in r_java.json()["suggestions"]]
     assert "Observability" not in s_java
 
     # Pasting code with print() in Python SHOULD trigger the Observability suggestion
-    r_py = client.post("/suggestions/", json={"code": 'print("hello")', "language": "python"})
+    r_py = client.post(
+        "/suggestions/", json={"code": 'print("hello")', "language": "python"}
+    )
     assert r_py.status_code == 200
     s_py = [s["category"] for s in r_py.json()["suggestions"]]
     assert "Observability" in s_py
@@ -724,7 +895,9 @@ def test_get_stream_done_event_present():
 
 
 def test_get_stream_with_language_hint():
-    r = client.get("/analyze/stream", params={"code": JS_CODE, "language": "javascript"})
+    r = client.get(
+        "/analyze/stream", params={"code": JS_CODE, "language": "javascript"}
+    )
     assert r.status_code == 200
     events = _parse_sse_events(r.text)
     exp = next(e["data"] for e in events if e["type"] == "explanation")

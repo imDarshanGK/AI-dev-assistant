@@ -42,6 +42,7 @@ from app.models import (  # noqa: E402
     FavoriteResult,
     QueryHistory,
     SharedSnippet,
+    Suppression,
     User,
 )
 
@@ -52,6 +53,7 @@ EXPECTED_TABLES = {
     "favorite_results",
     "digest_subscriptions",
     "shares",
+    "suppressions",
 }
 
 # ── database URL (PostgreSQL in CI, SQLite locally) ───────────────────────────
@@ -228,6 +230,28 @@ def test_digest_subscription_insert(db_session):
     )
     assert fetched is not None
     assert fetched.is_active is True
+
+
+def test_suppression_insert(db_session):
+    """Suppression must accept a write and preserve the finding details."""
+    suppression = Suppression(
+        issue_type="ZeroDivisionError",
+        line=1,
+        reason="False positive in generated sample",
+        scope="project",
+    )
+    db_session.add(suppression)
+    db_session.commit()
+    db_session.refresh(suppression)
+
+    fetched = (
+        db_session.query(Suppression).filter_by(issue_type="ZeroDivisionError").first()
+    )
+    assert fetched is not None
+    assert fetched.line == 1
+    assert fetched.reason == "False positive in generated sample"
+    assert fetched.scope == "project"
+    assert fetched.created_at is not None
 
 
 # ── history DB (aiosqlite / FTS5) tests ───────────────────────────────────────
