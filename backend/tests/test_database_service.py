@@ -7,7 +7,7 @@ import pytest
 from app.services import database
 
 
-#Use a temporary db so tests never modify the application's real db.
+# Use a temporary db so tests never modify the application's real db.
 @pytest.fixture
 def temp_db():
     tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
@@ -22,6 +22,7 @@ def temp_db():
 
     database.DB_PATH = old_path
 
+
 # Verify that hashing is deterministic and input-dependent.
 def test_hash_code_is_deterministic():
     hash1 = database.hash_code("print('hello')")
@@ -30,6 +31,7 @@ def test_hash_code_is_deterministic():
 
     assert hash1 == hash2
     assert hash1 != hash3
+
 
 # Verify that a saved entry can be retrieved unchanged.
 def test_save_and_get_entry(temp_db):
@@ -49,6 +51,7 @@ def test_save_and_get_entry(temp_db):
     assert entry["score"] == 95
     assert entry["issue_count"] == 1
     assert entry["code"] == "print('hello')"
+
 
 # Verify that the entry count reflects successful inserts.
 def test_count_entries(temp_db):
@@ -137,7 +140,7 @@ def test_search_entries(temp_db):
     results = asyncio.run(database.search_entries("hello"))
 
     assert len(results) == 1
-    
+
     assert results[0]["language"] == "Python"
     assert "hello world" in results[0]["code_preview"]
 
@@ -168,6 +171,7 @@ def test_get_entries_default_order(temp_db):
     assert entries[0]["code_preview"] == "print('second')"
     assert entries[1]["code_preview"] == "print('first')"
 
+
 # Verify that an invalid sort column safely falls back to the default.
 def test_invalid_sort_by_fallback(temp_db):
     asyncio.run(
@@ -179,12 +183,11 @@ def test_invalid_sort_by_fallback(temp_db):
         )
     )
 
-    entries = asyncio.run(
-        database.get_entries(sort_by="definitely_not_a_column")
-    )
+    entries = asyncio.run(database.get_entries(sort_by="definitely_not_a_column"))
 
     assert len(entries) == 1
     assert entries[0]["language"] == "Python"
+
 
 # Verify that an invalid sort order safely falls back to the default.
 def test_invalid_order_fallback(temp_db):
@@ -197,9 +200,7 @@ def test_invalid_order_fallback(temp_db):
         )
     )
 
-    entries = asyncio.run(
-        database.get_entries(order="banana")
-    )
+    entries = asyncio.run(database.get_entries(order="banana"))
 
     assert len(entries) == 1
     assert entries[0]["language"] == "Python"
