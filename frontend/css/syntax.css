@@ -1,0 +1,89 @@
+/* ── Syntax Highlighted Code Blocks ── */
+.issue-snippet pre,
+.suggest-example pre {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.issue-snippet pre code,
+.suggest-example pre code {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  border-radius: 6px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  white-space: pre;
+  background: var(--bg) !important;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .issue-snippet pre code,
+[data-theme="dark"] .suggest-example pre code {
+  background: #1a1d23 !important;
+}
+
+[data-theme="light"] .issue-snippet pre code,
+[data-theme="light"] .suggest-example pre code {
+  background: #f6f8fa !important;
+}
+
+/* Language badge on code blocks */
+.issue-snippet {
+  position: relative;
+}
+
+/* Scrollable on mobile */
+@media (max-width: 600px) {
+  .issue-snippet pre code,
+  .suggest-example pre code {
+    font-size: 0.7rem;
+  }
+}
+.snippet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  border-radius: 6px 6px 0 0;
+}
+
+.snippet-lang-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.snippet-copy-btn {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: none;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.snippet-copy-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.issue-snippet pre {
+  margin: 0;
+  padding: 0;
+}
+
+.issue-snippet pre code {
+  border-radius: 0 0 6px 6px;
+  display: block;
+  padding: 8px 12px;
+}
