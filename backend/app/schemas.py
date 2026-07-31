@@ -905,3 +905,39 @@ class TestGenerationResponse(BaseModel):
     summary: TestSummary = Field(
         ..., description="Summary details of the generated tests."
     )
+
+
+# ── Docker Generation ─────────────────────────────────────────────────────────
+class DockerGenerationRequest(BaseModel):
+    """Request schema for automated Docker config generation."""
+
+    project_structure: str | None = Field(
+        default=None,
+        description="The text representation of the project structure directory tree.",
+    )
+    detected_files: list[str] = Field(
+        default_factory=list,
+        description="List of filenames detected in the project.",
+    )
+    target_language: str | None = Field(
+        default=None,
+        description="Target runtime programming language or framework (e.g. python, node, java).",
+    )
+    db_dependency: str | None = Field(
+        default=None,
+        description="Target database dependency to include in docker-compose.yml (e.g. postgresql, mongodb, mysql, redis).",
+    )
+
+
+class DockerGenerationResponse(BaseModel):
+    """Response returned after successful Docker config generation."""
+
+    dockerfile: str = Field(
+        ..., description="The generated production-ready Dockerfile."
+    )
+    docker_compose: str = Field(
+        ..., description="The generated docker-compose.yml file configuration."
+    )
+    explanation: str = Field(
+        ..., description="Explanation of the generated files and instructions on how to use them."
+    )

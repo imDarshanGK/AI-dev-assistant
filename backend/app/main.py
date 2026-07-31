@@ -21,6 +21,7 @@ from .routers import health as health_router
 from .routers import history
 from .routers import metrics as metrics_router
 from .routers import (
+    docker,
     share,
     subscribe,
     suggestions,
@@ -182,6 +183,8 @@ async def add_process_time_header(request: Request, call_next):
         "/analyze/",
         "/api/generate-tests",
         "/api/generate-tests/",
+        "/api/generate-docker",
+        "/api/generate-docker/",
     ):
         remaining = check_rate_limit(ip)
         if remaining < 0:
@@ -224,6 +227,9 @@ app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(
     test_generator.router, prefix="/api/generate-tests", tags=["Test Generator"]
 )
+app.include_router(
+    docker.router, prefix="/api/generate-docker", tags=["Docker Generator"]
+)
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(share.router)
@@ -256,6 +262,7 @@ async def root():
             "/suggestions/",
             "/analyze/",
             "/api/generate-tests",
+            "/api/generate-docker",
             "/subscribe/",
             "/share/",
             "/auth/",
@@ -291,6 +298,7 @@ async def health_check():
             "/suggestions/",
             "/analyze/",
             "/api/generate-tests",
+            "/api/generate-docker",
             "/subscribe/",
             "/share/",
             "/auth/",

@@ -2367,6 +2367,24 @@ details.issue-card[open] {
           </label>
         </div>
 
+        <!-- Docker Generator options (hidden by default) -->
+        <div id="dockerGenSettings" style="display:none; align-items:center; gap:12px; padding:10px 18px; border-top:1px solid var(--border); font-size:0.8rem; background:var(--bg3); flex-wrap:wrap;">
+          <label style="color:var(--text2); font-weight:600;">Target Runtime/Language:</label>
+          <select id="dockerLanguage" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
+            <option value="python">Python</option>
+            <option value="node">Node.js (JS/TS)</option>
+            <option value="java">Java (Maven)</option>
+          </select>
+          <label style="color:var(--text2); font-weight:600;">Database:</label>
+          <select id="dockerDb" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
+            <option value="none">None</option>
+            <option value="postgresql">PostgreSQL</option>
+            <option value="mongodb">MongoDB</option>
+            <option value="mysql">MySQL</option>
+            <option value="redis">Redis</option>
+          </select>
+        </div>
+
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
@@ -2376,6 +2394,7 @@ details.issue-card[open] {
               <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
               <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
               <button class="mode-btn" data-mode="testgen" aria-pressed="false" data-i18n="mode_testgen">Test Gen</button>
+          <button class="mode-btn" data-mode="dockergen" aria-pressed="false" data-i18n="mode_dockergen">Docker Gen</button>
             </div>
           </div>
         </div>
@@ -2422,6 +2441,11 @@ details.issue-card[open] {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             <span data-i18n="mode_testgen">Test Gen</span>
             <span class="tab-badge" id="testgenBadge"></span>
+          </button>
+          <button class="result-tab" id="tab-dockergen" data-rtab="dockergen" role="tab" aria-selected="false" aria-controls="pane-dockergen" style="display:none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <span data-i18n="mode_dockergen">Docker Gen</span>
+            <span class="tab-badge" id="dockergenBadge"></span>
           </button>
         </div>
         <div class="result-content">
@@ -2481,6 +2505,18 @@ details.issue-card[open] {
               <p data-i18n="empty_testgen_desc">Select Test Gen mode and click Analyze to generate unit tests</p>
             </div>
             <div id="testgenResult" style="display:none"></div>
+          </div>
+
+          <div class="result-pane" id="pane-dockergen" role="tabpanel" tabindex="0" aria-labelledby="tab-dockergen">
+            <div class="empty-state" id="emptyDockergen">
+              <div class="empty-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5">
+                  <path d="M12 2L2 7l10 5 10-5-10-5"/>
+                </svg></div>
+              <p class="empty-title" data-i18n="empty_dockergen_title">No Docker config generated yet</p>
+              <p data-i18n="empty_dockergen_desc">Select Docker Gen mode and click Analyze to generate Docker configurations</p>
+            </div>
+            <div id="dockergenResult" style="display:none"></div>
           </div>
         </div>
 
@@ -2628,6 +2664,9 @@ details.issue-card[open] {
           mode_testgen: "Test Gen",
           empty_testgen_title: "No tests generated yet",
           empty_testgen_desc: "Select Test Gen mode and click Analyze to generate unit tests",
+          mode_dockergen: "Docker Gen",
+          empty_dockergen_title: "No Docker config generated yet",
+          empty_dockergen_desc: "Select Docker Gen mode and click Analyze to generate Docker configurations",
           history_title: "Query History",
           favorites_title: "Saved Favorites",
           empty_history: "No history yet. Run your first analysis.",
@@ -2735,6 +2774,9 @@ details.issue-card[open] {
           mode_testgen: "சோதனை ஜெனரேட்டர்",
           empty_testgen_title: "இன்னும் சோதனைகள் உருவாக்கப்படவில்லை",
           empty_testgen_desc: "சோதனை ஜென் பயன்முறையைத் தேர்ந்தெடுத்து, சோதனைகளை உருவாக்க பகுப்பாய் என்பதைக் கிளிக் செய்யவும்",
+          mode_dockergen: "டாக்கர் ஜெனரேட்டர்",
+          empty_dockergen_title: "இன்னும் டாக்கர் உள்ளமைவு உருவாக்கப்படவில்லை",
+          empty_dockergen_desc: "டாக்கர் ஜென் பயன்முறையைத் தேர்ந்தெடுத்து, உள்ளமைவுகளை உருவாக்க பகுப்பாய் என்பதைக் கிளிக் செய்யவும்",
           history_title: "வினவல் வரலாறு",
           favorites_title: "சேமிக்கப்பட்ட பிடித்தவை",
           empty_history: "இன்னும் வரலாறு இல்லை. உங்கள் முதல் பகுப்பாய்வை இயக்கவும்.",
@@ -2842,6 +2884,9 @@ details.issue-card[open] {
           mode_testgen: "टेस्ट जेनरेटर",
           empty_testgen_title: "अभी तक कोई परीक्षण उत्पन्न नहीं हुआ",
           empty_testgen_desc: "टेस्ट जेन मोड का चयन करें और परीक्षण उत्पन्न करने के लिए विश्लेषण पर क्लिक करें",
+          mode_dockergen: "डॉकर जेनरेटर",
+          empty_dockergen_title: "अभी तक कोई डॉकर कॉन्फ़िग उत्पन्न नहीं हुआ",
+          empty_dockergen_desc: "डॉकर जेन मोड का चयन करें और कॉन्फ़िगरेशन उत्पन्न करने के लिए विश्लेषण पर क्लिक करें",
           history_title: "क्वेरी इतिहास",
           favorites_title: "सहेजे गए पसंदीदा",
           empty_history: "अभी तक कोई इतिहास नहीं है। अपना पहला विश्लेषण चलाएं।",
@@ -2949,6 +2994,9 @@ details.issue-card[open] {
           mode_testgen: "Générateur de tests",
           empty_testgen_title: "Aucun test généré pour le moment",
           empty_testgen_desc: "Sélectionnez le mode Générateur de tests et cliquez sur Analyser pour générer des tests unitaires",
+          mode_dockergen: "Générateur Docker",
+          empty_dockergen_title: "Aucune config Docker générée pour le moment",
+          empty_dockergen_desc: "Sélectionnez le mode Générateur Docker et cliquez sur Analyser pour générer des configurations Docker",
           history_title: "Historique des requêtes",
           favorites_title: "Favoris enregistrés",
           empty_history: "Aucun historique pour le moment. Lancez votre première analyse.",
@@ -3478,12 +3526,21 @@ details.issue-card[open] {
           // Toggle UI settings for Test Generator
           const testSettings = document.getElementById('testGenSettings');
           const tabTestGen = document.getElementById('tab-testgen');
+          const tabDockerGen = document.getElementById('tab-dockergen');
+          const dockerGenSettings = document.getElementById('dockerGenSettings');
           if (selectedMode === 'testgen') {
             if (testSettings) testSettings.style.display = 'flex';
             if (tabTestGen) tabTestGen.style.display = 'inline-flex';
           } else {
             if (testSettings) testSettings.style.display = 'none';
             if (tabTestGen) tabTestGen.style.display = 'none';
+          }
+          if (selectedMode === 'dockergen') {
+            if (dockerGenSettings) dockerGenSettings.style.display = 'flex';
+            if (tabDockerGen) tabDockerGen.style.display = 'inline-flex';
+          } else {
+            if (dockerGenSettings) dockerGenSettings.style.display = 'none';
+            if (tabDockerGen) tabDockerGen.style.display = 'none';
           }
         });
       });
@@ -3576,6 +3633,7 @@ details.issue-card[open] {
           debug: '/debugging/',
           suggest: '/suggestions/',
           testgen: '/api/generate-tests',
+          dockergen: '/api/generate-docker',
         };
         const endpoint = endpointMap[selectedMode] || '/analyze/';
 
@@ -3622,6 +3680,24 @@ details.issue-card[open] {
               framework: document.getElementById('testFramework').value,
               mock_external_calls: document.getElementById('mockExternalCalls').checked
             };
+          } else if (selectedMode === 'dockergen') {
+            const codeText = editor.value.trim();
+            const detected_files = [];
+            if (codeText) {
+              if (codeText.includes("package.json")) detected_files.push("package.json");
+              if (codeText.includes("requirements.txt")) detected_files.push("requirements.txt");
+              if (codeText.includes("pom.xml")) detected_files.push("pom.xml");
+              if (codeText.includes("main.py")) detected_files.push("main.py");
+              if (codeText.includes("index.js")) detected_files.push("index.js");
+            } else {
+              detected_files.push("app.py");
+            }
+            payload = {
+              project_structure: codeText || "app/\n  main.py\nrequirements.txt",
+              detected_files: detected_files,
+              target_language: document.getElementById('dockerLanguage').value,
+              db_dependency: document.getElementById('dockerDb').value
+            };
           } else {
             payload = { code, language: selectedLang };
           }
@@ -3654,6 +3730,8 @@ details.issue-card[open] {
             result = { explanation: null, debugging: null, suggestions: data, provider: 'rule-based', analysis_time_ms: null };
           } else if (selectedMode === 'testgen') {
             result = { testgen: data, explanation: null, debugging: null, suggestions: null, provider: 'llm', analysis_time_ms: null };
+          } else if (selectedMode === 'dockergen') {
+            result = { dockergen: data, explanation: null, debugging: null, suggestions: null, provider: 'llm', analysis_time_ms: null };
           }
 
           currentResult = result;
@@ -3688,9 +3766,10 @@ details.issue-card[open] {
         if (result.debugging) renderDebug(result.debugging);
         if (result.suggestions) renderSuggest(result.suggestions);
         if (result.testgen) renderTestGen(result.testgen);
+        if (result.dockergen) renderDockerGen(result.dockergen);
 
         // Auto-switch to relevant tab
-        const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest', testgen: 'testgen' };
+        const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest', testgen: 'testgen', dockergen: 'dockergen' };
         const targetTab = tabOrder[selectedMode] || 'explain';
         document.querySelector(`[data-rtab="${targetTab}"]`).click();
       }
@@ -4254,9 +4333,72 @@ details.issue-card[open] {
       /* ═══════════════════════════════════════════════════════════════
          SHIMMER LOADING
       ═══════════════════════════════════════════════════════════════ */
+      function renderDockerGen(data) {
+        document.getElementById('emptyDockergen').style.display = 'none';
+        const el = document.getElementById('dockergenResult');
+        el.style.display = 'block';
+        document.getElementById('dockergenBadge').textContent = '1';
+
+        el.innerHTML = `
+          <div class="result-section">
+            <h3>Docker Configuration Summary</h3>
+            <p style="color:var(--text2); margin-top:8px;">${escHtml(data.explanation)}</p>
+          </div>
+          <div class="result-section" style="margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <h4>Dockerfile</h4>
+              <button class="btn btn-secondary" id="copyDockerfileBtn" style="padding:4px 10px; font-size:0.75rem; display:flex; align-items:center; gap:4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy Dockerfile
+              </button>
+            </div>
+            <pre style="font-family:var(--font-mono); font-size:12px; background:var(--bg); border:1px solid var(--border); padding:12px; border-radius:6px; overflow-x:auto; color:var(--text); white-space:pre; max-height:300px;">${escHtml(data.dockerfile)}</pre>
+          </div>
+          <div class="result-section" style="margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <h4>docker-compose.yml</h4>
+              <button class="btn btn-secondary" id="copyComposeBtn" style="padding:4px 10px; font-size:0.75rem; display:flex; align-items:center; gap:4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy Compose
+              </button>
+            </div>
+            <pre style="font-family:var(--font-mono); font-size:12px; background:var(--bg); border:1px solid var(--border); padding:12px; border-radius:6px; overflow-x:auto; color:var(--text); white-space:pre; max-height:300px;">${escHtml(data.docker_compose)}</pre>
+          </div>
+        `;
+
+        // Wire copy buttons
+        const copyDBtn = document.getElementById('copyDockerfileBtn');
+        if (copyDBtn) {
+          copyDBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(data.dockerfile).then(() => {
+              copyDBtn.textContent = '\u2713 Copied!';
+              copyDBtn.style.background = 'rgba(34,212,123,0.25)';
+              setTimeout(() => {
+                copyDBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Dockerfile`;
+                copyDBtn.style.background = '';
+              }, 2000);
+            }).catch(() => toast('Copy failed', 'error'));
+          });
+        }
+
+        const copyCBtn = document.getElementById('copyComposeBtn');
+        if (copyCBtn) {
+          copyCBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(data.docker_compose).then(() => {
+              copyCBtn.textContent = '\u2713 Copied!';
+              copyCBtn.style.background = 'rgba(34,212,123,0.25)';
+              setTimeout(() => {
+                copyCBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Compose`;
+                copyCBtn.style.background = '';
+              }, 2000);
+            }).catch(() => toast('Copy failed', 'error'));
+          });
+        }
+      }
+
       function showShimmers() {
         const shims = '<div class="shimmer-card"></div>'.repeat(3);
-        ['explainResult', 'debugResult', 'suggestResult', 'testgenResult'].forEach(id => {
+        ['explainResult', 'debugResult', 'suggestResult', 'testgenResult', 'dockergenResult'].forEach(id => {
           const el = document.getElementById(id);
           if (el) {
             el.style.display = 'block';
@@ -4270,7 +4412,7 @@ details.issue-card[open] {
       }
 
       function resetResults() {
-        ['explainResult', 'debugResult', 'suggestResult', 'testgenResult'].forEach(id => {
+        ['explainResult', 'debugResult', 'suggestResult', 'testgenResult', 'dockergenResult'].forEach(id => {
           const el = document.getElementById(id);
           if (el) {
             el.style.display = 'none';
@@ -4281,7 +4423,7 @@ details.issue-card[open] {
           const el = document.getElementById(id);
           if (el) el.style.display = 'flex';
         });
-        ['explainBadge', 'debugBadge', 'suggestBadge', 'testgenBadge'].forEach(id => {
+        ['explainBadge', 'debugBadge', 'suggestBadge', 'testgenBadge', 'dockergenBadge'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.textContent = '';
         });
@@ -4753,6 +4895,15 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
           URL.revokeObjectURL(a.href);
           toast('Test file downloaded', 'success');
           return;
+        } else if (selectedMode === 'dockergen' && currentResult.dockergen) {
+          const blob = new Blob([currentResult.dockergen.dockerfile], { type: 'text/plain' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'Dockerfile';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          toast('Dockerfile downloaded', 'success');
+          return;
         }
         const text = buildReport(currentResult, editor.value);
         const blob = new Blob([text], { type: 'text/plain' });
@@ -4767,6 +4918,8 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
       function buildReport(r, code) {
         if (r.testgen) {
           return `QyverixAI Generated Unit Test Suite\nDate: ${new Date().toLocaleString()}\nFramework: ${r.testgen.framework}\n\n${r.testgen.test_code}`;
+        } else if (r.dockergen) {
+          return `QyverixAI Generated Docker configuration\nDate: ${new Date().toLocaleString()}\n\nDockerfile:\n${r.dockergen.dockerfile}\n\ndocker-compose.yml:\n${r.dockergen.docker_compose}`;
         }
         if (r.files) {
           const lines = ['QyverixAI Project ZIP Analysis', '', `Date: ${new Date().toLocaleString()}`, `Engine: ${r.provider || 'rule-based'}`, `Files: ${r.file_count}`, `Overall Score: ${r.overall_project_score}/100 (${r.grade})`, r.summary, ''];
