@@ -248,6 +248,8 @@ def test_presence_sync_session_cleanup():
         assert bob_state["version"] == 0
         assert len(bob_state["users"]) == 1
         assert bob_state["users"][0]["name"] == "Bob"
+
+
 def test_code_update_rejects_oversized_code():
     with client.websocket_connect(
         "/collaboration/ws/oversize-test?name=Alice"
