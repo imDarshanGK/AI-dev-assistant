@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import pytest
+from app.database import Base, get_db
+from app.main import app as fastapi_app
+from app.models import DigestSubscription
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-
-from app.database import Base, get_db
-from app.main import app as fastapi_app
-from app.models import DigestSubscription
 
 # ── In-memory test database setup ─────────────────────────────────────────────
 
@@ -178,9 +177,7 @@ def test_unsubscribe_get_wrong_token_returns_friendly_message():
     email = "get_wrong_token@example.com"
     client.post("/subscribe/", json={"email": email})
 
-    response = client.get(
-        f"/subscribe/unsubscribe?email={email}&token=wrongtoken"
-    )
+    response = client.get(f"/subscribe/unsubscribe?email={email}&token=wrongtoken")
 
     assert response.status_code == 200
     assert "invalid" in response.json()["message"].lower()
