@@ -165,9 +165,14 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
   if (!lastResult) return;
   const blob = new Blob([lastResult], { type: 'text/plain' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  a.href = url;
   a.download = `qyverix-analysis-${Date.now()}.txt`;
   a.click();
+  // Delay Blob URL revocation to allow browser download stream initialization
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
 });
 
 // ── Save favorite ──
@@ -208,10 +213,15 @@ document.getElementById('downloadJsonBtn').addEventListener('click', () => {
   );
 
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  a.href = url;
   a.download = 'analysis-history.json';
   a.click();
-  URL.revokeObjectURL(a.href);
+
+  // Delay Blob URL revocation to allow browser download stream initialization
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
 
 });
 // ── Download History CSV ──
@@ -244,10 +254,15 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
   );
 
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  a.href = url;
   a.download = 'analysis-history.csv';
   a.click();
-URL.revokeObjectURL(a.href);
+
+  // Delay Blob URL revocation to allow browser download stream initialization
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
 });
 
 // ── Run Button ──
