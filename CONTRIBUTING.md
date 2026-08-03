@@ -4,6 +4,24 @@ Thank you for wanting to contribute! QyverixAI is a GSSoC 2026 project and welco
 
 ---
 
+# Contributing
+
+Thank you for your interest in contributing!
+
+### Looking for your first contribution?
+
+Check our **Good First Issues** and **Help Wanted** labels to find beginner-friendly tasks.
+
+Remember to:
+
+- Comment before starting work
+- Create a dedicated branch
+- Keep your PR focused on one issue
+
+## Development Setup
+
+...
+
 ## Quick Start
 
 ```bash
@@ -89,6 +107,22 @@ The entire frontend is `frontend/index.html` — one self-contained file. No bui
 
 ---
 
+## Large Files Policy
+
+CI automatically rejects PRs that contain files larger than **5 MB**. This keeps the repo lean and CI fast.
+
+### What to do if your PR fails
+
+- Check which files triggered the failure in the CI logs
+- Remove the oversized files from the commit
+- For large assets (screenshots, datasets, binaries), use **Git LFS** or an external hosting service and link to them in the README
+
+### Configure exceptions
+
+If you believe a file legitimately needs to exceed 5 MB (e.g., a bundled model or a large screenshot), add an exception to the check by modifying the comparison in `.github/workflows/check-large-files.yml`.
+
+---
+
 ## Code Formatting
 
 CI enforces consistent Python formatting on every pull request using
@@ -134,6 +168,7 @@ Before opening a PR, confirm:
 - [ ] `docs/CHANGELOG.md` updated if this PR introduces user-facing changes or fixes
 - [ ] Branch is up-to-date with `main`
 - [ ] PR description explains *what* and *why*
+- [ ] No files exceed 5 MB (checked by CI)
 
 ---
 ## PR Process Examples

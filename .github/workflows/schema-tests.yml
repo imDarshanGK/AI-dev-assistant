@@ -23,22 +23,6 @@ jobs:
     name: Schema Smoke Tests (PostgreSQL 16)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: smoke
-          POSTGRES_PASSWORD: smoke
-          POSTGRES_DB: smoke_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U smoke"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
     defaults:
       run:
         working-directory: backend
@@ -55,6 +39,25 @@ jobs:
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
+
+      - name: Install PostgreSQL 16 on runner
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y wget gnupg2 lsb-release ca-certificates
+          # Add PostgreSQL Apt repo
+          wget -qO - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-16 postgresql-client-16
+          # Start PostgreSQL and create user+db
+          sudo service postgresql start
+          sudo -u postgres psql -c "CREATE USER smoke WITH PASSWORD 'smoke';" || true
+          sudo -u postgres psql -c "CREATE DATABASE smoke_db OWNER smoke;" || true
+          # Wait until ready
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5432 -U smoke && break
+            sleep 1
+          done
 
       - name: Install libmagic
         run: sudo apt-get update -qq && sudo apt-get install -y libmagic1 libmagic-dev

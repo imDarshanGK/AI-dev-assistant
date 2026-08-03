@@ -1,5 +1,5 @@
-const { test, expect } = require('@playwright/test');
-const { sampleFixturePath } = require('../helpers');
+import { test, expect } from '@playwright/test';
+import { sampleFixturePath } from '../helpers.js';
 
 test('uploads a sample file and renders analysis results', async ({ page }) => {
   await page.goto('/app/');
@@ -40,7 +40,7 @@ test('drag-and-drop upload auto-selects the detected language tab', async ({ pag
     return transfer;
   });
 
-  await page.locator('body').dispatchEvent('drop', { dataTransfer });
+  await page.locator('.editor-wrap').dispatchEvent('drop', { dataTransfer });
 
   await expect(editor).toHaveValue('const answer: number = 42;\n');
   await expect(activeTab).toHaveAttribute('data-lang', 'typescript');
