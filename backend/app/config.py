@@ -70,6 +70,18 @@ class Settings:
     llm_timeout_seconds: int = _int_env("LLM_TIMEOUT_SECONDS", 30)
     llm_max_retries: int = _int_env("LLM_MAX_RETRIES", 3)
     llm_retry_backoff: float = _float_env("LLM_RETRY_BACKOFF", 1.0)
+    # ── Logging ──────────────────────────────────────────────────
+    # Global default level applied to the "app" logger tree.
+    log_level: str = os.getenv("LOG_LEVEL", "INFO")
+    # Optional per-component overrides, e.g.:
+    #   LOG_LEVEL_AI_PROVIDER=DEBUG
+    #   LOG_LEVEL_SCHEDULER=WARNING
+    #   LOG_LEVEL_CACHE=DEBUG
+    # See logging_config.py for the full list of supported component names.
+    log_format: str = os.getenv(
+        "LOG_FORMAT", "%(asctime)s %(levelname)s %(name)s: %(message)s"
+    )
+    log_json: bool = _bool_env("LOG_JSON", False)
 
     # ── Email / Digest ──────────────────────────────────────────
     smtp_host: str = os.getenv("SMTP_HOST", "")
