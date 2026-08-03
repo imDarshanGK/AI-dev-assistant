@@ -212,7 +212,13 @@ Returns a plain-English breakdown of the code.
   "class_count": 0
 }
 ```
+#### Edge Cases
 
+- If `language` is omitted, the service automatically detects the programming language from the submitted code.
+- If the language cannot be confidently identified, the response falls back to `"Unknown"` while still generating an explanation.
+- Code without functions or classes still receives a plain-English summary and basic code statistics.
+- Recursive functions may be identified and reflected in the generated key points.
+- The reported complexity is an estimated difficulty level based on the analyzed code structure and should not be interpreted as a runtime performance measurement.
 ---
 
 ### `POST /debugging/`
@@ -238,12 +244,18 @@ Returns detected issues with line numbers, code snippets, and fix suggestions. F
   "info_count": 0
 }
 ```
+#### AST Analyzer Edge Cases
 
+- If the submitted Python code contains a syntax error, the analyzer returns a syntax error issue instead of crashing.
+- Code with no detectable AST issues is treated as clean and returns no AST-based findings.
+- Wildcard imports (`from module import *`) are excluded from unused import detection.
+- Parameters named `self`, `cls`, or prefixed with `_` are ignored during unused argument detection.
+- Deep nesting warnings are generated only when the nesting depth exceeds three levels.
 ---
 
 ### `POST /suggestions/`
 
-Returns improvement suggestion cards with a quality score. Each suggestion with an `example` renders as a before/after diff in the frontend.
+Returns improvement suggestions with a quality score and letter grade.
 
 ```json
 {

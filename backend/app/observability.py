@@ -36,6 +36,13 @@ from prometheus_client import (
     multiprocess,
 )
 
+# ── Configuration ─────────────────────────────────────────────────────────────
+# Both flags are intentionally read at **request time** (not import time) so
+# tests, hot-reloads, and operators can flip them without having to recreate
+# the metric objects below. Recreating them would raise
+# ``Duplicated timeseries in CollectorRegistry`` because they live on the
+# module-global ``prometheus_client.REGISTRY``.
+
 
 def _bool_env(name: str, default: bool) -> bool:
     raw = os.getenv(name)
@@ -52,6 +59,9 @@ def metrics_auth_token() -> str | None:
     return os.getenv("METRICS_AUTH_TOKEN") or None
 
 
+# Paths the middleware ignores entirely (the /metrics endpoint must not record
+# itself; static files under /app are noisy and high-cardinality if used as
+# labels). Health probes ARE recorded so we can alert on probe failures.
 _EXCLUDED_PATH_PREFIXES: tuple[str, ...] = (
     "/metrics",
     "/app",
@@ -103,6 +113,18 @@ APP_INFO = Gauge(
     "qyverixai_app_info",
     "Static information about the running application (always 1).",
     labelnames=("version", "ai_provider"),
+)
+
+EMAIL_SENT_TOTAL = Counter(
+    "qyverixai_email_sent_total",
+    "Total number of emails sent, labelled by type and status.",
+    labelnames=("type", "status"),
+)
+
+EMAIL_SEND_DURATION_SECONDS = Histogram(
+    "qyverixai_email_send_duration_seconds",
+    "Latency of email delivery in seconds, labelled by type.",
+    labelnames=("type",),
 )
 
 DB_OPERATIONS_TOTAL = Counter(
