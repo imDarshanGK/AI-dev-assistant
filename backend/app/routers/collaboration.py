@@ -68,6 +68,13 @@ class CollaborationManager:
             "users": self._users_payload(room),
         }
 
+    async def _broadcast_presence(self, session_id: str, room: CollaborationRoom) -> None:
+        users = self._users_payload(room)
+        await self.broadcast(
+            session_id,
+            {"type": "presence_update", "users": users},
+        )
+
     async def connect(
         self,
         session_id: str,
@@ -91,13 +98,10 @@ class CollaborationManager:
                 "joinedAt": datetime.now(timezone.utc).isoformat(),
             }
             state = self._state_payload(session_id, room, client_id)
-            users = self._users_payload(room)
+            
 
         await websocket.send_json(state)
-        await self.broadcast(
-            session_id,
-            {"type": "presence_update", "users": users},
-        )
+        await self._broadcast_presence(session_id, room)
         return client_id
 
     async def disconnect(self, session_id: str, client_id: str) -> None:
@@ -108,17 +112,13 @@ class CollaborationManager:
         async with room.lock:
             room.sockets.pop(client_id, None)
             room.users.pop(client_id, None)
-            users = self._users_payload(room)
             should_delete = not room.sockets
 
         if should_delete:
             self.rooms.pop(session_id, None)
             return
 
-        await self.broadcast(
-            session_id,
-            {"type": "presence_update", "users": users},
-        )
+        await self._broadcast_presence(session_id, room)
 
     async def broadcast(
         self,
