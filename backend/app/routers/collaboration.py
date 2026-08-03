@@ -68,7 +68,9 @@ class CollaborationManager:
             "users": self._users_payload(room),
         }
 
-    async def _broadcast_presence(self, session_id: str, room: CollaborationRoom) -> None:
+    async def _broadcast_presence(
+        self, session_id: str, room: CollaborationRoom
+    ) -> None:
         users = self._users_payload(room)
         await self.broadcast(
             session_id,
@@ -98,7 +100,6 @@ class CollaborationManager:
                 "joinedAt": datetime.now(timezone.utc).isoformat(),
             }
             state = self._state_payload(session_id, room, client_id)
-            
 
         await websocket.send_json(state)
         await self._broadcast_presence(session_id, room)
