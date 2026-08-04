@@ -768,6 +768,16 @@
       color: var(--text3)
     }
 
+    .shortcut-hint {
+      align-self: center;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text3);
+      background: rgba(255,255,255,0.03);
+      white-space: nowrap;
+    }
+
     /* ── Mode Selector ── */
     .mode-row {
       display: flex;
@@ -2243,7 +2253,63 @@ details.issue-card[open] {
 .stat-chip.error-chip .stat-chip-num{color:var(--red)}
 .stat-chip.warn-chip .stat-chip-num{color:var(--yellow)}
 .stat-chip.info-chip .stat-chip-num{color:var(--accent)}
+.issue-summary-card {
+  margin-bottom: 1.5rem;
+}
 
+.summary-card {
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  background: var(--card-bg, #1e2327);
+  border: 1px solid var(--border-color, #333);
+}
+
+.summary-header {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.summary-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 90px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.stat-error .stat-value { color: #ef4444; }
+.stat-warning .stat-value { color: #f59e0b; }
+.stat-info .stat-value { color: #3b82f6; }
+
+.summary-success {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.summary-icon { font-size: 1.5rem; }
+.summary-title { font-weight: 600; }
+.summary-subtitle { font-size: 0.85rem; opacity: 0.8; }
+
+@media (max-width: 480px) {
+  .summary-stats { gap: 0.75rem; }
+  .stat-item { min-width: 70px; }
+}  
 /* responsive */
 @media(max-width:600px){
   .hero h1{font-size:2.2rem}
@@ -2777,11 +2843,12 @@ details.issue-card[open] {
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
             <div class="mode-row" role="tablist" aria-label="Mode selector">
-              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full">Full</button>
-              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain">Explain</button>
-              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
-              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" aria-keyshortcuts="Control+Alt+1" data-i18n="mode_full">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false" aria-keyshortcuts="Control+Alt+2" data-i18n="tab_explain">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false" aria-keyshortcuts="Control+Alt+3" data-i18n="mode_debug">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false" aria-keyshortcuts="Control+Alt+4" data-i18n="tab_improve">Improve</button>
             </div>
+            <span class="shortcut-hint" title="Use Control Alt 1 through 4 to switch analysis modes">Ctrl+Alt+1-4 modes</span>
           </div>
         </div>
 
@@ -2813,7 +2880,7 @@ details.issue-card[open] {
           <div class="panel-title" data-i18n="results_title">Analysis Results</div>
           <div class="panel-actions"></div>
         </div>
-
+<div id="issue-summary-card" style="display:none; margin:14px 18px 0;"></div>
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
           <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
@@ -2934,6 +3001,58 @@ details.issue-card[open] {
           <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
         <div class="history-controls-row" style="display:flex; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 0.72rem; align-items:center; flex-wrap:wrap;">
+           <input
+      type="text"
+      id="historySearchInput"
+      placeholder="Search history..."
+      style="
+        background:var(--bg);
+        border:1px solid var(--border);
+        color:var(--text);
+        border-radius:4px;
+        padding:4px 8px;
+        font-size:0.72rem;
+        min-width:220px;
+      "
+    >
+        <span style="color:var(--text3);">Language:</span>
+
+<select id="historyLanguageFilter"
+style="
+background:var(--bg);
+border:1px solid var(--border);
+color:var(--text);
+border-radius:4px;
+padding:2px 6px;
+font-size:0.72rem;
+cursor:pointer;
+">
+  <option value="">All</option>
+  <option value="python">Python</option>
+  <option value="java">Java</option>
+  <option value="javascript">JavaScript</option>
+  <option value="typescript">TypeScript</option>
+  <option value="cpp">C++</option>
+</select>
+
+<span style="color:var(--text3);">Issues:</span>
+
+<select id="historyIssueFilter"
+style="
+background:var(--bg);
+border:1px solid var(--border);
+color:var(--text);
+border-radius:4px;
+padding:2px 6px;
+font-size:0.72rem;
+cursor:pointer;
+">
+  <option value="">Any</option>
+  <option value="0">0 Issues</option>
+  <option value="1-5">1-5 Issues</option>
+  <option value="5+">5+ Issues</option>
+</select>
+
           <span style="color:var(--text3);" data-i18n="history_sort_label">Sort:</span>
           <select id="historySortSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
             <option value="timestamp" data-i18n="history_sort_date">Date</option>
@@ -3441,6 +3560,9 @@ details.issue-card[open] {
       let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
       let analyticsHistory = [];
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
+      let historySearchTerm = "";
+      let historyLanguageFilter = "";
+      let historyIssueFilter = "";
       let currentResult = null;
       let selectedLang = 'python';
       const LOCAL_API_BASE = 'http://localhost:8000';
@@ -3466,6 +3588,18 @@ details.issue-card[open] {
       const resultActions = document.getElementById('resultActions');
       const engineInfo = document.getElementById('engineInfo');
       const timeInfo = document.getElementById('timeInfo');
+
+      const resultActionLabels = {
+        favBtn: 'Save current analysis to favorites',
+        downloadBtn: 'Download analysis results',
+        'export-pdf-btn': 'Export analysis as PDF',
+        'export-md-btn': 'Export analysis as Markdown'
+      };
+
+      Object.entries(resultActionLabels).forEach(([id, label]) => {
+        const button = document.getElementById(id);
+        if (button) button.setAttribute('aria-label', label);
+      });
 
       /* ═══════════════════════════════════════════════════════════════
          THEME
@@ -3890,16 +4024,37 @@ details.issue-card[open] {
       /* ═══════════════════════════════════════════════════════════════
          MODE BUTTONS
       ═══════════════════════════════════════════════════════════════ */
-      document.querySelectorAll('.mode-btn').forEach(b => {
-        b.addEventListener('click', () => {
-          selectedMode = b.dataset.mode;
-          document.querySelectorAll('.mode-btn').forEach(x => {
-            x.classList.remove('active');
-            x.setAttribute('aria-pressed', 'false');
-          });
-          b.classList.add('active');
-          b.setAttribute('aria-pressed', 'true');
+      function setMode(mode) {
+        const button = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+        if (!button) return;
+
+        selectedMode = mode;
+        document.querySelectorAll('.mode-btn').forEach(x => {
+          x.classList.remove('active');
+          x.setAttribute('aria-pressed', 'false');
         });
+        button.classList.add('active');
+        button.setAttribute('aria-pressed', 'true');
+      }
+
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.addEventListener('click', () => setMode(b.dataset.mode));
+      });
+
+      document.addEventListener('keydown', e => {
+        if (!(e.ctrlKey || e.metaKey) || !e.altKey) return;
+
+        const shortcutModes = {
+          '1': 'analyze',
+          '2': 'explain',
+          '3': 'debug',
+          '4': 'suggest'
+        };
+        const mode = shortcutModes[e.key];
+        if (!mode) return;
+
+        e.preventDefault();
+        setMode(mode);
       });
 
       /* ═══════════════════════════════════════════════════════════════
@@ -4106,7 +4261,10 @@ details.issue-card[open] {
           return;
         }
         if (result.explanation) renderExplain(result.explanation);
-        if (result.debugging) renderDebug(result.debugging);
+       if (result.debugging) {
+  renderDebug(result.debugging);
+  renderIssueSummaryCard(result.debugging);
+}
         if (result.suggestions) renderSuggest(result.suggestions);
 
         // Auto-switch to relevant tab
@@ -4115,6 +4273,54 @@ details.issue-card[open] {
         document.querySelector(`[data-rtab="${targetTab}"]`).click();
       }
 
+      function renderIssueSummaryCard(debugging) {
+  const card = document.getElementById('issue-summary-card');
+  if (!card || !debugging) return;
+
+  const total = debugging.issues ? debugging.issues.length : 0;
+  const errors = debugging.error_count || 0;
+  const warnings = debugging.warning_count || 0;
+  const info = debugging.info_count || 0;
+
+  card.style.display = 'block';
+
+  if (total === 0) {
+    card.innerHTML = `
+      <div class="summary-card summary-success">
+        <span class="summary-icon">✅</span>
+        <div>
+          <div class="summary-title">Great Job!</div>
+          <div class="summary-subtitle">No issues detected.</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  card.innerHTML = `
+    <div class="summary-card">
+      <div class="summary-header">🐞 Analysis Summary</div>
+      <div class="summary-stats">
+        <div class="stat-item">
+          <span class="stat-label">Total Issues</span>
+          <span class="stat-value">${total}</span>
+        </div>
+        <div class="stat-item stat-error">
+          <span class="stat-label">❌ Errors</span>
+          <span class="stat-value">${errors}</span>
+        </div>
+        <div class="stat-item stat-warning">
+          <span class="stat-label">⚠️ Warnings</span>
+          <span class="stat-value">${warnings}</span>
+        </div>
+        <div class="stat-item stat-info">
+          <span class="stat-label">ℹ️ Info</span>
+          <span class="stat-value">${info}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
       function renderZipResults(project) {
         ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
           document.getElementById(id).style.display = 'none';
@@ -4248,7 +4454,7 @@ details.issue-card[open] {
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', exp.line_count)}</div>
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', exp.function_count)}</div>
       ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', exp.class_count) + '</div>' : ''}
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
+      
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
       ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
       ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
@@ -4700,6 +4906,7 @@ details.issue-card[open] {
         engineInfo.textContent = '';
         timeInfo.textContent = '';
         currentResult = null;
+        document.getElementById('issue-summary-card').style.display = 'none';
       }
 
       function renderAnalytics() {
@@ -4931,13 +5138,51 @@ details.issue-card[open] {
       function renderHistory() {
         const listContainer = document.getElementById('historyList');
         if (!listContainer) return;
+         
+        let filteredHistory = history;
 
-        if (!history || !history.length) {
+  if (historySearchTerm) {
+  filteredHistory = history.filter(h => {
+    const preview = (h.code_preview || h.preview || "").toLowerCase();
+    const lang = (h.language || h.lang || "").toLowerCase();
+
+    return preview.includes(historySearchTerm) ||
+           lang.includes(historySearchTerm);
+  });
+}
+
+if (historyLanguageFilter) {
+  filteredHistory = filteredHistory.filter(h =>
+    (h.language || h.lang || '')
+      .toLowerCase() === historyLanguageFilter
+  );
+}
+
+if (historyIssueFilter === "0") {
+  filteredHistory = filteredHistory.filter(
+    h => (h.issue_count || 0) === 0
+  );
+}
+
+else if (historyIssueFilter === "1-5") {
+  filteredHistory = filteredHistory.filter(h => {
+    const count = h.issue_count || 0;
+    return count >= 1 && count <= 5;
+  });
+}
+
+else if (historyIssueFilter === "5+") {
+  filteredHistory = filteredHistory.filter(h => {
+    const count = h.issue_count || 0;
+    return count > 5;
+  });
+}
+        if (!filteredHistory || !filteredHistory.length) {
           listContainer.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
 
-        listContainer.innerHTML = history.map(h => {
+        listContainer.innerHTML = filteredHistory.map(h => {
           const lang = h.language || h.lang || '?';
           const preview = h.code_preview || h.preview || '';
           
@@ -5057,6 +5302,25 @@ details.issue-card[open] {
         historyOffset = 0;
         fetchHistory();
       });
+      document.getElementById('historySearchInput')?.addEventListener('input', (e) => {
+  historySearchTerm = e.target.value.toLowerCase().trim();
+  historyOffset = 0;
+  fetchHistory();
+});
+
+document.getElementById('historyLanguageFilter')
+?.addEventListener('change', (e) => {
+  historyLanguageFilter = e.target.value;
+  historyOffset = 0;
+  renderHistory();
+});
+
+document.getElementById('historyIssueFilter')
+?.addEventListener('change', (e) => {
+  historyIssueFilter = e.target.value;
+  historyOffset = 0;
+  renderHistory();
+});
 
       document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
@@ -5312,10 +5576,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         const text = buildReport(currentResult, editor.value);
         const blob = new Blob([text], { type: 'text/plain' });
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        a.href = url;
         a.download = `qyverixai-report-${Date.now()}.txt`;
         a.click();
-        URL.revokeObjectURL(a.href);
+        // Delay Blob URL revocation to allow browser download stream initialization
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 1000);
         toast(getTranslation('toast_report_downloaded'), 'success');
       });
 
@@ -5330,10 +5598,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
             
             const blob = new Blob([mdText], { type: 'text/markdown' });
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
+            a.href = url;
             a.download = `qyverixai-report-${Date.now()}.md`;
             a.click();
-            URL.revokeObjectURL(a.href);
+            // Delay Blob URL revocation to allow browser download stream initialization
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 1000);
             
             if (typeof toast === 'function') toast('Downloaded as Markdown', 'success');
         } catch (error) {
