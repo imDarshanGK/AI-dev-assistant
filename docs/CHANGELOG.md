@@ -15,6 +15,9 @@ All notable changes to QyverixAI are documented in this file.
 
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.
+- Hardened LLM structured JSON parsing in `llm_analysis.py` with safer
+  markdown-fence stripping, schema checks, and retries with backoff on
+  parse failures.
 
 ### Security
 - Hardened authentication against token replay: access tokens now carry a
