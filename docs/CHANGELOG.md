@@ -16,6 +16,15 @@ All notable changes to QyverixAI are documented in this file.
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.
 
+### Fixed
+- Multi-line `BUG_PATTERNS` (`String Concatenation in Loop`, `Missing __init__`,
+  `Callback Hell`) now fire correctly. `run_bug_detection` previously matched
+  each regex against a single line, which silently killed patterns that span
+  multiple lines; multi-line patterns are now matched against the full source.
+- Tightened the `Missing __init__` regex (`[^:]*` → `[^:\n]*`) so the class
+  header stays on a single line and classes that do define `__init__` are not
+  flagged once multi-line matching is enabled.
+
 ### Security
 - Hardened authentication against token replay: access tokens now carry a
   unique `jti`, and revoked tokens (e.g. after logout) are rejected via a
