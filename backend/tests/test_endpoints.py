@@ -420,6 +420,47 @@ subprocess.run("ls -la", shell=True)
     assert "Shell=True Usage" in types
 
 
+def test_debug_detects_multiline_shell_true_usage():
+    code = """
+import subprocess
+
+subprocess.run(
+    ["ls", "-la"],
+    shell=True,
+)
+"""
+
+    r = client.post(
+        "/debugging/",
+        json={"code": code, "language": "python"},
+    )
+
+    assert r.status_code == 200
+
+    types = [issue["type"] for issue in r.json()["issues"]]
+
+    assert "Shell=True Usage" in types
+
+
+def test_debug_detects_shell_true_with_nested_call():
+    code = """
+import subprocess
+
+subprocess.run(cmd.split(), shell=True)
+"""
+
+    r = client.post(
+        "/debugging/",
+        json={"code": code, "language": "python"},
+    )
+
+    assert r.status_code == 200
+
+    types = [issue["type"] for issue in r.json()["issues"]]
+
+    assert "Shell=True Usage" in types
+
+
 def test_debug_clean_code():
     r = client.post("/debugging/", json={"code": PYTHON_CLEAN, "language": "python"})
     assert r.status_code == 200

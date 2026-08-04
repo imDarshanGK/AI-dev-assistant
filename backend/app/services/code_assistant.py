@@ -318,14 +318,6 @@ BUG_PATTERNS: list[BugPattern] = [
         ["Python"],
     ),
     BugPattern(
-        "Shell=True Usage",
-        r"\bsubprocess\.(run|call|Popen|check_call|check_output)\s*\([^)]*shell\s*=\s*True",
-        "`shell=True` allows shell command interpretation and can lead to command injection vulnerabilities.",
-        "Avoid `shell=True`. Pass the command as a list of arguments unless shell features are explicitly required.",
-        "warning",
-        ["Python"],
-    ),
-    BugPattern(
         "Mutable Default Arg",
         r"def\s+\w+\s*\([^)]*=\s*(\[\]|\{\}|\(\))",
         "Mutable default argument shared across all calls — classic Python gotcha.",

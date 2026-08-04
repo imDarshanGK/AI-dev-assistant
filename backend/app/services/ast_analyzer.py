@@ -62,6 +62,34 @@ class PythonASTAnalyzer(ast.NodeVisitor):
                 "error",
                 node.lineno,
             ))
+
+        if (
+            isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "subprocess"
+            and node.func.attr in {
+                "run",
+                "call",
+                "Popen",
+                "check_call",
+                "check_output",
+            }
+        ):
+            for keyword in node.keywords:
+                if (
+                    keyword.arg == "shell"
+                    and isinstance(keyword.value, ast.Constant)
+                    and keyword.value.value is True
+                ):
+                    self.issues.append(_issue(
+                        "Shell=True Usage",
+                        "`shell=True` allows shell command interpretation and can lead to command injection vulnerabilities.",
+                        "Avoid `shell=True`. Pass the command as a list of arguments unless shell features are explicitly required.",
+                        "warning",
+                        node.lineno,
+                    ))
+                    break
+
         self.generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign) -> None:
