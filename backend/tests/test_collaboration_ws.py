@@ -248,3 +248,144 @@ def test_presence_sync_session_cleanup():
         assert bob_state["version"] == 0
         assert len(bob_state["users"]) == 1
         assert bob_state["users"][0]["name"] == "Bob"
+
+
+def test_code_update_rejects_oversized_code():
+    with client.websocket_connect(
+        "/collaboration/ws/oversize-test?name=Alice"
+    ) as websocket:
+        websocket.receive_json()  # session_state
+        websocket.receive_json()  # presence_update
+
+        websocket.send_json(
+            {
+                "type": "code_update",
+                "code": "x" * 50_001,
+                "language": "python",
+                "version": 0,
+            }
+        )
+
+        response = websocket.receive_json()
+
+        assert response["type"] == "error"
+        assert "50000" in response["detail"]
+
+
+def test_code_update_rejects_non_string_code():
+    with client.websocket_connect(
+        "/collaboration/ws/nonstring-test?name=Alice"
+    ) as websocket:
+        websocket.receive_json()  # session_state
+        websocket.receive_json()  # presence_update
+
+        websocket.send_json(
+            {
+                "type": "code_update",
+                "code": 12345,
+                "language": "python",
+                "version": 0,
+            }
+        )
+
+        response = websocket.receive_json()
+
+        assert response["type"] == "error"
+        assert "string" in response["detail"]
+
+
+def test_unknown_message_type_returns_error():
+    with client.websocket_connect(
+        "/collaboration/ws/unknown-msg-test?name=Alice"
+    ) as websocket:
+        websocket.receive_json()  # session_state
+        websocket.receive_json()  # presence_update
+
+        websocket.send_json({"type": "launch_rockets"})
+
+        response = websocket.receive_json()
+
+        assert response["type"] == "error"
+        assert "launch_rockets" in response["detail"]
+
+
+def test_comment_rejects_empty_text():
+    with client.websocket_connect(
+        "/collaboration/ws/empty-comment-test?name=Alice"
+    ) as websocket:
+        websocket.receive_json()  # session_state
+        websocket.receive_json()  # presence_update
+
+        websocket.send_json(
+            {
+                "type": "comment_added",
+                "line": 1,
+                "text": "",
+            }
+        )
+
+        response = websocket.receive_json()
+
+        assert response["type"] == "error"
+        assert "required" in response["detail"]
+
+
+def test_comment_rejects_oversized_text():
+    with client.websocket_connect(
+        "/collaboration/ws/long-comment-test?name=Alice"
+    ) as websocket:
+        websocket.receive_json()  # session_state
+        websocket.receive_json()  # presence_update
+
+        websocket.send_json(
+            {
+                "type": "comment_added",
+                "line": 1,
+                "text": "A" * 1_001,
+            }
+        )
+
+        response = websocket.receive_json()
+
+        assert response["type"] == "error"
+        assert "1000" in response["detail"]
+
+
+def test_cursor_update_ignores_non_dict_cursor():
+    with client.websocket_connect(
+        "/collaboration/ws/cursor-nondict-test?name=Alice"
+    ) as websocket:
+        websocket.receive_json()  # session_state
+        websocket.receive_json()  # presence_update
+
+        # Send a cursor_update with a non-dict cursor value.
+        # The server should silently ignore this without crashing.
+        websocket.send_json(
+            {
+                "type": "cursor_update",
+                "cursor": "not-a-dict",
+            }
+        )
+
+        # Send a ping immediately after — if the server is still alive
+        # and responding, it means the bad cursor was handled gracefully.
+        websocket.send_json({"type": "ping"})
+        response = websocket.receive_json()
+
+        assert response["type"] == "pong"
+
+
+def test_non_dict_message_payload_returns_error():
+    with client.websocket_connect(
+        "/collaboration/ws/non-dict-test?name=Alice"
+    ) as websocket:
+        websocket.receive_json()  # session_state
+        websocket.receive_json()  # presence_update
+
+        # Send a JSON array instead of an object.
+        websocket.send_json(["not", "a", "dict"])
+
+        response = websocket.receive_json()
+
+        assert response["type"] == "error"
+        assert "JSON object" in response["detail"]
