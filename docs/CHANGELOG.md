@@ -5,6 +5,7 @@ All notable changes to QyverixAI are documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added regression tests for the LLM analysis service (`llm_analysis.py`).
 - Added a dedicated changelog page in `docs/CHANGELOG.md`.
 - Added changelog guidance for contributors and PR authors.
 - Added `POST /auth/logout` to revoke the caller's access token.
