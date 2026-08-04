@@ -16,6 +16,11 @@ All notable changes to QyverixAI are documented in this file.
 ### Changed
 - Linked the changelog from `README.md` for faster discoverability.
 
+### Fixed
+- Improved database service error handling: safer idempotent schema migrations,
+  soft-fail invalid FTS search queries to an empty result, and structured
+  logging before re-raising unexpected SQLite failures.
+
 ### Security
 - Hardened authentication against token replay: access tokens now carry a
   unique `jti`, and revoked tokens (e.g. after logout) are rejected via a
