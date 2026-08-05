@@ -2,10 +2,10 @@
 Tests for the /history/ endpoints.
 """
 
-import asyncio
-import os
 import sys
+import os
 import tempfile
+import asyncio
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
