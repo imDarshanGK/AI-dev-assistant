@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import tempfile
+from unittest.mock import patch
 
 import pytest
 from app.services import database
@@ -204,3 +206,55 @@ def test_invalid_order_fallback(temp_db):
 
     assert len(entries) == 1
     assert entries[0]["language"] == "Python"
+
+
+# Verify init_db can run twice (idempotent migrations / duplicate columns).
+def test_init_db_is_idempotent(temp_db):
+    asyncio.run(database.init_db())
+    asyncio.run(database.init_db())
+
+    assert asyncio.run(database.count_entries()) == 0
+
+
+# Invalid FTS MATCH syntax should soft-fail to an empty list, not raise.
+def test_search_invalid_fts_query_returns_empty(temp_db):
+    asyncio.run(
+        database.save_entry(
+            code="print('hello world')",
+            language="Python",
+            score=95,
+            issue_count=1,
+        )
+    )
+
+    results = asyncio.run(database.search_entries('"""'))
+    assert results == []
+
+    results_and = asyncio.run(database.search_entries("AND"))
+    assert results_and == []
+
+
+# Deleting a missing id returns False without raising.
+def test_delete_missing_entry_returns_false(temp_db):
+    deleted = asyncio.run(database.delete_entry(999_999))
+    assert deleted is False
+
+
+# Connection / operational failures are logged and re-raised.
+def test_save_entry_raises_on_connection_failure(temp_db, caplog):
+    with patch(
+        "app.services.database.aiosqlite.connect",
+        side_effect=OSError("connection refused"),
+    ):
+        with caplog.at_level(logging.ERROR, logger="ai_assistant.api"):
+            with pytest.raises(OSError, match="connection refused"):
+                asyncio.run(
+                    database.save_entry(
+                        code="print('fail')",
+                        language="Python",
+                        score=1,
+                        issue_count=0,
+                    )
+                )
+
+    assert any("save_entry" in record.message for record in caplog.records)

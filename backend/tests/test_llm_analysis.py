@@ -4,10 +4,11 @@ Unit tests for backend/app/services/llm_analysis.py
 Covers LLMAnalysisClient:
 - enabled property
 - _chat_completion success and error paths
-- _extract_json plain / fenced / invalid payloads
-- summarize_code, analyze_code_structured, chat_reply
+- _extract_json fence stripping, decode errors, schema validation
+- analyze_code_structured success / retry / exhaustion
+- summarize_code and chat_reply
 
-No real API calls — httpx is mocked offline.
+No real API calls — httpx and asyncio.sleep are mocked.
 Run: cd backend && pytest tests/test_llm_analysis.py -v
 """
 
@@ -19,6 +20,20 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 from app.services.llm_analysis import LLMAnalysisClient, LLMAnalysisError
+
+
+def _valid_structured_payload() -> dict:
+    return {
+        "explanation": {
+            "summary": "adds numbers",
+            "key_points": [],
+            "beginner_tip": "",
+        },
+        "debugging": {"issues": [], "quick_checks": []},
+        "suggestions": {"suggestions": [], "next_steps": []},
+        "complexity": {"time": "O(1)", "space": "O(1)"},
+        "optimized_version": "def add(a, b): return a + b",
+    }
 
 
 def _make_llm_response(text: str) -> MagicMock:
@@ -49,7 +64,18 @@ def _patch_httpx(mock_response: MagicMock):
     """Patch llm_analysis.httpx.AsyncClient to return mock_response."""
     mock_client = AsyncMock()
     mock_client.post = AsyncMock(return_value=mock_response)
+    patcher = patch("app.services.llm_analysis.httpx.AsyncClient")
+    mock_cls = patcher.start()
+    mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+    return patcher, mock_client
 
+
+def _patch_httpx_sequence(texts: list[str]):
+    """Return successive LLM text payloads on each post() call."""
+    responses = [_make_llm_response(t) for t in texts]
+    mock_client = AsyncMock()
+    mock_client.post = AsyncMock(side_effect=responses)
     patcher = patch("app.services.llm_analysis.httpx.AsyncClient")
     mock_cls = patcher.start()
     mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
@@ -68,6 +94,8 @@ def enabled_client(monkeypatch):
     )
     monkeypatch.setattr("app.services.llm_analysis.settings.llm_model", "gpt-4o-mini")
     monkeypatch.setattr("app.services.llm_analysis.settings.llm_timeout_seconds", 30)
+    monkeypatch.setattr("app.services.llm_analysis.settings.llm_max_retries", 2)
+    monkeypatch.setattr("app.services.llm_analysis.settings.llm_retry_backoff", 0.01)
     return LLMAnalysisClient()
 
 
@@ -76,6 +104,8 @@ def disabled_client(monkeypatch):
     """LLMAnalysisClient with LLM disabled."""
     monkeypatch.setattr("app.services.llm_analysis.settings.llm_enabled", False)
     monkeypatch.setattr("app.services.llm_analysis.settings.llm_api_key", "sk-test-key")
+    monkeypatch.setattr("app.services.llm_analysis.settings.llm_max_retries", 1)
+    monkeypatch.setattr("app.services.llm_analysis.settings.llm_retry_backoff", 0.01)
     return LLMAnalysisClient()
 
 
@@ -84,6 +114,8 @@ def no_key_client(monkeypatch):
     """LLMAnalysisClient with empty API key."""
     monkeypatch.setattr("app.services.llm_analysis.settings.llm_enabled", True)
     monkeypatch.setattr("app.services.llm_analysis.settings.llm_api_key", "")
+    monkeypatch.setattr("app.services.llm_analysis.settings.llm_max_retries", 1)
+    monkeypatch.setattr("app.services.llm_analysis.settings.llm_retry_backoff", 0.01)
     return LLMAnalysisClient()
 
 
@@ -219,10 +251,34 @@ class TestExtractJson:
         with pytest.raises(LLMAnalysisError, match="invalid_json_payload"):
             LLMAnalysisClient._extract_json("}{")
 
-    def test_invalid_json_between_braces_raises_json_decode(self):
-        # Current contract: json.loads raises JSONDecodeError (not wrapped).
-        with pytest.raises(json.JSONDecodeError):
+    def test_invalid_json_between_braces_raises_llm_error(self):
+        with pytest.raises(LLMAnalysisError, match="invalid_json_payload"):
             LLMAnalysisClient._extract_json("{not valid json}")
+
+    def test_non_object_json_raises(self):
+        with pytest.raises(LLMAnalysisError, match="invalid_json_payload"):
+            LLMAnalysisClient._extract_json("[1, 2, 3]")
+
+    def test_missing_structured_keys_raises_schema_error(self):
+        with pytest.raises(LLMAnalysisError, match="invalid_json_schema"):
+            LLMAnalysisClient._extract_json(
+                '{"explanation": {}}',
+                require_structured_keys=True,
+            )
+
+    def test_valid_structured_keys_pass(self):
+        payload = _valid_structured_payload()
+        result = LLMAnalysisClient._extract_json(
+            json.dumps(payload),
+            require_structured_keys=True,
+        )
+        assert result["complexity"]["time"] == "O(1)"
+
+    def test_fenced_structured_payload(self):
+        payload = _valid_structured_payload()
+        fenced = f"```json\n{json.dumps(payload)}\n```"
+        result = LLMAnalysisClient._extract_json(fenced, require_structured_keys=True)
+        assert "debugging" in result
 
 
 class TestSummarizeCode:
@@ -268,19 +324,21 @@ class TestSummarizeCode:
 
 class TestAnalyzeCodeStructured:
     @pytest.mark.asyncio
+    async def test_raises_when_disabled(self, disabled_client):
+        with pytest.raises(LLMAnalysisError, match="llm_disabled"):
+            await disabled_client.analyze_code_structured("x = 1", "Python")
+
+    @pytest.mark.asyncio
     async def test_parses_valid_json(self, enabled_client):
-        payload = {
-            "explanation": {"summary": "adds numbers"},
-            "debugging": {"issues": [], "quick_checks": []},
-            "suggestions": {"suggestions": [], "next_steps": []},
-            "complexity": {"time": "O(1)", "space": "O(1)"},
-            "optimized_version": "def add(a, b): return a + b",
-        }
+        payload = _valid_structured_payload()
         patcher, _ = _patch_httpx(_make_llm_response(json.dumps(payload)))
         try:
-            result = await enabled_client.analyze_code_structured(
-                "def add(a, b): return a + b", "Python"
-            )
+            with patch(
+                "app.services.llm_analysis.asyncio.sleep", new_callable=AsyncMock
+            ):
+                result = await enabled_client.analyze_code_structured(
+                    "def add(a, b): return a + b", "Python"
+                )
         finally:
             patcher.stop()
         assert result["explanation"]["summary"] == "adds numbers"
@@ -288,32 +346,90 @@ class TestAnalyzeCodeStructured:
 
     @pytest.mark.asyncio
     async def test_parses_fenced_json(self, enabled_client):
-        inner = {"explanation": {"summary": "fenced"}, "debugging": {"issues": []}}
-        fenced = f"```json\n{json.dumps(inner)}\n```"
+        payload = _valid_structured_payload()
+        fenced = f"```json\n{json.dumps(payload)}\n```"
         patcher, _ = _patch_httpx(_make_llm_response(fenced))
         try:
-            result = await enabled_client.analyze_code_structured("x = 1", "Python")
+            with patch(
+                "app.services.llm_analysis.asyncio.sleep", new_callable=AsyncMock
+            ):
+                result = await enabled_client.analyze_code_structured("x = 1", "Python")
         finally:
             patcher.stop()
-        assert result["explanation"]["summary"] == "fenced"
+        assert result["optimized_version"].startswith("def add")
 
     @pytest.mark.asyncio
     async def test_invalid_payload_raises(self, enabled_client):
         patcher, _ = _patch_httpx(_make_llm_response("no json here"))
         try:
-            with pytest.raises(LLMAnalysisError):
-                await enabled_client.analyze_code_structured("x = 1", "Python")
+            with patch(
+                "app.services.llm_analysis.asyncio.sleep", new_callable=AsyncMock
+            ):
+                with pytest.raises(LLMAnalysisError):
+                    await enabled_client.analyze_code_structured("x = 1", "Python")
         finally:
             patcher.stop()
 
     @pytest.mark.asyncio
-    async def test_request_includes_user_code_tags(self, enabled_client):
-        sample = "print('hello')"
-        patcher, mock_client = _patch_httpx(
-            _make_llm_response('{"explanation": {"summary": "hi"}}')
+    async def test_retries_then_succeeds_on_second_attempt(self, enabled_client):
+        payload = _valid_structured_payload()
+        patcher, mock_client = _patch_httpx_sequence(["not json", json.dumps(payload)])
+        try:
+            with patch(
+                "app.services.llm_analysis.asyncio.sleep", new_callable=AsyncMock
+            ) as mock_sleep:
+                result = await enabled_client.analyze_code_structured(
+                    "print(1)", "Python"
+                )
+        finally:
+            patcher.stop()
+
+        assert result["explanation"]["summary"] == "adds numbers"
+        assert mock_client.post.await_count == 2
+        mock_sleep.assert_awaited()
+
+    @pytest.mark.asyncio
+    async def test_exhausts_retries_on_persistent_invalid_json(self, enabled_client):
+        # max_retries=2 -> 3 attempts
+        patcher, mock_client = _patch_httpx_sequence(["bad", "still bad", "also bad"])
+        try:
+            with patch(
+                "app.services.llm_analysis.asyncio.sleep", new_callable=AsyncMock
+            ):
+                with pytest.raises(LLMAnalysisError, match="invalid_json_payload"):
+                    await enabled_client.analyze_code_structured("x = 1", "Python")
+        finally:
+            patcher.stop()
+
+        assert mock_client.post.await_count == 3
+
+    @pytest.mark.asyncio
+    async def test_exhausts_retries_on_missing_schema_keys(self, enabled_client):
+        incomplete = json.dumps({"explanation": {"summary": "only this"}})
+        patcher, mock_client = _patch_httpx_sequence(
+            [incomplete, incomplete, incomplete]
         )
         try:
-            await enabled_client.analyze_code_structured(sample, "Python")
+            with patch(
+                "app.services.llm_analysis.asyncio.sleep", new_callable=AsyncMock
+            ):
+                with pytest.raises(LLMAnalysisError, match="invalid_json_schema"):
+                    await enabled_client.analyze_code_structured("x = 1", "Python")
+        finally:
+            patcher.stop()
+
+        assert mock_client.post.await_count == 3
+
+    @pytest.mark.asyncio
+    async def test_request_includes_user_code_tags(self, enabled_client):
+        payload = _valid_structured_payload()
+        sample = "print('hello')"
+        patcher, mock_client = _patch_httpx(_make_llm_response(json.dumps(payload)))
+        try:
+            with patch(
+                "app.services.llm_analysis.asyncio.sleep", new_callable=AsyncMock
+            ):
+                await enabled_client.analyze_code_structured(sample, "Python")
         finally:
             patcher.stop()
 

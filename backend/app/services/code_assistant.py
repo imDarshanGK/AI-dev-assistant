@@ -382,7 +382,7 @@ BUG_PATTERNS: list[BugPattern] = [
     ),
     BugPattern(
         "Missing __init__",
-        r"class\s+\w+[^:]*:\n(?!\s+def __init__)",
+        r"class\s+\w+[^:\n]*:\n(?!\s+def __init__)",
         "Class defined without `__init__` — may cause AttributeError on attribute access.",
         "Add `def __init__(self):` to initialize instance state.",
         "info",
@@ -820,6 +820,18 @@ BUG_PATTERNS: list[BugPattern] = [
 ]
 
 
+def _is_multiline_pattern(pattern: str) -> bool:
+    """Return True if a regex pattern is intended to match across multiple lines.
+
+    Such patterns contain constructs (a literal ``\\n``, or a character class
+    such as ``[\\s\\S]`` / ``[\\d\\D]`` / ``[\\w\\W]``) that can only match when
+    the regex is run against the full, un-split source code. The per-line scan
+    in :func:`run_bug_detection` strips newlines, so these patterns would
+    otherwise never fire and remain dead code.
+    """
+    return any(token in pattern for token in (r"\n", r"[\s\S]", r"[\d\D]", r"[\w\W]"))
+
+
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
 
@@ -853,6 +865,36 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
     for bp in BUG_PATTERNS:
         if language not in bp.languages and "All" not in bp.languages:
+            continue
+
+        # Multi-line patterns rely on constructs (literal "\n", "[\s\S]", ...)
+        # that span more than one line, so they cannot match when the regex is
+        # applied to a single line. Run them against the full source instead.
+        if _is_multiline_pattern(bp.pattern):
+            for match in re.finditer(bp.pattern, code, re.MULTILINE | re.IGNORECASE):
+                line_no = code[: match.start()].count("\n") + 1
+                key = f"{bp.name}:{line_no}"
+                if key in seen:
+                    continue
+                seen.add(key)
+                snippet = (
+                    lines[line_no - 1].strip()[:120]
+                    if 0 <= line_no - 1 < len(lines)
+                    else ""
+                )
+                found.append(
+                    {
+                        "type": bp.name,
+                        "line": line_no,
+                        "description": bp.description,
+                        "suggestion": bp.suggestion,
+                        "severity": bp.severity,
+                        "code_snippet": snippet,
+                        "code_context": format_code_snippet(
+                            code, [line_no], context_lines=2
+                        ),
+                    }
+                )
             continue
 
         for i, line in enumerate(lines, start=1):
