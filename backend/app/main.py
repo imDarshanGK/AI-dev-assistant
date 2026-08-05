@@ -64,6 +64,8 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    configure_logging()
+    Base.metadata.create_all(bind=engine)
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
     initialise_app_info(

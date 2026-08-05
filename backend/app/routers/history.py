@@ -69,7 +69,7 @@ async def save_history(body: HistorySaveRequest):
 
 @router.get("/search", response_model=list[HistoryEntry])
 async def search_history(
-    q: str = Query(..., min_length=1),
+    q: str = Query(..., min_length=1, max_length=200),
     limit: int = Query(20, ge=1, le=100),
 ):
     return await database.search_entries(q=q, limit=limit)

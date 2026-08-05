@@ -36,7 +36,6 @@ from prometheus_client import (
     multiprocess,
 )
 
-
 # ── Configuration ─────────────────────────────────────────────────────────────
 # Both flags are intentionally read at **request time** (not import time) so
 # tests, hot-reloads, and operators can flip them without having to recreate
@@ -70,9 +69,6 @@ _EXCLUDED_PATH_PREFIXES: tuple[str, ...] = (
 )
 
 
-# ── Metric definitions ────────────────────────────────────────────────────────
-# Buckets are chosen for a typical HTTP API: sub-millisecond up to ~30s. The
-# upper bucket of +Inf is added automatically by prometheus_client.
 _LATENCY_BUCKETS_SECONDS: tuple[float, ...] = (
     0.005,
     0.01,
@@ -117,6 +113,30 @@ APP_INFO = Gauge(
     "qyverixai_app_info",
     "Static information about the running application (always 1).",
     labelnames=("version", "ai_provider"),
+)
+
+EMAIL_SENT_TOTAL = Counter(
+    "qyverixai_email_sent_total",
+    "Total number of emails sent, labelled by type and status.",
+    labelnames=("type", "status"),
+)
+
+EMAIL_SEND_DURATION_SECONDS = Histogram(
+    "qyverixai_email_send_duration_seconds",
+    "Latency of email delivery in seconds, labelled by type.",
+    labelnames=("type",),
+)
+
+DB_OPERATIONS_TOTAL = Counter(
+    "qyverixai_db_operations_total",
+    "Total number of database operations executed, labelled by operation and status.",
+    labelnames=("operation", "status"),
+)
+
+DB_OPERATION_DURATION_SECONDS = Histogram(
+    "qyverixai_db_operation_duration_seconds",
+    "Latency of database operations in seconds, labelled by operation.",
+    labelnames=("operation",),
 )
 
 
@@ -169,9 +189,6 @@ async def prometheus_metrics_middleware(
     method = request.method
     start = time.perf_counter()
 
-    # We don't yet know the route template (routing happens after middleware
-    # entry), but a coarse placeholder lets us increment the in-progress gauge
-    # consistently. The placeholder is replaced before observing latency.
     in_progress_label = "in_flight"
     REQUESTS_IN_PROGRESS.labels(method=method, endpoint=in_progress_label).inc()
 
