@@ -51,6 +51,22 @@ class CollaborationManager:
     def _users_payload(self, room: CollaborationRoom) -> list[dict[str, Any]]:
         return list(room.users.values())
 
+    async def _send_error(
+        self,
+        room: CollaborationRoom,
+        client_id: str,
+        detail: str,
+    ) -> None:
+        """Send an error message to a collaboration client if connected."""
+        socket = room.sockets.get(client_id)
+        if socket is not None:
+            await socket.send_json(
+                {
+                    "type": "error",
+                    "detail": detail,
+                }
+            )
+
     def _state_payload(
         self,
         session_id: str,
@@ -172,14 +188,11 @@ class CollaborationManager:
             await self._handle_comment_added(session_id, client_id, data)
             return
 
-        socket = room.sockets.get(client_id)
-        if socket is not None:
-            await socket.send_json(
-                {
-                    "type": "error",
-                    "detail": f"Unsupported collaboration message type: {message_type}",
-                }
-            )
+        await self._send_error(
+            room,
+            client_id,
+            f"Unsupported collaboration message type: {message_type}",
+        )
 
     async def _handle_code_update(
         self,
@@ -188,26 +201,20 @@ class CollaborationManager:
         data: dict[str, Any],
     ) -> None:
         room = self._get_room(session_id)
-        socket = room.sockets.get(client_id)
         code = data.get("code", "")
         language = data.get("language")
         incoming_version = int(data.get("version", 0))
 
         if not isinstance(code, str):
-            if socket is not None:
-                await socket.send_json(
-                    {"type": "error", "detail": "code must be a string"}
-                )
+            await self._send_error(room, client_id, "code must be a string")
             return
 
         if len(code) > MAX_CODE_CHARS:
-            if socket is not None:
-                await socket.send_json(
-                    {
-                        "type": "error",
-                        "detail": f"code exceeds {MAX_CODE_CHARS} characters",
-                    }
-                )
+            await self._send_error(
+                room,
+                client_id,
+                f"code exceeds {MAX_CODE_CHARS} characters",
+            )
             return
 
         async with room.lock:
@@ -276,23 +283,16 @@ class CollaborationManager:
         text = str(data.get("text", "")).strip()
         line = max(1, int(data.get("line", 1)))
 
-        socket = room.sockets.get(client_id)
-
         if not text:
-            if socket is not None:
-                await socket.send_json(
-                    {"type": "error", "detail": "comment text is required"}
-                )
+            await self._send_error(room, client_id, "comment text is required")
             return
 
         if len(text) > MAX_COMMENT_CHARS:
-            if socket is not None:
-                await socket.send_json(
-                    {
-                        "type": "error",
-                        "detail": f"comment exceeds {MAX_COMMENT_CHARS} characters",
-                    }
-                )
+            await self._send_error(
+                room,
+                client_id,
+                f"comment exceeds {MAX_COMMENT_CHARS} characters",
+            )
             return
 
         async with room.lock:
