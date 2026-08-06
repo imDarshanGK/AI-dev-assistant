@@ -515,3 +515,113 @@ class TestChatReply:
         _, kwargs = mock_client.post.call_args
         user_content = kwargs["json"]["messages"][1]["content"]
         assert "<user_code>\n\n</user_code>" in user_content
+
+
+class TestLlmObservabilityMetrics:
+    @pytest.mark.asyncio
+    async def test_llm_metrics_recorded_on_chat_completion_success(
+        self, enabled_client, monkeypatch
+    ):
+        import os
+
+        from app.main import app
+        from fastapi.testclient import TestClient
+
+        monkeypatch.setenv("METRICS_ENABLED", "true")
+        monkeypatch.delenv("METRICS_AUTH_TOKEN", raising=False)
+        os.environ["METRICS_ENABLED"] = "true"
+        os.environ.pop("METRICS_AUTH_TOKEN", None)
+
+        patcher, _ = _patch_httpx(_make_llm_response("ok"))
+        try:
+            result = await enabled_client._chat_completion(
+                [{"role": "user", "content": "hi"}]
+            )
+        finally:
+            patcher.stop()
+
+        assert result == "ok"
+        metrics_text = TestClient(app).get("/metrics").text
+        assert "qyverixai_llm_requests_total" in metrics_text
+        assert 'op="chat_completion"' in metrics_text
+        assert 'status="success"' in metrics_text
+        assert "qyverixai_llm_request_duration_seconds" in metrics_text
+
+    @pytest.mark.asyncio
+    async def test_llm_metrics_recorded_on_chat_completion_failure(
+        self, enabled_client, monkeypatch
+    ):
+        import os
+
+        from app.main import app
+        from fastapi.testclient import TestClient
+
+        monkeypatch.setenv("METRICS_ENABLED", "true")
+        monkeypatch.delenv("METRICS_AUTH_TOKEN", raising=False)
+        os.environ["METRICS_ENABLED"] = "true"
+        os.environ.pop("METRICS_AUTH_TOKEN", None)
+
+        patcher, _ = _patch_httpx(_make_error_response(500))
+        try:
+            with pytest.raises(LLMAnalysisError):
+                await enabled_client._chat_completion(
+                    [{"role": "user", "content": "hi"}]
+                )
+        finally:
+            patcher.stop()
+
+        metrics_text = TestClient(app).get("/metrics").text
+        assert "qyverixai_llm_requests_total" in metrics_text
+        assert 'op="chat_completion"' in metrics_text
+        assert 'status="failed"' in metrics_text
+
+    def test_llm_parse_error_metric_incremented(self, monkeypatch):
+        import os
+
+        from app.main import app
+        from fastapi.testclient import TestClient
+
+        monkeypatch.setenv("METRICS_ENABLED", "true")
+        monkeypatch.delenv("METRICS_AUTH_TOKEN", raising=False)
+        os.environ["METRICS_ENABLED"] = "true"
+        os.environ.pop("METRICS_AUTH_TOKEN", None)
+
+        with pytest.raises(LLMAnalysisError, match="invalid_json_payload"):
+            LLMAnalysisClient._extract_json("not json at all")
+
+        metrics_text = TestClient(app).get("/metrics").text
+        assert "qyverixai_llm_parse_errors_total" in metrics_text
+        assert 'op="extract_json"' in metrics_text
+
+    @pytest.mark.asyncio
+    async def test_llm_retry_metric_incremented_on_retry(
+        self, enabled_client, monkeypatch
+    ):
+        import os
+
+        from app.main import app
+        from fastapi.testclient import TestClient
+
+        monkeypatch.setenv("METRICS_ENABLED", "true")
+        monkeypatch.delenv("METRICS_AUTH_TOKEN", raising=False)
+        os.environ["METRICS_ENABLED"] = "true"
+        os.environ.pop("METRICS_AUTH_TOKEN", None)
+
+        payload = _valid_structured_payload()
+        patcher, mock_client = _patch_httpx_sequence(["not json", json.dumps(payload)])
+        try:
+            with patch(
+                "app.services.llm_analysis.asyncio.sleep", new_callable=AsyncMock
+            ):
+                result = await enabled_client.analyze_code_structured(
+                    "print(1)", "Python"
+                )
+        finally:
+            patcher.stop()
+
+        assert result["explanation"]["summary"] == "adds numbers"
+        assert mock_client.post.await_count == 2
+
+        metrics_text = TestClient(app).get("/metrics").text
+        assert "qyverixai_llm_retries_total" in metrics_text
+        assert 'op="analyze_code_structured"' in metrics_text

@@ -25,6 +25,7 @@ from .routers import metrics as metrics_router
 from .routers import share, subscribe, suggestions, upload_file, user_data
 from .schemas import HealthResponse
 from .services import database
+from .services.error_tracking import init_error_tracking
 from .services.scheduler import start_scheduler, stop_scheduler
 
 # ── Rate limiter (in-memory, per IP) ──────────────────────────────────────────
@@ -57,6 +58,7 @@ def rate_limit_headers(remaining: int) -> dict[str, str]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
+    init_error_tracking()
     Base.metadata.create_all(bind=engine)
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
