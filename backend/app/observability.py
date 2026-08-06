@@ -139,6 +139,24 @@ DB_OPERATION_DURATION_SECONDS = Histogram(
     labelnames=("operation",),
 )
 
+SUBSCRIBE_ATTEMPTS_TOTAL = Counter(
+    "qyverixai_subscribe_attempts_total",
+    "Total number of subscription attempts, labelled by result.",
+    labelnames=("result",),
+)
+
+UNSUBSCRIBE_POST_ATTEMPTS_TOTAL = Counter(
+    "qyverixai_unsubscribe_post_attempts_total",
+    "Total number of POST unsubscribe attempts, labelled by result.",
+    labelnames=("result",),
+)
+
+UNSUBSCRIBE_GET_ATTEMPTS_TOTAL = Counter(
+    "qyverixai_unsubscribe_get_attempts_total",
+    "Total number of GET unsubscribe attempts, labelled by result.",
+    labelnames=("result",),
+)
+
 
 def initialise_app_info(version: str, ai_provider: str) -> None:
     """Set the app_info gauge once at startup so dashboards can display it."""
