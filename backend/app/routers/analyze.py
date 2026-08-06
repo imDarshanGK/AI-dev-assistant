@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Any
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Body
 from fastapi.responses import HTMLResponse
-from jinja2 import Template
+from jinja2 import Environment
 
 from ..sanitize import sanitize_code_input, sanitize_language_hint
-from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
+from ..schemas import AnalyzeResponse, CodeRequest
 from ..services.code_assistant import (
     detect_language,
     full_analysis,
@@ -15,7 +15,7 @@ from ..services.code_assistant import (
 
 router = APIRouter()
 
-# Interactive HTML Report Template (Jinja2 + Chart.js + Drill-downs)
+# ── Interactive HTML Export (Jinja2 + Chart.js) ──────────────────────────────
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -45,14 +45,12 @@ HTML_TEMPLATE = """
             <p><strong>Detected Language:</strong> <span class="badge">{{ language }}</span></p>
             <p><strong>Summary:</strong> {{ summary }}</p>
         </div>
-
         <div class="card">
             <h2>📈 Issue Severity & Metrics</h2>
             <div class="chart-box">
                 <canvas id="metricsChart"></canvas>
             </div>
         </div>
-
         <div class="card">
             <h2>🔍 Drill-Down Details</h2>
             <details>
@@ -66,7 +64,6 @@ HTML_TEMPLATE = """
                     {% endfor %}
                 </ul>
             </details>
-
             <details>
                 <summary>Detected Bugs & Issues ({{ bug_count }})</summary>
                 {% if bugs %}
@@ -79,7 +76,6 @@ HTML_TEMPLATE = """
                 <p>No issues detected.</p>
                 {% endif %}
             </details>
-
             <details>
                 <summary>Suggestions & Improvements ({{ suggestion_count }})</summary>
                 {% if suggestions %}
@@ -94,7 +90,6 @@ HTML_TEMPLATE = """
             </details>
         </div>
     </div>
-
     <script>
         const ctx = document.getElementById('metricsChart').getContext('2d');
         new Chart(ctx, {
@@ -115,20 +110,22 @@ HTML_TEMPLATE = """
 
 
 def render_interactive_html(data: Any) -> str:
-    """Helper function to parse AnalyzeResponse or dict and render Jinja2 HTML."""
     if isinstance(data, AnalyzeResponse):
-        data = data.model_dump()
+        data = data.model_dump() if hasattr(data, "model_dump") else data.dict()
     elif not isinstance(data, dict):
         data = {}
 
-    explanation_data = data.get("explanation", {})
-    debugging_data = data.get("debugging", {})
-    suggestions_data = data.get("suggestions", {})
+    explanation_data: dict[str, Any] = data.get("explanation") or {}
+    debugging_data: dict[str, Any] = data.get("debugging") or {}
+    suggestions_data: dict[str, Any] = data.get("suggestions") or {}
 
     bugs = debugging_data.get("issues", [])
     suggestions = suggestions_data.get("suggestions", [])
 
-    template = Template(HTML_TEMPLATE)
+    # Secure auto-escaping template environment
+    env = Environment(autoescape=True)
+    template = env.from_string(HTML_TEMPLATE)
+
     return template.render(
         language=explanation_data.get("language", "Unknown"),
         summary=explanation_data.get("summary", "N/A"),
@@ -142,31 +139,7 @@ def render_interactive_html(data: Any) -> str:
     )
 
 
-@router.post("/", response_model=AnalyzeResponse, summary="Run full analysis")
-async def analyze_code(payload: CodeRequest):
-    """Run full analysis on code snippet."""
-    code = sanitize_code_input(payload.code)
-    language = (
-        sanitize_language_hint(payload.language)
-        if payload.language
-        else detect_language(code)
-    )
-    result = full_analysis(code, language)
-    return result
-
-
-@router.get(
-    "/export",
-    response_class=HTMLResponse,
-    summary="Export interactive HTML report (GET preview)",
-)
-@router.post(
-    "/export",
-    response_class=HTMLResponse,
-    summary="Export interactive HTML report",
-)
-async def export_interactive_report(payload: CodeRequest | None = None):
-    """Generates an interactive HTML report using Jinja2 templates, Chart.js, and drill-down details."""
+def _process_export(payload: CodeRequest | None = None) -> HTMLResponse:
     if payload is None or not payload.code:
         code = "def divide(a, b):\n    return a / b\n\nresult = divide(10, 0)"
         language = "python"
@@ -183,27 +156,21 @@ async def export_interactive_report(payload: CodeRequest | None = None):
     return HTMLResponse(content=html_content)
 
 
-@router.post(
-    "/zip", response_model=ZipAnalyzeResponse, summary="Run analysis on ZIP file"
+@router.get(
+    "/export",
+    response_class=HTMLResponse,
+    summary="Export interactive HTML report (GET preview)",
 )
-async def analyze_zip(request: Request, file: Annotated[UploadFile, File()]):
-    """Analyze up to 20 source files from an uploaded ZIP archive."""
-    if not file.filename or not file.filename.endswith(".zip"):
-        raise HTTPException(
-            status_code=400, detail="Uploaded file must be a ZIP archive."
-        )
+async def export_interactive_report_get():
+    return _process_export(None)
 
-    contents = await file.read()
-    # Processing ZIP logic...
-    return {
-        "provider": "rule-based",
-        "model": "qyverix-engine-v3",
-        "file_count": 0,
-        "total_size_bytes": len(contents),
-        "overall_project_score": 100,
-        "grade": "A",
-        "summary": "ZIP analysis complete.",
-        "files": [],
-        "skipped_files": [],
-        "analysis_time_ms": 0.0,
-    }
+
+@router.post(
+    "/export",
+    response_class=HTMLResponse,
+    summary="Export interactive HTML report",
+)
+async def export_interactive_report_post(
+    payload: CodeRequest = Body(...),  # noqa: B008
+):
+    return _process_export(payload)
