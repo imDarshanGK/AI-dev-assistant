@@ -248,3 +248,19 @@ def test_presence_sync_session_cleanup():
         assert bob_state["version"] == 0
         assert len(bob_state["users"]) == 1
         assert bob_state["users"][0]["name"] == "Bob"
+
+
+def test_collaboration_rejects_unsupported_message_type():
+    with client.websocket_connect(
+        "/collaboration/ws/session-g?name=Alice"
+    ) as websocket:
+        websocket.receive_json()
+        websocket.receive_json()
+
+        websocket.send_json({"type": "unknown_event"})
+        response = websocket.receive_json()
+
+        assert response == {
+            "type": "error",
+            "detail": "Unsupported collaboration message type: unknown_event",
+        }
