@@ -254,3 +254,34 @@ def render_metrics() -> tuple[bytes, str]:
     else:
         payload = generate_latest()
     return payload, CONTENT_TYPE_LATEST
+
+
+DIGEST_JOBS_TOTAL = Counter(
+    "qyverixai_digest_jobs_total",
+    "Total number of weekly digest jobs triggered, labelled by result.",
+    labelnames=("result",),
+)
+
+DIGEST_EMAILS_SENT_TOTAL = Counter(
+    "qyverixai_digest_emails_sent_total",
+    "Total number of digest emails sent successfully.",
+    labelnames=(),
+)
+
+DIGEST_EMAILS_FAILED_TOTAL = Counter(
+    "qyverixai_digest_emails_failed_total",
+    "Total number of digest email delivery failures.",
+    labelnames=(),
+)
+
+DIGEST_JOB_DURATION_SECONDS = Histogram(
+    "qyverixai_digest_job_duration_seconds",
+    "Duration of the weekly digest job in seconds.",
+    buckets=_LATENCY_BUCKETS_SECONDS,
+)
+
+DIGEST_LAST_RUN_TIMESTAMP = Gauge(
+    "qyverixai_digest_last_run_timestamp_seconds",
+    "Unix timestamp of the last weekly digest job run.",
+    labelnames=(),
+)
