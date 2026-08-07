@@ -26,21 +26,25 @@ let isAnalyzing = false;
 let history = JSON.parse(localStorage.getItem('qyverix_history') || '[]');
 let favorites = JSON.parse(localStorage.getItem('qyverix_favorites') || '[]');
 let lastResult = '';
+let chatHistory = [];
 
 // ── DOM refs ──
-const codeInput = document.getElementById('codeInput');
-const runBtn = document.getElementById('runBtn');
-const runLabel = document.getElementById('runLabel');
+const codeEditor = document.getElementById('codeEditor');
+const runBtn = document.getElementById('analyzeBtn') || document.getElementById('runBtn');
+const runLabel = document.getElementById('runLabel') || document.querySelector('#analyzeBtn .btn-text');
 const outputBox = document.getElementById('outputBox');
 const apiUrlInput = document.getElementById('apiUrl');
 const apiDocsLink = document.getElementById('apiDocsLink');
 const engineBadge = document.getElementById('engineBadge');
 const statusDot = document.getElementById('statusDot');
-const lineCount = document.getElementById('lineCount');
+const charCount = document.getElementById('charCount');
 const fileInput = document.getElementById('fileInput');
 const historyContainer = document.getElementById('historyContainer');
 const favContainer = document.getElementById('favContainer');
 const themeToggle = document.getElementById('themeToggle');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const chatSendBtn = document.getElementById('chatSendBtn');
 const API_URL_STORAGE_KEY = 'qyverix_api_url';
 
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -80,15 +84,17 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // ── Line count ──
-codeInput.addEventListener('input', () => {
-  const lines = codeInput.value.split('\n').length;
-  lineCount.textContent = `${lines} line${lines !== 1 ? 's' : ''}`;
+codeEditor.addEventListener('input', () => {
+  const lines = codeEditor.value.split('\n').length;
+  const chars = codeEditor.value.length;
+  charCount.textContent = `${chars} chars · ${lines} line${lines !== 1 ? 's' : ''}`;
+  clearLineHighlights();
 });
 
 // ── Keyboard shortcut ──
-codeInput.addEventListener('keydown', (e) => {
+codeEditor.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    codeInput.blur();
+    codeEditor.blur();
     return;
   }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -107,16 +113,17 @@ fileInput.addEventListener('change', (e) => {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (ev) => {
-    codeInput.value = sanitizeClientCode(ev.target.result);
-    codeInput.dispatchEvent(new Event('input'));
+    codeEditor.value = sanitizeClientCode(ev.target.result);
+    codeEditor.dispatchEvent(new Event('input'));
   };
   reader.readAsText(file);
 });
 
 // ── Clear ──
 document.getElementById('clearBtn').addEventListener('click', () => {
-  codeInput.value = '';
+  codeEditor.value = '';
   lineCount.textContent = '0 lines';
+  clearLineHighlights();
   resetOutput();
 });
 
@@ -147,7 +154,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
   if (!lastResult) return;
   const entry = {
     id: Date.now(),
-    code: codeInput.value.slice(0, 100),
+    code: codeEditor.value.slice(0, 100),
     result: lastResult,
     mode: currentMode,
     time: new Date().toLocaleString()
@@ -389,21 +396,223 @@ apiUrlInput.addEventListener('change', () => {
 });
 checkConnection();
 
-// ── Main Analysis ──
-async function runAnalysis() {
+// ── Line Highlighting System ──
+/**
+ * Apply visual highlights to lines with detected issues
+ * @param {Array} issues - Array of issue objects with {line, type, description, suggestion}
+ */
+function applyLineHighlights(issues) {
+  clearLineHighlights();
+  
+  if (!issues || issues.length === 0) return;
 
-  if (isAnalyzing) {
-    return;
+  const highlightsContainer = document.getElementById('issueLineHighlights');
+  const codeEditor = document.getElementById('codeEditor');
+  const lineHeight = 1.7 * 13; // line-height * font-size in px
+  const paddingTop = 16; // padding from CSS
+  
+  // Map severity to severity level (for styling and priority)
+  const severityMap = {
+    'error': 'error',
+    'warning': 'warning',
+    'info': 'info',
+    'Error': 'error',
+    'Warning': 'warning',
+    'Info': 'info'
+  };
+
+  // Track unique lines to avoid duplicate highlights
+  const highlightedLines = new Map();
+
+  issues.forEach(issue => {
+    if (!issue.line) return;
+
+    const lineNum = parseInt(issue.line, 10);
+    if (isNaN(lineNum) || lineNum < 1) return;
+
+    // Determine severity: use severity field if available, fallback to type
+    let severity = severityMap[issue.severity] || severityMap[issue.type] || 'info';
+    
+    // If we have multiple issues on same line, keep the highest severity
+    if (highlightedLines.has(lineNum)) {
+      const priorities = { error: 3, warning: 2, info: 1 };
+      if ((priorities[severity] || 0) <= (priorities[highlightedLines.get(lineNum).severity] || 0)) {
+        return;
+      }
+    }
+
+    highlightedLines.set(lineNum, {
+      severity,
+      description: issue.description || '',
+      suggestion: issue.suggestion || '',
+      type: issue.type || 'Issue'
+    });
+  });
+
+  // Create highlight elements for each line
+  highlightedLines.forEach((data, lineNum) => {
+    const topOffset = paddingTop + (lineNum - 1) * lineHeight;
+
+    // Create highlight element
+    const highlight = document.createElement('div');
+    highlight.className = `issue-line-highlight ${data.severity}`;
+    highlight.style.top = topOffset + 'px';
+    highlight.title = `Line ${lineNum}: ${data.type}`;
+    
+    // Add hover tooltip
+    const tooltip = document.createElement('div');
+    tooltip.className = `issue-tooltip ${data.severity}`;
+    tooltip.style.display = 'none';
+    tooltip.innerHTML = `<strong>${escHtml(data.type)}</strong><br/>${escHtml(data.description)}${data.suggestion ? `<br/>Fix: ${escHtml(data.suggestion)}` : ''}`;
+    
+    highlight.addEventListener('mouseenter', (e) => {
+      tooltip.style.display = 'block';
+      tooltip.style.top = topOffset + 'px';
+      tooltip.style.left = '20px';
+    });
+
+    highlight.addEventListener('mouseleave', () => {
+      tooltip.style.display = 'none';
+    });
+
+    highlight.appendChild(tooltip);
+    highlightsContainer.appendChild(highlight);
+
+    // Activate on hover to show the highlight
+    highlight.addEventListener('mouseenter', () => {
+      highlight.classList.add('active');
+    });
+
+    highlight.addEventListener('mouseleave', () => {
+      highlight.classList.remove('active');
+    });
+  });
+}
+
+/**
+ * Clear all line highlights
+ */
+function clearLineHighlights() {
+  const highlightsContainer = document.getElementById('issueLineHighlights');
+  if (highlightsContainer) {
+    highlightsContainer.innerHTML = '';
+  }
+}
+
+function focusEditorAtLine(line) {
+  const lineNumber = parseInt(line, 10);
+  if (Number.isNaN(lineNumber) || lineNumber < 1) return;
+
+  const code = codeEditor.value;
+  const lines = code.split('\n');
+  let offset = 0;
+
+  for (let i = 0; i < lineNumber - 1 && i < lines.length; i += 1) {
+    offset += lines[i].length + 1;
   }
 
-  const code = sanitizeClientCode(codeInput.value.trim());
+  codeEditor.focus();
+  codeEditor.setSelectionRange(offset, offset);
+  codeEditor.scrollTop = Math.max(0, (lineNumber - 2) * parseFloat(getComputedStyle(codeEditor).lineHeight || '22'));
+}
+
+function getFixSuggestionMarkup(i) {
+  if (!i.suggestion) return '';
+
+  const suggestionText = `<span class="fix-suggestion-text">→ ${escHtml(i.suggestion)}</span>`;
+  const lineButton = i.line ? `<button type="button" class="goto-line-btn" data-line="${escHtml(i.line)}">Go to line ${escHtml(i.line)}</button>` : '';
+
+  return `<div class="fix-suggestion-row">${suggestionText}${lineButton}</div>`;
+}
+
+outputBox.addEventListener('click', (event) => {
+  const button = event.target.closest('.goto-line-btn');
+  if (!button) return;
+  const targetLine = button.dataset.line;
+  focusEditorAtLine(targetLine);
+});
+
+// ── Chat assistant ──
+function appendChatMessage(role, text) {
+  if (!chatMessages) return;
+  const wrapper = document.createElement('div');
+  wrapper.className = `chat-bubble ${role}`;
+  wrapper.textContent = text;
+  chatMessages.appendChild(wrapper);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function buildChatContext() {
+  const parts = [];
+  const currentCode = sanitizeClientCode(codeEditor.value.trim());
+  if (currentCode) {
+    parts.push(`Code:\n${currentCode.slice(0, 2000)}`);
+  }
+  if (lastResult) {
+    parts.push(`Latest analysis summary:\n${lastResult.slice(0, 3000)}`);
+  }
+  return parts.join('\n\n');
+}
+
+async function sendChatMessage() {
+  if (!chatInput || !chatSendBtn) return;
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  appendChatMessage('user', message);
+  chatInput.value = '';
+  chatSendBtn.disabled = true;
+
+  try {
+    const response = await fetch(`${getApiUrl()}/chat/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        code: sanitizeClientCode(codeEditor.value.trim()),
+        context: buildChatContext(),
+        history: chatHistory.slice(-8)
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Chat service unavailable');
+    }
+
+    const data = await response.json();
+    const reply = data.response || 'I could not generate a reply right now.';
+    appendChatMessage('assistant', reply);
+    chatHistory.push(message, reply);
+  } catch (err) {
+    appendChatMessage('assistant', 'The chat assistant is unavailable right now. Please try again in a moment.');
+  } finally {
+    chatSendBtn.disabled = false;
+    chatInput.focus();
+  }
+}
+
+if (chatInput) {
+  chatInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      sendChatMessage();
+    }
+  });
+}
+
+if (chatSendBtn) {
+  chatSendBtn.addEventListener('click', sendChatMessage);
+}
+
+// ── Main Analysis ──
+async function runAnalysis() {
+  const code = sanitizeClientCode(codeEditor.value.trim());
   if (!code) {
     showError('Please paste some code first.');
     return;
   }
 
-  isAnalyzing = true;
-
+  clearLineHighlights();
   runBtn.disabled = true;
   runBtn.classList.add('loading');
   runLabel.textContent = '⟳ Analyzing...';
@@ -523,11 +732,16 @@ function renderResult(data, mode) {
                 <span class="result-tag tag-error">${escHtml(i.type || 'Issue')}</span>
                 ${renderComplexityBadge(i)}
                 <p style="margin-top:4px">${escHtml(i.description || '')}</p>
-                ${i.suggestion ? `<p style="color:var(--accent-green);margin-top:4px">Fix: ${escHtml(i.suggestion)}</p>` : ''}
+                ${getFixSuggestionMarkup(i)}
               </div>`).join('')}
         </div>
       </div>`;
       text += issues.map(i => `${i.type}: ${i.description}\nFix: ${i.suggestion}`).join('\n') + '\n\n';
+      
+      // Apply line highlights if issues exist
+      if (issues.length > 0) {
+        applyLineHighlights(issues);
+      }
     }
     if (data.suggestions) {
       const sg = data.suggestions;
@@ -570,11 +784,14 @@ function renderResult(data, mode) {
               ${i.line ? `<span class="result-tag tag-info">Line ${i.line}</span>` : ''}
               ${renderComplexityBadge(i)}
               <p style="margin-top:8px">${escHtml(i.description || '')}</p>
-              ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${escHtml(i.suggestion)}</p>` : ''}
+              ${getFixSuggestionMarkup(i)}
             </div>`).join('')}
       </div>
     </div>`;
     text = issues.map(i => `[${i.type}] Line ${i.line}: ${i.description}\nFix: ${i.suggestion}`).join('\n');
+    
+    // Apply line highlights for debugging mode
+    applyLineHighlights(issues);
   } else if (mode === 'suggestions') {
     const cards = data.suggestions || [];
     html += `<div class="result-section">
