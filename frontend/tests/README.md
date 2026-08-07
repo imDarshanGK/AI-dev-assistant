@@ -20,5 +20,6 @@ npm test
 - Keyboard shortcut matching, editable-field safety, and cleanup
 - Simulated analysis panel rendering (all XSS payload categories)
 - Stored `localStorage` attack normalization
+- Empty-state markup (`empty-states.test.js`) and Playwright visibility (`e2e/empty-states.spec.js`)
 
 Manual browser checks: `docs/SECURITY_MANUAL_TEST_CHECKLIST.md`
