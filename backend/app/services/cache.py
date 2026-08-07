@@ -65,6 +65,17 @@ class AppCache:
         if not settings.cache_enabled:
             return
 
+         # Input  Validation
+
+        if not isinstance(namespace, str) or not namespace.strip():
+            raise TypeError("Namespace must be a non-empty string")
+
+        if not isinstance(code, str) or not code.strip():
+            raise TypeError("Code must be a non-empty string")
+
+        if not isinstance(payload, dict):
+            raise TypeError("Payload must be a dictionary")
+
         key = self._make_key(namespace, code)
         if self._redis_client is not None:
             try:
