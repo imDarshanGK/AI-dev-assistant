@@ -17,9 +17,15 @@ _rate_limit_lock = Lock()
 
 
 def get_client_key(request: Request) -> str:
-    xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-    if xff:
-        return xff
+    """Extract client IP for rate limiting.
+
+    Only uses X-Forwarded-For if TRUST_PROXY_HEADERS is enabled.
+    Falls back to direct connection IP if proxy headers are not trusted.
+    """
+    if settings.trust_proxy_headers:
+        xff = request.headers.get("x-forwarded-for", "").split(",")[-1].strip()
+        if xff and xff != "unknown":
+            return xff
     if request.client and request.client.host:
         return request.client.host
     return "unknown"
