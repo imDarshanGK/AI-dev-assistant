@@ -20,6 +20,7 @@ client = TestClient(app)
 
 # ── Liveness ──────────────────────────────────────────────────────────────
 
+
 def test_liveness_returns_200():
     response = client.get("/healthz/live")
     assert response.status_code == 200
@@ -41,6 +42,7 @@ def test_liveness_never_touches_database():
 
 
 # ── Readiness — healthy path ─────────────────────────────────────────────
+
 
 def test_readiness_healthy_returns_200():
     with patch(
@@ -65,6 +67,7 @@ def test_readiness_healthy_response_shape():
 
 
 # ── Readiness — degraded path ────────────────────────────────────────────
+
 
 def test_readiness_degraded_returns_503():
     with patch(
@@ -106,6 +109,7 @@ def test_readiness_reports_real_exception_message():
 
 # ── Log-levels diagnostics ───────────────────────────────────────────────
 
+
 def test_log_levels_returns_200():
     response = client.get("/healthz/log-levels")
     assert response.status_code == 200
@@ -137,6 +141,7 @@ def test_log_levels_uses_effective_levels_helper():
 
 # ── Backward compatibility ───────────────────────────────────────────────
 
+
 def test_legacy_health_endpoint_still_works():
     response = client.get("/health")
     assert response.status_code == 200
@@ -148,6 +153,7 @@ def test_legacy_ping_endpoint_still_works():
 
 
 # ── No unrelated behavior changed ────────────────────────────────────────
+
 
 def test_healthz_router_uses_expected_prefix_and_tag():
     """Sanity check the router is mounted where documented — under /healthz
