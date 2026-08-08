@@ -50,11 +50,50 @@ async def liveness() -> LivenessResponse:
 
 # ── Readiness ─────────────────────────────────────────────────────────────────
 def _check_database(timeout_seconds: float = 2.0) -> tuple[bool, str | None, float]:
-    """Run a trivial SELECT 1 against the configured database.
+    """Run a trivial ``SELECT 1`` against the configured database.
 
-    Returns ``(ok, error_message, elapsed_ms)``. Any exception is caught and
-    returned as a failed check so the readiness handler can report it cleanly
-    without itself 500'ing.
+    This is the cheapest possible round-trip that proves the database is
+    reachable and the connection pool is healthy. It is intentionally kept
+    minimal so the readiness probe does not add meaningful latency to
+    Kubernetes health-check loops.
+
+    Returns
+    -------
+    tuple[bool, str | None, float]
+        A three-element tuple:
+        * ``ok`` — ``True`` when the query succeeds, ``False`` otherwise.
+        * ``error_message`` — ``None`` on success; a human-readable string
+          of the form ``"ExceptionType: message"`` on failure.
+        * ``elapsed_ms`` — Wall-clock time of the attempt in milliseconds,
+          measured from just before ``engine.connect()`` is called.
+
+    Edge cases
+    ----------
+    * **Connection pool exhausted** — If all pooled connections are in use
+      and the pool timeout fires, SQLAlchemy raises ``TimeoutError`` (or a
+      pool-specific subclass). This is caught and returned as a failed check
+      with the exception message surfaced so operators can distinguish a pool
+      exhaustion event from a genuine database outage.
+
+    * **Database query timeout** — If the underlying DB server is reachable
+      but the ``SELECT 1`` takes longer than the engine's statement timeout
+      (when configured), the driver raises a ``DBAPIError`` subclass. This is
+      also caught and returned as a failed check.
+
+    * **Network partition / DNS failure** — Any socket-level or name-
+      resolution error raises an ``OperationalError``. The handler catches
+      every ``Exception`` subclass, so all network-level failures are reported
+      as failed checks rather than propagating as 500s.
+
+    * **Misconfigured engine** — If the ``DATABASE_URL`` is syntactically
+      invalid, SQLAlchemy raises ``ArgumentError`` at engine-creation time
+      (not here). By the time this function is called the engine is already
+      initialised, so that class of error will not appear here.
+
+    * **Elapsed time on failure** — The timer is started before the connect
+      attempt so ``elapsed_ms`` always reflects the full cost of the failed
+      call, including any pool-wait time. This is useful for diagnosing
+      whether a failure was instant (DNS/refused) or slow (timeout).
     """
     start = time.perf_counter()
     try:
@@ -88,6 +127,46 @@ def _check_database(timeout_seconds: float = 2.0) -> tuple[bool, str | None, flo
     },
 )
 async def readiness(response: Response) -> ReadinessResponse:
+    """Readiness probe — verifies all critical dependencies are reachable.
+
+    Performs a lightweight check against each critical dependency (currently
+    only the database) and returns a structured JSON payload describing the
+    result of every check. The HTTP status code communicates the overall
+    result to Kubernetes:
+
+    * ``200 OK`` — all checks passed; the pod is ready to serve traffic.
+    * ``503 Service Unavailable`` — one or more checks failed; Kubernetes
+      removes the pod from the load-balancer rotation until the probe
+      recovers. The pod is **not** restarted (use the liveness probe for
+      that).
+
+    Edge cases
+    ----------
+    * **Transient DB hiccup** — A single failed readiness probe does not
+      restart the pod. Kubernetes will stop routing new requests to it and
+      retry the probe on the configured interval. Once the database recovers
+      and the probe returns 200 again, the pod is re-added to the rotation
+      automatically.
+
+    * **Probe during startup** — If the database is not yet ready when the
+      first probe fires (e.g. the DB container is still initialising),
+      this endpoint returns 503. The pod will not receive traffic until the
+      database is reachable.
+
+    * **Multiple failing checks** — The ``overall_ok`` flag is derived from
+      ALL checks via ``all(...)``. Adding a new dependency check to the
+      ``checks`` dict is sufficient to include it in the overall result —
+      no other code needs to change.
+
+    * **Response body on 503** — FastAPI serialises the ``ReadinessResponse``
+      model even when the status code is 503. This is intentional: operators
+      and monitoring tools need the per-check breakdown to diagnose which
+      dependency failed, and stripping the body on error would make that
+      harder.
+
+    * **elapsed_ms precision** — Values are rounded to 2 decimal places
+      before inclusion in the response to keep the payload readable.
+    """
     db_ok, db_error, db_elapsed_ms = _check_database()
 
     checks = {
