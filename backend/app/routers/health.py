@@ -50,24 +50,55 @@ async def liveness() -> LivenessResponse:
 
 # ── Readiness ─────────────────────────────────────────────────────────────────
 def _check_database(timeout_seconds: float = 2.0) -> tuple[bool, str | None, float]:
-    """Run a trivial SELECT 1 against the configured database.
+    """Run a trivial ``SELECT 1`` against the configured database.
 
-    Returns ``(ok, error_message, elapsed_ms)``. Any exception is caught and
-    returned as a failed check so the readiness handler can report it cleanly
-    without itself 500'ing.
+    This is the cheapest possible round-trip that proves the database is
+    reachable and the connection pool is healthy. It is intentionally kept
+    minimal so the readiness probe does not add meaningful latency to
+    Kubernetes health-check loops.
+
+    Returns
+    -------
+    tuple[bool, str | None, float]
+        A three-element tuple:
+        * ``ok`` — ``True`` when the query succeeds, ``False`` otherwise.
+        * ``error_message`` — ``None`` on success; a human-readable string
+          of the form ``"ExceptionType: message"`` on failure.
+        * ``elapsed_ms`` — Wall-clock time of the attempt in milliseconds,
+          measured from just before ``engine.connect()`` is called.
+
+    Edge cases
+    ----------
+    * **Connection pool exhausted** — If all pooled connections are in use
+      and the pool timeout fires, SQLAlchemy raises ``TimeoutError`` (or a
+      pool-specific subclass). This is caught and returned as a failed check
+      with the exception message surfaced so operators can distinguish a pool
+      exhaustion event from a genuine database outage.
+
+    * **Database query timeout** — If the underlying DB server is reachable
+      but the ``SELECT 1`` takes longer than the engine's statement timeout
+      (when configured), the driver raises a ``DBAPIError`` subclass. This is
+      also caught and returned as a failed check.
+
+    * **Network partition / DNS failure** — Any socket-level or name-
+      resolution error raises an ``OperationalError``. The handler catches
+      every ``Exception`` subclass, so all network-level failures are reported
+      as failed checks rather than propagating as 500s.
     """
     start = time.perf_counter()
     try:
-        # ``connect`` will respect the engine's pool timeout; we rely on that
-        # plus the SELECT 1 to be the cheapest possible round-trip.
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        return True, None, (time.perf_counter() - start) * 1000.0
-    except Exception as exc:  # noqa: BLE001 — we genuinely want every failure mode.
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+        return True, None, elapsed_ms
+    except Exception as exc:  # noqa: BLE001
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+        error_type = type(exc).__name__
+        error_detail = str(exc).splitlines()[0] if str(exc) else "no detail"
         return (
             False,
-            f"{type(exc).__name__}: {exc}",
-            (time.perf_counter() - start) * 1000.0,
+            f"{error_type}: {error_detail}",
+            elapsed_ms,
         )
 
 
