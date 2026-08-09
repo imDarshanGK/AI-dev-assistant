@@ -196,7 +196,9 @@ async def analyze_stream_get(
 )
 async def analyze(req: CodeRequest, response: Response):
     cache_input = f"{req.language or 'auto'}\n{req.code}"
-    cached_payload = cache.get("analyze:v1", cache_input)
+    # Bump the namespace when analysis semantics change so results generated
+    # before syntax-first suggestions cannot be served as current analysis.
+    cached_payload = cache.get("analyze:v2", cache_input)
 
     if cached_payload is not None:
         response.headers["X-Cache"] = "HIT"
@@ -204,7 +206,7 @@ async def analyze(req: CodeRequest, response: Response):
 
     payload = full_analysis(req.code, req.language)
 
-    cache.set("analyze:v1", cache_input, payload)
+    cache.set("analyze:v2", cache_input, payload)
 
     response.headers["X-Cache"] = "MISS"
     return payload

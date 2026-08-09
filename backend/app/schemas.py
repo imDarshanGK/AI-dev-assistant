@@ -181,43 +181,14 @@ class ExplanationResponse(BaseModel):
 
 # ── Suggestions ───────────────────────────────────────────────────────────────
 class Suggestion(BaseModel):
-    """A single improvement recommendation."""
-
-    category: str = Field(
-        ...,
-        description="Improvement category, e.g. Documentation, Error Handling, Type Safety, Testing.",
-        example="Documentation",
-    )
-    description: str = Field(
-        ...,
-        description="Explanation of what is missing or could be improved.",
-        example="Less than 10% of lines are comments. Add docstrings to public functions.",
-    )
-    line_number: int | None = Field(
-        default=None,
-        description="Specific line number this suggestion targets, if applicable.",
-        example=1,
-    )
-    line_range: list[int] | None = Field(
-        default=None,
-        description="Inclusive [start, end] line range this suggestion covers, if applicable.",
-        example=[1, 5],
-    )
-    code_context: str | None = Field(
-        default=None,
-        description="Relevant lines of code to illustrate the suggestion.",
-        example="def divide(a, b):\n    return a / b",
-    )
-    example: str | None = Field(
-        default=None,
-        description="A short code snippet showing the recommended improvement.",
-        example='"""Divide a by b. Returns None if b is zero."""',
-    )
-    priority: str = Field(
-        ...,
-        description="Suggestion priority. One of: high, medium, low.",
-        example="medium",
-    )
+    category: str
+    description: str
+    line_number: int | None = None
+    line_range: list[int] | None = None
+    code_context: str | None = None
+    example: str | None = None
+    example_type: str | None = None
+    priority: str
 
 
 class SuggestionsResponse(BaseModel):
@@ -894,31 +865,25 @@ class ShareRecord(BaseModel):
 
 # ── Chat ──────────────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
-    """Request body for the AI chat endpoint."""
+    message: str | None = Field(default=None, max_length=4_000)
+    question: str | None = Field(default=None, max_length=4_000)
+    code: str | None = Field(default=None, max_length=settings.max_code_chars)
+    context: str | None = Field(default=None, max_length=8_000)
+    analysis_id: str | None = Field(default=None, max_length=200)
+    history: list[str] = Field(default_factory=list, max_length=20)
 
-    message: str = Field(
-        ...,
-        min_length=1,
-        max_length=4_000,
-        description="The user's message or question.",
-        example="Why does my divide function crash?",
-    )
-    code: str | None = Field(
-        default=None,
-        max_length=settings.max_code_chars,
-        description="Optional code snippet to provide as context for the conversation.",
-        example="def divide(a, b):\n    return a / b",
-    )
-    history: list[str] = Field(
-        default_factory=list,
-        max_length=20,
-        description="Previous conversation turns as a flat list of alternating user/assistant strings (max 20).",
-        example=["Why does it crash?", "Because b is zero."],
-    )
-
-    @field_validator("message")
+    @field_validator("message", "question")
     @classmethod
-    def sanitize_message(cls, v: str) -> str:
+    def sanitize_optional_text(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        return validate_stored_action(v)
+
+    @field_validator("context")
+    @classmethod
+    def sanitize_context(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
         return validate_stored_action(v)
 
     @field_validator("code")
@@ -933,6 +898,14 @@ class ChatRequest(BaseModel):
     def sanitize_history(cls, v: list[str]) -> list[str]:
         return validate_chat_history(v)
 
+    @model_validator(mode="after")
+    def ensure_prompt_present(self) -> "ChatRequest":
+        if not (self.message or self.question):
+            raise ValueError("message or question must be provided")
+        if not self.message and self.question:
+            self.message = self.question
+        return self
+
 
 class ChatResponse(BaseModel):
     """Simple chat response."""
@@ -945,35 +918,26 @@ class ChatResponse(BaseModel):
 
 
 class ChatMessageRequest(BaseModel):
-    """Extended chat request with skill-level control."""
+    message: str | None = Field(default=None, max_length=4_000)
+    question: str | None = Field(default=None, max_length=4_000)
+    code: str | None = Field(default=None, max_length=settings.max_code_chars)
+    context: str | None = Field(default=None, max_length=8_000)
+    analysis_id: str | None = Field(default=None, max_length=200)
+    history: list[str] = Field(default_factory=list, max_length=20)
+    level: str = Field(default="beginner")
 
-    message: str = Field(
-        ...,
-        min_length=1,
-        max_length=4_000,
-        description="The user's message or question.",
-        example="Explain what a ZeroDivisionError is.",
-    )
-    code: str | None = Field(
-        default=None,
-        max_length=settings.max_code_chars,
-        description="Optional code context for the conversation.",
-        example="def divide(a, b):\n    return a / b",
-    )
-    history: list[str] = Field(
-        default_factory=list,
-        max_length=20,
-        description="Previous conversation turns (max 20 entries).",
-    )
-    level: str = Field(
-        default="beginner",
-        description="Explanation depth: `beginner`, `intermediate`, or `advanced`.",
-        example="beginner",
-    )
-
-    @field_validator("message")
+    @field_validator("message", "question")
     @classmethod
-    def sanitize_message(cls, v: str) -> str:
+    def sanitize_optional_text(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        return validate_stored_action(v)
+
+    @field_validator("context")
+    @classmethod
+    def sanitize_context(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
         return validate_stored_action(v)
 
     @field_validator("code")
@@ -992,6 +956,14 @@ class ChatMessageRequest(BaseModel):
     @classmethod
     def sanitize_level(cls, v: str) -> str:
         return validate_stored_action(v)
+
+    @model_validator(mode="after")
+    def ensure_prompt_present(self) -> "ChatMessageRequest":
+        if not (self.message or self.question):
+            raise ValueError("message or question must be provided")
+        if not self.message and self.question:
+            self.message = self.question
+        return self
 
 
 class ChatMessageResponse(BaseModel):

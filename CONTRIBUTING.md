@@ -1,6 +1,6 @@
 # Contributing to QyverixAI
 
-Thank you for wanting to contribute! QyverixAI is a GSSoC 2026 project and welcomes all levels of contributors — from first-timers to veterans.
+Thank you for wanting to contribute! QyverixAI is a GSSoC 2026 project and welcomes all levels of contributors - from first-timers to veterans.
 
 ---
 
@@ -37,7 +37,7 @@ git checkout -b feat/your-feature-name
 cd backend
 pip install -r requirements.txt
 
-# 5. Run tests — all must pass before submitting
+# 5. Run tests - all must pass before submitting
 pytest -v
 
 # 6. Start the dev server
@@ -48,11 +48,11 @@ uvicorn app.main:app --reload
 
 ## Ways to Contribute
 
-### 🐛 Bug Fixes
+### Bug Fixes
 - Open an issue first if the bug isn't already reported
 - Include the code snippet that triggers it + expected vs actual behavior
 
-### ✨ New Bug Detection Patterns
+### New Bug Detection Patterns
 Bug patterns live in `backend/app/services/code_assistant.py` in the `BUG_PATTERNS` list.
 
 Each pattern is a `BugPattern` dataclass:
@@ -62,7 +62,7 @@ BugPattern(
     name="Pattern Name",
     pattern=r"regex_to_match",
     description="What the bug is and why it's a problem.",
-    suggestion="How to fix it — be specific and actionable.",
+    suggestion="How to fix it - be specific and actionable.",
     severity="error",        # "error" | "warning" | "info"
     languages=["Python"],    # which languages this applies to
 )
@@ -78,19 +78,19 @@ def test_debug_detects_your_pattern():
     assert "Pattern Name" in types
 ```
 
-### 💡 New Suggestion Rules
+### New Suggestion Rules
 Suggestion logic is in the `run_suggestions()` function in `code_assistant.py`. Add a new `if` block that appends to the `suggestions` list.
 
-### 🎨 Frontend Improvements
-The entire frontend is `frontend/index.html` — one self-contained file. No build step, no Node.js required. Just edit and open in your browser.
+### Frontend Improvements
+The entire frontend is `frontend/index.html` - one self-contained file. No build step, no Node.js required. Just edit and open in your browser.
 
-### 📖 Documentation
+### Documentation
 - Fix typos, improve clarity, add examples
 - Update the README if you add/change a feature
 - Add changelog entries for user-facing changes and fixes in `docs/CHANGELOG.md`
 - Add docstrings to functions that lack them
 
-### 🧪 Tests
+### Tests
 - Add test cases for edge cases
 - Improve coverage for existing features
 - Parametrize tests where appropriate
@@ -104,6 +104,69 @@ The entire frontend is `frontend/index.html` — one self-contained file. No bui
 - **Docstrings**: All public functions and classes need docstrings.
 - **Tests**: Every new feature or bug fix needs a corresponding test.
 - **No secrets**: Never commit API keys, passwords, or credentials.
+
+---
+
+## Optional LLM / API Key setup (safe for open-source)
+
+QyverixAI can run fully offline using the built-in rule-based engine. If you opt-in to richer LLM-powered replies, follow these steps to provide an API key safely.
+
+- Use the provided example file: copy `.env.example` to `.env` and edit values locally. The repo already includes `.env.example` and `.gitignore` ignores `.env`.
+
+    ```bash
+    # from repo root (Unix/macOS)
+    cp .env.example .env
+    # or on Windows PowerShell
+    Copy-Item .env.example .env
+    ```
+
+- Edit `backend/.env` (or `backend/.env.local`) and set these values:
+
+    ```text
+    LLM_ENABLED=true
+    LLM_API_KEY=sk_your_openai_key_here
+    LLM_BASE_URL=https://api.openai.com/v1
+    LLM_MODEL=gpt-4o-mini
+    ```
+
+- Important: do NOT commit `.env`. The repository `.gitignore` already excludes `.env`. To be safe, check with:
+
+    ```bash
+    git status --ignored -- .env
+    ```
+
+- Alternative: set env vars only for your shell session (no file written):
+
+    PowerShell (temporary for session):
+    ```powershell
+    $env:LLM_ENABLED = "true"
+    $env:LLM_API_KEY = "sk_..."
+    cd backend
+    python -m uvicorn app.main:app --reload
+    ```
+
+    Unix / macOS (temporary for session):
+    ```bash
+    export LLM_ENABLED=true
+    export LLM_API_KEY=sk_...
+    cd backend
+    python -m uvicorn app.main:app --reload
+    ```
+
+- CI / Deployment: configure the provider's secrets or environment variables (GitHub Actions Secrets, Render dashboard, Docker secrets, etc.) rather than storing keys in the repo. Example for GitHub Actions `workflow.yml`:
+
+    ```yaml
+    env:
+        LLM_ENABLED: true
+    secrets:
+        LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+    ```
+
+- Local LLM option: If you prefer no external keys, you can run an on-host LLM (Ollama, local Llama) and set `LLM_BASE_URL` to the local endpoint. This keeps everything on your machine.
+
+- If you want us to improve the built-in fallback (rule-based) to provide more detailed, actionable answers without an API key, we can do that — it's the default behavior.
+
+If you want, I can add a short `LLM_SETUP.md` with screenshots and copy-ready snippets for Render/GitHub Actions — tell me which host you'd like docs for.
 
 ---
 
@@ -288,4 +351,4 @@ Be respectful, inclusive, and constructive. We're here to learn and build togeth
 
 ---
 
-Thank you for contributing! 🚀
+Thank you for contributing!

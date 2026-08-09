@@ -10,10 +10,14 @@ router = APIRouter(prefix="/chat", tags=["Chat"])
 
 @router.post("", response_model=ChatResponse)
 async def chat(payload: ChatRequest) -> ChatResponse:
+    prompt = payload.message or ""
+    if payload.context:
+        prompt = f"{payload.context}\n\n{prompt}" if prompt else payload.context
+
     if llm_analysis_client.enabled:
         try:
             reply = await llm_analysis_client.chat_reply(
-                message=payload.message,
+                message=prompt,
                 code=payload.code,
                 history=payload.history,
                 level="intermediate",
@@ -23,7 +27,7 @@ async def chat(payload: ChatRequest) -> ChatResponse:
             pass
 
     fallback_reply = chat_fallback_reply(
-        message=payload.message,
+        message=prompt,
         code=payload.code,
         history=payload.history,
         level="beginner",
@@ -33,10 +37,14 @@ async def chat(payload: ChatRequest) -> ChatResponse:
 
 @router.post("/message", response_model=ChatMessageResponse)
 async def chat_message(payload: ChatMessageRequest) -> ChatMessageResponse:
+    prompt = payload.message or ""
+    if payload.context:
+        prompt = f"{payload.context}\n\n{prompt}" if prompt else payload.context
+
     if llm_analysis_client.enabled:
         try:
             reply = await llm_analysis_client.chat_reply(
-                message=payload.message,
+                message=prompt,
                 code=payload.code,
                 history=payload.history,
                 level=payload.level,
@@ -51,7 +59,7 @@ async def chat_message(payload: ChatMessageRequest) -> ChatMessageResponse:
             pass
 
     fallback_reply = chat_fallback_reply(
-        message=payload.message,
+        message=prompt,
         code=payload.code,
         history=payload.history,
         level=payload.level,

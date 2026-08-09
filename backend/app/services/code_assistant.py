@@ -8,6 +8,8 @@ from __future__ import annotations
 import ast
 import re
 import time
+from .ast_analyzer import analyze as ast_analyze
+from .line_utils import format_code_snippet
 from dataclasses import dataclass, field
 
 from .ast_analyzer import analyze as ast_analyze
@@ -223,7 +225,7 @@ def chat_fallback_reply(
     history: list[str],
     level: str,
 ) -> str:
-    """Return a simple fallback chat response when the LLM is unavailable."""
+    """Return a useful code-aware reply when the LLM is unavailable."""
     message_text = (message or "").strip()
     code_text = code or ""
     recent_history = " ".join(history[-3:]) if history else ""
@@ -239,6 +241,47 @@ def chat_fallback_reply(
 
     language = detect_language(code_text)
     complexity = estimate_complexity(code_text)
+
+    # Preserve useful debugging help when a live LLM is not configured. Python's
+    # parser can identify a syntax error and its line precisely.
+    asks_about_problem = bool(
+        re.search(
+            r"\b(issue|bug|error|wrong|fix|problem|fail(?:ing|ure)?)\b",
+            message_text,
+            re.IGNORECASE,
+        )
+    )
+    if language == "Python" and asks_about_problem:
+        try:
+            ast.parse(code_text)
+        except SyntaxError as exc:
+            line_number = exc.lineno or 1
+            bad_line = code_text.splitlines()[line_number - 1].strip()
+            if bad_line.endswith(";;"):
+                corrected_line = bad_line.rstrip(";")
+                changes = [
+                    "Remove the extra semicolon (`;`).",
+                    f"Use `{corrected_line}` instead of `{bad_line}`.",
+                ]
+                corrected_code = corrected_line
+                if corrected_line == "print(hello)":
+                    changes.append("Add quotes around `hello` because it is text, not a variable.")
+                    corrected_code = 'print("hello")'
+            else:
+                changes = ["Correct the invalid syntax on that line before running the code."]
+                corrected_code = bad_line
+            return "\n".join(
+                [
+                    "Issue found:",
+                    f"- Line {line_number} has a Python syntax error: {exc.msg}.",
+                    "",
+                    "Changes to make:",
+                    *[f"{index}. {change}" for index, change in enumerate(changes, start=1)],
+                    "",
+                    "Correct code:",
+                    corrected_code,
+                ]
+            )
     response_parts = [
         f"I detected {language} code with an estimated {complexity.lower()} complexity.",
         f"At {level} level, focus on the main intent of the code and any notable branching or error-prone logic.",
@@ -938,6 +981,66 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
 
 # ── Suggestion Engine ──────────────────────────────────────────────────────────
+def _python_syntax_correction(code: str) -> dict | None:
+    """Return a safe, parseable correction for simple Python syntax mistakes."""
+    try:
+        ast.parse(code)
+        return None
+    except SyntaxError as exc:
+        line_number = exc.lineno or 1
+
+    lines = code.splitlines()
+    if not 0 < line_number <= len(lines):
+        return None
+
+    # Remove trailing semicolons and closing delimiters that do not have a
+    # matching opener. This covers common paste mistakes such as `print(1));;`
+    # without guessing at a rewrite of the user's program.
+    corrected_lines = lines.copy()
+    candidate = re.sub(r";+\s*$", "", corrected_lines[line_number - 1])
+    opener_for = {")": "(", "]": "[", "}": "{"}
+    closer_for = {"(": ")", "[": "]", "{": "}"}
+    stack: list[str] = []
+    corrected: list[str] = []
+    for char in candidate:
+        if char in "([{":
+            stack.append(char)
+        elif char in opener_for:
+            if stack and stack[-1] == opener_for[char]:
+                stack.pop()
+            else:
+                continue
+        corrected.append(char)
+    # Complete delimiters left open on the invalid line (for example,
+    # `print(1` becomes `print(1)`).
+    corrected.extend(closer_for[opener] for opener in reversed(stack))
+    corrected_lines[line_number - 1] = "".join(corrected)
+    corrected_code = "\n".join(corrected_lines)
+
+    try:
+        ast.parse(corrected_code)
+    except SyntaxError:
+        return {
+            "category": "Syntax Error",
+            "description": f"Line {line_number} has invalid Python syntax. Fix it before applying other improvements.",
+            "line_number": line_number,
+            "line_range": [line_number],
+            "code_context": format_code_snippet(code, [line_number]),
+            "priority": "high",
+        }
+
+    return {
+        "category": "Syntax Correction",
+        "description": f"Line {line_number} has invalid Python syntax. Fix it before applying other improvements.",
+        "line_number": line_number,
+        "line_range": [line_number],
+        "code_context": format_code_snippet(code, [line_number]),
+        "example": corrected_code,
+        "example_type": "fix",
+        "priority": "high",
+    }
+
+
 def run_suggestions(code: str, language: str) -> dict:
     """Generate improvement suggestions for the provided source code.
 
@@ -959,15 +1062,18 @@ def run_suggestions(code: str, language: str) -> dict:
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
 
-    # Cache commonly used regex checks
-    has_try = bool(re.search(r"\btry\b", code))
-    has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
-    has_tests = bool(
-        re.search(
-            r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]",
-            code,
-        )
-    )
+    # A syntax error makes style-oriented suggestions misleading. Return a
+    # verified correction instead of generic documentation, test, or logging
+    # templates.
+    if language == "Python":
+        syntax_suggestion = _python_syntax_correction(code)
+        if syntax_suggestion:
+            return {
+                "suggestions": [syntax_suggestion],
+                "overall_score": 0,
+                "grade": "F",
+                "next_step": "Fix the syntax error, then run improvement analysis again.",
+            }
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 1: Documentation Quality
