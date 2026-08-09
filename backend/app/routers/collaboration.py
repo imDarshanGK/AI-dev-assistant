@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Path, Query, WebSocket, WebSocketDisconnect
 
 router = APIRouter()
 
@@ -56,6 +56,7 @@ class CollaborationManager:
         room: CollaborationRoom,
         client_id: str,
         detail: str,
+        status: int = 400,
     ) -> None:
         """Send an error message to a collaboration client if connected."""
         socket = room.sockets.get(client_id)
@@ -64,6 +65,7 @@ class CollaborationManager:
                 {
                     "type": "error",
                     "detail": detail,
+                    "status": status,
                 }
             )
 
@@ -201,12 +203,16 @@ class CollaborationManager:
         data: dict[str, Any],
     ) -> None:
         room = self._get_room(session_id)
-        code = data.get("code", "")
+        code = data.get("code")
         language = data.get("language")
-        incoming_version = int(data.get("version", 0))
+        raw_version = data.get("version", 0)
+
+        if code is None:
+            await self._send_error(room, client_id, "code is required", status=400)
+            return
 
         if not isinstance(code, str):
-            await self._send_error(room, client_id, "code must be a string")
+            await self._send_error(room, client_id, "code must be a string", status=400)
             return
 
         if len(code) > MAX_CODE_CHARS:
@@ -214,7 +220,14 @@ class CollaborationManager:
                 room,
                 client_id,
                 f"code exceeds {MAX_CODE_CHARS} characters",
+                status=400,
             )
+            return
+
+        try:
+            incoming_version = int(raw_version)
+        except (ValueError, TypeError):
+            await self._send_error(room, client_id, "version must be an integer", status=400)
             return
 
         async with room.lock:
@@ -251,15 +264,24 @@ class CollaborationManager:
         room = self._get_room(session_id)
         raw_cursor = data.get("cursor")
 
-        if not isinstance(raw_cursor, dict):
+        if raw_cursor is None:
+            await self._send_error(room, client_id, "cursor is required", status=400)
             return
 
-        cursor = {
-            "line": max(1, int(raw_cursor.get("line", 1))),
-            "column": max(1, int(raw_cursor.get("column", 1))),
-            "selectionStart": max(0, int(raw_cursor.get("selectionStart", 0))),
-            "selectionEnd": max(0, int(raw_cursor.get("selectionEnd", 0))),
-        }
+        if not isinstance(raw_cursor, dict):
+            await self._send_error(room, client_id, "cursor must be a JSON object", status=400)
+            return
+
+        try:
+            cursor = {
+                "line": max(1, int(raw_cursor.get("line", 1))),
+                "column": max(1, int(raw_cursor.get("column", 1))),
+                "selectionStart": max(0, int(raw_cursor.get("selectionStart", 0))),
+                "selectionEnd": max(0, int(raw_cursor.get("selectionEnd", 0))),
+            }
+        except (ValueError, TypeError):
+            await self._send_error(room, client_id, "cursor fields must be integers", status=400)
+            return
 
         async with room.lock:
             user = room.users.get(client_id)
@@ -280,11 +302,20 @@ class CollaborationManager:
         data: dict[str, Any],
     ) -> None:
         room = self._get_room(session_id)
-        text = str(data.get("text", "")).strip()
-        line = max(1, int(data.get("line", 1)))
+        raw_text = data.get("text")
+        raw_line = data.get("line", 1)
 
+        if raw_text is None:
+            await self._send_error(room, client_id, "comment text is required", status=400)
+            return
+
+        if not isinstance(raw_text, str):
+            await self._send_error(room, client_id, "comment text must be a string", status=400)
+            return
+
+        text = raw_text.strip()
         if not text:
-            await self._send_error(room, client_id, "comment text is required")
+            await self._send_error(room, client_id, "comment text cannot be empty", status=400)
             return
 
         if len(text) > MAX_COMMENT_CHARS:
@@ -292,7 +323,14 @@ class CollaborationManager:
                 room,
                 client_id,
                 f"comment exceeds {MAX_COMMENT_CHARS} characters",
+                status=400,
             )
+            return
+
+        try:
+            line = max(1, int(raw_line))
+        except (ValueError, TypeError):
+            await self._send_error(room, client_id, "line must be an integer", status=400)
             return
 
         async with room.lock:
@@ -322,7 +360,7 @@ manager = CollaborationManager()
 @router.websocket("/ws/{session_id}")
 async def collaboration_websocket(
     websocket: WebSocket,
-    session_id: str,
+    session_id: str = Path(..., min_length=1, max_length=100),
     name: str = Query(default="Anonymous", max_length=40),
 ) -> None:
     client_id = await manager.connect(session_id, websocket, name)
@@ -335,11 +373,11 @@ async def collaboration_websocket(
                     await manager.handle_message(session_id, client_id, data)
                 else:
                     await websocket.send_json(
-                        {"type": "error", "detail": "message payload must be a JSON object"}
+                        {"type": "error", "detail": "message payload must be a JSON object", "status": 400}
                     )
             except asyncio.TimeoutError:
-                await websocket.send_json({"type": "error", "detail": "Request timeout"})
+                await websocket.send_json({"type": "error", "detail": "Request timeout", "status": 408})
             except ValueError:
-                await websocket.send_json({"type": "error", "detail": "Invalid JSON payload"})
+                await websocket.send_json({"type": "error", "detail": "Invalid JSON payload", "status": 400})
     except WebSocketDisconnect:
         await manager.disconnect(session_id, client_id)
