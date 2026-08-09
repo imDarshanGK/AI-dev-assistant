@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from .config import settings
 from .schema_validators import (
@@ -542,21 +542,18 @@ class ReadinessResponse(BaseModel):
 class SubscribeRequest(BaseModel):
     """Request body for newsletter subscription."""
 
-    email: str = Field(
+    email: EmailStr = Field(
         ...,
-        description="Email address to subscribe.",
+        description="Email address to subscribe. Must be a valid email format.",
         example="dev@example.com",
     )
 
     @field_validator("email")
     @classmethod
-    def email_must_be_valid(cls, v: str) -> str:
-        v = v.strip().lower()
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Invalid email address")
-        if len(v) > 320:
-            raise ValueError("Email too long")
-        return v
+    def email_must_not_be_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("email must not be empty or whitespace")
+        return v.strip().lower()
 
 
 class SubscribeResponse(BaseModel):
@@ -577,14 +574,31 @@ class SubscribeResponse(BaseModel):
 class UnsubscribeRequest(BaseModel):
     """Request body for newsletter unsubscription."""
 
-    email: str = Field(
-        ..., description="Email address to unsubscribe.", example="dev@example.com"
+    email: EmailStr = Field(
+        ...,
+        description="Email address to unsubscribe. Must be a valid email format.",
+        example="dev@example.com",
     )
     token: str = Field(
         ...,
         description="Unsubscribe token sent in the confirmation email.",
         example="abc123token",
+        min_length=1,
     )
+
+    @field_validator("email")
+    @classmethod
+    def email_must_not_be_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("email must not be empty or whitespace")
+        return v.strip().lower()
+
+    @field_validator("token")
+    @classmethod
+    def token_must_not_be_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("token must not be empty or whitespace")
+        return v.strip()
 
 
 # ── History ───────────────────────────────────────────────────────────────────
