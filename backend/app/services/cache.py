@@ -113,6 +113,8 @@ class AppCache:
                 self._memory_store.popitem(last=False)
 
     def clear_memory(self) -> None:
-        cache = AppCache()
-        with self._memory_lock:
+         with self._memory_lock:
             self._memory_store.clear()
+            
+cache = AppCache()
+
