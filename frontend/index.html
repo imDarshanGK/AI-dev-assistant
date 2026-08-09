@@ -2,8 +2,9 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+  <meta name="description" content="QyverixAI helps developers explain, debug, and improve code with AI-assisted analysis." >
   <title>QyverixAI — AI Developer Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
@@ -253,6 +254,96 @@
       display: flex;
       align-items: center;
       gap: 8px
+    }
+
+    .chat-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 12px;
+      background: var(--bg2);
+      box-shadow: var(--shadow2);
+    }
+
+    .chat-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .chat-panel-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .chat-panel-subtitle {
+      color: var(--text2);
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 120px;
+      max-height: 220px;
+      overflow: auto;
+      padding: 6px 0 4px;
+      margin-bottom: 8px;
+    }
+
+    .chat-empty {
+      color: var(--text2);
+      font-size: 0.9rem;
+      padding: 12px 4px;
+    }
+
+    .chat-bubble {
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      max-width: 100%;
+    }
+
+    .chat-bubble.user {
+      background: var(--accent);
+      color: white;
+      align-self: flex-end;
+    }
+
+    .chat-bubble.assistant {
+      background: var(--bg3);
+      color: var(--text);
+      align-self: flex-start;
+      border: 1px solid var(--border);
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    .chat-send {
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-weight: 600;
+      padding: 0 14px;
+      cursor: pointer;
     }
 
     .nav-link {
@@ -736,6 +827,128 @@
       background: var(--bg3);
       border-right: 1px solid var(--border);
       overflow: hidden;
+      z-index: 2;
+    }
+
+    .line-number-row {
+      display: block;
+      height: 22.1px;
+      padding-right: 10px;
+      position: relative;
+    }
+
+    .line-number-row.has-issue {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .line-number-row.has-issue::before {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91, 156, 246, 0.14);
+    }
+
+    .line-number-row.issue-error::before {
+      background: var(--red);
+      box-shadow: 0 0 0 3px rgba(242, 87, 87, 0.14);
+    }
+
+    .line-number-row.issue-warning::before {
+      background: var(--yellow);
+      box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.14);
+    }
+
+    .line-number-row.issue-info::before {
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91, 156, 246, 0.14);
+    }
+
+    .code-editor-shell {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+    }
+
+    .issue-line-highlights {
+      position: absolute;
+      inset: 0;
+      padding: 16px 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .issue-highlight-track {
+      transform: translateY(0);
+      will-change: transform;
+    }
+
+    .issue-highlight-row {
+      height: 22.1px;
+      border-left: 3px solid transparent;
+      opacity: 0.95;
+      position: relative;
+    }
+
+    .issue-highlight-row::after {
+      content: attr(data-label);
+      position: absolute;
+      top: 3px;
+      right: 12px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-family: var(--font-ui);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.4;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translateX(4px);
+      transition: opacity var(--transition), transform var(--transition);
+    }
+
+    .editor-wrap:hover .issue-highlight-row::after {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .issue-highlight-row.issue-error {
+      border-left-color: var(--red);
+      background: linear-gradient(90deg, rgba(242, 87, 87, 0.24), rgba(242, 87, 87, 0.07) 70%, transparent);
+    }
+
+    .issue-highlight-row.issue-error::after {
+      color: var(--red);
+      background: rgba(242, 87, 87, 0.14);
+    }
+
+    .issue-highlight-row.issue-warning {
+      border-left-color: var(--yellow);
+      background: linear-gradient(90deg, rgba(245, 200, 66, 0.24), rgba(245, 200, 66, 0.07) 70%, transparent);
+    }
+
+    .issue-highlight-row.issue-warning::after {
+      color: var(--yellow);
+      background: rgba(245, 200, 66, 0.14);
+    }
+
+    .issue-highlight-row.issue-info {
+      border-left-color: var(--accent);
+      background: linear-gradient(90deg, rgba(91, 156, 246, 0.22), rgba(91, 156, 246, 0.06) 70%, transparent);
+    }
+
+    .issue-highlight-row.issue-info::after {
+      color: var(--accent);
+      background: rgba(91, 156, 246, 0.14);
+    }
       pointer-events: none;
       min-height: 300px;
       max-height: 500px;
@@ -760,6 +973,8 @@
       outline: none;
       resize: vertical;
       tab-size: 2;
+      position: relative;
+      z-index: 1;
     }
 
     .editor-footer {
@@ -2845,7 +3060,10 @@ details.issue-card[open] {
             <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
           </div>
           <div class="line-numbers" id="lineNumbers">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" aria-keyshortcuts="/ Escape" style="width:100%"></textarea>
+          <div class="code-editor-shell">
+            <div class="issue-line-highlights" id="issueLineHighlights" aria-hidden="true"></div>
+            <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
+          </div>
         </div>
 
         <div class="editor-footer">
@@ -2952,6 +3170,22 @@ details.issue-card[open] {
               <p data-i18n="empty_suggest_desc">Run analysis to get improvement ideas</p>
             </div>
             <div id="suggestResult" style="display:none"></div>
+          </div>
+        </div>
+
+        <div class="chat-panel" id="chatPanel" style="margin-top:14px">
+          <div class="chat-panel-header">
+            <div>
+              <div class="chat-panel-title">Ask follow-up questions</div>
+              <div class="chat-panel-subtitle">Use the current analysis as context</div>
+            </div>
+          </div>
+          <div class="chat-messages" id="chatMessages" aria-live="polite">
+            <div class="chat-empty">Ask something like “Why is this bug happening?”</div>
+          </div>
+          <div class="chat-input-row">
+            <input id="chatInput" class="chat-input" type="text" placeholder="Ask about the analysis or bug" aria-label="Chat input" />
+            <button id="chatSendBtn" class="chat-send" type="button">Send</button>
           </div>
         </div>
 
@@ -3597,6 +3831,8 @@ cursor:pointer;
       const resultActions = document.getElementById('resultActions');
       const engineInfo = document.getElementById('engineInfo');
       const timeInfo = document.getElementById('timeInfo');
+      const issueLineHighlights = document.getElementById('issueLineHighlights');
+      let activeIssueLines = new Map();
 
       const resultActionLabels = {
         favBtn: 'Save current analysis to favorites',
@@ -3709,12 +3945,79 @@ cursor:pointer;
               .replace('{nonBlank}', nonBlank)
           : getTranslation('char_count_initial');
         const lineCount = Math.max(lines, 1);
-        lineNumbers.innerHTML = val
-          ? Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>')
-          : '1';
-          // Fix: sync line numbers height exactly to editor height
-          lineNumbers.style.height = editor.offsetHeight + 'px';
+        renderLineNumbers(lineCount);
+        renderIssueHighlights(lineCount);
+      }
+
+      function normalizeIssueSeverity(severity) {
+        const normalized = String(severity || '').toLowerCase();
+        return ['error', 'warning', 'info'].includes(normalized) ? normalized : 'info';
+      }
+
+      function collectIssueLines(issues) {
+        const severityRank = { info: 1, warning: 2, error: 3 };
+        const collected = new Map();
+        (issues || []).forEach(issue => {
+          const line = Number.parseInt(issue?.line, 10);
+          if (!Number.isFinite(line) || line < 1) return;
+
+          const severity = normalizeIssueSeverity(issue.severity);
+          const existing = collected.get(line);
+          const details = {
+            severity,
+            type: String(issue.type || severity),
+            description: String(issue.description || ''),
+          };
+
+          if (!existing) {
+            collected.set(line, { severity, details: [details] });
+            return;
           }
+
+          existing.details.push(details);
+          if (severityRank[severity] > severityRank[existing.severity]) {
+            existing.severity = severity;
+          }
+        });
+        return collected;
+      }
+
+      function renderLineNumbers(lineCount) {
+        lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => {
+          const line = i + 1;
+          const issue = activeIssueLines.get(line);
+          if (!issue) return `<span class="line-number-row">${line}</span>`;
+
+          const label = issue.details
+            .map(detail => `${detail.type}${detail.description ? `: ${detail.description}` : ''}`)
+            .join('\n');
+          return `<span class="line-number-row has-issue issue-${issue.severity}" title="${escHtml(label)}">${line}</span>`;
+        }).join('');
+      }
+
+      function renderIssueHighlights(lineCount) {
+        if (!issueLineHighlights) return;
+        issueLineHighlights.innerHTML = `<div class="issue-highlight-track" style="transform:translateY(-${editor.scrollTop}px)">${
+          Array.from({ length: lineCount }, (_, i) => {
+            const line = i + 1;
+            const issue = activeIssueLines.get(line);
+            if (!issue) return '<div class="issue-highlight-row"></div>';
+            const label = issue.details.length > 1 ? `${issue.severity} x${issue.details.length}` : issue.severity;
+            return `<div class="issue-highlight-row issue-${issue.severity}" data-label="${escHtml(label)}"></div>`;
+          }).join('')
+        }</div>`;
+      }
+
+      function applyIssueHighlights(issues) {
+        activeIssueLines = collectIssueLines(issues);
+        updateEditor();
+      }
+
+      function clearIssueHighlights() {
+        if (!activeIssueLines.size) return;
+        activeIssueLines = new Map();
+        updateEditor();
+      }
 
       function syncApiStatusText() {
         if (!apiStatusText) return;
@@ -3739,7 +4042,10 @@ cursor:pointer;
       function getApiBase() {
         const configuredBase = ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || '').trim();
         if (configuredBase) return configuredBase.replace(/\/$/, '');
-        return window.location.protocol === 'file:' ? REMOTE_API_BASE : LOCAL_API_BASE;
+        // Prefer the local API for the local HTML file so edits to this
+        // checkout are reflected immediately. fetchWithApiFallback still uses
+        // the deployed API when the local server is unavailable.
+        return LOCAL_API_BASE;
       }
 
       function getApiFallbackBase(base) {
@@ -3781,10 +4087,15 @@ cursor:pointer;
 
       editor.addEventListener('input', () => {
         selectedZipFile = null;
-        updateEditor();
+        if (activeIssueLines.size) {
+          clearIssueHighlights();
+        } else {
+          updateEditor();
+        }
       });
       editor.addEventListener('scroll', () => {
         lineNumbers.scrollTop = editor.scrollTop;
+        renderIssueHighlights(Math.max(editor.value ? editor.value.split('\n').length : 0, 1));
       });
 
       // Tab key support
@@ -3960,6 +4271,65 @@ cursor:pointer;
         handleUploadedFile(file);
       });
 
+      // Minimal chat wiring: ensure the Send button and Enter key work
+      (function wireChat() {
+        const chatInputEl = document.getElementById('chatInput');
+        const chatSendBtnEl = document.getElementById('chatSendBtn');
+        const chatMessagesEl = document.getElementById('chatMessages');
+        if (!chatInputEl || !chatSendBtnEl || !chatMessagesEl) return;
+
+        function append(role, text) {
+          const el = document.createElement('div');
+          el.className = `chat-bubble ${role}`;
+          el.textContent = text;
+          chatMessagesEl.appendChild(el);
+          chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+        }
+
+        async function send() {
+          const msg = (chatInputEl.value || '').trim();
+          if (!msg) return;
+          append('user', msg);
+          chatInputEl.value = '';
+          chatSendBtnEl.disabled = true;
+          try {
+            const base = typeof getApiBase === 'function' ? getApiBase() : (window.location.protocol === 'file:' ? 'http://localhost:8000' : window.location.origin);
+            const payload = {
+              message: msg,
+              code: (document.getElementById('codeEditor')?.value || ''),
+              context: (typeof currentResult !== 'undefined' && currentResult) ? String(currentResult).slice(0, 2000) : '',
+              history: Array.isArray(window.chatHistory) ? window.chatHistory.slice(-8) : []
+            };
+
+            const resp = await fetch(`${base.replace(/\/$/, '')}/chat/`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (!resp.ok) throw new Error('Chat service unavailable');
+            const data = await resp.json().catch(() => ({}));
+            const reply = data.response || data.reply || data.message || 'No reply available.';
+            append('assistant', reply);
+            // keep a simple history for context
+            window.chatHistory = (Array.isArray(window.chatHistory) ? window.chatHistory : []).concat([msg, reply]).slice(-50);
+          } catch (e) {
+            append('assistant', 'The chat assistant is unavailable right now.');
+          } finally {
+            chatSendBtnEl.disabled = false;
+            chatInputEl.focus();
+          }
+        }
+
+        chatSendBtnEl.addEventListener('click', send);
+        chatInputEl.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter') {
+            ev.preventDefault();
+            send();
+          }
+        });
+      })();
+
       function handleUploadedFile(file) {
         const ext = file.name.split('.').pop().toLowerCase();
         if (ext === 'zip') {
@@ -4022,6 +4392,7 @@ cursor:pointer;
         // 3. If it is a sample, swap it to the new language's sample automatically
         if (isSample) {
           editor.value = SAMPLES[lang] || SAMPLES.python;
+          clearIssueHighlights();
           updateEditor();
         }
       }
@@ -4181,6 +4552,7 @@ cursor:pointer;
         // Loading state
         analyzeBtn.classList.add('loading');
         analyzeBtn.disabled = true;
+        clearIssueHighlights();
         showShimmers();
 
         try {
@@ -4523,6 +4895,7 @@ cursor:pointer;
         document.getElementById('emptyDebug').style.display = 'none';
         const el = document.getElementById('debugResult');
         el.style.display = 'block';
+        applyIssueHighlights(dbg.issues || []);
 
         const badge = dbg.error_count > 0 ? dbg.error_count : dbg.issues.length;
         document.getElementById('debugBadge').textContent = badge || '0';
@@ -4899,6 +5272,7 @@ cursor:pointer;
       }
 
       function resetResults() {
+        clearIssueHighlights();
         ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
           const el = document.getElementById(id);
           el.style.display = 'none';
@@ -5723,7 +6097,12 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
          HELPERS
       ═══════════════════════════════════════════════════════════════ */
       function escHtml(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
       }
       function renderMarkdown(s) {
         return s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -5839,6 +6218,7 @@ int main() {
       function loadSample() {
         const sample = SAMPLES[selectedLang] || SAMPLES.python;
         editor.value = sample;
+        clearIssueHighlights();
         updateEditor();
         document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
         toast(getTranslation('toast_sample_loaded'), 'success');
