@@ -4,34 +4,110 @@ Full-text search is powered by SQLite FTS5.
 """
 
 from __future__ import annotations
+
+import contextlib
 import hashlib
+import logging
 import os
+import sqlite3
+import time
+
 import aiosqlite
+
+from ..observability import (
+    DB_OPERATION_DURATION_SECONDS,
+    DB_OPERATIONS_TOTAL,
+    metrics_enabled,
+)
+
+logger = logging.getLogger("ai_assistant.api")
 
 DB_PATH = os.getenv("HISTORY_DB_PATH", "history.db")
 
 
+@contextlib.contextmanager
+def record_db_metric(operation: str):
+    if not metrics_enabled():
+        yield
+        return
+
+    start_time = time.perf_counter()
+    status = "success"
+    try:
+        yield
+    except Exception:
+        status = "failed"
+        raise
+    finally:
+        duration = time.perf_counter() - start_time
+        DB_OPERATION_DURATION_SECONDS.labels(operation=operation).observe(duration)
+        DB_OPERATIONS_TOTAL.labels(operation=operation, status=status).inc()
+
+
+def _log_db_failure(operation: str, exc: BaseException) -> None:
+    """Log a database failure with operation context before re-raising."""
+    logger.error(
+        "db_operation_failed operation=%s detail=%s",
+        operation,
+        str(exc),
+        exc_info=True,
+    )
+
+
+def _is_duplicate_column_error(exc: BaseException) -> bool:
+    """Return True when SQLite reports that an ALTER ADD COLUMN is redundant."""
+    message = str(exc).lower()
+    return "duplicate column" in message
+
+
+async def _safe_add_column(db: aiosqlite.Connection, ddl: str) -> None:
+    """Run an ALTER TABLE ADD COLUMN, ignoring only duplicate-column errors."""
+    try:
+        await db.execute(ddl)
+    except Exception as exc:
+        if _is_duplicate_column_error(exc):
+            logger.debug("db_migration_skip detail=%s", str(exc))
+            return
+        _log_db_failure("init_db_migration", exc)
+        raise
+
+
 async def init_db() -> None:
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("""
-            CREATE TABLE IF NOT EXISTS history (
-                id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                code_hash   TEXT NOT NULL,
-                language    TEXT NOT NULL,
-                score       INTEGER,
-                issue_count INTEGER,
-                timestamp   TEXT NOT NULL DEFAULT (datetime('now')),
-                code_preview TEXT NOT NULL
-            )
-        """)
-        await db.execute("""
-            CREATE VIRTUAL TABLE IF NOT EXISTS fts_history
-            USING fts5(code_preview, content=history, content_rowid=id)
-        """)
-        await db.execute(
-            "CREATE INDEX IF NOT EXISTS idx_timestamp ON history(timestamp DESC)"
-        )
-        await db.commit()
+    with record_db_metric("init_db"):
+        try:
+            async with aiosqlite.connect(DB_PATH) as db:
+                await db.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS history (
+                        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                        code_hash   TEXT NOT NULL,
+                        language    TEXT NOT NULL,
+                        score       INTEGER,
+                        issue_count INTEGER,
+                        timestamp   TEXT NOT NULL DEFAULT (datetime('now')),
+                        code_preview TEXT NOT NULL,
+                        code        TEXT,
+                        result_json TEXT
+                    )
+                """
+                )
+                await _safe_add_column(db, "ALTER TABLE history ADD COLUMN code TEXT")
+                await _safe_add_column(
+                    db, "ALTER TABLE history ADD COLUMN result_json TEXT"
+                )
+                await db.execute(
+                    """
+                    CREATE VIRTUAL TABLE IF NOT EXISTS fts_history
+                    USING fts5(code_preview, content=history, content_rowid=id)
+                """
+                )
+                await db.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_timestamp ON history(timestamp DESC)"
+                )
+                await db.commit()
+        except Exception as exc:
+            _log_db_failure("init_db", exc)
+            raise
 
 
 def hash_code(code: str) -> str:
@@ -43,69 +119,157 @@ async def save_entry(
     language: str,
     score: int | None,
     issue_count: int | None,
+    result_json: str | None = None,
 ) -> int:
-    code_hash = hash_code(code)
-    preview = code.strip()[:120].replace("\n", " ")
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute(
-            """
-            INSERT INTO history (code_hash, language, score, issue_count, code_preview)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (code_hash, language, score, issue_count, preview),
-        )
-        row_id = cursor.lastrowid
-        await db.execute(
-            "INSERT INTO fts_history(rowid, code_preview) VALUES (?, ?)",
-            (row_id, preview),
-        )
-        await db.commit()
-        return row_id
+    with record_db_metric("save_entry"):
+        try:
+            code_hash = hash_code(code)
+            preview = code.strip()[:120].replace("\n", " ")
+            async with aiosqlite.connect(DB_PATH) as db:
+                cursor = await db.execute(
+                    """
+                    INSERT INTO history (code_hash, language, score, issue_count, code_preview, code, result_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        code_hash,
+                        language,
+                        score,
+                        issue_count,
+                        preview,
+                        code,
+                        result_json,
+                    ),
+                )
+                row_id = cursor.lastrowid
+                await db.execute(
+                    "INSERT INTO fts_history(rowid, code_preview) VALUES (?, ?)",
+                    (row_id, preview),
+                )
+                await db.commit()
+                return row_id
+        except Exception as exc:
+            _log_db_failure("save_entry", exc)
+            raise
 
 
-async def get_entries(limit: int = 20, offset: int = 0) -> list[dict]:
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        cursor = await db.execute(
-            """
-            SELECT id, code_hash, language, score, issue_count, timestamp, code_preview
-            FROM history
-            ORDER BY timestamp DESC
-            LIMIT ? OFFSET ?
-            """,
-            (limit, offset),
-        )
-        rows = await cursor.fetchall()
-        return [dict(row) for row in rows]
+async def count_entries() -> int:
+    with record_db_metric("count_entries"):
+        try:
+            async with aiosqlite.connect(DB_PATH) as db:
+                cursor = await db.execute("SELECT COUNT(*) FROM history")
+                row = await cursor.fetchone()
+                return row[0] if row else 0
+        except Exception as exc:
+            _log_db_failure("count_entries", exc)
+            raise
+
+
+async def get_entries(
+    limit: int = 20, offset: int = 0, sort_by: str = "timestamp", order: str = "desc"
+) -> list[dict]:
+    with record_db_metric("get_entries"):
+        try:
+            allowed_sort_columns = {"timestamp", "score", "issue_count", "id"}
+            allowed_orders = {"asc", "desc"}
+            if sort_by not in allowed_sort_columns:
+                sort_by = "timestamp"
+            if order.lower() not in allowed_orders:
+                order = "desc"
+            async with aiosqlite.connect(DB_PATH) as db:
+                db.row_factory = aiosqlite.Row
+                query = f"""
+                    SELECT id, code_hash, language, score, issue_count, timestamp, code_preview
+                    FROM history
+                    ORDER BY {sort_by} {order}, id DESC
+                    LIMIT ? OFFSET ?
+                """
+
+                cursor = await db.execute(query, (limit, offset))
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+        except Exception as exc:
+            _log_db_failure("get_entries", exc)
+            raise
 
 
 async def search_entries(q: str, limit: int = 20) -> list[dict]:
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        cursor = await db.execute(
-            """
-            SELECT h.id, h.code_hash, h.language, h.score,
-                   h.issue_count, h.timestamp, h.code_preview
-            FROM history h
-            WHERE h.id IN (
-                SELECT rowid FROM fts_history WHERE fts_history MATCH ?
+    with record_db_metric("search_entries"):
+        q = q[:200]
+        try:
+            async with aiosqlite.connect(DB_PATH) as db:
+                db.row_factory = aiosqlite.Row
+                cursor = await db.execute(
+                    """
+                    SELECT h.id, h.code_hash, h.language, h.score,
+                           h.issue_count, h.timestamp, h.code_preview
+                    FROM history h
+                    WHERE h.id IN (
+                        SELECT rowid FROM fts_history WHERE fts_history MATCH ?
+                    )
+                    ORDER BY h.timestamp DESC
+                    LIMIT ?
+                    """,
+                    (q, limit),
+                )
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+        except (aiosqlite.Error, sqlite3.Error) as exc:
+            # Invalid FTS MATCH syntax should not 500 the history search API.
+            logger.warning(
+                "search_entries_failed query=%r detail=%s",
+                q,
+                str(exc),
             )
-            ORDER BY h.timestamp DESC
-            LIMIT ?
-            """,
-            (q, limit),
-        )
-        rows = await cursor.fetchall()
-        return [dict(row) for row in rows]
+            return []
+        except Exception as exc:
+            _log_db_failure("search_entries", exc)
+            raise
 
 
 async def delete_entry(entry_id: int) -> bool:
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute(
-            "DELETE FROM history WHERE id = ?", (entry_id,)
-        )
-        await db.execute(
-            "DELETE FROM fts_history WHERE rowid = ?", (entry_id,)
-        )
-        await db.commit()
-        return cursor.rowcount > 0
+    with record_db_metric("delete_entry"):
+        try:
+            async with aiosqlite.connect(DB_PATH) as db:
+                cursor = await db.execute(
+                    "DELETE FROM history WHERE id = ?", (entry_id,)
+                )
+                await db.execute("DELETE FROM fts_history WHERE rowid = ?", (entry_id,))
+                await db.commit()
+                return cursor.rowcount > 0
+        except Exception as exc:
+            _log_db_failure("delete_entry", exc)
+            raise
+
+
+async def get_entry(entry_id: int) -> dict | None:
+    with record_db_metric("get_entry"):
+        try:
+            async with aiosqlite.connect(DB_PATH) as db:
+                db.row_factory = aiosqlite.Row
+                cursor = await db.execute(
+                    """
+                    SELECT id, code_hash, language, score, issue_count, timestamp, code_preview, code, result_json
+                    FROM history
+                    WHERE id = ?
+                    """,
+                    (entry_id,),
+                )
+                row = await cursor.fetchone()
+                return dict(row) if row else None
+        except Exception as exc:
+            _log_db_failure("get_entry", exc)
+            raise
+
+
+async def clear_entries() -> int:
+    with record_db_metric("clear_entries"):
+        try:
+            async with aiosqlite.connect(DB_PATH) as db:
+                cursor = await db.execute("DELETE FROM history")
+                await db.execute("DELETE FROM fts_history")
+                await db.commit()
+                return cursor.rowcount
+        except Exception as exc:
+            _log_db_failure("clear_entries", exc)
+            raise

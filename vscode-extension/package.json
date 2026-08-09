@@ -24,11 +24,6 @@
     "code explanation",
     "ai"
   ],
-  "activationEvents": [
-    "onCommand:qyverixai.analyze",
-    "onCommand:qyverixai.debug",
-    "onCommand:qyverixai.explain"
-  ],
   "main": "./extension.js",
   "scripts": {
     "compile": "tsc -p ./",

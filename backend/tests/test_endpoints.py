@@ -6,6 +6,7 @@ Run: cd backend && pytest -v
 import json
 
 import pytest
+from pathlib import Path
 from fastapi.testclient import TestClient
 import sys
 import os
@@ -15,7 +16,10 @@ from app import main as app_main
 
 client = TestClient(app_main.app)
 
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
+def load_fixture(filename: str) -> str:
+    return (FIXTURES_DIR / filename).read_text(encoding="utf-8")
 @pytest.fixture(autouse=True)
 def reset_rate_limit_state():
     app_main._request_counts.clear()
@@ -47,29 +51,8 @@ $data = @file_get_contents($url);
 ?>
 """
 
-PYTHON_BUGGY = """
-import os
-password = "supersecret123"
-
-def calculate(a, b):
-    result = a / b
-    return result
-
-def risky():
-    try:
-        pass
-    except:
-        pass
-
-from os import *
-x = eval("1+2")
-"""
-
-PYTHON_CLEAN = """
-def add(a: int, b: int) -> int:
-    \"\"\"Return the sum of a and b.\"\"\"
-    return a + b
-"""
+PYTHON_BUGGY = load_fixture("sample_python_buggy.py")
+PYTHON_CLEAN = load_fixture("sample_python_clean.py")
 
 JS_CODE = """
 var x = 1;
