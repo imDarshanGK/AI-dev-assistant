@@ -44,7 +44,23 @@ class AppCache:
                 raw = self._redis_client.get(key)
                 if not raw:
                     return None
-                return json.loads(raw)
+                try:
+                    result = json.loads(raw)
+                except (json.JSONDecodeError, ValueError) as json_exc:
+                    logger.warning(
+                        "redis_get_corrupted_json key=%s detail=%s",
+                        key,
+                        str(json_exc),
+                    )
+                    return None
+                if not isinstance(result, dict):
+                    logger.warning(
+                        "redis_get_unexpected_type key=%s type=%s",
+                        key,
+                        type(result).__name__,
+                    )
+                    return None
+                return result
             except Exception as exc:
                 logger.warning("redis_get_failed key=%s detail=%s", key, str(exc))
 
@@ -65,17 +81,30 @@ class AppCache:
         if not settings.cache_enabled:
             return
 
+        if not isinstance(payload, dict):
+            logger.warning(
+                "cache_set_invalid_payload type=%s — only dict payloads are supported",
+                type(payload).__name__,
+            )
+            return
+
+        ttl = settings.cache_ttl_seconds
+        if ttl <= 0:
+            logger.warning(
+                "cache_set_invalid_ttl ttl=%d — TTL must be positive, skipping cache set",
+                ttl,
+            )
+            return
+
         key = self._make_key(namespace, code)
         if self._redis_client is not None:
             try:
-                self._redis_client.setex(
-                    key, settings.cache_ttl_seconds, json.dumps(payload)
-                )
+                self._redis_client.setex(key, ttl, json.dumps(payload))
                 return
             except Exception as exc:
                 logger.warning("redis_set_failed key=%s detail=%s", key, str(exc))
 
-        expires_at = time.time() + settings.cache_ttl_seconds
+        expires_at = time.time() + ttl
         with self._memory_lock:
             self._memory_store[key] = (expires_at, payload)
             self._memory_store.move_to_end(key)
@@ -86,6 +115,3 @@ class AppCache:
     def clear_memory(self) -> None:
         with self._memory_lock:
             self._memory_store.clear()
-
-
-cache = AppCache()
