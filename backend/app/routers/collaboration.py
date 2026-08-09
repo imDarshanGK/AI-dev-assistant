@@ -69,6 +69,24 @@ class CollaborationManager:
                 }
             )
 
+    async def _check_length(
+        self,
+        room: CollaborationRoom,
+        client_id: str,
+        value: str,
+        max_length: int,
+        field_name: str,
+    ) -> bool:
+        """Validate string length and send error if exceeded."""
+        if len(value) > max_length:
+            await self._send_error(
+                room,
+                client_id,
+                f"{field_name} exceeds {max_length} characters",
+            )
+            return False
+        return True
+
     def _state_payload(
         self,
         session_id: str,
@@ -178,23 +196,21 @@ class CollaborationManager:
                 await socket.send_json({"type": "pong"})
             return
 
-        if message_type == "code_update":
-            await self._handle_code_update(session_id, client_id, data)
-            return
+        handlers = {
+            "code_update": self._handle_code_update,
+            "cursor_update": self._handle_cursor_update,
+            "comment_added": self._handle_comment_added,
+        }
 
-        if message_type == "cursor_update":
-            await self._handle_cursor_update(session_id, client_id, data)
-            return
-
-        if message_type == "comment_added":
-            await self._handle_comment_added(session_id, client_id, data)
-            return
-
-        await self._send_error(
-            room,
-            client_id,
-            f"Unsupported collaboration message type: {message_type}",
-        )
+        handler = handlers.get(message_type)
+        if handler:
+            await handler(session_id, client_id, data)
+        else:
+            await self._send_error(
+                room,
+                client_id,
+                f"Unsupported collaboration message type: {message_type}",
+            )
 
     async def _handle_code_update(
         self,
@@ -215,13 +231,7 @@ class CollaborationManager:
             await self._send_error(room, client_id, "code must be a string", status=400)
             return
 
-        if len(code) > MAX_CODE_CHARS:
-            await self._send_error(
-                room,
-                client_id,
-                f"code exceeds {MAX_CODE_CHARS} characters",
-                status=400,
-            )
+        if not await self._check_length(room, client_id, code, MAX_CODE_CHARS, "code"):
             return
 
         try:
@@ -318,13 +328,7 @@ class CollaborationManager:
             await self._send_error(room, client_id, "comment text cannot be empty", status=400)
             return
 
-        if len(text) > MAX_COMMENT_CHARS:
-            await self._send_error(
-                room,
-                client_id,
-                f"comment exceeds {MAX_COMMENT_CHARS} characters",
-                status=400,
-            )
+        if not await self._check_length(room, client_id, text, MAX_COMMENT_CHARS, "comment"):
             return
 
         try:
