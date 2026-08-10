@@ -280,6 +280,20 @@ def test_collaboration_handles_invalid_json():
             "status": 400,
         }
 
+def test_collaboration_handles_binary_payload():
+    with client.websocket_connect("/collaboration/ws/session-binary?name=Alice") as websocket:
+        websocket.receive_json()
+        websocket.receive_json()
+
+        websocket.send_bytes(b"binary data")
+        response = websocket.receive_json()
+
+        assert response == {
+            "type": "error",
+            "detail": "Invalid JSON payload",
+            "status": 400,
+        }
+
 def test_collaboration_handles_missing_and_malformed_code_updates():
     with client.websocket_connect("/collaboration/ws/session-malformed1?name=Alice") as websocket:
         websocket.receive_json()

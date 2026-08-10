@@ -381,7 +381,7 @@ async def collaboration_websocket(
                     )
             except asyncio.TimeoutError:
                 await websocket.send_json({"type": "error", "detail": "Request timeout", "status": 408})
-            except ValueError:
+            except (ValueError, KeyError):
                 await websocket.send_json({"type": "error", "detail": "Invalid JSON payload", "status": 400})
     except WebSocketDisconnect:
         await manager.disconnect(session_id, client_id)
