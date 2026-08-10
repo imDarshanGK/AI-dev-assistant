@@ -1,5 +1,5 @@
 """Tests for real-time collaboration WebSocket sessions."""
-
+import asyncio
 from app import main as app_main
 from app.routers.collaboration import manager
 from fastapi.testclient import TestClient
@@ -162,3 +162,26 @@ def test_collaboration_ping_returns_pong():
         response = websocket.receive_json()
 
         assert response["type"] == "pong"
+
+def test_collaboration_room_removed_after_last_disconnect():
+    with client.websocket_connect(
+        "/collaboration/ws/session-lifecycle?name=Alice"
+    ) as websocket:
+        websocket.receive_json()
+        websocket.receive_json()
+
+        assert "session-lifecycle" in manager.rooms
+
+    assert "session-lifecycle" not in manager.rooms
+
+
+def test_stale_client_does_not_recreate_removed_room():
+    asyncio.run(
+        manager.handle_message(
+            "removed-session",
+            "stale-client",
+            {"type": "ping"},
+        )
+    )
+
+    assert "removed-session" not in manager.rooms

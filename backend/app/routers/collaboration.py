@@ -48,7 +48,14 @@ class CollaborationManager:
             self.rooms[session_id] = CollaborationRoom()
         return self.rooms[session_id]
 
-    def _users_payload(self, room: CollaborationRoom) -> list[dict[str, Any]]:
+    def _get_existing_room(
+        self, session_id: str
+    ) -> CollaborationRoom | None:
+        return self.rooms.get(session_id)
+
+    def _users_payload(
+        self, room: CollaborationRoom
+    ) -> list[dict[str, Any]]:
         return list(room.users.values())
 
     def _state_payload(
@@ -100,20 +107,27 @@ class CollaborationManager:
         )
         return client_id
 
-    async def disconnect(self, session_id: str, client_id: str) -> None:
+    async def disconnect(
+        self,
+        session_id: str,
+        client_id: str,
+    ) -> None:
         room = self.rooms.get(session_id)
         if room is None:
             return
 
         async with room.lock:
+            if client_id not in room.sockets:
+                return
+
             room.sockets.pop(client_id, None)
             room.users.pop(client_id, None)
             users = self._users_payload(room)
             should_delete = not room.sockets
 
-        if should_delete:
-            self.rooms.pop(session_id, None)
-            return
+            if should_delete and self.rooms.get(session_id) is room:
+                self.rooms.pop(session_id, None)
+                return
 
         await self.broadcast(
             session_id,
@@ -150,7 +164,13 @@ class CollaborationManager:
         client_id: str,
         data: dict[str, Any],
     ) -> None:
-        room = self._get_room(session_id)
+        room = self._get_existing_room(session_id)
+        if room is None:
+            return
+
+        if client_id not in room.sockets:
+            return
+
         message_type = data.get("type")
 
         if message_type == "ping":
@@ -176,7 +196,10 @@ class CollaborationManager:
             await socket.send_json(
                 {
                     "type": "error",
-                    "detail": f"Unsupported collaboration message type: {message_type}",
+                    "detail": (
+                        "Unsupported collaboration message type: "
+                        f"{message_type}"
+                    ),
                 }
             )
 
@@ -186,38 +209,55 @@ class CollaborationManager:
         client_id: str,
         data: dict[str, Any],
     ) -> None:
-        room = self._get_room(session_id)
+        room = self._get_existing_room(session_id)
+        if room is None:
+            return
+
         socket = room.sockets.get(client_id)
+        if socket is None:
+            return
+
         code = data.get("code", "")
         language = data.get("language")
         incoming_version = int(data.get("version", 0))
 
         if not isinstance(code, str):
-            if socket is not None:
-                await socket.send_json(
-                    {"type": "error", "detail": "code must be a string"}
-                )
+            await socket.send_json(
+                {"type": "error", "detail": "code must be a string"}
+            )
             return
 
         if len(code) > MAX_CODE_CHARS:
-            if socket is not None:
-                await socket.send_json(
-                    {
-                        "type": "error",
-                        "detail": f"code exceeds {MAX_CODE_CHARS} characters",
-                    }
-                )
+            await socket.send_json(
+                {
+                    "type": "error",
+                    "detail": (
+                        f"code exceeds {MAX_CODE_CHARS} characters"
+                    ),
+                }
+            )
             return
 
         async with room.lock:
+            if client_id not in room.sockets:
+                return
+
             if incoming_version < room.version:
-                state = self._state_payload(session_id, room, client_id)
+                state = self._state_payload(
+                    session_id,
+                    room,
+                    client_id,
+                )
                 state["type"] = "sync_required"
                 latest_socket = room.sockets.get(client_id)
             else:
                 room.version += 1
                 room.code = code
-                room.language = language if isinstance(language, str) else room.language
+                room.language = (
+                    language
+                    if isinstance(language, str)
+                    else room.language
+                )
                 payload = {
                     "type": "code_update",
                     "code": room.code,
@@ -240,7 +280,10 @@ class CollaborationManager:
         client_id: str,
         data: dict[str, Any],
     ) -> None:
-        room = self._get_room(session_id)
+        room = self._get_existing_room(session_id)
+        if room is None:
+            return
+
         raw_cursor = data.get("cursor")
 
         if not isinstance(raw_cursor, dict):
@@ -249,21 +292,32 @@ class CollaborationManager:
         cursor = {
             "line": max(1, int(raw_cursor.get("line", 1))),
             "column": max(1, int(raw_cursor.get("column", 1))),
-            "selectionStart": max(0, int(raw_cursor.get("selectionStart", 0))),
-            "selectionEnd": max(0, int(raw_cursor.get("selectionEnd", 0))),
+            "selectionStart": max(
+                0,
+                int(raw_cursor.get("selectionStart", 0)),
+            ),
+            "selectionEnd": max(
+                0,
+                int(raw_cursor.get("selectionEnd", 0)),
+            ),
         }
 
         async with room.lock:
             user = room.users.get(client_id)
             if user is None:
                 return
+
             user["cursor"] = cursor
             payload = {
                 "type": "cursor_update",
                 "user": user,
             }
 
-        await self.broadcast(session_id, payload, exclude=client_id)
+        await self.broadcast(
+            session_id,
+            payload,
+            exclude=client_id,
+        )
 
     async def _handle_comment_added(
         self,
@@ -271,31 +325,43 @@ class CollaborationManager:
         client_id: str,
         data: dict[str, Any],
     ) -> None:
-        room = self._get_room(session_id)
+        room = self._get_existing_room(session_id)
+        if room is None:
+            return
+
         text = str(data.get("text", "")).strip()
         line = max(1, int(data.get("line", 1)))
 
         socket = room.sockets.get(client_id)
 
+        if socket is None:
+            return
+
         if not text:
-            if socket is not None:
-                await socket.send_json(
-                    {"type": "error", "detail": "comment text is required"}
-                )
+            await socket.send_json(
+                {
+                    "type": "error",
+                    "detail": "comment text is required",
+                }
+            )
             return
 
         if len(text) > MAX_COMMENT_CHARS:
-            if socket is not None:
-                await socket.send_json(
-                    {
-                        "type": "error",
-                        "detail": f"comment exceeds {MAX_COMMENT_CHARS} characters",
-                    }
-                )
+            await socket.send_json(
+                {
+                    "type": "error",
+                    "detail": (
+                        f"comment exceeds {MAX_COMMENT_CHARS} characters"
+                    ),
+                }
+            )
             return
 
         async with room.lock:
-            user = room.users.get(client_id, {})
+            user = room.users.get(client_id)
+            if user is None:
+                return
+
             comment = {
                 "id": uuid.uuid4().hex[:12],
                 "line": line,
@@ -305,7 +371,9 @@ class CollaborationManager:
                 "color": user.get("color", COLORS[0]),
                 "createdAt": datetime.now(timezone.utc).isoformat(),
             }
+
             room.comments.append(comment)
+
             payload = {
                 "type": "comment_added",
                 "comment": comment,
@@ -324,16 +392,30 @@ async def collaboration_websocket(
     session_id: str,
     name: str = Query(default="Anonymous", max_length=40),
 ) -> None:
-    client_id = await manager.connect(session_id, websocket, name)
+    client_id = await manager.connect(
+        session_id,
+        websocket,
+        name,
+    )
 
     try:
         while True:
             data = await websocket.receive_json()
+
             if isinstance(data, dict):
-                await manager.handle_message(session_id, client_id, data)
+                await manager.handle_message(
+                    session_id,
+                    client_id,
+                    data,
+                )
             else:
                 await websocket.send_json(
-                    {"type": "error", "detail": "message payload must be a JSON object"}
+                    {
+                        "type": "error",
+                        "detail": (
+                            "message payload must be a JSON object"
+                        ),
+                    }
                 )
     except WebSocketDisconnect:
         await manager.disconnect(session_id, client_id)
