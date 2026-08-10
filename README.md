@@ -12,6 +12,7 @@
 <br/>
 
 [![CI](https://github.com/imDarshanGK/AI-dev-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/imDarshanGK/AI-dev-assistant/actions)
+[![codecov](https://codecov.io/gh/imDarshanGK/AI-dev-assistant/graph/badge.svg)](https://codecov.io/gh/imDarshanGK/AI-dev-assistant)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://python.org)
@@ -359,6 +360,14 @@ Ask a follow-up question about a piece of code. `POST /chat` returns a simple `{
 When `LLM_ENABLED=true` and the configured provider responds successfully, `mode` becomes `"live-llm"` instead.
 
 ---
+
+#### Error Tracking Service Edge Cases
+
+- If `SENTRY_DSN` is missing, empty, or contains an invalid value, error tracking is skipped and the application continues running normally.
+- Only DSNs beginning with `https://` or `http://` are accepted. Invalid DSNs are rejected and a warning is logged.
+- `SENTRY_TRACES_SAMPLE_RATE` values outside the valid `0.0–1.0` range are automatically clamped to the nearest valid value before initialization.
+- If the `sentry_sdk` package is unavailable or initialization fails for any reason, the failure is logged as a warning and the application continues without error tracking.
+- Initialization failures never prevent the application from starting or handling requests normally.
 
 ### `POST /share/` and `GET /share/{token}`
 

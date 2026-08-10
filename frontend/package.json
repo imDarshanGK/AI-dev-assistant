@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "description": "Playwright end-to-end tests for the QyverixAI frontend.",
   "scripts": {
-    "test:static": "node tests/sample-comments.test.js && node tests/shortcut-ui.test.js",
+    "test:static": "node tests/sample-comments.test.js && node tests/shortcut-ui.test.js && node tests/empty-states.test.js",
     "test:e2e": "playwright test",
     "test:e2e:ci": "playwright test --reporter=list",
     "test:e2e:headed": "playwright test --headed"
