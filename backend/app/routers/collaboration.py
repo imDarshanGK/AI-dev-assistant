@@ -335,11 +335,18 @@ async def collaboration_websocket(
                     await manager.handle_message(session_id, client_id, data)
                 else:
                     await websocket.send_json(
-                        {"type": "error", "detail": "message payload must be a JSON object"}
+                        {
+                            "type": "error",
+                            "detail": "message payload must be a JSON object",
+                        }
                     )
             except asyncio.TimeoutError:
-                await websocket.send_json({"type": "error", "detail": "Request timeout"})
+                await websocket.send_json(
+                    {"type": "error", "detail": "Request timeout"}
+                )
             except ValueError:
-                await websocket.send_json({"type": "error", "detail": "Invalid JSON payload"})
+                await websocket.send_json(
+                    {"type": "error", "detail": "Invalid JSON payload"}
+                )
     except WebSocketDisconnect:
         await manager.disconnect(session_id, client_id)

@@ -265,8 +265,11 @@ def test_collaboration_rejects_unsupported_message_type():
             "detail": "Unsupported collaboration message type: unknown_event",
         }
 
+
 def test_collaboration_handles_invalid_json():
-    with client.websocket_connect("/collaboration/ws/session-invalid?name=Alice") as websocket:
+    with client.websocket_connect(
+        "/collaboration/ws/session-invalid?name=Alice"
+    ) as websocket:
         websocket.receive_json()
         websocket.receive_json()
 
@@ -277,4 +280,3 @@ def test_collaboration_handles_invalid_json():
             "type": "error",
             "detail": "Invalid JSON payload",
         }
-
