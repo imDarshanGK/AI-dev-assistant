@@ -266,8 +266,11 @@ def test_collaboration_rejects_unsupported_message_type():
             "status": 400,
         }
 
+
 def test_collaboration_handles_invalid_json():
-    with client.websocket_connect("/collaboration/ws/session-invalid?name=Alice") as websocket:
+    with client.websocket_connect(
+        "/collaboration/ws/session-invalid?name=Alice"
+    ) as websocket:
         websocket.receive_json()
         websocket.receive_json()
 
@@ -280,54 +283,91 @@ def test_collaboration_handles_invalid_json():
             "status": 400,
         }
 
+
 def test_collaboration_handles_missing_and_malformed_code_updates():
-    with client.websocket_connect("/collaboration/ws/session-malformed1?name=Alice") as websocket:
+    with client.websocket_connect(
+        "/collaboration/ws/session-malformed1?name=Alice"
+    ) as websocket:
         websocket.receive_json()
         websocket.receive_json()
 
         # Missing code
         websocket.send_json({"type": "code_update", "version": 1})
         response = websocket.receive_json()
-        assert response == {"type": "error", "detail": "code is required", "status": 400}
+        assert response == {
+            "type": "error",
+            "detail": "code is required",
+            "status": 400,
+        }
 
         # Malformed version
-        websocket.send_json({"type": "code_update", "code": "print(1)", "version": "abc"})
+        websocket.send_json(
+            {"type": "code_update", "code": "print(1)", "version": "abc"}
+        )
         response = websocket.receive_json()
-        assert response == {"type": "error", "detail": "version must be an integer", "status": 400}
+        assert response == {
+            "type": "error",
+            "detail": "version must be an integer",
+            "status": 400,
+        }
 
         # Code too long
         websocket.send_json({"type": "code_update", "code": "A" * 50001, "version": 1})
         response = websocket.receive_json()
-        assert response == {"type": "error", "detail": "code exceeds 50000 characters", "status": 400}
+        assert response == {
+            "type": "error",
+            "detail": "code exceeds 50000 characters",
+            "status": 400,
+        }
+
 
 def test_collaboration_handles_missing_and_malformed_cursor_updates():
-    with client.websocket_connect("/collaboration/ws/session-malformed2?name=Alice") as websocket:
+    with client.websocket_connect(
+        "/collaboration/ws/session-malformed2?name=Alice"
+    ) as websocket:
         websocket.receive_json()
         websocket.receive_json()
 
         # Missing cursor
         websocket.send_json({"type": "cursor_update"})
         response = websocket.receive_json()
-        assert response == {"type": "error", "detail": "cursor is required", "status": 400}
+        assert response == {
+            "type": "error",
+            "detail": "cursor is required",
+            "status": 400,
+        }
 
         # Malformed cursor fields
         websocket.send_json({"type": "cursor_update", "cursor": {"line": "abc"}})
         response = websocket.receive_json()
-        assert response == {"type": "error", "detail": "cursor fields must be integers", "status": 400}
+        assert response == {
+            "type": "error",
+            "detail": "cursor fields must be integers",
+            "status": 400,
+        }
+
 
 def test_collaboration_handles_missing_and_malformed_comment_updates():
-    with client.websocket_connect("/collaboration/ws/session-malformed3?name=Alice") as websocket:
+    with client.websocket_connect(
+        "/collaboration/ws/session-malformed3?name=Alice"
+    ) as websocket:
         websocket.receive_json()
         websocket.receive_json()
 
         # Missing text
         websocket.send_json({"type": "comment_added", "line": 1})
         response = websocket.receive_json()
-        assert response == {"type": "error", "detail": "comment text is required", "status": 400}
+        assert response == {
+            "type": "error",
+            "detail": "comment text is required",
+            "status": 400,
+        }
 
         # Empty text
         websocket.send_json({"type": "comment_added", "text": "   ", "line": 1})
         response = websocket.receive_json()
-        assert response == {"type": "error", "detail": "comment text cannot be empty", "status": 400}
-
-
+        assert response == {
+            "type": "error",
+            "detail": "comment text cannot be empty",
+            "status": 400,
+        }

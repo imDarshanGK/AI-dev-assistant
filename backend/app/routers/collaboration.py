@@ -227,7 +227,9 @@ class CollaborationManager:
         try:
             incoming_version = int(raw_version)
         except (ValueError, TypeError):
-            await self._send_error(room, client_id, "version must be an integer", status=400)
+            await self._send_error(
+                room, client_id, "version must be an integer", status=400
+            )
             return
 
         async with room.lock:
@@ -269,7 +271,9 @@ class CollaborationManager:
             return
 
         if not isinstance(raw_cursor, dict):
-            await self._send_error(room, client_id, "cursor must be a JSON object", status=400)
+            await self._send_error(
+                room, client_id, "cursor must be a JSON object", status=400
+            )
             return
 
         try:
@@ -280,7 +284,9 @@ class CollaborationManager:
                 "selectionEnd": max(0, int(raw_cursor.get("selectionEnd", 0))),
             }
         except (ValueError, TypeError):
-            await self._send_error(room, client_id, "cursor fields must be integers", status=400)
+            await self._send_error(
+                room, client_id, "cursor fields must be integers", status=400
+            )
             return
 
         async with room.lock:
@@ -306,16 +312,22 @@ class CollaborationManager:
         raw_line = data.get("line", 1)
 
         if raw_text is None:
-            await self._send_error(room, client_id, "comment text is required", status=400)
+            await self._send_error(
+                room, client_id, "comment text is required", status=400
+            )
             return
 
         if not isinstance(raw_text, str):
-            await self._send_error(room, client_id, "comment text must be a string", status=400)
+            await self._send_error(
+                room, client_id, "comment text must be a string", status=400
+            )
             return
 
         text = raw_text.strip()
         if not text:
-            await self._send_error(room, client_id, "comment text cannot be empty", status=400)
+            await self._send_error(
+                room, client_id, "comment text cannot be empty", status=400
+            )
             return
 
         if len(text) > MAX_COMMENT_CHARS:
@@ -330,7 +342,9 @@ class CollaborationManager:
         try:
             line = max(1, int(raw_line))
         except (ValueError, TypeError):
-            await self._send_error(room, client_id, "line must be an integer", status=400)
+            await self._send_error(
+                room, client_id, "line must be an integer", status=400
+            )
             return
 
         async with room.lock:
@@ -373,11 +387,19 @@ async def collaboration_websocket(
                     await manager.handle_message(session_id, client_id, data)
                 else:
                     await websocket.send_json(
-                        {"type": "error", "detail": "message payload must be a JSON object", "status": 400}
+                        {
+                            "type": "error",
+                            "detail": "message payload must be a JSON object",
+                            "status": 400,
+                        }
                     )
             except asyncio.TimeoutError:
-                await websocket.send_json({"type": "error", "detail": "Request timeout", "status": 408})
+                await websocket.send_json(
+                    {"type": "error", "detail": "Request timeout", "status": 408}
+                )
             except ValueError:
-                await websocket.send_json({"type": "error", "detail": "Invalid JSON payload", "status": 400})
+                await websocket.send_json(
+                    {"type": "error", "detail": "Invalid JSON payload", "status": 400}
+                )
     except WebSocketDisconnect:
         await manager.disconnect(session_id, client_id)
