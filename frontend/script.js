@@ -544,20 +544,169 @@ function renderResult(data, mode) {
       </div>`;
       text += cards.map(c => `[${c.category}] ${c.description}`).join('\n');
     }
-  } else if (mode === 'explanation') {
-    html += `<div class="result-section">
-      <h4>Language</h4>
-      <div class="result-text">${escHtml(data.language || 'Auto-detected')}</div>
-    </div>
-    <div class="result-section">
-      <h4>Summary</h4>
-      <div class="result-text">${escHtml(data.summary || '')}</div>
-    </div>
-    <div class="result-section">
-      <h4>Key Points</h4>
-      <div class="result-text">${(data.key_points || []).map(p => `<p>• ${escHtml(p)}</p>`).join('')}</div>
-    </div>`;
-    text = `Language: ${data.language}\n${data.summary}\n${(data.key_points || []).join('\n')}`;
+    } else if (mode === 'explanation') {
+    const ex = data;
+
+    const listSection = (title, items) => {
+      if (!Array.isArray(items) || items.length === 0) return '';
+
+      return `
+        <div class="result-section">
+          <h4>${escHtml(title)}</h4>
+          <div class="result-text">
+            ${items.map(item => `<p>• ${escHtml(item)}</p>`).join('')}
+          </div>
+        </div>
+      `;
+    };
+
+    const lineByLineSection = (items) => {
+      if (!Array.isArray(items) || items.length === 0) return '';
+
+      return `
+        <div class="result-section">
+          <h4>Line-by-Line Explanation</h4>
+          <div class="result-text">
+            ${items.map(item => `
+              <div style="
+                margin-bottom:12px;
+                padding:12px;
+                background:var(--bg-2);
+                border:1px solid var(--border);
+                border-radius:6px;
+              ">
+                <div style="margin-bottom:6px;">
+                  <strong>Line ${escHtml(item.line ?? '')}</strong>
+                </div>
+
+                ${item.code
+                  ? `<pre style="
+                      margin:6px 0;
+                      padding:8px;
+                      overflow-x:auto;
+                      background:var(--bg);
+                      border-radius:4px;
+                      font-size:12px;
+                    ">${escHtml(item.code)}</pre>`
+                  : ''
+                }
+
+                <div>
+                  ${escHtml(item.explanation || item.description || '')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    };
+
+    const complexitySection = `
+      <div class="result-section">
+        <h4>Complexity</h4>
+        <div class="result-text">
+          ${ex.time_complexity
+            ? `<p><strong>Time:</strong> ${escHtml(ex.time_complexity)}</p>`
+            : ''
+          }
+
+          ${ex.space_complexity
+            ? `<p><strong>Space:</strong> ${escHtml(ex.space_complexity)}</p>`
+            : ''
+          }
+
+          ${ex.complexity
+            ? `<p><strong>Level:</strong> ${escHtml(ex.complexity)}</p>`
+            : ''
+          }
+        </div>
+      </div>
+    `;
+
+    html += `
+      <div class="result-section">
+        <h4>Language</h4>
+        <div class="result-text">
+          ${escHtml(ex.language || 'Auto-detected')}
+        </div>
+      </div>
+
+      ${ex.purpose ? `
+        <div class="result-section">
+          <h4>Purpose</h4>
+          <div class="result-text">
+            ${escHtml(ex.purpose)}
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="result-section">
+        <h4>Overview</h4>
+        <div class="result-text">
+          ${escHtml(ex.summary || ex.overview || '')}
+        </div>
+      </div>
+
+      ${listSection('Step-by-Step Explanation', ex.step_by_step)}
+
+      ${lineByLineSection(ex.line_by_line)}
+
+      ${listSection('Inputs', ex.inputs)}
+
+      ${listSection('Outputs', ex.outputs)}
+
+      ${ex.algorithm ? `
+        <div class="result-section">
+          <h4>Algorithm</h4>
+          <div class="result-text">
+            ${escHtml(ex.algorithm)}
+          </div>
+        </div>
+      ` : ''}
+
+      ${complexitySection}
+
+      ${listSection('Best Practices', ex.best_practices)}
+
+      ${listSection('Possible Optimizations', ex.optimizations)}
+
+      ${listSection('Common Mistakes', ex.common_mistakes)}
+
+      ${listSection('Real-World Applications', ex.real_world_applications)}
+
+      ${listSection('Key Points', ex.key_points)}
+    `;
+
+    text = [
+      `Language: ${ex.language || ''}`,
+      `Purpose: ${ex.purpose || ''}`,
+      `Overview: ${ex.summary || ex.overview || ''}`,
+      '',
+      'Step-by-Step:',
+      ...(ex.step_by_step || []),
+      '',
+      'Inputs:',
+      ...(ex.inputs || []),
+      '',
+      'Outputs:',
+      ...(ex.outputs || []),
+      '',
+      `Algorithm: ${ex.algorithm || ''}`,
+      `Time Complexity: ${ex.time_complexity || ''}`,
+      `Space Complexity: ${ex.space_complexity || ''}`,
+      '',
+      'Best Practices:',
+      ...(ex.best_practices || []),
+      '',
+      'Optimizations:',
+      ...(ex.optimizations || []),
+      '',
+      'Common Mistakes:',
+      ...(ex.common_mistakes || []),
+      '',
+      'Real-World Applications:',
+      ...(ex.real_world_applications || [])
+    ].join('\n');
   } else if (mode === 'debugging') {
     const issues = data.issues || [];
     html += `<div class="result-section">
