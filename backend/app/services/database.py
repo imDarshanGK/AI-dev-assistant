@@ -76,8 +76,7 @@ async def init_db() -> None:
     with record_db_metric("init_db"):
         try:
             async with aiosqlite.connect(DB_PATH) as db:
-                await db.execute(
-                    """
+                await db.execute("""
                     CREATE TABLE IF NOT EXISTS history (
                         id          INTEGER PRIMARY KEY AUTOINCREMENT,
                         code_hash   TEXT NOT NULL,
@@ -89,18 +88,15 @@ async def init_db() -> None:
                         code        TEXT,
                         result_json TEXT
                     )
-                """
-                )
+                """)
                 await _safe_add_column(db, "ALTER TABLE history ADD COLUMN code TEXT")
                 await _safe_add_column(
                     db, "ALTER TABLE history ADD COLUMN result_json TEXT"
                 )
-                await db.execute(
-                    """
+                await db.execute("""
                     CREATE VIRTUAL TABLE IF NOT EXISTS fts_history
                     USING fts5(code_preview, content=history, content_rowid=id)
-                """
-                )
+                """)
                 await db.execute(
                     "CREATE INDEX IF NOT EXISTS idx_timestamp ON history(timestamp DESC)"
                 )
