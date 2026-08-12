@@ -178,10 +178,7 @@ def test_search_history():
 
     results = r.json()
 
-    assert any(
-        "my_unique_function" in entry["code_preview"]
-        for entry in results
-    )
+    assert any("my_unique_function" in entry["code_preview"] for entry in results)
 
 
 def test_search_history_empty_query():
@@ -191,17 +188,13 @@ def test_search_history_empty_query():
 
 
 def test_search_history_max_length():
-    r = client.get(
-        "/history/search?q=" + ("x" * 201)
-    )
+    r = client.get("/history/search?q=" + ("x" * 201))
 
     assert r.status_code == 422
 
 
 def test_search_no_results():
-    r = client.get(
-        "/history/search?q=xyznotfoundever"
-    )
+    r = client.get("/history/search?q=xyznotfoundever")
 
     assert r.status_code == 200
     assert r.json() == []
@@ -307,4 +300,3 @@ def test_clear_all_history():
 
     assert get_r.status_code == 200
     assert get_r.json()["meta"]["total"] == 0
-
