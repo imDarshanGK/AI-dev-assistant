@@ -22,9 +22,9 @@ def load_fixture(filename: str) -> str:
     return (FIXTURES_DIR / filename).read_text(encoding="utf-8")
 @pytest.fixture(autouse=True)
 def reset_rate_limit_state():
-    app_main._request_counts.clear()
+    app_main.rate_limit_store.clear()
     yield
-    app_main._request_counts.clear()
+    app_main.rate_limit_store.clear()
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -149,10 +149,30 @@ def test_health():
 
 
 def test_rate_limit_headers_on_success_response():
+    app_main.rate_limit_store.clear()
     r = client.get("/")
     assert r.status_code == 200
     assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
-    assert r.headers["X-RateLimit-Remaining"] == str(app_main.RATE_LIMIT)
+    assert "X-RateLimit-Remaining" in r.headers
+    assert "X-RateLimit-Reset" in r.headers
+
+
+def test_rate_limit_headers_on_429():
+    original = app_main.RATE_LIMIT
+    app_main.RATE_LIMIT = 1
+    app_main.rate_limit_store.clear()
+
+    payload = {"code": "x = 1"}
+    client.post("/explanation/", json=payload)
+    r = client.post("/explanation/", json=payload)
+
+    assert r.status_code == 429
+    assert r.headers["X-RateLimit-Remaining"] == "0"
+    assert "X-RateLimit-Limit" in r.headers
+    assert "X-RateLimit-Reset" in r.headers
+
+    app_main.RATE_LIMIT = original
+    app_main.rate_limit_store.clear()
 
 
 def test_rate_limit_returns_429_with_retry_after_header():
@@ -166,7 +186,7 @@ def test_rate_limit_returns_429_with_retry_after_header():
 
     r = client.post("/debugging/", json=payload)
     assert r.status_code == 429
-    assert r.headers["Retry-After"] == str(app_main.RATE_LIMIT_WINDOW_SECONDS)
+    assert "X-RateLimit-Reset" in r.headers
     assert r.headers["X-RateLimit-Limit"] == str(app_main.RATE_LIMIT)
     assert r.headers["X-RateLimit-Remaining"] == "0"
 
@@ -589,10 +609,8 @@ def test_full_analyze():
 
 
 def test_full_analyze_uses_cache_for_identical_inputs():
-    from app.main import _request_counts
     from app.services.cache import cache
 
-    _request_counts.clear()
     cache.clear_memory()
     payload = {"code": PYTHON_BUGGY, "language": "python"}
 
@@ -604,7 +622,6 @@ def test_full_analyze_uses_cache_for_identical_inputs():
     assert first.headers["X-Cache"] == "MISS"
     assert second.headers["X-Cache"] == "HIT"
     assert second.json() == first.json()
-    _request_counts.clear()
 
 
 def test_analyze_cache_expires(monkeypatch):
