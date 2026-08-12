@@ -78,6 +78,31 @@ class AppCache:
         expires_at = time.time() + settings.cache_ttl_seconds
         with self._memory_lock:
             self._memory_store[key] = (expires_at, payload)
+    
+    def cleanup_expired(self) -> int:
+        """
+        Remove expired entries from the in-memory cache.
+
+        Returns:
+            Number of removed entries.
+        """
+        removed = 0
+
+        with self._memory_lock:
+            now = time.time()
+
+            expired_keys = [
+                key
+                for key, (expires_at, _)
+                in self._memory_store.items()
+                if expires_at < now
+            ]
+
+            for key in expired_keys:
+                self._memory_store.pop(key, None)
+                removed += 1
+
+        return removed
             self._memory_store.move_to_end(key)
 
             while len(self._memory_store) > settings.cache_max_entries:
