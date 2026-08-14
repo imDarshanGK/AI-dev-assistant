@@ -139,6 +139,30 @@ DB_OPERATION_DURATION_SECONDS = Histogram(
     labelnames=("operation",),
 )
 
+LLM_REQUESTS_TOTAL = Counter(
+    "qyverixai_llm_requests_total",
+    "Total number of LLM requests, labelled by operation and status.",
+    labelnames=("op", "status"),
+)
+
+LLM_REQUEST_DURATION_SECONDS = Histogram(
+    "qyverixai_llm_request_duration_seconds",
+    "Latency of LLM requests in seconds, labelled by operation.",
+    labelnames=("op",),
+)
+
+LLM_PARSE_ERRORS_TOTAL = Counter(
+    "qyverixai_llm_parse_errors_total",
+    "Total number of LLM structured JSON parse/schema failures, labelled by operation.",
+    labelnames=("op",),
+)
+
+LLM_RETRIES_TOTAL = Counter(
+    "qyverixai_llm_retries_total",
+    "Total number of LLM retry attempts, labelled by operation.",
+    labelnames=("op",),
+)
+
 SUBSCRIBE_ATTEMPTS_TOTAL = Counter(
     "qyverixai_subscribe_attempts_total",
     "Total number of subscription attempts, labelled by result.",

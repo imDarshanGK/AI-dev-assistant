@@ -5,6 +5,9 @@ All notable changes to QyverixAI are documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added Prometheus LLM metrics (`qyverixai_llm_requests_total`,
+  `qyverixai_llm_request_duration_seconds`, `qyverixai_llm_parse_errors_total`,
+  `qyverixai_llm_retries_total`) exposed via `/metrics`.
 - Added regression tests for the LLM analysis service (`llm_analysis.py`).
 - Added a dedicated changelog page in `docs/CHANGELOG.md`.
 - Added changelog guidance for contributors and PR authors.
@@ -19,6 +22,13 @@ All notable changes to QyverixAI are documented in this file.
 - Hardened LLM structured JSON parsing in `llm_analysis.py` with safer
   markdown-fence stripping, schema checks, and retries with backoff on
   parse failures.
+- `ai_provider.call_llm` now delegates to `LLMAnalysisClient` instead of
+  running a second independent HTTP stack; marked deprecated for new code.
+- Chat endpoints now log LLM failures (`chat_llm_failed`) instead of silently
+  swallowing them, and `POST /chat/message` returns `mode="chat_fallback"`
+  (previously `"ready+chat_fallback"`) when the LLM is unavailable or fails.
+- Wired `init_error_tracking()` into the FastAPI lifespan so Sentry activates
+  automatically when `SENTRY_DSN` is configured.
 
 ### Fixed
 - Multi-line `BUG_PATTERNS` (`String Concatenation in Loop`, `Missing __init__`,
