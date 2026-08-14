@@ -7,6 +7,11 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import DigestSubscription
+from ..observability import (
+    SUBSCRIBE_ATTEMPTS_TOTAL,
+    UNSUBSCRIBE_GET_ATTEMPTS_TOTAL,
+    UNSUBSCRIBE_POST_ATTEMPTS_TOTAL,
+)
 from ..schemas import SubscribeRequest, SubscribeResponse, UnsubscribeRequest
 from ..services.email_service import _generate_token
 
@@ -57,6 +62,7 @@ def subscribe(body: SubscribeRequest, db: Session = Depends(get_db)):
 
     if existing:
         if existing.is_active:
+            SUBSCRIBE_ATTEMPTS_TOTAL.labels(result="duplicate").inc()
             raise HTTPException(
                 status_code=409,
                 detail="This email is already subscribed to the weekly digest.",
@@ -64,6 +70,7 @@ def subscribe(body: SubscribeRequest, db: Session = Depends(get_db)):
         existing.is_active = True
         existing.unsubscribe_token = _generate_token()
         db.commit()
+        SUBSCRIBE_ATTEMPTS_TOTAL.labels(result="reactivated").inc()
         return SubscribeResponse(
             message="Subscription re-activated. Welcome back!",
             email=email,
@@ -76,6 +83,7 @@ def subscribe(body: SubscribeRequest, db: Session = Depends(get_db)):
     )
     db.add(sub)
     db.commit()
+    SUBSCRIBE_ATTEMPTS_TOTAL.labels(result="success").inc()
     return SubscribeResponse(
         message="You're subscribed! You'll receive your first digest next Sunday.",
         email=email,
@@ -130,15 +138,18 @@ def unsubscribe(body: UnsubscribeRequest, db: Session = Depends(get_db)):
     )
 
     if not sub:
+        UNSUBSCRIBE_POST_ATTEMPTS_TOTAL.labels(result="not_found").inc()
         raise HTTPException(
             status_code=404, detail="Subscription not found or already inactive."
         )
 
     if sub.unsubscribe_token != body.token:
+        UNSUBSCRIBE_POST_ATTEMPTS_TOTAL.labels(result="invalid_token").inc()
         raise HTTPException(status_code=403, detail="Invalid unsubscribe token.")
 
     sub.is_active = False
     db.commit()
+    UNSUBSCRIBE_POST_ATTEMPTS_TOTAL.labels(result="success").inc()
     return {
         "message": "You've been unsubscribed from the weekly digest.",
         "email": email,
@@ -198,11 +209,14 @@ def unsubscribe_via_get(
     )
 
     if not sub:
+        UNSUBSCRIBE_GET_ATTEMPTS_TOTAL.labels(result="not_found").inc()
         return {"message": "Subscription not found or already inactive."}
 
     if sub.unsubscribe_token != token:
+        UNSUBSCRIBE_GET_ATTEMPTS_TOTAL.labels(result="invalid_token").inc()
         return {"message": "Invalid unsubscribe link."}
 
     sub.is_active = False
     db.commit()
+    UNSUBSCRIBE_GET_ATTEMPTS_TOTAL.labels(result="success").inc()
     return {"message": "You've been unsubscribed from the weekly digest."}
