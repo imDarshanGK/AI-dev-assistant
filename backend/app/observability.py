@@ -161,6 +161,8 @@ LLM_RETRIES_TOTAL = Counter(
     "qyverixai_llm_retries_total",
     "Total number of LLM retry attempts, labelled by operation.",
     labelnames=("op",),
+)
+
 SUBSCRIBE_ATTEMPTS_TOTAL = Counter(
     "qyverixai_subscribe_attempts_total",
     "Total number of subscription attempts, labelled by result.",
