@@ -381,7 +381,6 @@ class LoginRequest(BaseModel):
     )
     password: str = Field(
         ...,
-        min_length=8,
         max_length=128,
         description="The account password.",
         example="supersecret123",

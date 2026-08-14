@@ -7,6 +7,8 @@ understand code, detect bugs, and get plain-English explanations.
 It uses a rule-based engine for fast analysis and optionally connects
 to an LLM (like OpenAI or Groq) for deeper insights.
 
+> **New since v1:** AI Chat, Live Collaboration, ZIP Analysis, Streaming Analysis, expanded multi-language rule engine.
+
 ---
 
 ## System Architecture
@@ -16,7 +18,7 @@ flowchart TD
     A[User - Browser] -->|Pastes code + clicks Analyze| B[Vanilla JS Frontend\nindex.html]
     B -->|HTTP POST /analyze/| C[FastAPI Backend\nPort 8000]
     C --> D{Analysis Mode}
-    D -->|Rule-based| E[Rule Engine\ncode_assistant.py\n40+ patterns · 5 languages]
+    D -->|Rule-based| E[Rule Engine\ncode_assistant.py\n65+ patterns · 7 languages]
     D -->|LLM mode| F[AI Provider Layer\nai_provider.py]
     F --> G[OpenAI / Groq / Ollama]
     E --> H[Response JSON]
@@ -53,7 +55,7 @@ flowchart TD
 
 ### 3. Rule-Based Engine
 - **File:** `code_assistant.py`
-- 40+ pattern rules across 5 languages (Python, JS, TS, Java, C++)
+- 65+ pattern rules across 7 languages (Python, JavaScript, TypeScript, Java, C++, PHP, Rust)
 - Fast, offline, no API key needed
 - Detects common bugs, anti-patterns, and style issues
 
@@ -72,6 +74,21 @@ flowchart TD
 - Supports **Docker** (via `Dockerfile`)
 - Also deployable on **Render** (cloud hosting)
 
+### 7. AST Analyzer
+- **File:** `ast_analyzer.py`
+- Provides deeper Python code analysis using the AST
+- Helps detect syntax, flow, and pattern issues beyond surface-level matching
+
+### 8. Authentication / Security
+- **Files:** `security.py`, `token_denylist.py`
+- Handles JWT creation, verification, and route authorization
+- `token_denylist.py` revokes logged-out tokens by storing JWT `jti` values until expiry
+
+### 9. Live Collaboration
+- **File:** `collaboration.py`
+- Manages WebSocket rooms, session state, live code sync, cursor presence, and comments
+- Enables real-time multi-user collaboration over `/ws/{session_id}`
+
 ---
 
 ## Key Files for New Contributors
@@ -84,6 +101,13 @@ flowchart TD
 | `frontend/index.html` | Entire frontend UI |
 | `requirements.txt` | Python dependencies |
 | `Dockerfile` | Container setup |
+| `ast_analyzer.py` | Deep Python AST analysis |
+| `security.py` | JWT auth helpers and route protection |
+| `sanitize.py` | Input sanitization for code and language hints |
+| `token_denylist.py` | JWT logout revocation store |
+| `collaboration.py` | WebSocket room state and live collaboration |
+| `middleware.py` | Request middleware for auth, security, and observability |
+| `observability.py` | Metrics, logging, and health instrumentation |
 | `README.md` | Setup and usage guide |
 
 ---
@@ -96,7 +120,7 @@ flowchart TD
 | Requires API key | No | Yes |
 | Works offline | Yes | No |
 | Analysis depth | Pattern matching | Deep reasoning |
-| Languages supported | 5 | Any |
+| Languages supported | 7 | Any |
 
 ---
 

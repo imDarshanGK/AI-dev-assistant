@@ -36,13 +36,13 @@ from prometheus_client import (
     multiprocess,
 )
 
-
 # ── Configuration ─────────────────────────────────────────────────────────────
 # Both flags are intentionally read at **request time** (not import time) so
 # tests, hot-reloads, and operators can flip them without having to recreate
 # the metric objects below. Recreating them would raise
 # ``Duplicated timeseries in CollectorRegistry`` because they live on the
 # module-global ``prometheus_client.REGISTRY``.
+
 
 def _bool_env(name: str, default: bool) -> bool:
     raw = os.getenv(name)
@@ -58,6 +58,7 @@ def metrics_enabled() -> bool:
 def metrics_auth_token() -> str | None:
     return os.getenv("METRICS_AUTH_TOKEN") or None
 
+
 # Paths the middleware ignores entirely (the /metrics endpoint must not record
 # itself; static files under /app are noisy and high-cardinality if used as
 # labels). Health probes ARE recorded so we can alert on probe failures.
@@ -68,11 +69,19 @@ _EXCLUDED_PATH_PREFIXES: tuple[str, ...] = (
 )
 
 
-# ── Metric definitions ────────────────────────────────────────────────────────
-# Buckets are chosen for a typical HTTP API: sub-millisecond up to ~30s. The
-# upper bucket of +Inf is added automatically by prometheus_client.
 _LATENCY_BUCKETS_SECONDS: tuple[float, ...] = (
-    0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0,
+    0.005,
+    0.01,
+    0.025,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0,
+    2.5,
+    5.0,
+    10.0,
+    30.0,
 )
 
 REQUESTS_TOTAL = Counter(
@@ -106,6 +115,48 @@ APP_INFO = Gauge(
     labelnames=("version", "ai_provider"),
 )
 
+EMAIL_SENT_TOTAL = Counter(
+    "qyverixai_email_sent_total",
+    "Total number of emails sent, labelled by type and status.",
+    labelnames=("type", "status"),
+)
+
+EMAIL_SEND_DURATION_SECONDS = Histogram(
+    "qyverixai_email_send_duration_seconds",
+    "Latency of email delivery in seconds, labelled by type.",
+    labelnames=("type",),
+)
+
+DB_OPERATIONS_TOTAL = Counter(
+    "qyverixai_db_operations_total",
+    "Total number of database operations executed, labelled by operation and status.",
+    labelnames=("operation", "status"),
+)
+
+DB_OPERATION_DURATION_SECONDS = Histogram(
+    "qyverixai_db_operation_duration_seconds",
+    "Latency of database operations in seconds, labelled by operation.",
+    labelnames=("operation",),
+)
+
+SUBSCRIBE_ATTEMPTS_TOTAL = Counter(
+    "qyverixai_subscribe_attempts_total",
+    "Total number of subscription attempts, labelled by result.",
+    labelnames=("result",),
+)
+
+UNSUBSCRIBE_POST_ATTEMPTS_TOTAL = Counter(
+    "qyverixai_unsubscribe_post_attempts_total",
+    "Total number of POST unsubscribe attempts, labelled by result.",
+    labelnames=("result",),
+)
+
+UNSUBSCRIBE_GET_ATTEMPTS_TOTAL = Counter(
+    "qyverixai_unsubscribe_get_attempts_total",
+    "Total number of GET unsubscribe attempts, labelled by result.",
+    labelnames=("result",),
+)
+
 
 def initialise_app_info(version: str, ai_provider: str) -> None:
     """Set the app_info gauge once at startup so dashboards can display it."""
@@ -130,7 +181,10 @@ def _endpoint_label(request: Request) -> str:
 
 
 def _should_skip(path: str) -> bool:
-    return any(path == prefix or path.startswith(prefix + "/") for prefix in _EXCLUDED_PATH_PREFIXES)
+    return any(
+        path == prefix or path.startswith(prefix + "/")
+        for prefix in _EXCLUDED_PATH_PREFIXES
+    )
 
 
 # ── Middleware ────────────────────────────────────────────────────────────────
@@ -153,9 +207,6 @@ async def prometheus_metrics_middleware(
     method = request.method
     start = time.perf_counter()
 
-    # We don't yet know the route template (routing happens after middleware
-    # entry), but a coarse placeholder lets us increment the in-progress gauge
-    # consistently. The placeholder is replaced before observing latency.
     in_progress_label = "in_flight"
     REQUESTS_IN_PROGRESS.labels(method=method, endpoint=in_progress_label).inc()
 
@@ -203,3 +254,34 @@ def render_metrics() -> tuple[bytes, str]:
     else:
         payload = generate_latest()
     return payload, CONTENT_TYPE_LATEST
+
+
+DIGEST_JOBS_TOTAL = Counter(
+    "qyverixai_digest_jobs_total",
+    "Total number of weekly digest jobs triggered, labelled by result.",
+    labelnames=("result",),
+)
+
+DIGEST_EMAILS_SENT_TOTAL = Counter(
+    "qyverixai_digest_emails_sent_total",
+    "Total number of digest emails sent successfully.",
+    labelnames=(),
+)
+
+DIGEST_EMAILS_FAILED_TOTAL = Counter(
+    "qyverixai_digest_emails_failed_total",
+    "Total number of digest email delivery failures.",
+    labelnames=(),
+)
+
+DIGEST_JOB_DURATION_SECONDS = Histogram(
+    "qyverixai_digest_job_duration_seconds",
+    "Duration of the weekly digest job in seconds.",
+    buckets=_LATENCY_BUCKETS_SECONDS,
+)
+
+DIGEST_LAST_RUN_TIMESTAMP = Gauge(
+    "qyverixai_digest_last_run_timestamp_seconds",
+    "Unix timestamp of the last weekly digest job run.",
+    labelnames=(),
+)

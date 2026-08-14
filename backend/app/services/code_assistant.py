@@ -382,7 +382,7 @@ BUG_PATTERNS: list[BugPattern] = [
     ),
     BugPattern(
         "Missing __init__",
-        r"class\s+\w+[^:]*:\n(?!\s+def __init__)",
+        r"class\s+\w+[^:\n]*:\n(?!\s+def __init__)",
         "Class defined without `__init__` — may cause AttributeError on attribute access.",
         "Add `def __init__(self):` to initialize instance state.",
         "info",
@@ -820,6 +820,18 @@ BUG_PATTERNS: list[BugPattern] = [
 ]
 
 
+def _is_multiline_pattern(pattern: str) -> bool:
+    """Return True if a regex pattern is intended to match across multiple lines.
+
+    Such patterns contain constructs (a literal ``\\n``, or a character class
+    such as ``[\\s\\S]`` / ``[\\d\\D]`` / ``[\\w\\W]``) that can only match when
+    the regex is run against the full, un-split source code. The per-line scan
+    in :func:`run_bug_detection` strips newlines, so these patterns would
+    otherwise never fire and remain dead code.
+    """
+    return any(token in pattern for token in (r"\n", r"[\s\S]", r"[\d\D]", r"[\w\W]"))
+
+
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
 
@@ -853,6 +865,36 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
     for bp in BUG_PATTERNS:
         if language not in bp.languages and "All" not in bp.languages:
+            continue
+
+        # Multi-line patterns rely on constructs (literal "\n", "[\s\S]", ...)
+        # that span more than one line, so they cannot match when the regex is
+        # applied to a single line. Run them against the full source instead.
+        if _is_multiline_pattern(bp.pattern):
+            for match in re.finditer(bp.pattern, code, re.MULTILINE | re.IGNORECASE):
+                line_no = code[: match.start()].count("\n") + 1
+                key = f"{bp.name}:{line_no}"
+                if key in seen:
+                    continue
+                seen.add(key)
+                snippet = (
+                    lines[line_no - 1].strip()[:120]
+                    if 0 <= line_no - 1 < len(lines)
+                    else ""
+                )
+                found.append(
+                    {
+                        "type": bp.name,
+                        "line": line_no,
+                        "description": bp.description,
+                        "suggestion": bp.suggestion,
+                        "severity": bp.severity,
+                        "code_snippet": snippet,
+                        "code_context": format_code_snippet(
+                            code, [line_no], context_lines=2
+                        ),
+                    }
+                )
             continue
 
         for i, line in enumerate(lines, start=1):
@@ -906,7 +948,6 @@ def run_suggestions(code: str, language: str) -> dict:
     Returns:
         Suggestion results including score, grade, and recommendations.
     """
-    """Enhanced suggestion engine with line number tracking."""
     from .line_utils import (
         find_function_lines,
         find_lines_matching_pattern,
@@ -917,6 +958,16 @@ def run_suggestions(code: str, language: str) -> dict:
     suggestions: list[dict] = []
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
+
+    # Cache commonly used regex checks
+    has_try = bool(re.search(r"\btry\b", code))
+    has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
+    has_tests = bool(
+        re.search(
+            r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]",
+            code,
+        )
+    )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 1: Documentation Quality
@@ -992,7 +1043,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 4: Error Handling
     # ─────────────────────────────────────────────────────────────
-    if language == "Python" and not re.search(r"\btry\b", code):
+    if language == "Python" and not has_try:
         risky_patterns = [
             r"requests\.(get|post|put|delete)",
             r"open\s*\(",
@@ -1051,7 +1102,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 6: Tests
     # ─────────────────────────────────────────────────────────────
-    if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]", code):
+    if not has_tests:
         suggestions.append(
             {
                 "category": "Testing",
@@ -1069,7 +1120,6 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     if language == "Python":
         print_lines = find_lines_matching_pattern(code, r"\bprint\s*\(")
-        has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
