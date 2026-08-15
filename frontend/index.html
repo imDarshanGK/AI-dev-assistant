@@ -948,6 +948,21 @@
       opacity: 0.7
     }
 
+    .progress-status {
+      margin-top: 10px;
+      font-family: var(--font-ui);
+      font-size: 0.85rem;
+      color: var(--text2);
+      text-align: center;
+      min-height: 18px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .progress-status.active {
+      opacity: 1;
+    }
+
     /* ═══════════════════════════════════════════════════════════════
    RESULTS PANEL
 ═══════════════════════════════════════════════════════════════ */
@@ -1253,6 +1268,30 @@ details.issue-card[open] {
       background-repeat: no-repeat;
       background-position: center;
       margin-top: 3px
+    }
+
+    /* ── Error Cards ── */
+    .analysis-error {
+      text-align: center;
+      padding: 24px;
+    }
+
+    .analysis-error-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    .analysis-error h3 {
+      margin-bottom: 8px;
+    }
+
+    .analysis-error p {
+      margin-bottom: 12px;
+      color: var(--muted-text);
+    }
+
+    .analysis-hint {
+      font-size: 14px;
     }
 
     /* ── Explanation Cards ── */
@@ -2866,6 +2905,7 @@ details.issue-card[open] {
             <span class="spinner" id="spinner"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
+          <div class="progress-status" id="progressStatus"></div>
           <div class="shortcut-hints" role="note" aria-label="Keyboard shortcuts" data-i18n-aria-label="shortcuts_label">
             <span class="shortcut-hint"><kbd>/</kbd><span data-i18n="shortcut_focus">Focus editor</span></span>
             <span class="shortcut-hint"><kbd>Ctrl/⌘ + Enter</kbd><span data-i18n="shortcut_analyze">Analyze</span></span>
@@ -4182,11 +4222,13 @@ cursor:pointer;
         analyzeBtn.classList.add('loading');
         analyzeBtn.disabled = true;
         showShimmers();
+        updateProgressStatus('Preparing your code...');
 
         try {
           if (selectedZipFile) {
             const formData = new FormData();
             formData.append('file', selectedZipFile);
+            updateProgressStatus('Uploading file...');
             const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, '/analyze/zip/', {
               method: 'POST',
               body: formData,
@@ -4200,6 +4242,7 @@ cursor:pointer;
               throw new Error(err.detail || `HTTP ${res.status}`);
             }
             const data = await res.json();
+            updateProgressStatus('Preparing results...');
             currentResult = data;
             renderZipResults(data);
             await addToHistory(`ZIP: ${selectedZipFile.name}`, data);
@@ -4212,6 +4255,7 @@ cursor:pointer;
             return;
           }
 
+          updateProgressStatus('Analyzing your code...');
           const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -4226,6 +4270,7 @@ cursor:pointer;
             throw new Error(err.detail || `HTTP ${res.status}`);
           }
           const data = await res.json();
+          updateProgressStatus('Preparing results...');
           const elapsed = res.headers.get('X-Process-Time-Ms');
 
           // Normalize to full analysis shape
@@ -4253,11 +4298,12 @@ cursor:pointer;
 
         } catch (err) {
           toast(getTranslation('toast_analysis_failed').replace('{message}', err.message), 'error');
-         
-          resetResults();
+          // resetResults();
+          showAnalysisError(err.message);
         } finally {
           analyzeBtn.classList.remove('loading');
           analyzeBtn.disabled = false;
+          clearProgressStatus();
         }
       }
 
@@ -4883,6 +4929,20 @@ cursor:pointer;
         });
       }
 
+      function updateProgressStatus(text) {
+        const el = document.getElementById('progressStatus');
+        if (!el) return;
+        el.textContent = text;
+        el.classList.add('active');
+      }
+
+      function clearProgressStatus() {
+        const el = document.getElementById('progressStatus');
+        if (!el) return;
+        el.textContent = '';
+        el.classList.remove('active');
+      }
+
       /* ═══════════════════════════════════════════════════════════════
          SHIMMER LOADING
       ═══════════════════════════════════════════════════════════════ */
@@ -4977,6 +5037,23 @@ cursor:pointer;
 
         document.getElementById('analyticsIssues').textContent =
           issueCount ? (totalIssues / issueCount).toFixed(1) : '0';
+      }
+
+      function showAnalysisError(message) {
+        ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
+          document.getElementById(id).style.display = 'none';
+        });
+        ['explainResult', 'debugResult', 'suggestResult'].forEach(id => {
+          const el = document.getElementById(id);
+          el.style.display = 'block';
+          el.innerHTML = `
+          <div class="analysis-error">
+            <h3>⚠️ Analysis Failed - check your connection</h3>
+              <p>${escHtml(message)}</p>
+              <button class="btn btn-primary" onclick="doAnalyze()">Try Again</button>
+            </div>
+            `;
+        });
       }
 
       /* ═══════════════════════════════════════════════════════════════
