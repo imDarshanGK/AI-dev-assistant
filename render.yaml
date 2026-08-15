@@ -1,8 +1,9 @@
 services:
   - type: web
     name: qyverixai
-    env: python
-    buildCommand: cd backend && pip install -r requirements.txt
+    env: docker
+    # Using Dockerfile so OS packages (libmagic) are included during build
+    # Render will build the repository Dockerfile; no separate buildCommand needed
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: RATE_LIMIT_PER_MINUTE

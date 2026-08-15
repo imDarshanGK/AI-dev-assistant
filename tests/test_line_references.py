@@ -146,11 +146,11 @@ def very_long_function():
             
             if suggestion.get("line_range"):
                 assert isinstance(suggestion["line_range"], list), "line_range should be list"
-                assert all(isinstance(l, int) for l in suggestion["line_range"]), "line_range items should be ints"
-    
+                assert all(isinstance(num, int) for num in suggestion["line_range"]), "line_range items should be ints"
+
     # Should have at least one suggestion with line references
+    assert has_line_refs, "No suggestions contained line references"
     print(f"Found {len(suggestions)} suggestions")
-    
     print("✅ test_suggestions_include_line_ranges PASSED")
 
 
@@ -278,11 +278,11 @@ def test_large_code_performance():
     import time
     
     start = time.time()
-    issues = run_bug_detection(code, "Python")
+    _issues = run_bug_detection(code, "Python")
     debug_time = time.time() - start
     
     start = time.time()
-    response = run_suggestions(code, "Python")
+    _response = run_suggestions(code, "Python")
     suggest_time = time.time() - start
     
     # Should complete reasonably fast

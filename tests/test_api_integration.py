@@ -86,6 +86,8 @@ def long_function_without_purpose():
         
         if suggestion.get("line_number") or suggestion.get("line_range"):
             has_line_tracking = True
+    # Ensure at least one suggestion had line tracking
+    assert has_line_tracking, "No suggestions contained line tracking"
     
     print("✅ test_suggestions_endpoint_with_line_ranges PASSED\n")
 

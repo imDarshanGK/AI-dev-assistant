@@ -17,6 +17,13 @@ def get_lines_range(code: str, start: int, end: int) -> list[str]:
     return lines[max(0, start - 1) : min(len(lines), end)]
 
 
+def _escape_script_tags(text: str) -> str:
+    """Neutralize raw script tags in code snippets while retaining plain-text content."""
+    text = re.sub(r"(?i)<\s*script\b", "&lt;script", text)
+    text = re.sub(r"(?i)<\s*/\s*script\s*>", "&lt;/script&gt;", text)
+    return text
+
+
 def format_code_snippet(
     code: str, line_numbers: list[int], context_lines: int = 2
 ) -> str:
@@ -36,7 +43,8 @@ def format_code_snippet(
     for idx in range(start, end):
         line_num = idx + 1
         marker = ">>> " if line_num in line_numbers else "    "
-        snippet += f"{marker}{line_num}: {lines[idx]}\n"
+        line = _escape_script_tags(lines[idx])
+        snippet += f"{marker}{line_num}: {line}\n"
 
     return snippet
 

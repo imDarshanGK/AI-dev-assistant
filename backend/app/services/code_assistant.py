@@ -4,11 +4,13 @@ Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Ru
 """
 
 from __future__ import annotations
+
 import ast
 import re
 import time
-from .ast_analyzer import analyze as ast_analyze
 from dataclasses import dataclass, field
+
+from .ast_analyzer import analyze as ast_analyze
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -90,46 +92,63 @@ LANG_SIGNATURES: dict[str, list[str]] = {
 def detect_language(code: str, hint: str | None = None) -> str:
     """Detect the programming language of the given code snippet.
 
-    Args:
-        code: The source code string to analyze.
-        hint: Optional language name to override detection.
-
-    Returns:
-        Detected language name as a string.
+    If a language hint is provided, it is treated as a preference—not an
+    absolute override. The actual code is analyzed first, and the hint is only
+    trusted when it agrees with or is not contradicted by the detected syntax.
     """
 
-    if hint:
-        normalized = hint.strip().lower()
-        mapping = {
-            "python": "Python",
-            "py": "Python",
-            "javascript": "JavaScript",
-            "js": "JavaScript",
-            "typescript": "TypeScript",
-            "ts": "TypeScript",
-            "java": "Java",
-            "cpp": "C++",
-            "c++": "C++",
-            "cxx": "C++",
-            "swift": "Swift",
-            "php": "PHP",
-            "rust": "Rust",
-            "rs": "Rust",
-            "kotlin": "Kotlin",
-            "kt": "Kotlin",
-            "kts": "Kotlin",
-        }
-        if normalized in mapping:
-            return mapping[normalized]
+    mapping = {
+        "python": "Python",
+        "py": "Python",
+        "javascript": "JavaScript",
+        "js": "JavaScript",
+        "typescript": "TypeScript",
+        "ts": "TypeScript",
+        "java": "Java",
+        "cpp": "C++",
+        "c++": "C++",
+        "cxx": "C++",
+        "swift": "Swift",
+        "php": "PHP",
+        "rust": "Rust",
+        "rs": "Rust",
+        "kotlin": "Kotlin",
+        "kt": "Kotlin",
+        "kts": "Kotlin",
+    }
 
     scores: dict[str, int] = {lang: 0 for lang in LANG_SIGNATURES}
+
     for lang, patterns in LANG_SIGNATURES.items():
         for pat in patterns:
             if re.search(pat, code, re.MULTILINE):
                 scores[lang] += 1
 
-    best = max(scores, key=lambda lang_key: scores[lang_key])
-    return best if scores[best] > 0 else "Unknown"
+    best_language = max(scores, key=scores.get)
+    best_score = scores[best_language]
+
+    # If no language signatures matched, fall back to the hint (if valid)
+    if best_score == 0:
+        if hint:
+            normalized = hint.strip().lower()
+            if normalized in mapping:
+                return mapping[normalized]
+        return "Unknown"
+
+    # If a hint exists, trust it only when it isn't clearly contradicted
+    if hint:
+        normalized = hint.strip().lower()
+        hinted = mapping.get(normalized)
+
+        if hinted:
+            hint_score = scores.get(hinted, 0)
+
+            # If the hinted language is almost as likely, keep it.
+            if hint_score >= best_score - 1:
+                return hinted
+
+    # Otherwise return the detected language
+    return best_language
 
 
 # ── Cyclomatic Complexity ──────────────────────────────────────────────────────
@@ -196,6 +215,51 @@ def estimate_complexity(code: str) -> str:
     if n <= 200:
         return "Advanced"
     return "Expert"
+
+
+def chat_fallback_reply(
+    message: str,
+    code: str | None,
+    history: list[str],
+    level: str,
+) -> str:
+    """Return a simple fallback chat response when the LLM is unavailable."""
+    message_text = (message or "").strip()
+    code_text = code or ""
+    recent_history = " ".join(history[-3:]) if history else ""
+
+    if not code_text:
+        base = (
+            "I can’t access the AI service right now, but I’m still here to help. "
+            "Please retry when the assistant is available."
+        )
+        if message_text:
+            base += f" Your question was: {message_text}"
+        return base
+
+    language = detect_language(code_text)
+    complexity = estimate_complexity(code_text)
+    response_parts = [
+        f"I detected {language} code with an estimated {complexity.lower()} complexity.",
+        f"At {level} level, focus on the main intent of the code and any notable branching or error-prone logic.",
+    ]
+
+    if message_text:
+        response_parts.append(f"You asked: {message_text}.")
+
+    if "error" in message_text.lower() or "bug" in message_text.lower():
+        response_parts.append(
+            "Check for common issues such as missing imports, incorrect indentation, or unexpected variable values."
+        )
+    else:
+        response_parts.append(
+            "Try describing the core behavior in plain language and mention the most important statement or loop."
+        )
+
+    if recent_history:
+        response_parts.append(f"Recent chat context: {recent_history}.")
+
+    return " ".join(response_parts)
 
 
 # ── Bug Patterns ───────────────────────────────────────────────────────────────
@@ -318,7 +382,7 @@ BUG_PATTERNS: list[BugPattern] = [
     ),
     BugPattern(
         "Missing __init__",
-        r"class\s+\w+[^:]*:\n(?!\s+def __init__)",
+        r"class\s+\w+[^:\n]*:\n(?!\s+def __init__)",
         "Class defined without `__init__` — may cause AttributeError on attribute access.",
         "Add `def __init__(self):` to initialize instance state.",
         "info",
@@ -756,6 +820,18 @@ BUG_PATTERNS: list[BugPattern] = [
 ]
 
 
+def _is_multiline_pattern(pattern: str) -> bool:
+    """Return True if a regex pattern is intended to match across multiple lines.
+
+    Such patterns contain constructs (a literal ``\\n``, or a character class
+    such as ``[\\s\\S]`` / ``[\\d\\D]`` / ``[\\w\\W]``) that can only match when
+    the regex is run against the full, un-split source code. The per-line scan
+    in :func:`run_bug_detection` strips newlines, so these patterns would
+    otherwise never fire and remain dead code.
+    """
+    return any(token in pattern for token in (r"\n", r"[\s\S]", r"[\d\D]", r"[\w\W]"))
+
+
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
 
@@ -766,14 +842,59 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     Returns:
         A list of detected issues with metadata and suggestions.
     """
+    from .ast_analyzer import analyze_python_ast
     from .line_utils import format_code_snippet
 
     lines = code.splitlines()
     found: list[dict] = []
     seen: set[str] = set()
 
+    if language == "Python":
+        for issue in analyze_python_ast(code):
+            key = f"{issue['type']}:{issue['line']}"
+            if key not in seen:
+                seen.add(key)
+                line_idx = issue["line"] - 1
+                issue["code_snippet"] = (
+                    lines[line_idx].strip()[:120] if 0 <= line_idx < len(lines) else ""
+                )
+                issue["code_context"] = format_code_snippet(
+                    code, [issue["line"]], context_lines=2
+                )
+                found.append(issue)
+
     for bp in BUG_PATTERNS:
         if language not in bp.languages and "All" not in bp.languages:
+            continue
+
+        # Multi-line patterns rely on constructs (literal "\n", "[\s\S]", ...)
+        # that span more than one line, so they cannot match when the regex is
+        # applied to a single line. Run them against the full source instead.
+        if _is_multiline_pattern(bp.pattern):
+            for match in re.finditer(bp.pattern, code, re.MULTILINE | re.IGNORECASE):
+                line_no = code[: match.start()].count("\n") + 1
+                key = f"{bp.name}:{line_no}"
+                if key in seen:
+                    continue
+                seen.add(key)
+                snippet = (
+                    lines[line_no - 1].strip()[:120]
+                    if 0 <= line_no - 1 < len(lines)
+                    else ""
+                )
+                found.append(
+                    {
+                        "type": bp.name,
+                        "line": line_no,
+                        "description": bp.description,
+                        "suggestion": bp.suggestion,
+                        "severity": bp.severity,
+                        "code_snippet": snippet,
+                        "code_context": format_code_snippet(
+                            code, [line_no], context_lines=2
+                        ),
+                    }
+                )
             continue
 
         for i, line in enumerate(lines, start=1):
@@ -802,7 +923,6 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                         "code_context": code_context,
                     }
                 )
-                break  # one hit per pattern is enough
 
     if language == "Python":
         try:
@@ -828,17 +948,26 @@ def run_suggestions(code: str, language: str) -> dict:
     Returns:
         Suggestion results including score, grade, and recommendations.
     """
-    """Enhanced suggestion engine with line number tracking."""
     from .line_utils import (
-        format_code_snippet,
-        find_lines_matching_pattern,
         find_function_lines,
+        find_lines_matching_pattern,
         find_undocumented_lines,
+        format_code_snippet,
     )
 
     suggestions: list[dict] = []
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
+
+    # Cache commonly used regex checks
+    has_try = bool(re.search(r"\btry\b", code))
+    has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
+    has_tests = bool(
+        re.search(
+            r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]",
+            code,
+        )
+    )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 1: Documentation Quality
@@ -893,7 +1022,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 3: Magic Numbers
     # ─────────────────────────────────────────────────────────────
-    magic_pattern = r"\b(?<![a-zA-Z_])[2-9]\d{1,}(?![a-zA-Z_])\b"
+    magic_pattern = r"\b(?<![a-zA-Z_])[1-9]\d{1,}(?![a-zA-Z_])\b"
     magic_lines = find_lines_matching_pattern(code, magic_pattern)
 
     if magic_lines:
@@ -914,7 +1043,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 4: Error Handling
     # ─────────────────────────────────────────────────────────────
-    if language == "Python" and not re.search(r"\btry\b", code):
+    if language == "Python" and not has_try:
         risky_patterns = [
             r"requests\.(get|post|put|delete)",
             r"open\s*\(",
@@ -973,7 +1102,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 6: Tests
     # ─────────────────────────────────────────────────────────────
-    if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]", code):
+    if not has_tests:
         suggestions.append(
             {
                 "category": "Testing",
@@ -991,19 +1120,20 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     if language == "Python":
         print_lines = find_lines_matching_pattern(code, r"\bprint\s*\(")
-        has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
-            suggestions.append({
-                "category": "Observability",
-                "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
-                "line_number": print_lines[0],
-                "line_range": sample_print,
-                "code_context": format_code_snippet(code, sample_print),
-                "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
-                "priority": "medium",
-            })
+            suggestions.append(
+                {
+                    "category": "Observability",
+                    "description": f"Using `print()` instead of structured logging ({len(print_lines)} line(s)).",
+                    "line_number": print_lines[0],
+                    "line_range": sample_print,
+                    "code_context": format_code_snippet(code, sample_print),
+                    "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('Processing %d items', n)",
+                    "priority": "medium",
+                }
+            )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 8: Environment Variables (JS/TS)
@@ -1337,6 +1467,7 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         "error_count": len(errors),
         "warning_count": len(warnings),
         "info_count": len(infos),
+        "code": code,
     }
 
     sugg = run_suggestions(code, language)

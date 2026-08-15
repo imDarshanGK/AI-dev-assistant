@@ -3,22 +3,23 @@ Tests for weekly email digest — subscribe / unsubscribe / scheduler.
 Run: cd backend && pytest test_digest.py -v
 """
 
+import os
+import sys
+from urllib.parse import parse_qs, urlparse
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import sys, os
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.database import Base, get_db
-from app.models import DigestSubscription
 
 # Now import the FastAPI app and wire up the test DB override.
 from app.main import app as fastapi_app
-
-
+from app.models import DigestSubscription
+from app.services import email_service
 from sqlalchemy.pool import StaticPool
 
 TEST_ENGINE = create_engine(
@@ -37,7 +38,6 @@ def _override_db():
         db.close()
 
 
-fastapi_app.dependency_overrides[get_db] = _override_db
 client = TestClient(fastapi_app)
 
 
@@ -45,9 +45,11 @@ client = TestClient(fastapi_app)
 @pytest.fixture(autouse=True)
 def _recreate_tables():
     """Recreate all tables before each test for a clean slate."""
+    fastapi_app.dependency_overrides[get_db] = _override_db
     Base.metadata.create_all(bind=TEST_ENGINE)
     yield
     Base.metadata.drop_all(bind=TEST_ENGINE)
+    fastapi_app.dependency_overrides.pop(get_db, None)
 
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
@@ -166,3 +168,251 @@ def test_subscribe_stores_token():
         assert len(sub.unsubscribe_token) >= 16
     finally:
         db.close()
+
+
+def test_digest_email_uses_mounted_unsubscribe_route(monkeypatch):
+    sent_messages = []
+
+    class FakeSMTP:
+        def __init__(self, host, port, timeout):
+            self.host = host
+            self.port = port
+            self.timeout = timeout
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+        def starttls(self):
+            return None
+
+        def send_message(self, message):
+            sent_messages.append(message)
+
+    monkeypatch.setattr(email_service.settings, "digest_enabled", True)
+    monkeypatch.setattr(email_service.settings, "smtp_host", "smtp.example.com")
+    monkeypatch.setattr(email_service.settings, "smtp_port", 2525)
+    monkeypatch.setattr(
+        email_service.settings, "digest_base_url", "https://qyverixai.onrender.com"
+    )
+    monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
+
+    stats = {
+        "email": "digest.user+weekly@example.com",
+        "total_analyses": 3,
+        "languages": ["Python"],
+        "avg_score": 88,
+        "prev_avg": 80,
+        "improvement": 10,
+        "trend": "up",
+        "top_bug": "ZeroDivisionError",
+        "total_issues": 1,
+        "week_start": "May 19",
+        "week_end": "May 26, 2026",
+    }
+
+    assert email_service.send_digest(stats, "token-value") is True
+
+    message_text = "\n".join(
+        part.get_payload(decode=True).decode(part.get_content_charset() or "utf-8")
+        for part in sent_messages[0].walk()
+        if part.get_content_maintype() == "text"
+    )
+    assert "https://qyverixai.onrender.com/subscribe/unsubscribe?" in message_text
+    assert "email=digest.user%2Bweekly%40example.com" in message_text
+    assert "token=token-value" in message_text
+    assert "https://qyverixai.onrender.com/unsubscribe/" not in message_text
+
+
+@pytest.mark.parametrize(
+    ("base_url", "expected_prefix"),
+    [
+        (
+            "https://qyverixai.onrender.com",
+            "https://qyverixai.onrender.com/subscribe/unsubscribe",
+        ),
+        (
+            "https://qyverixai.onrender.com/",
+            "https://qyverixai.onrender.com/subscribe/unsubscribe",
+        ),
+    ],
+)
+def test_unsubscribe_url_handles_base_url_slashes(
+    monkeypatch, base_url, expected_prefix
+):
+    monkeypatch.setattr(email_service.settings, "digest_base_url", base_url)
+
+    unsubscribe_url = email_service._build_unsubscribe_url(
+        "user@example.com", "token-value"
+    )
+
+    assert unsubscribe_url.startswith(f"{expected_prefix}?")
+    assert "//subscribe" not in unsubscribe_url
+
+
+def test_unsubscribe_url_encodes_query_parameters(monkeypatch):
+    monkeypatch.setattr(
+        email_service.settings, "digest_base_url", "https://qyverixai.onrender.com"
+    )
+
+    unsubscribe_url = email_service._build_unsubscribe_url(
+        "digest.user+weekly@example.com", "token/value+with symbols"
+    )
+    parsed = urlparse(unsubscribe_url)
+    query = parse_qs(parsed.query)
+
+    assert parsed.path == "/subscribe/unsubscribe"
+    assert query["email"] == ["digest.user+weekly@example.com"]
+    assert query["token"] == ["token/value+with symbols"]
+
+
+def test_email_observability_metrics_on_success(monkeypatch):
+    from prometheus_client import REGISTRY
+
+    # 1. Capture baseline metrics values
+    baseline_success = (
+        REGISTRY.get_sample_value(
+            "qyverixai_email_sent_total", {"type": "digest", "status": "success"}
+        )
+        or 0.0
+    )
+    baseline_duration_count = (
+        REGISTRY.get_sample_value(
+            "qyverixai_email_send_duration_seconds_count", {"type": "digest"}
+        )
+        or 0.0
+    )
+
+    class FakeSMTP:
+        def __init__(self, host, port, timeout):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+        def starttls(self):
+            pass
+
+        def login(self, user, password):
+            pass
+
+        def send_message(self, message):
+            pass
+
+    monkeypatch.setattr(email_service.settings, "digest_enabled", True)
+    monkeypatch.setattr(email_service.settings, "smtp_host", "smtp.example.com")
+    monkeypatch.setattr(email_service.settings, "smtp_port", 2525)
+    monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
+
+    stats = {
+        "email": "metrics.success@example.com",
+        "total_analyses": 1,
+        "languages": ["Python"],
+        "avg_score": 90,
+        "prev_avg": None,
+        "improvement": None,
+        "trend": "stable",
+        "top_bug": None,
+        "total_issues": 0,
+        "week_start": "May 19",
+        "week_end": "May 26, 2026",
+    }
+
+    assert email_service.send_digest(stats, "token-value") is True
+
+    # 2. Check metrics are incremented
+    new_success = (
+        REGISTRY.get_sample_value(
+            "qyverixai_email_sent_total", {"type": "digest", "status": "success"}
+        )
+        or 0.0
+    )
+    new_duration_count = (
+        REGISTRY.get_sample_value(
+            "qyverixai_email_send_duration_seconds_count", {"type": "digest"}
+        )
+        or 0.0
+    )
+
+    assert new_success == baseline_success + 1.0
+    assert new_duration_count == baseline_duration_count + 1.0
+
+
+def test_email_observability_metrics_on_failure(monkeypatch):
+    from prometheus_client import REGISTRY
+
+    # 1. Capture baseline metrics values
+    baseline_failed = (
+        REGISTRY.get_sample_value(
+            "qyverixai_email_sent_total", {"type": "digest", "status": "failed"}
+        )
+        or 0.0
+    )
+    baseline_duration_count = (
+        REGISTRY.get_sample_value(
+            "qyverixai_email_send_duration_seconds_count", {"type": "digest"}
+        )
+        or 0.0
+    )
+
+    class BrokenSMTP:
+        def __init__(self, host, port, timeout):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+        def starttls(self):
+            pass
+
+        def login(self, user, password):
+            pass
+
+        def send_message(self, message):
+            raise Exception("SMTP Connection Failed")
+
+    monkeypatch.setattr(email_service.settings, "digest_enabled", True)
+    monkeypatch.setattr(email_service.settings, "smtp_host", "smtp.example.com")
+    monkeypatch.setattr(email_service.settings, "smtp_port", 2525)
+    monkeypatch.setattr(email_service.smtplib, "SMTP", BrokenSMTP)
+
+    stats = {
+        "email": "metrics.fail@example.com",
+        "total_analyses": 1,
+        "languages": ["Python"],
+        "avg_score": 90,
+        "prev_avg": None,
+        "improvement": None,
+        "trend": "stable",
+        "top_bug": None,
+        "total_issues": 0,
+        "week_start": "May 19",
+        "week_end": "May 26, 2026",
+    }
+
+    assert email_service.send_digest(stats, "token-value") is False
+
+    # 2. Check metrics are incremented
+    new_failed = (
+        REGISTRY.get_sample_value(
+            "qyverixai_email_sent_total", {"type": "digest", "status": "failed"}
+        )
+        or 0.0
+    )
+    new_duration_count = (
+        REGISTRY.get_sample_value(
+            "qyverixai_email_send_duration_seconds_count", {"type": "digest"}
+        )
+        or 0.0
+    )
+
+    assert new_failed == baseline_failed + 1.0
+    assert new_duration_count == baseline_duration_count + 1.0

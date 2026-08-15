@@ -50,6 +50,7 @@ class Settings:
     max_request_bytes: int = _int_env("MAX_REQUEST_BYTES", 1048576)
     rate_limit_requests: int = _int_env("RATE_LIMIT_REQUESTS", 120)
     rate_limit_window_seconds: int = _int_env("RATE_LIMIT_WINDOW_SECONDS", 60)
+    trust_proxy_headers: bool = _bool_env("TRUST_PROXY_HEADERS", False)
     cache_enabled: bool = _bool_env("CACHE_ENABLED", True)
     cache_ttl_seconds: int = _int_env("CACHE_TTL_SECONDS", 300)
     cache_max_entries: int = _int_env("CACHE_MAX_ENTRIES", 100)
@@ -69,6 +70,18 @@ class Settings:
     llm_timeout_seconds: int = _int_env("LLM_TIMEOUT_SECONDS", 30)
     llm_max_retries: int = _int_env("LLM_MAX_RETRIES", 3)
     llm_retry_backoff: float = _float_env("LLM_RETRY_BACKOFF", 1.0)
+    # ── Logging ──────────────────────────────────────────────────
+    # Global default level applied to the "app" logger tree.
+    log_level: str = os.getenv("LOG_LEVEL", "INFO")
+    # Optional per-component overrides, e.g.:
+    #   LOG_LEVEL_AI_PROVIDER=DEBUG
+    #   LOG_LEVEL_SCHEDULER=WARNING
+    #   LOG_LEVEL_CACHE=DEBUG
+    # See logging_config.py for the full list of supported component names.
+    log_format: str = os.getenv(
+        "LOG_FORMAT", "%(asctime)s %(levelname)s %(name)s: %(message)s"
+    )
+    log_json: bool = _bool_env("LOG_JSON", False)
 
     # ── Email / Digest ──────────────────────────────────────────
     smtp_host: str = os.getenv("SMTP_HOST", "")
