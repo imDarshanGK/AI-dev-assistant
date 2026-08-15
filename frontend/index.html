@@ -948,6 +948,21 @@
       opacity: 0.7
     }
 
+    .progress-status {
+      margin-top: 10px;
+      font-family: var(--font-ui);
+      font-size: 0.85rem;
+      color: var(--text2);
+      text-align: center;
+      min-height: 18px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .progress-status.active {
+      opacity: 1;
+    }
+
     /* ═══════════════════════════════════════════════════════════════
    RESULTS PANEL
 ═══════════════════════════════════════════════════════════════ */
@@ -2890,6 +2905,7 @@ details.issue-card[open] {
             <span class="spinner" id="spinner"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
+          <div class="progress-status" id="progressStatus"></div>
           <div class="shortcut-hints" role="note" aria-label="Keyboard shortcuts" data-i18n-aria-label="shortcuts_label">
             <span class="shortcut-hint"><kbd>/</kbd><span data-i18n="shortcut_focus">Focus editor</span></span>
             <span class="shortcut-hint"><kbd>Ctrl/⌘ + Enter</kbd><span data-i18n="shortcut_analyze">Analyze</span></span>
@@ -4206,11 +4222,13 @@ cursor:pointer;
         analyzeBtn.classList.add('loading');
         analyzeBtn.disabled = true;
         showShimmers();
+        updateProgressStatus('Preparing your code...');
 
         try {
           if (selectedZipFile) {
             const formData = new FormData();
             formData.append('file', selectedZipFile);
+            updateProgressStatus('Uploading file...');
             const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, '/analyze/zip/', {
               method: 'POST',
               body: formData,
@@ -4224,6 +4242,7 @@ cursor:pointer;
               throw new Error(err.detail || `HTTP ${res.status}`);
             }
             const data = await res.json();
+            updateProgressStatus('Preparing results...');
             currentResult = data;
             renderZipResults(data);
             await addToHistory(`ZIP: ${selectedZipFile.name}`, data);
@@ -4236,6 +4255,7 @@ cursor:pointer;
             return;
           }
 
+          updateProgressStatus('Analyzing your code...');
           const { response: res, baseUsed, fallbackUsed } = await fetchWithApiFallback(base, endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -4250,6 +4270,7 @@ cursor:pointer;
             throw new Error(err.detail || `HTTP ${res.status}`);
           }
           const data = await res.json();
+          updateProgressStatus('Preparing results...');
           const elapsed = res.headers.get('X-Process-Time-Ms');
 
           // Normalize to full analysis shape
@@ -4282,6 +4303,7 @@ cursor:pointer;
         } finally {
           analyzeBtn.classList.remove('loading');
           analyzeBtn.disabled = false;
+          clearProgressStatus();
         }
       }
 
@@ -4905,6 +4927,20 @@ cursor:pointer;
             }).catch(() => toast('Copy failed', 'error'));
           });
         });
+      }
+
+      function updateProgressStatus(text) {
+        const el = document.getElementById('progressStatus');
+        if (!el) return;
+        el.textContent = text;
+        el.classList.add('active');
+      }
+
+      function clearProgressStatus() {
+        const el = document.getElementById('progressStatus');
+        if (!el) return;
+        el.textContent = '';
+        el.classList.remove('active');
       }
 
       /* ═══════════════════════════════════════════════════════════════
