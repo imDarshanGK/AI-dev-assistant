@@ -40,6 +40,11 @@ class LLMAnalysisClient:
     def enabled(self) -> bool:
         return bool(settings.llm_enabled and self.api_key)
 
+    @property
+    def provider_name(self) -> str:
+        """Stable provider label for API responses (matches chat endpoints)."""
+        return "openai-compatible"
+
     async def _chat_completion(
         self, messages: list[dict], temperature: float = 0.2
     ) -> str:
