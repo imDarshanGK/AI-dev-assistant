@@ -6,11 +6,15 @@ Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Ru
 from __future__ import annotations
 
 import ast
+import logging
 import re
 import time
 from dataclasses import dataclass, field
 
 from .ast_analyzer import analyze as ast_analyze
+from .llm_analysis import LLMAnalysisError, llm_analysis_client
+
+logger = logging.getLogger("ai_assistant.api")
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -1481,4 +1485,133 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         "debugging": debugging,
         "suggestions": sugg,
         "analysis_time_ms": round(elapsed_ms, 2),
+        "mode": "rule-based",
+        "optimized_version": None,
     }
+
+
+def _merge_explanation(rule_explanation: dict, llm_explanation: dict | None) -> dict:
+    """Layer LLM insight onto the rule-based explanation without breaking schema."""
+    merged = dict(rule_explanation)
+    if not isinstance(llm_explanation, dict):
+        return merged
+
+    key_points = list(merged.get("key_points") or [])
+    llm_summary = llm_explanation.get("summary")
+    if isinstance(llm_summary, str) and llm_summary.strip():
+        insight = f"LLM insight: {llm_summary.strip()}"
+        if insight not in key_points:
+            key_points.append(insight)
+
+    llm_points = llm_explanation.get("key_points") or []
+    if isinstance(llm_points, list):
+        for point in llm_points:
+            if isinstance(point, str) and point.strip() and point not in key_points:
+                key_points.append(point.strip())
+
+    beginner_tip = llm_explanation.get("beginner_tip")
+    if isinstance(beginner_tip, str) and beginner_tip.strip():
+        tip = f"Beginner tip: {beginner_tip.strip()}"
+        if tip not in key_points:
+            key_points.append(tip)
+
+    merged["key_points"] = key_points
+    return merged
+
+
+def _merge_suggestions(rule_suggestions: dict, llm_suggestions: dict | None) -> dict:
+    """Append LLM suggestions onto the rule-based suggestions list."""
+    merged = dict(rule_suggestions)
+    suggestions = list(merged.get("suggestions") or [])
+    if not isinstance(llm_suggestions, dict):
+        return merged
+
+    llm_items = llm_suggestions.get("suggestions") or []
+    if isinstance(llm_items, list):
+        for item in llm_items:
+            if not isinstance(item, dict):
+                continue
+            title = item.get("title") or "AI Suggestion"
+            reason = item.get("reason") or title
+            after = item.get("after")
+            before = item.get("before")
+            example = after if isinstance(after, str) and after.strip() else None
+            if example is None and isinstance(before, str) and before.strip():
+                example = before
+            suggestions.append(
+                {
+                    "category": "AI Suggestion",
+                    "description": f"{title}: {reason}" if title != reason else reason,
+                    "line_number": None,
+                    "line_range": None,
+                    "code_context": before if isinstance(before, str) else None,
+                    "example": example,
+                    "priority": "medium",
+                }
+            )
+
+    next_steps = llm_suggestions.get("next_steps") or []
+    if isinstance(next_steps, list) and next_steps:
+        first = next((s for s in next_steps if isinstance(s, str) and s.strip()), None)
+        if first and not merged.get("next_step"):
+            merged["next_step"] = first.strip()
+        elif first:
+            # Prefer keeping the rule next_step; surface LLM next steps as a suggestion.
+            suggestions.append(
+                {
+                    "category": "AI Suggestion",
+                    "description": f"Next step: {first.strip()}",
+                    "line_number": None,
+                    "line_range": None,
+                    "code_context": None,
+                    "example": None,
+                    "priority": "low",
+                }
+            )
+
+    merged["suggestions"] = suggestions
+    return merged
+
+
+async def hybrid_analysis(code: str, language_hint: str | None = None) -> dict:
+    """Run rule-based analysis, optionally enriching with structured LLM output.
+
+    Always keeps deterministic debugging issues from the rule engine. When the
+    LLM is enabled and succeeds, explanation/suggestions are enriched and an
+    optimized_version may be attached. On any LLM failure the request degrades
+    to rule-only results with mode=\"degraded\" (never raises to the caller).
+    """
+    base = full_analysis(code, language_hint)
+
+    if not llm_analysis_client.enabled:
+        base["mode"] = "rule-based"
+        return base
+
+    try:
+        llm_result = await llm_analysis_client.analyze_code_structured(
+            code, base["explanation"]["language"]
+        )
+    except LLMAnalysisError as exc:
+        logger.warning("hybrid_analysis_degraded detail=%s", str(exc))
+        base["mode"] = "degraded"
+        return base
+    except Exception as exc:  # noqa: BLE001 — never crash /analyze on LLM errors
+        logger.warning("hybrid_analysis_unexpected_error detail=%s", str(exc))
+        base["mode"] = "degraded"
+        return base
+
+    # Keep rule-based debugging.issues; enrich explanation/suggestions only.
+    base["provider"] = llm_analysis_client.provider_name
+    base["model"] = llm_analysis_client.model
+    base["mode"] = "hybrid"
+    base["explanation"] = _merge_explanation(
+        base["explanation"], llm_result.get("explanation")
+    )
+    base["suggestions"] = _merge_suggestions(
+        base["suggestions"], llm_result.get("suggestions")
+    )
+    optimized = llm_result.get("optimized_version")
+    base["optimized_version"] = (
+        optimized if isinstance(optimized, str) and optimized.strip() else None
+    )
+    return base
