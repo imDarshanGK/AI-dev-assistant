@@ -17,11 +17,10 @@ def test_valid_websocket_connection_and_routing():
 
 def test_session_isolation_and_concurrent_sessions():
     """Test session isolation and concurrent sessions do not bleed state."""
-    with client.websocket_connect(
-        "/collaboration/ws/roomA?name=UserA"
-    ) as ws_a, client.websocket_connect(
-        "/collaboration/ws/roomB?name=UserB"
-    ) as ws_b:
+    with (
+        client.websocket_connect("/collaboration/ws/roomA?name=UserA") as ws_a,
+        client.websocket_connect("/collaboration/ws/roomB?name=UserB") as ws_b,
+    ):
         assert ws_a is not None
         assert ws_b is not None
 
