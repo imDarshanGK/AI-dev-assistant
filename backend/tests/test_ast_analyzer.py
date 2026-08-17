@@ -1,10 +1,13 @@
 """Tests for the AST-based Python analyzer."""
 
-from app.services.ast_analyzer import analyze_python_ast, analyze
+from app.services.ast_analyzer import analyze_python_ast, analyze, EMPTY_INPUT_MESSAGE
 
 
 def _types(code: str) -> list[str]:
-    return [i["type"] for i in analyze_python_ast(code)]
+    result = analyze_python_ast(code)
+    if not isinstance(result, list):
+        return []
+    return [i["type"] for i in result]
 
 
 # ── Mutable Default Arguments ─────────────────────────────────────────────────
@@ -230,3 +233,45 @@ def test_deep_nesting_exact_boundary():
     )
     issues = analyze(code)
     assert not any(i["type"] == "Deep Nesting" for i in issues)
+
+
+# ── Empty / Whitespace-Only Input ─────────────────────────────────────────────
+
+def test_empty_input_returns_empty_list():
+    result = analyze_python_ast("")
+    assert len(result) == 1
+    assert result[0]["type"] == "Empty Input"
+    assert result[0]["description"] == EMPTY_INPUT_MESSAGE
+
+def test_whitespace_only_input_returns_empty_list():
+    result = analyze_python_ast("   \n  ")
+    assert len(result) == 1
+    assert result[0]["type"] == "Empty Input"
+    assert result[0]["description"] == EMPTY_INPUT_MESSAGE
+
+def test_empty_input_via_analyze_function():
+    result = analyze("")
+    assert len(result) == 1
+    assert result[0]["type"] == "Empty Input"
+    assert result[0]["description"] == EMPTY_INPUT_MESSAGE
+
+def test_none_input_returns_empty_list():
+    result = analyze_python_ast(None)
+    assert len(result) == 1
+    assert result[0]["type"] == "Empty Input"
+    assert result[0]["description"] == EMPTY_INPUT_MESSAGE
+
+def test_none_input_via_analyze_function():
+    result = analyze(None)
+    assert len(result) == 1
+    assert result[0]["type"] == "Empty Input"
+    assert result[0]["description"] == EMPTY_INPUT_MESSAGE
+
+
+def test_empty_input_has_standard_keys():
+    for code in ["", "   ", None]:
+        result = analyze_python_ast(code) if code is not None else analyze_python_ast(None)
+        assert isinstance(result, list)
+        assert len(result) == 1
+        assert result[0]["type"] == "Empty Input"
+        assert result[0]["description"] == EMPTY_INPUT_MESSAGE
