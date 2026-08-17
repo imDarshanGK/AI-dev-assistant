@@ -285,3 +285,33 @@ DIGEST_LAST_RUN_TIMESTAMP = Gauge(
     "Unix timestamp of the last weekly digest job run.",
     labelnames=(),
 )
+
+CACHE_HITS_TOTAL = Counter(
+    "qyverixai_cache_hits_total",
+    "Total number of cache hits, labelled by backend.",
+    labelnames=("backend",),
+)
+
+CACHE_MISSES_TOTAL = Counter(
+    "qyverixai_cache_misses_total",
+    "Total number of cache misses, labelled by backend.",
+    labelnames=("backend",),
+)
+
+CACHE_SETS_TOTAL = Counter(
+    "qyverixai_cache_sets_total",
+    "Total number of cache set operations, labelled by backend.",
+    labelnames=("backend",),
+)
+
+CACHE_ERRORS_TOTAL = Counter(
+    "qyverixai_cache_errors_total",
+    "Total number of cache errors, labelled by operation and backend.",
+    labelnames=("operation", "backend"),
+)
+
+CACHE_EVICTIONS_TOTAL = Counter(
+    "qyverixai_cache_evictions_total",
+    "Total number of entries evicted from the in-memory cache.",
+    labelnames=(),
+)

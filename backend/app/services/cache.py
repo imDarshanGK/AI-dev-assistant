@@ -6,6 +6,13 @@ from collections import OrderedDict
 from threading import Lock
 
 from ..config import settings
+from ..observability import (
+    CACHE_ERRORS_TOTAL,
+    CACHE_EVICTIONS_TOTAL,
+    CACHE_HITS_TOTAL,
+    CACHE_MISSES_TOTAL,
+    CACHE_SETS_TOTAL,
+)
 
 logger = logging.getLogger("ai_assistant.api")
 
@@ -43,22 +50,28 @@ class AppCache:
             try:
                 raw = self._redis_client.get(key)
                 if not raw:
+                    CACHE_MISSES_TOTAL.labels(backend="redis").inc()
                     return None
+                CACHE_HITS_TOTAL.labels(backend="redis").inc()
                 return json.loads(raw)
             except Exception as exc:
                 logger.warning("redis_get_failed key=%s detail=%s", key, str(exc))
+                CACHE_ERRORS_TOTAL.labels(operation="get", backend="redis").inc()
 
         with self._memory_lock:
             record = self._memory_store.get(key)
             if not record:
+                CACHE_MISSES_TOTAL.labels(backend="memory").inc()
                 return None
 
             expires_at, payload = record
             if expires_at < time.time():
                 self._memory_store.pop(key, None)
+                CACHE_MISSES_TOTAL.labels(backend="memory").inc()
                 return None
 
             self._memory_store.move_to_end(key)
+            CACHE_HITS_TOTAL.labels(backend="memory").inc()
             return payload
 
     def set(self, namespace: str, code: str, payload: dict) -> None:
@@ -71,9 +84,11 @@ class AppCache:
                 self._redis_client.setex(
                     key, settings.cache_ttl_seconds, json.dumps(payload)
                 )
+                CACHE_SETS_TOTAL.labels(backend="redis").inc()
                 return
             except Exception as exc:
                 logger.warning("redis_set_failed key=%s detail=%s", key, str(exc))
+                CACHE_ERRORS_TOTAL.labels(operation="set", backend="redis").inc()
 
         expires_at = time.time() + settings.cache_ttl_seconds
         with self._memory_lock:
@@ -82,6 +97,9 @@ class AppCache:
 
             while len(self._memory_store) > settings.cache_max_entries:
                 self._memory_store.popitem(last=False)
+                CACHE_EVICTIONS_TOTAL.inc()
+
+        CACHE_SETS_TOTAL.labels(backend="memory").inc()
 
     def clear_memory(self) -> None:
         with self._memory_lock:
