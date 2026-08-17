@@ -34,4 +34,3 @@ def test_session_id_with_special_characters():
         "/collaboration/ws/crazy-room-@#$%?name=Bhagyashri"
     ) as websocket:
         assert websocket is not None
-        
