@@ -50,7 +50,7 @@ QyverixAI is a code analysis workspace. Paste any code - or drop a whole project
 | | What you get |
 |---|---|
 | **Explain** | Language detection, plain-English summary, complexity estimate, function and class inventory |
-| **Debug** | 45+ pattern checks across 5 languages (plus AST-based deep analysis for Python), with exact line numbers, code snippets, and fix suggestions |
+| **Debug** | 45+ pattern checks across 10 languages (plus AST-based deep analysis for Python), with exact line numbers, code snippets, and fix suggestions |
 | **Improve** | Documentation gaps, error handling, testing, type safety - plus a 0-100 quality score, letter grade A–F, and a before/after diff view |
 | **Project Mode** | Upload a `.zip`, get one aggregated score across every file inside it |
 | **Ask AI** | Chat about your specific code - answered by an LLM when configured, or a rule-based fallback when not |
@@ -72,7 +72,7 @@ No account required for the core analysis. No API key needed. Works fully offlin
 |---|---|
 | **40+ Bug Patterns** | ZeroDivisionError, bare except, hardcoded secrets, eval/exec, memory leaks, XSS, NullPointerException, unsafe `unwrap()`, and more |
 
-| **5 Languages Detected** | Python, JavaScript, TypeScript, Java, C++ - the first 5 have dedicated bug-pattern checks today |
+| **10 Languages Supported** | Python, JavaScript, TypeScript, Java, C++ (dedicated bug-pattern checks) + PHP, Rust, Swift, Kotlin (explanation and suggestions) |
 | **Project / ZIP Analysis** | `POST /analyze/zip/` scans up to 20 source files in an uploaded archive and returns one aggregated project score plus a per-file breakdown |
 | **Streaming Analysis (SSE)** | `GET/POST /analyze/stream` streams explanation → debugging → suggestions as they complete, instead of waiting for the full response |
 | **Live Collaboration (WebSocket)** | `WS /ws/{session_id}` — multiple users join a session, see each other's presence (name + colour), live code sync, and shared inline comments |
