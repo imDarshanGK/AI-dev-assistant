@@ -9,13 +9,17 @@ client = TestClient(app)
 
 def test_valid_websocket_connection_and_routing():
     """Test valid WebSocket connection and correct URL routing."""
-    with client.websocket_connect("/collaboration/ws/room123?name=Bhagyashri") as websocket:
+    with client.websocket_connect(
+        "/collaboration/ws/room123?name=Bhagyashri"
+    ) as websocket:
         assert websocket is not None
 
 
 def test_session_isolation_and_concurrent_sessions():
     """Test session isolation and concurrent sessions do not bleed state."""
-    with client.websocket_connect("/collaboration/ws/roomA?name=UserA") as ws_a, client.websocket_connect(
+    with client.websocket_connect(
+        "/collaboration/ws/roomA?name=UserA"
+    ) as ws_a, client.websocket_connect(
         "/collaboration/ws/roomB?name=UserB"
     ) as ws_b:
         assert ws_a is not None
