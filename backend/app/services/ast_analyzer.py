@@ -130,7 +130,12 @@ def analyze_python_ast(code: str) -> list[dict]:
 
     analyzer = PythonASTAnalyzer()
     analyzer.visit(tree)
-    return analyzer.issues
+    issues = analyzer.issues
+    issues += detect_division_by_zero(tree, code)
+    issues += detect_index_out_of_range(tree, code)
+    issues += detect_string_integer_concatenation(tree, code)
+    issues.sort(key=lambda i: i["line"])
+    return issues
 
 
 def _get_snippet(code: str, line: int) -> str:
@@ -303,6 +308,112 @@ def detect_deep_nesting(tree, code):
     walk(tree, 0)
     return issues
 
+
+def detect_division_by_zero(tree, code):
+    issues = []
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Div, ast.FloorDiv)):
+            if isinstance(node.right, ast.Constant) and node.right.value == 0:
+                op_symbol = '//' if isinstance(node.op, ast.FloorDiv) else '/'
+                issues.append(_make_issue(
+                    "ZeroDivisionError",
+                    node.lineno,
+                    f"Division by zero literal detected using '{op_symbol}'.",
+                    "Avoid dividing by zero literals; validate the divisor before performing division.",
+                    "error",
+                    _get_snippet(code, node.lineno),
+                ))
+
+        if isinstance(node, ast.Call):
+            for arg in node.args:
+                if isinstance(arg, ast.Constant) and arg.value == 0:
+                    issues.append(_make_issue(
+                        "ZeroDivisionError",
+                        node.lineno,
+                        f"Zero literal passed as argument to '{node.func.id if isinstance(node.func, ast.Name) else 'unknown'}()' — potential division by zero.",
+                        "Avoid passing zero to functions that may use it as a divisor.",
+                        "error",
+                        _get_snippet(code, node.lineno),
+                    ))
+
+    return issues
+
+
+def detect_index_out_of_range(tree, code):
+    issues = []
+
+    bindings = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    bindings[target.id] = node.value
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Subscript):
+            continue
+        slice_val = node.slice
+        if not isinstance(slice_val, ast.Constant):
+            continue
+        if not isinstance(slice_val.value, int):
+            continue
+
+        index = slice_val.value
+        target = node.value
+
+        seq_length = None
+        if isinstance(target, ast.List):
+            seq_length = len(target.elts)
+        elif isinstance(target, ast.Constant) and isinstance(target.value, str):
+            seq_length = len(target.value)
+        elif isinstance(target, ast.Name):
+            resolved = bindings.get(target.id)
+            if resolved is not None:
+                if isinstance(resolved, ast.List):
+                    seq_length = len(resolved.elts)
+                elif isinstance(resolved, ast.Constant) and isinstance(resolved.value, str):
+                    seq_length = len(resolved.value)
+
+        if seq_length is not None:
+            abs_index = abs(index)
+            if abs_index >= seq_length or (index < 0 and abs_index > seq_length):
+                issues.append(_make_issue(
+                    "Index Error Risk",
+                    node.lineno,
+                    f"Index {index} is out of range for sequence of length {seq_length}.",
+                    "Ensure the index is within valid bounds before accessing.",
+                    "warning",
+                    _get_snippet(code, node.lineno),
+                ))
+
+    return issues
+
+
+def detect_string_integer_concatenation(tree, code):
+    issues = []
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.BinOp):
+            continue
+        if not isinstance(node.op, ast.Add):
+            continue
+        left = node.left
+        right = node.right
+        if (isinstance(left, ast.Constant) and isinstance(left.value, str)
+                and isinstance(right, ast.Constant) and isinstance(right.value, int)):
+            issues.append(_make_issue(
+                "Type Error Risk",
+                node.lineno,
+                f"Concatenating string literal with integer will raise TypeError at runtime.",
+                "Convert the integer to a string using str() before concatenation.",
+                "error",
+                _get_snippet(code, node.lineno),
+            ))
+
+    return issues
+
+
 def analyze(source: str) -> list[dict]:
     tree = ast.parse(source)
     issues = []
@@ -311,5 +422,8 @@ def analyze(source: str) -> list[dict]:
     issues += detect_unused_arguments(tree, source)
     issues += detect_too_many_returns(tree, source)
     issues += detect_deep_nesting(tree, source)
+    issues += detect_division_by_zero(tree, source)
+    issues += detect_index_out_of_range(tree, source)
+    issues += detect_string_integer_concatenation(tree, source)
     issues.sort(key=lambda i: i["line"])
     return issues
