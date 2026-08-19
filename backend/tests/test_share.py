@@ -3,10 +3,9 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from app import database
 from app.database import Base, get_db
 from app.main import app
-from app.models import AuditLog, SharedSnippet, User
+from app.models import SharedSnippet, User
 from app.security import get_current_user
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine

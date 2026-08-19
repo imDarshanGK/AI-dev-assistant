@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 scheduler = BackgroundScheduler(daemon=True)
 JOB_ID = "weekly_digest"
 
+
 def _send_weekly_digests() -> None:
     """Query all active subscribers and send them their weekly digest."""
     start = time.time()
@@ -49,11 +50,15 @@ def _send_weekly_digests() -> None:
         for sub in subs:
             # --- OUR NEW SECURITY GUARD (INPUT VALIDATION) ---
             if not sub.email or "@" not in str(sub.email):
-                log.warning("Validation Error: Invalid email input '%s'. Skipping!", sub.email)
+                log.warning(
+                    "Validation Error: Invalid email input '%s'. Skipping!", sub.email
+                )
                 continue
-                
+
             if not sub.unsubscribe_token:
-                log.warning("Validation Error: Missing token for '%s'. Skipping!", sub.email)
+                log.warning(
+                    "Validation Error: Missing token for '%s'. Skipping!", sub.email
+                )
                 continue
             # -------------------------------------------------
 
@@ -61,7 +66,7 @@ def _send_weekly_digests() -> None:
             if not stats:
                 log.debug("No stats for %s, skipping", sub.email)
                 continue
-            
+
             ok = send_digest(stats, sub.unsubscribe_token)
             if ok:
                 sub.last_sent_at = datetime.now(UTC)
