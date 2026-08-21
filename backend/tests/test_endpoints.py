@@ -4,12 +4,14 @@ Run: cd backend && pytest -v
 """
 
 import json
+import os
+import sys
+from pathlib import Path
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from pathlib import Path
+from app.services.llm_analysis import LLMAnalysisError
 from fastapi.testclient import TestClient
-import sys
-import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app import main as app_main
@@ -18,13 +20,146 @@ client = TestClient(app_main.app)
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
+
 def load_fixture(filename: str) -> str:
     return (FIXTURES_DIR / filename).read_text(encoding="utf-8")
+
+
 @pytest.fixture(autouse=True)
 def reset_rate_limit_state():
     app_main._request_counts.clear()
     yield
     app_main._request_counts.clear()
+
+
+from app.main import app
+from fastapi.testclient import TestClient
+
+client = TestClient(app)
+
+
+def test_explanation_uses_rich_llm_explanation():
+    mock_explanation = {
+        "purpose": "Calculates the factorial of a number.",
+        "step_by_step": [
+            "The function receives a number.",
+            "It checks the base case.",
+            "It recursively calls itself with a smaller number.",
+            "The results are multiplied and returned.",
+        ],
+        "line_by_line": [
+            {
+                "line": 1,
+                "code": "def factorial(n):",
+                "explanation": "Defines the factorial function.",
+            },
+            {
+                "line": 2,
+                "code": "    if n == 0:",
+                "explanation": "Checks the base case.",
+            },
+        ],
+        "inputs": ["An integer n."],
+        "outputs": ["The factorial of n."],
+        "algorithm": "Recursive factorial algorithm.",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "best_practices": ["Use a clear base case for recursion."],
+        "optimizations": ["An iterative approach can avoid recursive stack usage."],
+        "common_mistakes": ["Forgetting the base case can cause infinite recursion."],
+        "real_world_applications": ["Combinatorics and probability calculations."],
+    }
+
+    with patch(
+        "app.routers.explanation.llm_analysis_client.analyze_code_structured",
+        new=AsyncMock(return_value=mock_explanation),
+    ):
+        response = client.post(
+            "/explanation/",
+            json={
+                "code": (
+                    "def factorial(n):\n"
+                    "    if n == 0:\n"
+                    "        return 1\n"
+                    "    return n * factorial(n - 1)"
+                ),
+                "language": "python",
+            },
+        )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["purpose"] == "Calculates the factorial of a number."
+    assert len(data["step_by_step"]) == 4
+    assert len(data["line_by_line"]) == 2
+    assert data["inputs"] == ["An integer n."]
+    assert data["outputs"] == ["The factorial of n."]
+    assert data["algorithm"] == "Recursive factorial algorithm."
+    assert data["time_complexity"] == "O(n)"
+    assert data["space_complexity"] == "O(n)"
+    assert len(data["best_practices"]) == 1
+    assert len(data["optimizations"]) == 1
+    assert len(data["common_mistakes"]) == 1
+    assert len(data["real_world_applications"]) == 1
+
+
+def test_explanation_falls_back_when_llm_fails():
+    with patch(
+        "app.routers.explanation.llm_analysis_client.explain_code_structured",
+        new=AsyncMock(side_effect=LLMAnalysisError("LLM unavailable")),
+    ):
+        response = client.post(
+            "/explanation/",
+            json={
+                "code": "def add(a, b):\n    return a + b",
+                "language": "python",
+            },
+        )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["language"] == "Python"
+    assert data["summary"]
+    assert data["key_points"]
+
+
+def test_explanation_contains_new_fields():
+    response = client.post(
+        "/explanation/",
+        json={
+            "code": "def add(a, b):\n    return a + b",
+            "language": "python",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "overview" in data
+    assert "purpose" in data
+    assert "functions" in data
+    assert "constructs" in data
+
+
+def test_explanation_detects_function_definition():
+    response = client.post(
+        "/explanation/",
+        json={
+            "code": "def multiply(a, b):\n    return a * b",
+            "language": "python",
+        },
+    )
+
+    data = response.json()
+
+    assert len(data["functions"]) == 1
+    assert data["functions"][0]["name"] == "multiply"
+    assert "Function Definition" in data["constructs"]
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -481,7 +616,6 @@ def test_debug_kotlin():
     assert d is not None
 
 
-
 def test_debug_cpp_syntax_errors():
     code = "void main() {\n    cout << 'Hello World'\n}"
     r = client.post("/debugging/", json={"code": code, "language": "cpp"})
@@ -562,15 +696,20 @@ def test_add():
     d = r.json()
     assert d["overall_score"] >= 60  # clean code should score reasonably
 
+
 def test_suggestions_observability_print_only_python():
     # Pasting code with print() in Java should NOT trigger the Observability suggestion
-    r_java = client.post("/suggestions/", json={"code": 'print("hello");', "language": "java"})
+    r_java = client.post(
+        "/suggestions/", json={"code": 'print("hello");', "language": "java"}
+    )
     assert r_java.status_code == 200
     s_java = [s["category"] for s in r_java.json()["suggestions"]]
     assert "Observability" not in s_java
 
     # Pasting code with print() in Python SHOULD trigger the Observability suggestion
-    r_py = client.post("/suggestions/", json={"code": 'print("hello")', "language": "python"})
+    r_py = client.post(
+        "/suggestions/", json={"code": 'print("hello")', "language": "python"}
+    )
     assert r_py.status_code == 200
     s_py = [s["category"] for s in r_py.json()["suggestions"]]
     assert "Observability" in s_py
@@ -724,7 +863,9 @@ def test_get_stream_done_event_present():
 
 
 def test_get_stream_with_language_hint():
-    r = client.get("/analyze/stream", params={"code": JS_CODE, "language": "javascript"})
+    r = client.get(
+        "/analyze/stream", params={"code": JS_CODE, "language": "javascript"}
+    )
     assert r.status_code == 200
     events = _parse_sse_events(r.text)
     exp = next(e["data"] for e in events if e["type"] == "explanation")

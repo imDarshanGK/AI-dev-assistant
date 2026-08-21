@@ -133,11 +133,33 @@ class ExplanationResponse(BaseModel):
         description="Detected or supplied programming language.",
         example="Python",
     )
+
+    overview: str = Field(
+        ...,
+        description="High-level overview of the program.",
+    )
+
+    purpose: str | None = Field(
+        default=None,
+        description="Purpose of the code.",
+    )
+
+    functions: list[dict] = Field(
+        default_factory=list,
+        description="Functions detected in the code.",
+    )
+
+    constructs: list[str] = Field(
+        default_factory=list,
+        description="Programming constructs detected.",
+    )
+
     summary: str = Field(
         ...,
         description="One- or two-sentence plain-English description of what the code does.",
         example="A short Python snippet that divides two numbers and may raise ZeroDivisionError.",
     )
+
     key_points: list[str] = Field(
         ...,
         description="Bullet-style observations about structure, patterns, and notable features.",
@@ -147,35 +169,110 @@ class ExplanationResponse(BaseModel):
             "Contains no error handling.",
         ],
     )
+
     complexity: str = Field(
         ...,
         description="Estimated complexity level: Beginner, Intermediate, or Advanced.",
         example="Beginner",
     )
+
     line_count: int = Field(
         ...,
         description="Total number of non-blank lines in the submitted code.",
         example=6,
     )
+
     function_count: int = Field(
         ...,
         description="Number of function definitions detected.",
         example=1,
     )
+
     class_count: int = Field(
         ...,
         description="Number of class definitions detected.",
         example=0,
     )
+
     cyclomatic_complexity: int = Field(
         ...,
         description="McCabe cyclomatic complexity score — number of independent paths through the code.",
         example=2,
     )
+
     complexity_risk: str = Field(
         ...,
         description="Risk label derived from cyclomatic complexity: Low, Medium, High, or Very High.",
         example="Low",
+    )
+
+    step_by_step: list[str] = Field(
+        default_factory=list,
+        description="Step-by-step explanation of how the program works.",
+    )
+
+    line_by_line: list[dict] = Field(
+        default_factory=list,
+        description="Line-by-line explanations of the submitted source code.",
+    )
+
+    inputs: list[str] = Field(
+        default_factory=list,
+        description="Inputs accepted or used by the program.",
+    )
+
+    outputs: list[str] = Field(
+        default_factory=list,
+        description="Outputs produced by the program.",
+    )
+
+    algorithm: str | None = Field(
+        default=None,
+        description="Explanation of the algorithm or core logic used.",
+    )
+
+    time_complexity: str | None = Field(
+        default=None,
+        description="Estimated time complexity using Big-O notation when determinable.",
+    )
+
+    space_complexity: str | None = Field(
+        default=None,
+        description="Estimated space complexity using Big-O notation when determinable.",
+    )
+
+    best_practices: list[str] = Field(
+        default_factory=list,
+        description="Relevant coding best-practice recommendations.",
+    )
+
+    optimizations: list[str] = Field(
+        default_factory=list,
+        description="Potential optimizations applicable to the submitted code.",
+    )
+
+    common_mistakes: list[str] = Field(
+        default_factory=list,
+        description="Common mistakes a beginner might make with this code or concept.",
+    )
+
+    real_world_applications: list[str] = Field(
+        default_factory=list,
+        description="Relevant real-world applications of the demonstrated concept.",
+    )
+    provider: str = Field(
+        default="rule-based",
+        description="Provider used to generate the explanation.",
+    )
+
+    model: str = Field(
+        default="qyverix-engine-v3",
+        description="AI model or fallback engine used.",
+    )
+
+    analysis_time_ms: float | None = Field(
+        default=None,
+        description="Time taken to generate the explanation.",
     )
 
 
