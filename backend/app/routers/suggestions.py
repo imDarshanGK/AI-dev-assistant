@@ -1,6 +1,7 @@
 """Suggestions router — POST /suggestions/"""
 
 from fastapi import APIRouter
+
 from ..schemas import CodeRequest, SuggestionsResponse
 from ..services.code_assistant import detect_language, run_suggestions
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 from app.services.error_tracking import (
     _clamp_sample_rate,
     _validate_dsn,

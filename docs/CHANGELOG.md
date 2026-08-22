@@ -5,6 +5,10 @@ All notable changes to QyverixAI are documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added hybrid rule+LLM analysis to `POST /analyze/`: LLM enrichment
+  (explanation insight, suggestions, `optimized_version`) layered on top of
+  deterministic rule-based debugging, with graceful `degraded` fallback on LLM
+  failure and mode-aware caching.
 - Added regression tests for the LLM analysis service (`llm_analysis.py`).
 - Added a dedicated changelog page in `docs/CHANGELOG.md`.
 - Added changelog guidance for contributors and PR authors.
