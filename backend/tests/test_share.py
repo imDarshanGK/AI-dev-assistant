@@ -124,6 +124,62 @@ def test_expired_share_returns_404(client):
     assert "expired" in resp.json()["detail"].lower()
 
 
+def test_v2_response_shape(client):
+    """Regression test for Shared Router V2.
+
+    Guards the V2 API contract introduced in PR #1062:
+    - POST /share/ response uses 'id' (not the old V1 'token' field)
+    - 'result' is a parsed dict, not a raw JSON string ('result_json')
+    - 'user_id' is present in both the create and fetch responses
+    - GET /share/{id} is fully public and requires no auth header
+    """
+    # Sign up and get a bearer token
+    token, user_id = _signup_and_token(client)
+
+    payload = {
+        "code": "def add(a, b):\n    return a + b",
+        "result": {"status": "clean", "score": 95},
+    }
+
+    # Step 1: Create a share (requires auth in V2)
+    create_resp = client.post(
+        "/share/",
+        json=payload,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert create_resp.status_code == 200
+
+    body = create_resp.json()
+
+    # V2 uses 'id', not 'token'
+    assert "id" in body, "V2 response must have 'id' field, not 'token'"
+    assert "token" not in body, "Old V1 'token' field must not appear in V2 response"
+
+    # V2 returns 'result' as a parsed dict, not a raw JSON string
+    assert "result" in body, "V2 response must have 'result' field"
+    assert isinstance(body["result"], dict), "'result' must be a dict, not a string"
+    assert "result_json" not in body, "Old V1 'result_json' field must not appear in V2 response"
+
+    # V2 includes user_id in the create response
+    assert body["user_id"] == user_id, "Create response must include the creator's user_id"
+
+    share_id = body["id"]
+
+    # Step 2: Fetch the share with NO auth header (anonymous access)
+    # This is the core V2 regression: GET must be fully public
+    fetch_resp = client.get(f"/share/{share_id}")  # no Authorization header
+    assert fetch_resp.status_code == 200, "GET /share/{id} must be public — no auth required"
+
+    fetched = fetch_resp.json()
+
+    # Fetched response also follows V2 shape
+    assert fetched["id"] == share_id
+    assert isinstance(fetched["result"], dict), "Fetched 'result' must be a parsed dict"
+    assert fetched["user_id"] == user_id, "Fetched response must include the creator's user_id"
+    assert fetched["code"] == payload["code"]
+    assert fetched["result"] == payload["result"]
+
+
 def test_delete_share_authorization(client):
     db = TEST_SESSION_LOCAL()
 
