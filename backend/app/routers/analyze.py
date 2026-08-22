@@ -18,10 +18,12 @@ from ..services.cache import cache
 from ..services.code_assistant import (
     detect_language,
     full_analysis,
+    hybrid_analysis,
     run_bug_detection,
     run_explanation,
     run_suggestions,
 )
+from ..services.llm_analysis import llm_analysis_client
 
 router = APIRouter()
 
@@ -196,15 +198,18 @@ async def analyze_stream_get(
 )
 async def analyze(req: CodeRequest, response: Response):
     cache_input = f"{req.language or 'auto'}\n{req.code}"
-    cached_payload = cache.get("analyze:v1", cache_input)
+    # Separate cache namespaces so hybrid and rule-only results never collide.
+    mode_key = "hybrid" if llm_analysis_client.enabled else "rule-based"
+    namespace = f"analyze:v2:{mode_key}"
+    cached_payload = cache.get(namespace, cache_input)
 
     if cached_payload is not None:
         response.headers["X-Cache"] = "HIT"
         return cached_payload
 
-    payload = full_analysis(req.code, req.language)
+    payload = await hybrid_analysis(req.code, req.language)
 
-    cache.set("analyze:v1", cache_input, payload)
+    cache.set(namespace, cache_input, payload)
 
     response.headers["X-Cache"] = "MISS"
     return payload
