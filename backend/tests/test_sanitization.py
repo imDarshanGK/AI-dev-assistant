@@ -10,6 +10,7 @@ Covers:
 See also: test_sanitization_payloads.py for parametrized script/img/svg/template/encoded/stored payloads.
 Frontend: frontend/tests/*.test.mjs (Node). Manual: docs/SECURITY_MANUAL_TEST_CHECKLIST.md.
 """
+
 import json
 import os
 import sys
@@ -27,17 +28,15 @@ from app.sanitize import (
     sanitize_result_json,
     sanitize_text_input,
 )
-from security_payloads import (
-    ANSI_PAYLOAD,
-    SCRIPT_TAG as XSS_PAYLOAD,
-    XSS_WITH_NULL,
-    assert_no_raw_script_tag,
-)
+from security_payloads import ANSI_PAYLOAD
+from security_payloads import SCRIPT_TAG as XSS_PAYLOAD
+from security_payloads import XSS_WITH_NULL, assert_no_raw_script_tag
 
 client = TestClient(app_main.app)
 
 
 # ── Utility-level tests ───────────────────────────────────────────────────────
+
 
 def test_sanitize_strips_null_bytes():
     result = sanitize_code_input("hello\x00world")
@@ -101,6 +100,7 @@ def test_sanitize_result_json_strips_null_bytes():
 
 
 # ── Endpoint-level XSS tests ──────────────────────────────────────────────────
+
 
 @pytest.fixture(autouse=True)
 def reset_rate_limit():
