@@ -45,3 +45,23 @@ test('drag-and-drop upload auto-selects the detected language tab', async ({ pag
   await expect(editor).toHaveValue('const answer: number = 42;\n');
   await expect(activeTab).toHaveAttribute('data-lang', 'typescript');
 });
+test('unsupported file type shows supported extensions guidance', async ({ page }) => {
+  await page.goto('/app/');
+
+  const fileInput = page.locator('#fileInput').first();
+
+  await fileInput.setInputFiles({
+    name: 'sample.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4'),
+  });
+
+  const toast = page.locator('#toastContainer .toast.error').last();
+
+  await expect(toast).toBeVisible();
+  await expect(toast).toContainText('Unsupported file type');
+  await expect(toast).toContainText('.py');
+  await expect(toast).toContainText('.js');
+  const editor = page.locator('#codeEditor').first();
+  await expect(editor).not.toHaveValue(/sample\.pdf/);
+});
