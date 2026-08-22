@@ -1,10 +1,13 @@
 """Tests for real-time collaboration WebSocket sessions."""
 
+import asyncio
+
 import pytest
 from app import main as app_main
 from app.routers.collaboration import manager
 from fastapi import WebSocketDisconnect
 from fastapi.testclient import TestClient
+
 
 client = TestClient(app_main.app)
 
@@ -30,11 +33,15 @@ def test_collaboration_join_returns_session_state():
 
 
 def test_collaboration_broadcasts_code_updates_to_other_clients():
-    with client.websocket_connect("/collaboration/ws/session-b?name=Alice") as alice:
+    with client.websocket_connect(
+        "/collaboration/ws/session-b?name=Alice"
+    ) as alice:
         alice_state = alice.receive_json()
         alice.receive_json()  # Alice presence update
 
-        with client.websocket_connect("/collaboration/ws/session-b?name=Bob") as bob:
+        with client.websocket_connect(
+            "/collaboration/ws/session-b?name=Bob"
+        ) as bob:
             bob.receive_json()  # Bob session state
             alice.receive_json()  # Presence update after Bob joins
             bob.receive_json()  # Bob presence update
@@ -58,11 +65,15 @@ def test_collaboration_broadcasts_code_updates_to_other_clients():
 
 
 def test_collaboration_rejects_stale_code_update_with_sync_required():
-    with client.websocket_connect("/collaboration/ws/session-c?name=Alice") as alice:
+    with client.websocket_connect(
+        "/collaboration/ws/session-c?name=Alice"
+    ) as alice:
         alice_state = alice.receive_json()
         alice.receive_json()
 
-        with client.websocket_connect("/collaboration/ws/session-c?name=Bob") as bob:
+        with client.websocket_connect(
+            "/collaboration/ws/session-c?name=Bob"
+        ) as bob:
             bob.receive_json()
             alice.receive_json()
             bob.receive_json()
@@ -75,6 +86,7 @@ def test_collaboration_rejects_stale_code_update_with_sync_required():
                     "version": alice_state["version"],
                 }
             )
+
             bob.receive_json()
 
             bob.send_json(
@@ -94,11 +106,15 @@ def test_collaboration_rejects_stale_code_update_with_sync_required():
 
 
 def test_collaboration_broadcasts_cursor_updates():
-    with client.websocket_connect("/collaboration/ws/session-d?name=Alice") as alice:
+    with client.websocket_connect(
+        "/collaboration/ws/session-d?name=Alice"
+    ) as alice:
         alice.receive_json()
         alice.receive_json()
 
-        with client.websocket_connect("/collaboration/ws/session-d?name=Bob") as bob:
+        with client.websocket_connect(
+            "/collaboration/ws/session-d?name=Bob"
+        ) as bob:
             bob.receive_json()
             alice.receive_json()
             bob.receive_json()
@@ -124,11 +140,15 @@ def test_collaboration_broadcasts_cursor_updates():
 
 
 def test_collaboration_broadcasts_comments():
-    with client.websocket_connect("/collaboration/ws/session-e?name=Alice") as alice:
+    with client.websocket_connect(
+        "/collaboration/ws/session-e?name=Alice"
+    ) as alice:
         alice.receive_json()
         alice.receive_json()
 
-        with client.websocket_connect("/collaboration/ws/session-e?name=Bob") as bob:
+        with client.websocket_connect(
+            "/collaboration/ws/session-e?name=Bob"
+        ) as bob:
             bob.receive_json()
             alice.receive_json()
             bob.receive_json()
@@ -187,6 +207,7 @@ def test_presence_sync_broadcasts_on_join_and_leave():
 
             # Alice receives presence update for Bob's join
             alice_presence2 = alice.receive_json()
+
             # Bob receives presence update after joining
             bob_presence = bob.receive_json()
 
@@ -198,35 +219,45 @@ def test_presence_sync_broadcasts_on_join_and_leave():
             assert bob_presence["type"] == "presence_update"
             assert len(bob_presence["users"]) == 2
 
-        # Bob has disconnected. Alice should receive a presence update with only Alice remaining.
+        # Bob has disconnected.
+        # Alice should receive a presence update with only Alice remaining.
         alice_presence3 = alice.receive_json()
+
         assert alice_presence3["type"] == "presence_update"
         assert len(alice_presence3["users"]) == 1
         assert alice_presence3["users"][0]["name"] == "Alice"
 
 
 def test_presence_sync_handles_name_sanitization():
-    # 1. Empty name parameter (or not provided)
+    # Empty name parameter
     with client.websocket_connect("/collaboration/ws/name-test") as ws1:
         state1 = ws1.receive_json()
         assert state1["users"][0]["name"] == "Anonymous"
 
-    # 2. Whitespace-only name parameter
-    with client.websocket_connect("/collaboration/ws/name-test?name=%20%20%20") as ws2:
+    # Whitespace-only name parameter
+    with client.websocket_connect(
+        "/collaboration/ws/name-test?name=%20%20%20"
+    ) as ws2:
         state2 = ws2.receive_json()
         assert state2["users"][0]["name"] == "Anonymous"
 
-    # 3. Truncate long name parameter (>40 characters) - FastAPI constraint raises WebSocketDisconnect (1008)
+    # Long name should be rejected with WebSocketDisconnect 1008
     long_name = "A" * 50
+
     with pytest.raises(WebSocketDisconnect) as exc_info:
-        with client.websocket_connect(f"/collaboration/ws/name-test?name={long_name}"):
+        with client.websocket_connect(
+            f"/collaboration/ws/name-test?name={long_name}"
+        ):
             pass
+
     assert exc_info.value.code == 1008
 
 
 def test_presence_sync_session_cleanup():
     # Alice joins and updates code
-    with client.websocket_connect("/collaboration/ws/cleanup-test?name=Alice") as alice:
+    with client.websocket_connect(
+        "/collaboration/ws/cleanup-test?name=Alice"
+    ) as alice:
         alice_state = alice.receive_json()
         alice.receive_json()  # presence_update
 
@@ -238,12 +269,16 @@ def test_presence_sync_session_cleanup():
                 "version": alice_state["version"],
             }
         )
+
         alice.receive_json()  # receive echo of code update
 
     # Alice disconnected, room should be deleted.
     # Bob joins the same room. Room should be recreated with fresh state.
-    with client.websocket_connect("/collaboration/ws/cleanup-test?name=Bob") as bob:
+    with client.websocket_connect(
+        "/collaboration/ws/cleanup-test?name=Bob"
+    ) as bob:
         bob_state = bob.receive_json()
+
         assert bob_state["code"] == ""
         assert bob_state["version"] == 0
         assert len(bob_state["users"]) == 1
@@ -264,3 +299,27 @@ def test_collaboration_rejects_unsupported_message_type():
             "type": "error",
             "detail": "Unsupported collaboration message type: unknown_event",
         }
+
+
+def test_collaboration_room_removed_after_last_disconnect():
+    with client.websocket_connect(
+        "/collaboration/ws/session-lifecycle?name=Alice"
+    ) as websocket:
+        websocket.receive_json()
+        websocket.receive_json()
+
+        assert "session-lifecycle" in manager.rooms
+
+    assert "session-lifecycle" not in manager.rooms
+
+
+def test_stale_client_does_not_recreate_removed_room():
+    asyncio.run(
+        manager.handle_message(
+            "removed-session",
+            "stale-client",
+            {"type": "ping"},
+        )
+    )
+
+    assert "removed-session" not in manager.rooms
