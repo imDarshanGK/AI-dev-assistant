@@ -157,24 +157,32 @@ def test_v2_response_shape(client):
     # V2 returns 'result' as a parsed dict, not a raw JSON string
     assert "result" in body, "V2 response must have 'result' field"
     assert isinstance(body["result"], dict), "'result' must be a dict, not a string"
-    assert "result_json" not in body, "Old V1 'result_json' field must not appear in V2 response"
+    assert (
+        "result_json" not in body
+    ), "Old V1 'result_json' field must not appear in V2 response"
 
     # V2 includes user_id in the create response
-    assert body["user_id"] == user_id, "Create response must include the creator's user_id"
+    assert (
+        body["user_id"] == user_id
+    ), "Create response must include the creator's user_id"
 
     share_id = body["id"]
 
     # Step 2: Fetch the share with NO auth header (anonymous access)
     # This is the core V2 regression: GET must be fully public
     fetch_resp = client.get(f"/share/{share_id}")  # no Authorization header
-    assert fetch_resp.status_code == 200, "GET /share/{id} must be public — no auth required"
+    assert (
+        fetch_resp.status_code == 200
+    ), "GET /share/{id} must be public — no auth required"
 
     fetched = fetch_resp.json()
 
     # Fetched response also follows V2 shape
     assert fetched["id"] == share_id
     assert isinstance(fetched["result"], dict), "Fetched 'result' must be a parsed dict"
-    assert fetched["user_id"] == user_id, "Fetched response must include the creator's user_id"
+    assert (
+        fetched["user_id"] == user_id
+    ), "Fetched response must include the creator's user_id"
     assert fetched["code"] == payload["code"]
     assert fetched["result"] == payload["result"]
 
