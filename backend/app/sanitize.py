@@ -15,6 +15,7 @@ Design notes
 * We DO strip null bytes and ANSI control sequences because these can
   poison log files or cause unexpected behaviour in terminals.
 """
+
 from __future__ import annotations
 
 import json

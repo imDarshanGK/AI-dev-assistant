@@ -275,6 +275,16 @@ class AnalyzeResponse(BaseModel):
         description="Total time taken to run all three analyses, in milliseconds.",
         example=1.84,
     )
+    mode: str = Field(
+        default="rule-based",
+        description="Analysis mode: `rule-based`, `hybrid`, or `degraded`.",
+        example="hybrid",
+    )
+    optimized_version: str | None = Field(
+        default=None,
+        description="LLM-suggested optimized rewrite of the code, when mode is `hybrid`.",
+        example=None,
+    )
 
 
 # ── Zip Analysis ──────────────────────────────────────────────────────────────
