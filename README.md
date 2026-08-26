@@ -115,22 +115,43 @@ No account required for the core analysis. No API key needed. Works fully offlin
 
 ### Prerequisites
 
-- Python 3.11 or 3.12
-- pip
-- A modern browser (Chrome, Firefox, Edge, Safari)
+- **Python**: 3.11 or 3.12
+- **Package Manager**: `pip` and `npm`
+- **Node.js**: v18 or above (for frontend)
+- **Browser**: A modern browser (Chrome, Firefox, Edge, Safari)
+- **Database (Optional)** : PostgreSQL (if running database features)
 
-### 1 - Clone
+
+### Step-by-Step Local Setup
+
+
+### 1 - Clone the Repository
 
 ```bash
-git clone https://github.com/imDarshanGK/AI-dev-assistant.git
+git clone [https://github.com/imDarshanGK/AI-dev-assistant.git](https://github.com/imDarshanGK/AI-dev-assistant.git)
 cd AI-dev-assistant
 ```
+
+# Copy example environment files
+cp backend/.env.example backend/.env
 
 ### 2 - Run the backend
 
 ```bash
+# Navigate to backend directory
 cd backend
+
+#(Optional) Create and activate a virtual environment
+python -m venv venv
+#On Windows:
+#venv\Scripts\activate
+#On Linux/macOS:
+#source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Start the FastAPI server
 uvicorn app.main:app --reload
 ```
 ### Environment Setup
@@ -165,6 +186,20 @@ The app can still run without external AI providers when `LLM_ENABLED=false`. Ac
 | Logout | http://localhost:8000/auth/logout |
 
 The full endpoint list - including project ZIP analysis, AI chat, and live collaboration - is in [API Reference](#api-reference) below.
+
+
+### Run the Frontend
+
+```bash
+# Navigate to frontend directory from the root
+
+cd ../frontend
+
+# Install dependencies
+npm install
+
+# Start the frontend dev server
+npm run dev
 
 ### 3 - Open the frontend
 
@@ -861,5 +896,19 @@ MIT © [Darshan G K](https://github.com/imDarshanGK)
 <br/>
 
 Built for the open source community &nbsp;·&nbsp; GSSoC 2026
+
+
+### Validation Check 
+
+- **Backend API:** Open http://localhost:8000/docs in your browser to confirm the working of backend(server) of the application.
+- **Frontend API:** Open http://localhost:3000 (or the ports outputted in your terminal) to verify that the interface is running.
+
+
+###Common Pitfalls
+- **Virtual Environment Inaactive:** If dependencies fail to install or `uvicorn` is not working then make sure there is a proper virtual environment set up
+
+-**Missing `.env` File:** If the backend throws configuration or database errors make sure that `.env` is imported from `.env.example`.
+
+-**Port Conflicts:** Ensure ports 8000 and 3000 are free to use.
 
 </div>
