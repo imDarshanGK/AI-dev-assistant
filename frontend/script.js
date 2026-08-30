@@ -99,6 +99,55 @@ codeInput.addEventListener('keydown', (e) => {
     runAnalysis();
   }
 });
+// ── Global Keyboard Shortcuts ──
+document.addEventListener('keydown', (e) => {
+  const isTyping = e.target === codeInput || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+
+  // Ctrl/Cmd + Enter → Analyze (works even outside textarea)
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    if (!isAnalyzing) runAnalysis();
+    return;
+  }
+
+  // Ctrl/Cmd + K → focus code input
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    codeInput.focus();
+    return;
+  }
+
+  // Don't fire single-key shortcuts while user is typing
+  if (isTyping) return;
+
+  // Ctrl/Cmd + Shift + C → Clear
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+    e.preventDefault();
+    document.getElementById('clearBtn').click();
+    return;
+  }
+
+  // Ctrl/Cmd + Shift + S → Save to favorites
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's') {
+    e.preventDefault();
+    document.getElementById('saveBtn').click();
+    return;
+  }
+
+  // Ctrl/Cmd + D → Download result
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+    e.preventDefault();
+    document.getElementById('downloadBtn').click();
+    return;
+  }
+
+  // Shift + D → toggle dark/light theme
+  if (e.shiftKey && e.key.toLowerCase() === 'd') {
+    e.preventDefault();
+    themeToggle.click();
+    return;
+  }
+});
 
 // ── File upload ──
 document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
