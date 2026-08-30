@@ -1,0 +1,72 @@
+groups:
+- name: qyverixai_alerts
+  interval: 30s
+  rules:
+  
+  # High 5xx Error Rate Alert
+  - alert: High5xxErrorRate
+    expr: |
+      (
+        sum(rate(qyverixai_http_requests_total{status_code=~"5.."}[5m]))
+        /
+        sum(rate(qyverixai_http_requests_total[5m]))
+      ) > 0.05
+    for: 2m
+    labels:
+      severity: critical
+      service: qyverixai
+    annotations:
+      summary: "High 5xx error rate on QyverixAI API"
+      description: "{{ $value | humanizePercentage }} of requests are failing (threshold: 5%)"
+      action: "Check backend logs immediately"
+
+  # High Latency Alert (p95 > 2 seconds)
+  - alert: HighLatency
+    expr: |
+      histogram_quantile(0.95, 
+        sum(rate(qyverixai_http_request_duration_seconds_bucket[5m])) by (le, method, endpoint)
+      ) > 2
+    for: 5m
+    labels:
+      severity: warning
+      service: qyverixai
+    annotations:
+      summary: "High API latency on {{ $labels.endpoint }}"
+      description: "95th percentile latency is {{ $value }}s (threshold: 2s)"
+      action: "Check database queries and LLM provider latency"
+
+  # Service Down Alert
+  - alert: ServiceDown
+    expr: up{job="qyverixai"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: qyverixai
+    annotations:
+      summary: "QyverixAI service is down"
+      description: "Service unreachable for 1 minute"
+      action: "RESTART IMMEDIATELY: Check Render.com or Docker container"
+
+  # High Exception Rate Alert
+  - alert: HighExceptionRate
+    expr: rate(qyverixai_http_request_exceptions_total[5m]) > 0.1
+    for: 3m
+    labels:
+      severity: critical
+      service: qyverixai
+    annotations:
+      summary: "High exception rate in API"
+      description: "{{ $value }} exceptions/second (threshold: 0.1)"
+      action: "Check exception types in logs"
+
+  # High Concurrency Alert
+  - alert: HighConcurrency
+    expr: qyverixai_http_requests_in_progress > 50
+    for: 2m
+    labels:
+      severity: warning
+      service: qyverixai
+    annotations:
+      summary: "High concurrent requests"
+      description: "{{ $value }} requests in progress (threshold: 50)"
+      action: "Consider scaling up or optimizing slow endpoints"
