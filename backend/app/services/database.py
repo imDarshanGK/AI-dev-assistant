@@ -22,7 +22,27 @@ from ..observability import (
 
 logger = logging.getLogger("ai_assistant.api")
 
+
 DB_PATH = os.getenv("HISTORY_DB_PATH", "history.db")
+
+
+async def _ensure_history_db_ready() -> None:
+    """Initialize the history database only when the schema is missing or the file is new."""
+    if not os.path.exists(DB_PATH):
+        await init_db()
+        return
+
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            row = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='history'"
+            ).fetchone()
+        if row is None:
+            await init_db()
+    except (sqlite3.Error, OSError):
+        # Let the actual DB operation surface the connection issue; avoid
+        # triggering an unrelated init_db failure during a preflight check.
+        return
 
 
 @contextlib.contextmanager
@@ -121,6 +141,7 @@ async def save_entry(
     issue_count: int | None,
     result_json: str | None = None,
 ) -> int:
+    await _ensure_history_db_ready()
     with record_db_metric("save_entry"):
         try:
             code_hash = hash_code(code)
@@ -154,6 +175,7 @@ async def save_entry(
 
 
 async def count_entries() -> int:
+    await _ensure_history_db_ready()
     with record_db_metric("count_entries"):
         try:
             async with aiosqlite.connect(DB_PATH) as db:
@@ -168,6 +190,7 @@ async def count_entries() -> int:
 async def get_entries(
     limit: int = 20, offset: int = 0, sort_by: str = "timestamp", order: str = "desc"
 ) -> list[dict]:
+    await _ensure_history_db_ready()
     with record_db_metric("get_entries"):
         try:
             allowed_sort_columns = {"timestamp", "score", "issue_count", "id"}
@@ -194,6 +217,7 @@ async def get_entries(
 
 
 async def search_entries(q: str, limit: int = 20) -> list[dict]:
+    await _ensure_history_db_ready()
     with record_db_metric("search_entries"):
         q = q[:200]
         try:
@@ -228,6 +252,7 @@ async def search_entries(q: str, limit: int = 20) -> list[dict]:
 
 
 async def delete_entry(entry_id: int) -> bool:
+    await _ensure_history_db_ready()
     with record_db_metric("delete_entry"):
         try:
             async with aiosqlite.connect(DB_PATH) as db:
@@ -243,6 +268,7 @@ async def delete_entry(entry_id: int) -> bool:
 
 
 async def get_entry(entry_id: int) -> dict | None:
+    await _ensure_history_db_ready()
     with record_db_metric("get_entry"):
         try:
             async with aiosqlite.connect(DB_PATH) as db:
@@ -263,6 +289,7 @@ async def get_entry(entry_id: int) -> dict | None:
 
 
 async def clear_entries() -> int:
+    await _ensure_history_db_ready()
     with record_db_metric("clear_entries"):
         try:
             async with aiosqlite.connect(DB_PATH) as db:
