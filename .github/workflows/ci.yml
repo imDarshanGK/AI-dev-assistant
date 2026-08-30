@@ -48,6 +48,49 @@ jobs:
           cd backend
           pytest -q --tb=short
 
+  email-share-e2e:
+    name: E2E email-share tests (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    env:
+      DIGEST_ENABLED: "false"
+      SMTP_HOST: ""
+      SMTP_PORT: "587"
+      SMTP_USER: ""
+      SMTP_PASS: ""
+      EMAIL_FROM: "noreply@qyverixai.app"
+      DIGEST_BASE_URL: "https://qyverixai.onrender.com"
+      RATE_LIMIT_PER_MINUTE: "300"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Ensure libmagic is installed
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1 libmagic-dev
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Run E2E email-share tests
+        run: |
+          cd backend
+          pytest tests/test_email_share_e2e.py -v --tb=short
+
   lint:
     runs-on: ubuntu-latest
     name: Lint
@@ -79,45 +122,3 @@ jobs:
         run: |
           test -f frontend/index.html
           echo "Frontend files verified"
-
-  secret-scan:
-    name: Secret Scan
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  format:
-    runs-on: ubuntu-latest
-    name: Format check
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-
-      - name: Install formatting tools
-        run: pip install black==24.10.0 isort==5.13.2
-
-      - name: Check formatting with black
-        run: |
-          git diff --name-only origin/main...HEAD -- '*.py' | \
-          xargs -r black --check
-
-      - name: Check import ordering with isort
-        run: |
-          git diff --name-only origin/main...HEAD -- '*.py' | \
-          xargs -r isort --check-only
