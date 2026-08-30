@@ -1,0 +1,19 @@
+# Gitleaks configuration for AI-dev-assistant
+# Extends the default gitleaks ruleset so production secrets are still
+# detected, while allowing clearly marked test secrets used in the test suite.
+
+title = "AI-dev-assistant gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow test secrets in test files"
+paths = [
+    '''backend/tests/conftest.py''',
+    '''.*\.test\.py$''',
+    '''.*_test\.py$''',
+]
+regexes = [
+    '''test-secret-key-min-32-bytes-long-for-jwt''',
+]
