@@ -17,7 +17,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![GSSoC 2026](https://img.shields.io/badge/GSSoC-2026-FF6B35?logoColor=white)](https://gssoc.girlscript.tech)
+[![Open Source](https://img.shields.io/badge/Open%20Source-Project-4A9DFF?logo=github&logoColor=white)](https://github.com/imDarshanGK/AI-dev-assistant)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-supported-4169E1?logo=postgresql&logoColor=white)](docker-compose.yml)
 [![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev)
@@ -37,7 +37,7 @@ Read the release history and notable changes in the project changelog: **[docs/C
 
 <br/>
 
-> **GSSoC 2026 Contributors** -- Welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, then grab a [good first issue](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue) to get started.
+> **Open source contributors** -- Welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, then explore an issue or propose a small improvement.
 
 </div>
 
@@ -803,7 +803,7 @@ Copy `.env.example` to `.env` and fill in values as needed.
 
 ## Contributing
 
-QyverixAI is a **GSSoC 2026** open source project. Contributors of all levels are welcome.
+QyverixAI is an open source project for developers who want faster code understanding, debugging, and quality improvements.
 
 ```bash
 # 1. Fork the repo on GitHub
@@ -822,7 +822,7 @@ pytest -v   # all tests must pass
 
 Read the full workflow, code standards, and pattern guide in [CONTRIBUTING.md](CONTRIBUTING.md). Architecture overview lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (note: it predates several features in this README and could use an update too - also a good first issue).
 
-### Good first issues for GSSoC contributors
+### Good first issues for contributors
 
 | Task | Label |
 |---|---|
@@ -895,7 +895,7 @@ MIT © [Darshan G K](https://github.com/imDarshanGK)
 
 <br/>
 
-Built for the open source community &nbsp;·&nbsp; GSSoC 2026
+Built for the open source community
 
 
 ### Validation Check 
