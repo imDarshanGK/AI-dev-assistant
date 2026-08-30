@@ -1,55 +1,97 @@
 # QyverixAI VS Code Extension
 
-Analyze, debug, and explain code directly from VS Code using the [QyverixAI](https://qyverixai.onrender.com) API.
+A VS Code extension that connects your editor to the QyverixAI API for code analysis, debugging, and explanation in a single workflow.
+
+## What this extension does
+
+- Sends the active file content to the QyverixAI API.
+- Shows analysis results in a WebView panel.
+- Adds inline diagnostics for detected bugs, warnings, and suggestions.
+- Supports three commands: Analyze, Debug, and Explain.
 
 ## Features
 
-- **🧪 Analyze** (`qyverixai.analyze`) — Full code analysis: explanation, bug detection, and improvement suggestions in one go. Sets inline diagnostics (squiggly lines) for detected issues.
-- **🐛 Debug** (`qyverixai.debug`) — Scan the current file for bugs, errors, and warnings. Inline diagnostics highlight problem areas in the editor.
-- **📖 Explain** (`qyverixai.explain`) — Get a plain-English summary of what the code does, its complexity, key points, and structure.
+- ** Analyze Current File** (`qyverixai.analyze`)
+  - Reviews the file and returns a detailed analysis with improvement suggestions.
+  - Shows inline diagnostics for issues and weaknesses.
+- ** Debug Current File** (`qyverixai.debug`)
+  - Scans for errors, bug patterns, and common pitfalls.
+  - Highlights problematic lines directly in the editor.
+- ** Explain Current File** (`qyverixai.explain`)
+  - Provides a plain-English summary of what the code does.
+  - Describes structure, intent, and important areas of the file.
+
+## Installation
+
+### Install from source
+
+1. Open the `vscode-extension` folder in VS Code.
+2. Install Node dependencies:
+   ```bash
+   cd vscode-extension
+   npm install
+   ```
+3. Compile the extension:
+   ```bash
+   npm run compile
+   ```
+4. Run the extension in the Extension Development Host by pressing `F5`.
+
+### Install a packaged VSIX
+
+```bash
+npm install -g @vscode/vsce
+cd vscode-extension
+vsce package
+code --install-extension qyverixai-vscode-*.vsix
+```
 
 ## Usage
 
-1. Open any file in VS Code.
-2. Right-click in the editor and select:
-   - **QyverixAI: Analyze Current File**
-   - **QyverixAI: Debug Current File**
-   - **QyverixAI: Explain Current File**
-
-   Or use the Command Palette (`Ctrl+Shift+P`) and type `QyverixAI`.
-
-3. A WebView panel opens beside your editor with the results.
-4. For **Analyze** and **Debug**, squiggly lines appear in the editor at the locations of detected issues. Open the **Problems** panel (`Ctrl+Shift+M`) to see the full list.
+1. Open any source file in VS Code.
+2. Run one of the commands from the Command Palette (`Ctrl+Shift+P`):
+   - `QyverixAI: Analyze Current File`
+   - `QyverixAI: Debug Current File`
+   - `QyverixAI: Explain Current File`
+3. Alternatively, right-click in the editor and choose the same command from the context menu.
+4. Review the results in the WebView panel.
+5. For Analyze and Debug, open the Problems panel (`Ctrl+Shift+M`) to see inline diagnostics.
 
 ## Requirements
 
-- VS Code 1.82+
-- The QyverixAI API must be running and reachable. The extension defaults to the hosted API at `https://qyverixai.onrender.com`.
+- VS Code 1.82 or later
+- Node.js and npm installed for development
+- Access to the QyverixAI API endpoint
 
-## Extension Settings
+## Configuration
 
-This extension contributes the following settings:
+Set the following extension settings in your workspace or user settings:
 
 | Setting | Default | Description |
 |---|---|---|
 | `qyverixai.apiUrl` | `https://qyverixai.onrender.com` | Base URL of the QyverixAI API |
 | `qyverixai.timeout` | `30` | Request timeout in seconds |
 
-## Known Issues
+### Example
 
-- The API works best with complete, syntactically valid files.
-- Very large files (>50 KB) may be truncated by the API's 50 000 character limit.
-
-## Development
-
-```bash
-cd vscode-extension
-npm install
-npm run compile
+```json
+{
+  "qyverixai.apiUrl": "http://localhost:8000",
+  "qyverixai.timeout": 45
+}
 ```
 
-The compile step emits `extension.js`, which matches the package entrypoint declared in `package.json`.
+## Development Notes
 
+- Source TypeScript files are in `vscode-extension/src/`.
+- The compiled entry point is `vscode-extension/extension.js`.
+- `package.json` includes the extension commands and activation events.
+
+## Troubleshooting
+
+- If the extension fails to communicate with the API, verify `qyverixai.apiUrl` and network access.
+- If commands do not appear, reload the window and check for any extension errors in the Output panel.
+- For best results, use files with valid syntax and avoid extremely large single-file payloads.
 ## Running the Extension Locally
 
 After compiling the extension:
@@ -138,11 +180,10 @@ If a launch configuration is not automatically generated, create `.vscode/launch
 
 To build an installable VSIX package:
 
-```bash
-npm install -g @vscode/vsce
-vsce package
-code --install-extension qyverixai-vscode-*.vsix
-```
+## Compatibility
+
+- Designed for VS Code versions matching `^1.82.0`.
+- Works with any language file, but accuracy depends on the QyverixAI API and file content.
 
 ## License
 
