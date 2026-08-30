@@ -18,11 +18,28 @@ from fastapi.staticfiles import StaticFiles
 from .database import Base, engine
 from .logging_config import configure_logging
 from .observability import initialise_app_info, prometheus_metrics_middleware
-from .routers import admin, analyze, auth, chat, collaboration, debugging, explanation
+from .routers import (
+    admin,
+    analyze,
+    auth,
+    chat,
+    collaboration,
+    debugging,
+    explanation,
+)
 from .routers import health as health_router
-from .routers import history
+from .routers import (
+    history,
+)
 from .routers import metrics as metrics_router
-from .routers import share, subscribe, suggestions, upload_file, user_data
+from .routers import (
+    preview,
+    share,
+    subscribe,
+    suggestions,
+    upload_file,
+    user_data,
+)
 from .schemas import HealthResponse
 from .services import database
 from .services.scheduler import start_scheduler, stop_scheduler
@@ -60,6 +77,7 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     await database.init_db()
     print("🚀 QyverixAI backend starting…")
+    # Static info gauge so dashboards can pin version / provider labels.
     initialise_app_info(
         version="3.0.0", ai_provider=os.getenv("AI_PROVIDER", "rule-based")
     )
@@ -176,6 +194,7 @@ async def add_process_time_header(request: Request, call_next):
     ip = request.client.host if request.client else "unknown"
     remaining = RATE_LIMIT
 
+    # Apply rate limiting to analysis endpoints only
     if request.url.path in (
         "/explanation/",
         "/debugging/",
@@ -213,11 +232,12 @@ async def add_cache_header(request: Request, call_next):
     return response
 
 
-# ── Routers ───────────────────────────────────────────────────────────────────
+# ──Routers───────────────────────────────────────────────────────────────────
 app.include_router(explanation.router, prefix="/explanation", tags=["Explanation"])
 app.include_router(debugging.router, prefix="/debugging", tags=["Debugging"])
 app.include_router(suggestions.router, prefix="/suggestions", tags=["Suggestions"])
 app.include_router(analyze.router, prefix="/analyze", tags=["Full Analysis"])
+app.include_router(preview.router, prefix="/admin", tags=["Admin"])
 app.include_router(subscribe.router, prefix="/subscribe", tags=["Subscription"])
 app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(auth.router)
