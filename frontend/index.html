@@ -3216,6 +3216,7 @@ cursor:pointer;
           toast_favorites_cleared: "Favorites cleared",
           toast_loaded: "Loaded {name}",
           toast_dropped: "Dropped {name}",
+          toast_invalid_file_type: "Unsupported file type. Please upload a supported file: {extensions}",
           debug_clean_title: "No issues detected!",
           debug_clean_desc: "Your code passed all 40+ pattern checks. Keep it up!",
           debug_errors: "Errors",
@@ -3324,6 +3325,7 @@ cursor:pointer;
           toast_favorites_cleared: "பிடித்தவை அழிக்கப்பட்டன",
           toast_loaded: "{name} ஏற்றப்பட்டது",
           toast_dropped: "{name} விடப்பட்டது",
+          toast_invalid_file_type: "ஆதரிக்கப்படாத கோப்பு வகை. ஆதரிக்கப்படும் கோப்பை பதிவேற்றவும்: {extensions}",
           debug_clean_title: "சிக்கல்கள் எதுவும் கண்டறியப்படவில்லை!",
           debug_clean_desc: "உங்கள் குறியீடு அனைத்து 40+ வடிவ சோதனைகளையும் கடந்துவிட்டது. தொடருங்கள்!",
           debug_errors: "பிழைகள்",
@@ -3432,6 +3434,7 @@ cursor:pointer;
           toast_favorites_cleared: "पसंदीदा साफ कर दिए गए",
           toast_loaded: "{name} लोड किया गया",
           toast_dropped: "{name} ड्रॉप किया गया",
+          toast_invalid_file_type: "असमर्थित फ़ाइल प्रकार। कृपया समर्थित फ़ाइल अपलोड करें: {extensions}",
           debug_clean_title: "कोई समस्या नहीं मिली!",
           debug_clean_desc: "आपका कोड सभी 40+ पैटर्न जांचों में सफल रहा। इसे जारी रखें!",
           debug_errors: "त्रुटियाँ",
@@ -3540,6 +3543,7 @@ cursor:pointer;
           toast_favorites_cleared: "Favoris effacés",
           toast_loaded: "{name} chargé",
           toast_dropped: "{name} déposé",
+          toast_invalid_file_type: "Type de fichier non pris en charge. Veuillez importer un fichier pris en charge : {extensions}",
           debug_clean_title: "Aucun problème détecté !",
           debug_clean_desc: "Votre code a passé les 40+ vérifications avec succès. Continuez ainsi !",
           debug_errors: "Erreurs",
@@ -3977,6 +3981,21 @@ cursor:pointer;
         }
 
         selectedZipFile = null;
+        const allowedExtensions = [
+  'py', 'js', 'ts', 'java',
+  'cpp', 'cc', 'cxx', 'c',
+  'h', 'hpp', 'kt', 'kts',
+  'txt'
+];
+
+if (!allowedExtensions.includes(ext)) {
+  const extensions = allowedExtensions.map(extension => `.${extension}`).join(', ');
+  toast(
+    getTranslation('toast_invalid_file_type').replace('{extensions}', extensions),
+    'error'
+  );
+  return;
+}
         const langMap = {
           py: 'python',
           js: 'javascript',
