@@ -21,6 +21,35 @@ from ..services.user_deletion import preview_user_data_purge, purge_user_data
 router = APIRouter(prefix="/user", tags=["User Data"])
 
 
+def _list_owned_records(db: Session, model, user_id: int, limit: int, offset: int):
+    return (
+        db.execute(
+            select(model)
+            .where(model.user_id == user_id)
+            .order_by(model.id.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        .scalars()
+        .all()
+    )
+
+
+def _get_owned_record_or_404(db: Session, model, record_id: int, user_id: int, not_found_detail: str):
+    record = db.execute(
+        select(model).where(model.id == record_id, model.user_id == user_id)
+    ).scalar_one_or_none()
+    if record is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=not_found_detail)
+    return record
+
+
+def _clear_owned_records(db: Session, model, user_id: int) -> int:
+    result = db.execute(delete(model).where(model.user_id == user_id))
+    db.commit()
+    return cast(CursorResult, result).rowcount or 0
+
+
 @router.get("/data-purge/preview", response_model=UserDataPurgePreviewResponse)
 def preview_data_purge(
     current_user: User = Depends(get_current_user),
@@ -64,17 +93,7 @@ def list_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    records = (
-        db.execute(
-            select(QueryHistory)
-            .where(QueryHistory.user_id == current_user.id)
-            .order_by(QueryHistory.id.desc())
-            .limit(limit)
-            .offset(offset)
-        )
-        .scalars()
-        .all()
-    )
+    records = _list_owned_records(db, QueryHistory, current_user.id, limit, offset)
 
     return [
         HistoryRecord(
@@ -119,15 +138,9 @@ def delete_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    record = db.execute(
-        select(QueryHistory).where(
-            QueryHistory.id == history_id, QueryHistory.user_id == current_user.id
-        )
-    ).scalar_one_or_none()
-    if record is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="History record not found"
-        )
+    record = _get_owned_record_or_404(
+        db, QueryHistory, history_id, current_user.id, "History record not found"
+    )
 
     db.delete(record)
     db.commit()
@@ -139,11 +152,8 @@ def clear_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    result = db.execute(
-        delete(QueryHistory).where(QueryHistory.user_id == current_user.id)
-    )
-    db.commit()
-    return {"status": "cleared", "deleted": cast(CursorResult, result).rowcount or 0}
+    deleted = _clear_owned_records(db, QueryHistory, current_user.id)
+    return {"status": "cleared", "deleted": deleted}
 
 
 @router.get("/favorites", response_model=list[FavoriteRecord])
@@ -153,17 +163,7 @@ def list_favorites(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    records = (
-        db.execute(
-            select(FavoriteResult)
-            .where(FavoriteResult.user_id == current_user.id)
-            .order_by(FavoriteResult.id.desc())
-            .limit(limit)
-            .offset(offset)
-        )
-        .scalars()
-        .all()
-    )
+    records = _list_owned_records(db, FavoriteResult, current_user.id, limit, offset)
 
     return [
         FavoriteRecord(
@@ -211,15 +211,9 @@ def delete_favorite(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    record = db.execute(
-        select(FavoriteResult).where(
-            FavoriteResult.id == favorite_id, FavoriteResult.user_id == current_user.id
-        )
-    ).scalar_one_or_none()
-    if record is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Favorite not found"
-        )
+    record = _get_owned_record_or_404(
+        db, FavoriteResult, favorite_id, current_user.id, "Favorite not found"
+    )
 
     db.delete(record)
     db.commit()
@@ -231,8 +225,5 @@ def clear_favorites(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    result = db.execute(
-        delete(FavoriteResult).where(FavoriteResult.user_id == current_user.id)
-    )
-    db.commit()
-    return {"status": "cleared", "deleted": cast(CursorResult, result).rowcount or 0}
+    deleted = _clear_owned_records(db, FavoriteResult, current_user.id)
+    return {"status": "cleared", "deleted": deleted}
