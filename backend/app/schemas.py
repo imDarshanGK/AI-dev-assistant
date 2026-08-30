@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from .config import settings
 from .schema_validators import (
