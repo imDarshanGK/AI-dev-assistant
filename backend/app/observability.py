@@ -157,6 +157,24 @@ UNSUBSCRIBE_GET_ATTEMPTS_TOTAL = Counter(
     labelnames=("result",),
 )
 
+USER_DATA_PURGE_ATTEMPTS_TOTAL = Counter(
+    "qyverixai_user_data_purge_attempts_total",
+    "Total number of self-service account/data purge attempts, labelled by result.",
+    labelnames=("result",),
+)
+
+USER_DATA_HISTORY_OPERATIONS_TOTAL = Counter(
+    "qyverixai_user_data_history_operations_total",
+    "Total number of history record operations via the user data router, labelled by operation and result.",
+    labelnames=("operation", "result"),
+)
+
+USER_DATA_FAVORITE_OPERATIONS_TOTAL = Counter(
+    "qyverixai_user_data_favorite_operations_total",
+    "Total number of favorite record operations via the user data router, labelled by operation and result.",
+    labelnames=("operation", "result"),
+)
+
 
 def initialise_app_info(version: str, ai_provider: str) -> None:
     """Set the app_info gauge once at startup so dashboards can display it."""
