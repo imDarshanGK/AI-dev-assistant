@@ -571,6 +571,7 @@ function renderResult(data, mode) {
               ${renderComplexityBadge(i)}
               <p style="margin-top:8px">${escHtml(i.description || '')}</p>
               ${i.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">→ ${escHtml(i.suggestion)}</p>` : ''}
+              ${i.fixed_code ? `<div style="margin-top:8px;padding:8px;background:var(--bg-3);border-radius:4px;font-family:var(--font-mono);font-size:12px"><span style="color:var(--accent-green)">Suggested Fix Preview:</span><pre style="margin-top:4px;white-space:pre-wrap">${escHtml(i.fixed_code)}</pre></div>` : ''}
             </div>`).join('')}
       </div>
     </div>`;
