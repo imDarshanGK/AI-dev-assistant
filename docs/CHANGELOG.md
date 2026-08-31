@@ -5,6 +5,13 @@ All notable changes to QyverixAI are documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added AI Suggested Fix Preview: automatic generation of scoped, corrected code
+  snippets (`fixed_code`) and structured before/after line-level diff previews
+  (`diff`) for fixable issues across Python, JavaScript, TypeScript, Java, C++,
+  PHP, and Rust in `POST /debugging/` and `POST /analyze/`.
+- Added interactive, independently collapsible before/after diff preview panels
+  in `frontend/index.html` for each detected issue with one-click copy, leaving
+  the user's source code untouched (preview-only).
 - Added hybrid rule+LLM analysis to `POST /analyze/`: LLM enrichment
   (explanation insight, suggestions, `optimized_version`) layered on top of
   deterministic rule-based debugging, with graceful `degraded` fallback on LLM
