@@ -6,10 +6,12 @@ Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Ru
 from __future__ import annotations
 
 import ast
+import difflib
 import logging
 import re
 import time
 from dataclasses import dataclass, field
+from typing import Any
 
 from .ast_analyzer import analyze as ast_analyze
 from .llm_analysis import LLMAnalysisError, llm_analysis_client
@@ -836,6 +838,293 @@ def _is_multiline_pattern(pattern: str) -> bool:
     return any(token in pattern for token in (r"\n", r"[\s\S]", r"[\d\D]", r"[\w\W]"))
 
 
+def compute_line_diff(original: str, fixed: str) -> list[dict[str, Any]]:
+    """Compute a line-level diff between original and fixed snippets.
+
+    Args:
+        original: The original code snippet.
+        fixed: The suggested fixed code snippet.
+
+    Returns:
+        A list of diff entries, each containing:
+        - `type`: Change type ('equal', 'added', or 'removed')
+        - `line`: Line text content
+        - `content`: Line text content (alias for compatibility)
+        - `prefix`: Diff prefix ('  ', '+ ', or '- ')
+    """
+    orig_lines = original.splitlines()
+    fixed_lines = fixed.splitlines()
+    matcher = difflib.SequenceMatcher(None, orig_lines, fixed_lines)
+    diff: list[dict[str, Any]] = []
+
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == "equal":
+            for line in orig_lines[i1:i2]:
+                diff.append(
+                    {"type": "equal", "line": line, "content": line, "prefix": "  "}
+                )
+        elif tag == "delete":
+            for line in orig_lines[i1:i2]:
+                diff.append(
+                    {"type": "removed", "line": line, "content": line, "prefix": "- "}
+                )
+        elif tag == "insert":
+            for line in fixed_lines[j1:j2]:
+                diff.append(
+                    {"type": "added", "line": line, "content": line, "prefix": "+ "}
+                )
+        elif tag == "replace":
+            for line in orig_lines[i1:i2]:
+                diff.append(
+                    {"type": "removed", "line": line, "content": line, "prefix": "- "}
+                )
+            for line in fixed_lines[j1:j2]:
+                diff.append(
+                    {"type": "added", "line": line, "content": line, "prefix": "+ "}
+                )
+
+    return diff
+
+
+def generate_issue_fix(
+    issue_type: str,
+    snippet: str,
+    code: str,
+    line: int | None = None,
+    language: str = "Python",
+) -> str | None:
+    """Generate a corrected version of the code snippet for a detected issue.
+
+    Only generates a fix if there is a reliable, high-confidence correction.
+    If the issue has no reliable automatic fix, returns None.
+
+    Args:
+        issue_type: Name/type of the detected issue.
+        snippet: The offending code snippet.
+        code: The entire source code context.
+        line: The 1-based line number where the issue was detected.
+        language: Programming language of the code.
+
+    Returns:
+        The corrected code snippet string, or None if no reliable fix exists.
+    """
+    if not snippet:
+        return None
+
+    norm_type = (issue_type or "").strip()
+    norm_lang = (language or "").strip().lower()
+
+    # ── Python Fixes ────────────────────────────────────────────────────────
+    if norm_type == "ZeroDivisionError":
+        m = re.search(r"(\w+)\s*/\s*(\w+)", snippet)
+        if m:
+            divisor = m.group(2)
+            leading = snippet[: len(snippet) - len(snippet.lstrip())]
+            return f"{leading}if {divisor} == 0:\n{leading}    return None\n{snippet}"
+
+    elif norm_type == "Bare Except":
+        if re.search(r"except\s*:", snippet):
+            return re.sub(r"except\s*:", "except Exception as e:", snippet)
+
+    elif norm_type in ("Eval Usage", "Eval"):
+        if norm_lang in ("javascript", "typescript", "js", "ts"):
+            if re.search(r"\beval\s*\(", snippet):
+                return re.sub(r"\beval\s*\(", "JSON.parse(", snippet)
+        else:
+            if re.search(r"\beval\s*\(", snippet):
+                return re.sub(r"\beval\s*\(", "ast.literal_eval(", snippet)
+
+    elif norm_type in ("Mutable Default Arg", "Mutable Default Argument"):
+        if re.search(r"=\s*(\[\]|\{\}|\(\))", snippet):
+            return re.sub(r"=\s*(\[\]|\{\}|\(\))", "=None", snippet)
+
+    elif norm_type == "Hardcoded Secret":
+        m = re.search(r"(password|secret|api_key|token|passwd)", snippet, re.IGNORECASE)
+        if m:
+            var_name = m.group(1).upper()
+            if norm_lang in ("javascript", "typescript", "js", "ts"):
+                return re.sub(
+                    r"['\"][^'\"]{4,}['\"]", f"process.env.{var_name}", snippet
+                )
+            elif norm_lang in ("java", "cpp", "c++"):
+                return re.sub(
+                    r"['\"][^'\"]{4,}['\"]", f'System.getenv("{var_name}")', snippet
+                )
+            else:
+                return re.sub(
+                    r"['\"][^'\"]{4,}['\"]", f'os.getenv("{var_name}")', snippet
+                )
+
+    elif norm_type == "Print Debugging":
+        if re.search(r"\bprint\s*\(", snippet):
+            return re.sub(r"\bprint\s*\(", "logging.debug(", snippet)
+
+    elif norm_type == "Comparison to None":
+        fixed = snippet
+        if re.search(r"==\s*None\b", fixed):
+            fixed = re.sub(r"==\s*None\b", "is None", fixed)
+        if re.search(r"!=\s*None\b", fixed):
+            fixed = re.sub(r"!=\s*None\b", "is not None", fixed)
+        if fixed != snippet:
+            return fixed
+
+    elif norm_type == "Assert in Production":
+        m = re.match(r"^(\s*)assert\s+(.+)$", snippet)
+        if m:
+            indent = m.group(1)
+            cond = m.group(2).rstrip(";")
+            return f'{indent}if not ({cond}):\n{indent}    raise AssertionError("Assertion failed")'
+
+    elif norm_type == "Missing __init__":
+        m = re.match(r"^(\s*)class\s+\w+.*:$", snippet)
+        if m:
+            indent = m.group(1)
+            return f"{snippet}\n{indent}    def __init__(self):\n{indent}        pass"
+
+    # ── JavaScript / TypeScript Fixes ────────────────────────────────────────
+    elif norm_type == "Var Usage":
+        if re.search(r"\bvar\s+", snippet):
+            return re.sub(r"\bvar\s+", "const ", snippet)
+
+    elif norm_type == "== Instead of ===":
+        fixed = snippet
+        fixed = re.sub(r"(?<![=!])==(?![=])", "===", fixed)
+        fixed = re.sub(r"(?<![=!])!=(?![=])", "!==", fixed)
+        if fixed != snippet:
+            return fixed
+
+    elif norm_type == "Console.log Left In":
+        leading = snippet[: len(snippet) - len(snippet.lstrip())]
+        return f"{leading}// {snippet.lstrip()}"
+
+    elif norm_type == "Typeof Equality Issue":
+        if re.search(r'typeof\s+\w+\s*==\s*["\']', snippet):
+            return re.sub(r'(typeof\s+\w+\s*)==(\s*["\'])', r"\1===\2", snippet)
+
+    elif norm_type == "setTimeout String Usage":
+        m = re.search(r'setTimeout\s*\(\s*["\'](.*?)["\']\s*,\s*(\d+)\s*\)', snippet)
+        if m:
+            return re.sub(
+                r'setTimeout\s*\(\s*["\'](.*?)["\']\s*,\s*(\d+)\s*\)',
+                r"setTimeout(() => { \1; }, \2)",
+                snippet,
+            )
+
+    elif norm_type == "Any Type":
+        if re.search(r":\s*any\b", snippet):
+            return re.sub(r":\s*any\b", ": unknown", snippet)
+
+    elif norm_type == "Non-null Assertion":
+        if re.search(r"\w+![\.\[;,\s\)\}\]]", snippet):
+            return re.sub(r"(\w+)!([\.\[;,\s\)\}\]])", r"\1\2", snippet)
+
+    elif norm_type == "Promise Not Awaited":
+        if re.search(r"(?<!await\s)\bfetch\s*\(", snippet):
+            return re.sub(r"(?<!await\s)\b(fetch\s*\()", r"await \1", snippet)
+
+    elif norm_type == "InnerHTML XSS":
+        if re.search(r"\.innerHTML\s*=", snippet):
+            return re.sub(r"\.innerHTML\s*=", ".textContent =", snippet)
+
+    # ── Java Fixes ──────────────────────────────────────────────────────────
+    elif norm_type == "String == Comparison":
+        fixed = snippet
+        fixed = re.sub(r'(\w+)\s*==\s*("[^"]+")', r"Objects.equals(\1, \2)", fixed)
+        fixed = re.sub(r'("[^"]+")\s*==\s*(\w+)', r"\1.equals(\2)", fixed)
+        if fixed != snippet:
+            return fixed
+
+    elif norm_type == "Raw Type":
+        if re.search(
+            r"\b(List|Map|Set|Collection)\s+(\w+)\s*=\s*new\s+([\w\.]+)\(\);", snippet
+        ):
+            return re.sub(
+                r"\b(List|Map|Set|Collection)\s+(\w+)\s*=\s*new\s+([\w\.]+)\(\);",
+                r"\1<Object> \2 = new \3<>();",
+                snippet,
+            )
+
+    elif norm_type == "System.exit in Library":
+        if re.search(r"System\.exit\s*\(", snippet):
+            return re.sub(
+                r"System\.exit\s*\([^)]*\)\s*;",
+                'throw new IllegalStateException("Execution terminated");',
+                snippet,
+            )
+
+    # ── C++ Fixes ───────────────────────────────────────────────────────────
+    elif norm_type == "Void Main":
+        if re.search(r"\bvoid\s+main\s*\(", snippet):
+            return re.sub(r"\bvoid\s+main\s*\(", "int main(", snippet)
+
+    elif norm_type == "Single Quotes for String":
+        if re.search(r"'[^'\\]{2,}'", snippet):
+            return re.sub(r"'([^'\\]{2,})'", r'"\1"', snippet)
+
+    elif norm_type == "Missing Semicolon":
+        if not snippet.rstrip().endswith(";"):
+            return snippet.rstrip() + ";"
+
+    elif norm_type == "Missing Hash in Include":
+        if re.search(r"^\s*include\s*[<\"]", snippet):
+            return re.sub(r"^\s*include\s*([<\"])", r"#include \1", snippet)
+
+    elif norm_type == "Semicolon After Loop":
+        if re.search(r"\b(for|while)\s*\([^)]*\)\s*;", snippet):
+            return re.sub(r"(\b(?:for|while)\s*\([^)]*\))\s*;\s*$", r"\1", snippet)
+
+    elif norm_type == "Type Mismatch: String to Int":
+        if re.search(r"\b(int|long|short)\s+[a-zA-Z_]\w*\s*=\s*\"[^\"]*\"", snippet):
+            return re.sub(
+                r"\b(int|long|short)\s+(\w+\s*=\s*\"[^\"]*\")",
+                r"std::string \2",
+                snippet,
+            )
+
+    elif norm_type == "Unsafe gets/scanf":
+        if re.search(r"\bgets\s*\(", snippet):
+            return re.sub(
+                r"\bgets\s*\(\s*(\w+)\s*\);?", r"fgets(\1, sizeof(\1), stdin);", snippet
+            )
+
+    elif norm_type == "Using namespace std":
+        if re.search(r"using\s+namespace\s+std\s*;", snippet):
+            return "// using namespace std; // Prefer explicit std:: prefix"
+
+    # ── PHP Fixes ───────────────────────────────────────────────────────────
+    elif norm_type == "PHP MySQL Deprecated":
+        if re.search(r"\bmysql_\w+\s*\(", snippet):
+            return re.sub(r"\bmysql_(\w+)\s*\(", r"mysqli_\1($conn, ", snippet)
+
+    elif norm_type == "PHP XSS":
+        if re.search(r"echo\s+.*\$_(GET|POST|REQUEST|COOKIE)", snippet):
+            return re.sub(
+                r"echo\s+([^;]+);?",
+                r"echo htmlspecialchars(\1, ENT_QUOTES, 'UTF-8');",
+                snippet,
+            )
+
+    elif norm_type == "PHP Error Suppression":
+        if re.search(r"@\w+\s*\(", snippet):
+            return re.sub(r"@(\w+\s*\()", r"\1", snippet)
+
+    # ── Rust Fixes ──────────────────────────────────────────────────────────
+    elif norm_type == "Unwrap Usage":
+        if re.search(r"\.unwrap\s*\(\s*\)", snippet):
+            return re.sub(r"\.unwrap\s*\(\s*\)", ".unwrap_or_default()", snippet)
+
+    # ── AST Analysis Fixes ──────────────────────────────────────────────────
+    elif norm_type == "Unused Import":
+        leading = snippet[: len(snippet) - len(snippet.lstrip())]
+        return f"{leading}# unused: {snippet.lstrip()}"
+
+    elif norm_type == "Unreachable Code":
+        leading = snippet[: len(snippet) - len(snippet.lstrip())]
+        return f"{leading}# unreachable: {snippet.lstrip()}"
+
+    return None
+
+
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
 
@@ -844,7 +1133,7 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
         language: The detected or selected programming language.
 
     Returns:
-        A list of detected issues with metadata and suggestions.
+        A list of detected issues with metadata, suggestions, fixed_code, and diff.
     """
     from .ast_analyzer import analyze_python_ast
     from .line_utils import format_code_snippet
@@ -937,6 +1226,29 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                     found.append(issue)
         except SyntaxError:
             pass
+
+    # Enrich issues with fix preview (fixed_code and line-level diff)
+    for item in found:
+        snippet = item.get("code_snippet") or item.get("snippet") or ""
+        if not snippet and item.get("line"):
+            line_idx = item["line"] - 1
+            snippet = lines[line_idx].strip() if 0 <= line_idx < len(lines) else ""
+        if "code_snippet" not in item:
+            item["code_snippet"] = snippet
+
+        fixed = generate_issue_fix(
+            item.get("type", ""),
+            snippet,
+            code,
+            item.get("line"),
+            language,
+        )
+        if fixed is not None and fixed != snippet:
+            item["fixed_code"] = fixed
+            item["diff"] = compute_line_diff(snippet, fixed)
+        else:
+            item["fixed_code"] = None
+            item["diff"] = None
 
     return found
 
