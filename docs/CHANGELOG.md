@@ -53,7 +53,7 @@ All notable changes to QyverixAI are documented in this file.
 - Code analysis features for explain, debug, and improve workflows.
 - Frontend and backend integration with local history, share links, and file upload support.
 - API endpoints for explanation, debugging, suggestions, analysis, and share.
-- Documentation and contribution guidance for GSSoC 2026 contributors.
+- Documentation and contribution guidance for open source contributors.
 
 ### Fixed
 - N/A
