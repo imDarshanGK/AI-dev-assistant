@@ -285,6 +285,10 @@ class AnalyzeResponse(BaseModel):
         description="LLM-suggested optimized rewrite of the code, when mode is `hybrid`.",
         example=None,
     )
+    duplicate_detection: DuplicateDetectionResult | None = Field(
+        default=None,
+        description="Duplicate code detection results.",
+    )
 
 
 # ── Zip Analysis ──────────────────────────────────────────────────────────────
@@ -341,6 +345,10 @@ class ZipAnalyzeResponse(BaseModel):
         default=None,
         description="Total analysis time in milliseconds.",
         example=42.5,
+    )
+    cross_file_duplicates: list[DuplicateBlock] = Field(
+        default_factory=list,
+        description="Duplicate code blocks detected across files in the project.",
     )
 
 
@@ -511,6 +519,57 @@ class HealthResponse(BaseModel):
         default=None,
         description="List of available API endpoint paths.",
         example=["/explanation/", "/debugging/", "/suggestions/", "/analyze/"],
+    )
+
+
+# ── Duplicate Detection ──────────────────────────────────────────────────────
+class DuplicateLocation(BaseModel):
+    """One occurrence of a duplicated block."""
+
+    file: str = Field(
+        ..., description="File name where the block appears.", example="main.py"
+    )
+    function: str = Field(
+        ..., description="Function or method name.", example="calculate_area"
+    )
+    start_line: int = Field(..., description="1-based start line.", example=1)
+    end_line: int = Field(..., description="1-based end line.", example=10)
+
+
+class DuplicateBlock(BaseModel):
+    """A pair of code blocks detected as duplicates."""
+
+    type: str = Field(default="DuplicateCode", description="Always 'DuplicateCode'.")
+    block_id: str = Field(
+        ...,
+        description="Unique identifier for this duplicate pair.",
+        example="a1b2c3d4e5f6",
+    )
+    similarity: int = Field(..., description="Similarity percentage 0–100.", example=96)
+    locations: list[DuplicateLocation] = Field(
+        ..., description="The two (or more) locations of the duplicated block."
+    )
+    snippet: str = Field(..., description="Preview of the duplicated code.")
+    suggestion: str = Field(
+        ...,
+        description="Refactoring suggestion.",
+        example="Extract the duplicated logic into a reusable function.",
+    )
+
+
+class DuplicateDetectionResult(BaseModel):
+    """Result of duplicate code detection for a single file or project."""
+
+    duplicates: list[DuplicateBlock] = Field(
+        default_factory=list, description="List of detected duplicate pairs."
+    )
+    duplicate_count: int = Field(
+        ..., description="Total number of duplicate pairs found.", example=2
+    )
+    has_duplicates: bool = Field(
+        ...,
+        description="True when at least one duplicate pair was found.",
+        example=True,
     )
 
 

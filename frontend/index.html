@@ -1456,6 +1456,70 @@ details.issue-card[open] {
       transform: translateX(3px)
     }
 
+    .dup-section {
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+    }
+    .dup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .dup-card {
+      padding: 12px 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      margin-bottom: 10px;
+    }
+    .dup-card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .dup-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(255, 170, 0, 0.15);
+      color: #ffaa00;
+      border: 1px solid rgba(255, 170, 0, 0.3);
+    }
+    .dup-locations {
+      font-size: 0.8rem;
+      color: var(--text2);
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .dup-suggestion {
+      font-size: 0.82rem;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+    .dup-snippet {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.75rem;
+      color: var(--text2);
+      overflow-x: auto;
+      white-space: pre;
+    }
+
     .zip-overview {
       display: flex;
       flex-direction: column;
@@ -4274,7 +4338,7 @@ cursor:pointer;
   renderDebug(result.debugging);
   renderIssueSummaryCard(result.debugging);
 }
-        if (result.suggestions) renderSuggest(result.suggestions);
+        if (result.suggestions) renderSuggest(result.suggestions, result.duplicate_detection);
 
         // Auto-switch to relevant tab
         const tabOrder = { analyze: 'explain', explain: 'explain', debug: 'debug', suggest: 'suggest' };
@@ -4384,6 +4448,29 @@ cursor:pointer;
           ? `<div class="zip-skipped">Skipped: ${project.skipped_files.map(escHtml).join(', ')}</div>`
           : '';
 
+        let crossDupsHtml = '';
+        if (project.cross_file_duplicates && project.cross_file_duplicates.length > 0) {
+          crossDupsHtml = `
+            <div class="dup-section" style="margin-bottom: 12px;">
+              <div class="dup-header">
+                <span>🔄 Cross-File Duplicates Detected (${project.cross_file_duplicates.length})</span>
+              </div>
+              ${project.cross_file_duplicates.map(d => `
+                <div class="dup-card">
+                  <div class="dup-card-top">
+                    <span class="dup-badge">Similarity: ${d.similarity}%</span>
+                  </div>
+                  <div class="dup-locations">
+                    ${d.locations.map(loc => `<div>• <strong>${escHtml(loc.file || '<unknown>')}</strong> Lines ${loc.start_line}–${loc.end_line} (<code>${escHtml(loc.function || 'anonymous')}</code>)</div>`).join('')}
+                  </div>
+                  ${d.suggestion ? `<div class="dup-suggestion">💡 ${escHtml(d.suggestion)}</div>` : ''}
+                  ${d.snippet ? `<div class="dup-snippet">${escHtml(d.snippet)}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
         document.getElementById('explainResult').innerHTML = `
     <div class="zip-overview">
       <div class="score-ring-wrap">
@@ -4438,8 +4525,8 @@ cursor:pointer;
         <h3>Project Health Score</h3>
         <p>${totalSuggestions} improvement suggestion${totalSuggestions !== 1 ? 's' : ''} across ${project.file_count} file${project.file_count !== 1 ? 's' : ''}.</p>
       </div>
-    </div>
-    <div class="zip-file-list">${fileList}</div>`;
+      ${crossDupsHtml}
+      <div class="zip-file-list">${fileList}</div>`;
 
         document.querySelector('[data-rtab="explain"]').click();
       }
@@ -4745,7 +4832,7 @@ cursor:pointer;
       /* ═══════════════════════════════════════════════════════════════
          RENDER SUGGESTIONS (with diff view)
       ═══════════════════════════════════════════════════════════════ */
-      function renderSuggest(sugg) {
+      function renderSuggest(sugg, duplicateDetection) {
         document.getElementById('emptySuggest').style.display = 'none';
         const el = document.getElementById('suggestResult');
         el.style.display = 'block';
@@ -4849,7 +4936,31 @@ cursor:pointer;
   </details>`;
           }).join('');
 
-        el.innerHTML = ring + cards;
+        let dupsHtml = '';
+        if (duplicateDetection && duplicateDetection.has_duplicates && duplicateDetection.duplicates && duplicateDetection.duplicates.length > 0) {
+          const dups = duplicateDetection.duplicates;
+          dupsHtml = `
+            <div class="dup-section">
+              <div class="dup-header">
+                <span>🔄 Duplicate Code Detected (${dups.length})</span>
+              </div>
+              ${dups.map(d => `
+                <div class="dup-card">
+                  <div class="dup-card-top">
+                    <span class="dup-badge">Similarity: ${d.similarity}%</span>
+                  </div>
+                  <div class="dup-locations">
+                    ${d.locations.map(loc => `<div>• <strong>${escHtml(loc.file || '<inline>')}</strong> Lines ${loc.start_line}–${loc.end_line} (<code>${escHtml(loc.function || 'anonymous')}</code>)</div>`).join('')}
+                  </div>
+                  ${d.suggestion ? `<div class="dup-suggestion">💡 ${escHtml(d.suggestion)}</div>` : ''}
+                  ${d.snippet ? `<div class="dup-snippet">${escHtml(d.snippet)}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        el.innerHTML = ring + dupsHtml + cards;
 
         // Wire up "Copy fixed" buttons after DOM insertion
         sugg.suggestions.forEach((s, i) => {

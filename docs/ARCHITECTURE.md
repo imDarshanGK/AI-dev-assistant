@@ -89,6 +89,11 @@ flowchart TD
 - Manages WebSocket rooms, session state, live code sync, cursor presence, and comments
 - Enables real-time multi-user collaboration over `/ws/{session_id}`
 
+### 10. Duplicate Code Detector
+- **File:** `duplicate_detector.py`
+- Token normalization, k-gram winnowing fingerprinting, and Jaccard similarity
+- Detects repeated functions/blocks across single files and multi-file project ZIPs
+
 ---
 
 ## Key Files for New Contributors
@@ -102,6 +107,7 @@ flowchart TD
 | `requirements.txt` | Python dependencies |
 | `Dockerfile` | Container setup |
 | `ast_analyzer.py` | Deep Python AST analysis |
+| `duplicate_detector.py` | Multi-language duplicate code detection engine |
 | `security.py` | JWT auth helpers and route protection |
 | `sanitize.py` | Input sanitization for code and language hints |
 | `token_denylist.py` | JWT logout revocation store |
