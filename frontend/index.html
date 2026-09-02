@@ -33,7 +33,7 @@
       --border2: rgba(255, 255, 255, 0.12);
       --text: #e8eaf0;
       --text2: #8892a4;
-      --text3: #4a5568;
+      --text3: #94a3b8;
       --accent: #5b9cf6;
       --accent2: #7c3aed;
       --green: #22d47b;
@@ -58,7 +58,11 @@
       --border2: rgba(0, 0, 0, 0.13);
       --text: #111827;
       --text2: #4b5563;
-      --text3: #9ca3af;
+      --text3: #5f6b7a;
+      --accent: #1d4ed8;
+      --green: #166534;
+      --yellow: #92400e;
+      --red: #991b1b;
       --shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
       --shadow2: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
@@ -1942,6 +1946,18 @@ details.issue-card[open] {
     }
     
 /* Delete button */
+    /* Wraps the load-entry controls so the whole row stays one keyboard/AT
+       target without nesting a <button> inside the sibling delete <button>. */
+    .item-load-btn {
+      all: unset;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;
+    }
+
     .delete-btn {
       border: none;
       outline: none;
@@ -2851,7 +2867,7 @@ details.issue-card[open] {
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
-            <div class="mode-row" role="tablist" aria-label="Mode selector">
+            <div class="mode-row" role="group" aria-label="Mode selector">
               <button class="mode-btn active" data-mode="analyze" aria-pressed="true" aria-keyshortcuts="Control+Alt+1" data-i18n="mode_full">Full</button>
               <button class="mode-btn" data-mode="explain" aria-pressed="false" aria-keyshortcuts="Control+Alt+2" data-i18n="tab_explain">Explain</button>
               <button class="mode-btn" data-mode="debug" aria-pressed="false" aria-keyshortcuts="Control+Alt+3" data-i18n="mode_debug">Debug</button>
@@ -3027,6 +3043,7 @@ details.issue-card[open] {
         <span style="color:var(--text3);">Language:</span>
 
 <select id="historyLanguageFilter"
+aria-label="Filter history by language"
 style="
 background:var(--bg);
 border:1px solid var(--border);
@@ -3047,6 +3064,7 @@ cursor:pointer;
 <span style="color:var(--text3);">Issues:</span>
 
 <select id="historyIssueFilter"
+aria-label="Filter history by issue count"
 style="
 background:var(--bg);
 border:1px solid var(--border);
@@ -3063,13 +3081,13 @@ cursor:pointer;
 </select>
 
           <span style="color:var(--text3);" data-i18n="history_sort_label">Sort:</span>
-          <select id="historySortSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+          <select id="historySortSelect" aria-label="Sort history by" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
             <option value="timestamp" data-i18n="history_sort_date">Date</option>
             <option value="score" data-i18n="history_sort_score">Quality Score</option>
             <option value="issue_count" data-i18n="history_sort_bugs">Bugs Scanned</option>
           </select>
           <span style="color:var(--text3); margin-left: 8px;" data-i18n="history_order_label">Order:</span>
-          <select id="historyOrderSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+          <select id="historyOrderSelect" aria-label="Sort order" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
             <option value="desc" data-i18n="history_order_desc">Desc</option>
             <option value="asc" data-i18n="history_order_asc">Asc</option>
           </select>
@@ -3115,7 +3133,7 @@ cursor:pointer;
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
                    style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
-            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
+            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:#1d4ed8;color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
           <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
@@ -5238,14 +5256,16 @@ else if (historyIssueFilter === "5+") {
             .replace('{time}', displayTime);
 
           return `
-            <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${label}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
-              <span class="history-lang">${lang}</span>
-              <span class="history-thumb">${escHtml(preview)}…</span>
-              <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
-                ${scoreHtml}
-                ${issuesHtml}
-              </div>
-              <span class="history-meta">${displayTime}</span>
+            <div class="history-item">
+              <button type="button" class="item-load-btn" onclick="loadEntry('${h.id}')" aria-label="${label}">
+                <span class="history-lang">${lang}</span>
+                <span class="history-thumb">${escHtml(preview)}…</span>
+                <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
+                  ${scoreHtml}
+                  ${issuesHtml}
+                </div>
+                <span class="history-meta">${displayTime}</span>
+              </button>
               <button
               class="delete-btn"
               onclick="event.stopPropagation(); confirmDeleteHistory('${h.id}')"
@@ -5517,14 +5537,16 @@ document.getElementById('historyIssueFilter')
             .replace('{time}', displayTime);
 
           return `
-            <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${label}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
-              <span class="history-lang">${f.lang || '?'}</span>
-              <span class="history-thumb">${escHtml(f.preview)}…</span>
-              <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
-                ${scoreHtml}
-                ${issuesHtml}
-              </div>
-              <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+            <div class="fav-item">
+              <button type="button" class="item-load-btn" onclick="loadFav('${f.id}')" aria-label="${label}">
+                <span class="history-lang">${f.lang || '?'}</span>
+                <span class="history-thumb">${escHtml(f.preview)}…</span>
+                <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
+                  ${scoreHtml}
+                  ${issuesHtml}
+                </div>
+                <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+              </button>
               <button class="delete-btn" onclick="event.stopPropagation(); confirmDeleteFavorite('${f.id}')"
               title="Delete favorite" aria-label="Delete favorite">
               <svg 
