@@ -46,6 +46,7 @@ COMPONENT_LOGGER_MAP: dict[str, str] = {
     "error_tracking": "ai_assistant.api",
     "upload": "app.routers.upload_file",
     "file_validator": "app.utils.file_validator",
+    "user_data": "app.routers.user_data",
     "main": "app.main",
 }
 
