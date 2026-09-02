@@ -35,12 +35,16 @@ def _list_owned_records(db: Session, model, user_id: int, limit: int, offset: in
     )
 
 
-def _get_owned_record_or_404(db: Session, model, record_id: int, user_id: int, not_found_detail: str):
+def _get_owned_record_or_404(
+    db: Session, model, record_id: int, user_id: int, not_found_detail: str
+):
     record = db.execute(
         select(model).where(model.id == record_id, model.user_id == user_id)
     ).scalar_one_or_none()
     if record is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=not_found_detail)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=not_found_detail
+        )
     return record
 
 
