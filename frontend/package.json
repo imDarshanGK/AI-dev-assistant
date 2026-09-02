@@ -10,6 +10,7 @@
     "test:e2e:headed": "playwright test --headed"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.53.0"
   }
 }
