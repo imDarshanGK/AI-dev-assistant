@@ -47,6 +47,18 @@
       {
         "command": "qyverixai.explain",
         "title": "QyverixAI: Explain Current File"
+      },
+      {
+        "command": "qyverixai.suggest",
+        "title": "QyverixAI: Suggest Improvements"
+      },
+      {
+        "command": "qyverixai.clearDiagnostics",
+        "title": "QyverixAI: Clear Diagnostics"
+      },
+      {
+        "command": "qyverixai.openSettings",
+        "title": "QyverixAI: Open Settings"
       }
     ],
     "menus": {
@@ -61,6 +73,10 @@
         },
         {
           "command": "qyverixai.explain",
+          "group": "1_modification"
+        },
+        {
+          "command": "qyverixai.suggest",
           "group": "1_modification"
         }
       ]

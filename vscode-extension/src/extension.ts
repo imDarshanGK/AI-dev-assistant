@@ -144,6 +144,17 @@ function priorityBadge(priority: string): string {
   }
 }
 
+function renderSuggestionItemsHtml(suggestions: Suggestion[]): string {
+  return suggestions.map(s => `
+    <div class="suggestion-item">
+      ${priorityBadge(s.priority)}
+      <strong>${escapeHtml(s.category)}</strong>
+      <p>${escapeHtml(s.description)}</p>
+      ${s.example ? `<pre><code>${escapeHtml(s.example)}</code></pre>` : ''}
+    </div>
+  `).join('');
+}
+
 function renderAnalyzeHtml(res: AnalyzeResponse): string {
   const issues = res.debugging.issues.map(i => `
     <div class="issue">
@@ -155,14 +166,7 @@ function renderAnalyzeHtml(res: AnalyzeResponse): string {
     </div>
   `).join('');
 
-  const suggestions = res.suggestions.suggestions.map(s => `
-    <div class="suggestion-item">
-      ${priorityBadge(s.priority)}
-      <strong>${escapeHtml(s.category)}</strong>
-      <p>${escapeHtml(s.description)}</p>
-      ${s.example ? `<pre><code>${escapeHtml(s.example)}</code></pre>` : ''}
-    </div>
-  `).join('');
+  const suggestions = renderSuggestionItemsHtml(res.suggestions.suggestions);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -270,6 +274,38 @@ function renderExplainHtml(res: ExplanationResponse): string {
   ${res.key_points.length ? `
   <h2>Key Points</h2>
   <ul>${res.key_points.map(kp => `<li>${escapeHtml(kp)}</li>`).join('')}</ul>` : ''}
+</body>
+</html>`;
+}
+
+function renderSuggestHtml(res: SuggestionsResponse): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
+<title>QyverixAI Suggestions</title>
+<style>
+  body { font-family: var(--vscode-font-family); padding: 16px; color: var(--vscode-editor-foreground); }
+  h1 { font-size: 1.4em; margin-bottom: 4px; }
+  .score { font-size: 2em; font-weight: bold; text-align: center; padding: 16px; }
+  .next-step { text-align: center; color: var(--vscode-descriptionForeground); margin-bottom: 16px; }
+  .suggestion-item { margin-bottom: 10px; padding: 8px; background: var(--vscode-textBlockQuote-background); border-radius: 4px; }
+  .suggestion-item p { margin: 4px 0; }
+  .badge { display: inline-block; font-size: 0.75em; padding: 1px 6px; border-radius: 3px; margin-right: 6px; }
+  .badge-high { background: #f14c4c33; color: #f14c4c; }
+  .badge-med  { background: #cca70033; color: #cca700; }
+  .badge-low  { background: #3794ff33; color: #3794ff; }
+  pre { background: var(--vscode-textPreformat-background); padding: 8px; border-radius: 4px; overflow-x: auto; }
+  code { font-family: var(--vscode-editor-font-family); font-size: 0.9em; }
+</style>
+</head>
+<body>
+  <h1>Improvement Suggestions</h1>
+  <div class="score" style="color: ${gradeColor(res.grade)}">${escapeHtml(res.grade)} (${res.overall_score}/100)</div>
+  <p class="next-step">${escapeHtml(res.next_step)}</p>
+  ${res.suggestions.length ? renderSuggestionItemsHtml(res.suggestions) : '<p>No suggestions — looks good!</p>'}
 </body>
 </html>`;
 }
@@ -427,6 +463,49 @@ async function handleExplain(): Promise<void> {
   }
 }
 
+async function handleSuggest(): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) { vscode.window.showWarningMessage('No active editor'); return; }
+
+  const code = editor.document.getText();
+  if (!code.trim()) { vscode.window.showWarningMessage('Active file is empty'); return; }
+
+  const panel = vscode.window.createWebviewPanel(
+    'qyverixai.suggest',
+    `QyverixAI Suggestions: ${editor.document.fileName.split(/[/\\]/).pop()}`,
+    vscode.ViewColumn.Beside,
+    { enableScripts: false },
+  );
+
+  panel.webview.html = loadingHtml('Generating suggestions...');
+
+  const lang = editor.document.languageId;
+  const timeout = vscode.workspace.getConfiguration('qyverixai').get<number>('timeout', 30);
+
+  try {
+    const res = await postToApi<SuggestionsResponse>('/suggestions/', { code, language: lang }, timeout);
+    panel.webview.html = renderSuggestHtml(res);
+    vscode.window.showInformationMessage(`QyverixAI: grade ${res.grade} (${res.overall_score}/100)`);
+  } catch (err: any) {
+    panel.webview.html = errorHtml(err.message);
+    vscode.window.showErrorMessage(`QyverixAI suggestions failed: ${err.message}`);
+  }
+}
+
+function handleClearDiagnostics(): void {
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    diagnosticCollection.delete(editor.document.uri);
+  } else {
+    diagnosticCollection.clear();
+  }
+  vscode.window.showInformationMessage('QyverixAI: Diagnostics cleared');
+}
+
+function handleOpenSettings(): void {
+  vscode.commands.executeCommand('workbench.action.openSettings', 'qyverixai');
+}
+
 // ---------------------------------------------------------------------------
 // HTML fragments
 // ---------------------------------------------------------------------------
@@ -509,6 +588,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('qyverixai.analyze', handleAnalyze),
     vscode.commands.registerCommand('qyverixai.debug', handleDebug),
     vscode.commands.registerCommand('qyverixai.explain', handleExplain),
+    vscode.commands.registerCommand('qyverixai.suggest', handleSuggest),
+    vscode.commands.registerCommand('qyverixai.clearDiagnostics', handleClearDiagnostics),
+    vscode.commands.registerCommand('qyverixai.openSettings', handleOpenSettings),
   );
 }
 
