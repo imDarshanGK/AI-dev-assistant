@@ -34,6 +34,26 @@ def _client_ip(request: Request) -> str | None:
     return request.client.host if request.client else None
 
 
+def _list_owned_records(db: Session, model, user_id: int, limit: int, offset: int):
+    return (
+        db.execute(
+            select(model)
+            .where(model.user_id == user_id)
+            .order_by(model.id.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        .scalars()
+        .all()
+    )
+
+
+def _clear_owned_records(db: Session, model, user_id: int) -> int:
+    result = db.execute(delete(model).where(model.user_id == user_id))
+    db.commit()
+    return cast(CursorResult, result).rowcount or 0
+
+
 @router.get("/data-purge/preview", response_model=UserDataPurgePreviewResponse)
 def preview_data_purge(
     current_user: User = Depends(get_current_user),
@@ -118,17 +138,7 @@ def list_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    records = (
-        db.execute(
-            select(QueryHistory)
-            .where(QueryHistory.user_id == current_user.id)
-            .order_by(QueryHistory.id.desc())
-            .limit(limit)
-            .offset(offset)
-        )
-        .scalars()
-        .all()
-    )
+    records = _list_owned_records(db, QueryHistory, current_user.id, limit, offset)
 
     return [
         HistoryRecord(
@@ -215,11 +225,7 @@ def clear_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    result = db.execute(
-        delete(QueryHistory).where(QueryHistory.user_id == current_user.id)
-    )
-    db.commit()
-    deleted = cast(CursorResult, result).rowcount or 0
+    deleted = _clear_owned_records(db, QueryHistory, current_user.id)
 
     USER_DATA_HISTORY_OPERATIONS_TOTAL.labels(operation="clear", result="success").inc()
     logger.info(
@@ -238,17 +244,7 @@ def list_favorites(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    records = (
-        db.execute(
-            select(FavoriteResult)
-            .where(FavoriteResult.user_id == current_user.id)
-            .order_by(FavoriteResult.id.desc())
-            .limit(limit)
-            .offset(offset)
-        )
-        .scalars()
-        .all()
-    )
+    records = _list_owned_records(db, FavoriteResult, current_user.id, limit, offset)
 
     return [
         FavoriteRecord(
@@ -338,11 +334,7 @@ def clear_favorites(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    result = db.execute(
-        delete(FavoriteResult).where(FavoriteResult.user_id == current_user.id)
-    )
-    db.commit()
-    deleted = cast(CursorResult, result).rowcount or 0
+    deleted = _clear_owned_records(db, FavoriteResult, current_user.id)
 
     USER_DATA_FAVORITE_OPERATIONS_TOTAL.labels(
         operation="clear", result="success"
