@@ -2654,6 +2654,7 @@ details.issue-card[open] {
 }
 
 </style>
+<link rel="stylesheet" href="style.css">
 <link rel="icon" href="data:,">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -2743,6 +2744,15 @@ details.issue-card[open] {
           </svg>
           <span data-i18n="btn_star_github">Star on GitHub</span>
         </a>
+      </div>
+      <div class="hero-ambient" aria-hidden="true">
+        <div class="hero-parallax-layer hero-gradient-layer" data-parallax-depth="0.16"><span></span></div>
+        <div class="hero-parallax-layer hero-aurora-layer" data-parallax-depth="0.28"><span></span></div>
+        <div class="hero-parallax-layer hero-blob-layer hero-blob-one" data-parallax-depth="0.48"><span></span></div>
+        <div class="hero-parallax-layer hero-blob-layer hero-blob-two" data-parallax-depth="0.72"><span></span></div>
+        <div class="hero-parallax-layer hero-grid-layer" data-parallax-depth="0.22"><span></span></div>
+        <div class="hero-parallax-layer hero-particles-layer" data-parallax-depth="0.9"><span></span></div>
+        <div class="hero-parallax-layer hero-rays-layer" data-parallax-depth="0.38"><span></span></div>
       </div>
     </section>
 
@@ -6530,6 +6540,80 @@ int main() {
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="js/syntax-highlighting.js"></script>
+<script>
+  (function () {
+    const hero = document.querySelector('.hero');
+    const layers = Array.from(hero.querySelectorAll('.hero-parallax-layer'));
+    const supportsParallax = window.matchMedia(
+      '(min-width: 769px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
+    );
+
+    if (!hero || !layers.length || !supportsParallax.matches) return;
+
+    const maxMovement = 18;
+    const ease = 0.1;
+    let bounds = hero.getBoundingClientRect();
+    let frameId = 0;
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+
+    // One cached animation loop gives every decorative layer a distinct depth.
+    function render(timestamp) {
+      currentX += (targetX - currentX) * ease;
+      currentY += (targetY - currentY) * ease;
+      const drift = timestamp * 0.00032;
+
+      layers.forEach((layer, index) => {
+        const depth = Number(layer.dataset.parallaxDepth) || 0;
+        const idleX = Math.sin(drift + index * 1.7) * (2 + depth * 4);
+        const idleY = Math.cos(drift * 0.85 + index * 1.3) * (2 + depth * 3);
+        const x = currentX * depth + idleX;
+        const y = currentY * depth + idleY;
+        layer.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`;
+      });
+
+      frameId = window.requestAnimationFrame(render);
+    }
+
+    function requestRender() {
+      if (!frameId) frameId = window.requestAnimationFrame(render);
+    }
+
+    function refreshBounds() {
+      bounds = hero.getBoundingClientRect();
+    }
+
+    hero.addEventListener('pointerenter', refreshBounds, { passive: true });
+    hero.addEventListener('pointermove', (event) => {
+      const relativeX = (event.clientX - bounds.left) / bounds.width - 0.5;
+      const relativeY = (event.clientY - bounds.top) / bounds.height - 0.5;
+
+      targetX = relativeX * maxMovement * 2;
+      targetY = relativeY * maxMovement * 2;
+      requestRender();
+    }, { passive: true });
+
+    // Stop cursor tracking outside the hero; ambient motion continues around neutral.
+    hero.addEventListener('pointerleave', () => {
+      targetX = 0;
+      targetY = 0;
+      requestRender();
+    }, { passive: true });
+
+    window.addEventListener('resize', refreshBounds, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && frameId) {
+        window.cancelAnimationFrame(frameId);
+        frameId = 0;
+      } else if (!document.hidden) {
+        requestRender();
+      }
+    });
+    requestRender();
+  })();
+</script>
 </body>
 
 </html>

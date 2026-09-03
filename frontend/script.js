@@ -26,6 +26,7 @@ let isAnalyzing = false;
 let history = JSON.parse(localStorage.getItem('qyverix_history') || '[]');
 let favorites = JSON.parse(localStorage.getItem('qyverix_favorites') || '[]');
 let lastResult = '';
+let activeAnalysisController = null;
 
 // ── DOM refs ──
 const codeInput = document.getElementById('codeInput');
@@ -79,6 +80,22 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
+document.querySelectorAll('.tab').forEach((tab, index, tabs) => {
+  tab.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+
+    event.preventDefault();
+    let nextIndex = index;
+    if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+    if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = tabs.length - 1;
+
+    tabs[nextIndex].focus();
+    tabs[nextIndex].click();
+  });
+});
+
 // ── Line count ──
 codeInput.addEventListener('input', () => {
   const lines = codeInput.value.split('\n').length;
@@ -123,9 +140,25 @@ document.getElementById('clearBtn').addEventListener('click', () => {
 // ── Copy ──
 document.getElementById('copyBtn').addEventListener('click', () => {
   if (!lastResult) return;
-  navigator.clipboard.writeText(lastResult);
-  showToast('Copied to clipboard');
+  copyText(lastResult)
+    .then(() => showToast('Copied to clipboard'))
+    .catch(() => showToast('Unable to copy. Please select the text manually.'));
 });
+
+function copyText(text) {
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+
+  const fallback = document.createElement('textarea');
+  fallback.value = text;
+  fallback.setAttribute('readonly', '');
+  fallback.style.position = 'fixed';
+  fallback.style.opacity = '0';
+  document.body.appendChild(fallback);
+  fallback.select();
+  const copied = document.execCommand('copy');
+  fallback.remove();
+  return copied ? Promise.resolve() : Promise.reject(new Error('Copy failed'));
+}
 
 // ── Download ──
 document.getElementById('downloadBtn').addEventListener('click', () => {
@@ -403,6 +436,8 @@ async function runAnalysis() {
   }
 
   isAnalyzing = true;
+  activeAnalysisController = new AbortController();
+  const requestTimeout = window.setTimeout(() => activeAnalysisController?.abort(), 30000);
 
   runBtn.disabled = true;
   runBtn.classList.add('loading');
@@ -416,7 +451,8 @@ async function runAnalysis() {
     const resp = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ code }),
+      signal: activeAnalysisController.signal
     });
     responseStatus = resp.status;
 
@@ -430,10 +466,15 @@ async function runAnalysis() {
     saveHistory(code, currentMode, data);
     statusDot.className = 'status-dot online';
   } catch (err) {
-    showError(getUserFriendlyError(err, 0));
+    const message = err?.name === 'AbortError'
+      ? 'The analysis took too long. Please try again with a smaller code sample.'
+      : getUserFriendlyError(err, 0);
+    showError(message);
     statusDot.className = 'status-dot offline';
     setEngineBadge('unknown');
   } finally {
+    window.clearTimeout(requestTimeout);
+    activeAnalysisController = null;
     isAnalyzing = false;
     runBtn.disabled = false;
     runBtn.classList.remove('loading');
@@ -672,6 +713,8 @@ function showToast(msg) {
     border-radius:8px;font-family:var(--font-mono);font-size:13px;
     animation:fadeIn 0.2s ease;pointer-events:none;
   `;
+  t.setAttribute('role', 'status');
+  t.setAttribute('aria-live', 'polite');
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2200);
@@ -703,4 +746,3 @@ if (digestForm) {
 // ── Init ──
 renderHistory();
 renderFavorites();
-
