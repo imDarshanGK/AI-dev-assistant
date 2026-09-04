@@ -186,7 +186,9 @@ def test_purge_audit_db_failure_returns_503_but_keeps_deletion_scheduled(
 
     db = TEST_SESSION_LOCAL()
     try:
-        user = db.execute(select(User).where(User.email == "err_purge_audit@example.com")).scalar_one()
+        user = db.execute(
+            select(User).where(User.email == "err_purge_audit@example.com")
+        ).scalar_one()
         assert user.deletion_status == DELETION_STATUS_PENDING
     finally:
         db.close()
