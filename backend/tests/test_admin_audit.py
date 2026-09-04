@@ -164,9 +164,7 @@ def test_role_update_for_unknown_user_is_404():
 def test_delete_unknown_user_is_404():
     admin = _signup("admin6@example.com")
     _make_admin(admin["user_id"])
-    r = client.delete(
-        "/admin/users/999999", headers=_auth(admin["access_token"])
-    )
+    r = client.delete("/admin/users/999999", headers=_auth(admin["access_token"]))
     assert r.status_code == 404
 
 
