@@ -175,6 +175,24 @@ USER_DATA_FAVORITE_OPERATIONS_TOTAL = Counter(
     labelnames=("operation", "result"),
 )
 
+ADMIN_AUDIT_LOG_QUERIES_TOTAL = Counter(
+    "qyverixai_admin_audit_log_queries_total",
+    "Total number of audit-log queries made via the admin router, labelled by result.",
+    labelnames=("result",),
+)
+
+ADMIN_ROLE_UPDATE_ATTEMPTS_TOTAL = Counter(
+    "qyverixai_admin_role_update_attempts_total",
+    "Total number of admin role-update attempts, labelled by result.",
+    labelnames=("result",),
+)
+
+ADMIN_USER_DELETE_ATTEMPTS_TOTAL = Counter(
+    "qyverixai_admin_user_delete_attempts_total",
+    "Total number of admin-initiated user deletions, labelled by result.",
+    labelnames=("result",),
+)
+
 
 def initialise_app_info(version: str, ai_provider: str) -> None:
     """Set the app_info gauge once at startup so dashboards can display it."""

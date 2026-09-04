@@ -6,6 +6,7 @@ trail of who did what and when.
 """
 
 import json
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
@@ -13,9 +14,16 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import AuditLog, User
+from ..observability import (
+    ADMIN_AUDIT_LOG_QUERIES_TOTAL,
+    ADMIN_ROLE_UPDATE_ATTEMPTS_TOTAL,
+    ADMIN_USER_DELETE_ATTEMPTS_TOTAL,
+)
 from ..schemas import AuditLogRecord, MessageResponse, RoleUpdateRequest
 from ..security import require_admin
 from ..services.audit import record_audit
+
+logger = logging.getLogger("app.routers.admin")
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -55,6 +63,15 @@ def list_audit_logs(
         query = query.where(AuditLog.actor_id == actor_id)
 
     entries = db.execute(query.limit(limit).offset(offset)).scalars().all()
+
+    ADMIN_AUDIT_LOG_QUERIES_TOTAL.labels(result="success").inc()
+    logger.info(
+        "admin_audit_logs_queried action=%s actor_id=%s returned=%s",
+        action,
+        actor_id,
+        len(entries),
+    )
+
     return [_to_record(entry) for entry in entries]
 
 
@@ -69,6 +86,12 @@ def update_user_role(
     """Grant or revoke a user's admin role, recording the change in the audit log."""
     user = db.get(User, user_id)
     if user is None:
+        ADMIN_ROLE_UPDATE_ATTEMPTS_TOTAL.labels(result="not_found").inc()
+        logger.warning(
+            "admin_role_update_failed admin_id=%s target_user_id=%s reason=not_found",
+            admin.id,
+            user_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
@@ -85,6 +108,16 @@ def update_user_role(
         ip_address=_client_ip(request),
     )
     db.commit()
+
+    ADMIN_ROLE_UPDATE_ATTEMPTS_TOTAL.labels(result="success").inc()
+    logger.info(
+        "admin_role_update_succeeded admin_id=%s target_user_id=%s from=%s to=%s",
+        admin.id,
+        user.id,
+        previous,
+        payload.is_admin,
+    )
+
     return MessageResponse(
         message=f"User {user_id} admin role set to {payload.is_admin}."
     )
@@ -99,6 +132,12 @@ def delete_user(
 ):
     """Delete a user account, recording the action in the audit log."""
     if user_id == admin.id:
+        ADMIN_USER_DELETE_ATTEMPTS_TOTAL.labels(result="rejected").inc()
+        logger.warning(
+            "admin_user_delete_failed admin_id=%s target_user_id=%s reason=self_delete_blocked",
+            admin.id,
+            user_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Admins cannot delete their own account",
@@ -106,6 +145,12 @@ def delete_user(
 
     user = db.get(User, user_id)
     if user is None:
+        ADMIN_USER_DELETE_ATTEMPTS_TOTAL.labels(result="not_found").inc()
+        logger.warning(
+            "admin_user_delete_failed admin_id=%s target_user_id=%s reason=not_found",
+            admin.id,
+            user_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
@@ -122,4 +167,12 @@ def delete_user(
         ip_address=_client_ip(request),
     )
     db.commit()
+
+    ADMIN_USER_DELETE_ATTEMPTS_TOTAL.labels(result="success").inc()
+    logger.info(
+        "admin_user_delete_succeeded admin_id=%s target_user_id=%s",
+        admin.id,
+        user_id,
+    )
+
     return MessageResponse(message=f"User {user_id} deleted.")
