@@ -3,6 +3,7 @@ from typing import cast
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 from sqlalchemy import CursorResult, delete, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -34,24 +35,45 @@ def _client_ip(request: Request) -> str | None:
     return request.client.host if request.client else None
 
 
-def _list_owned_records(db: Session, model, user_id: int, limit: int, offset: int):
-    return (
-        db.execute(
-            select(model)
-            .where(model.user_id == user_id)
-            .order_by(model.id.desc())
-            .limit(limit)
-            .offset(offset)
-        )
-        .scalars()
-        .all()
+def _db_unavailable(operation: str, user_id: int, exc: Exception) -> HTTPException:
+    logger.error(
+        "user_data_db_operation_failed operation=%s user_id=%s detail=%s",
+        operation,
+        user_id,
+        exc,
+        exc_info=True,
+    )
+    return HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail="A database error occurred while processing your request",
     )
 
 
+def _list_owned_records(db: Session, model, user_id: int, limit: int, offset: int):
+    try:
+        return (
+            db.execute(
+                select(model)
+                .where(model.user_id == user_id)
+                .order_by(model.id.desc())
+                .limit(limit)
+                .offset(offset)
+            )
+            .scalars()
+            .all()
+        )
+    except SQLAlchemyError as exc:
+        raise _db_unavailable(f"list_{model.__name__}", user_id, exc) from exc
+
+
 def _clear_owned_records(db: Session, model, user_id: int) -> int:
-    result = db.execute(delete(model).where(model.user_id == user_id))
-    db.commit()
-    return cast(CursorResult, result).rowcount or 0
+    try:
+        result = db.execute(delete(model).where(model.user_id == user_id))
+        db.commit()
+        return cast(CursorResult, result).rowcount or 0
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise _db_unavailable(f"clear_{model.__name__}", user_id, exc) from exc
 
 
 @router.get("/data-purge/preview", response_model=UserDataPurgePreviewResponse)
@@ -98,22 +120,26 @@ def purge_data(
         )
     else:
         USER_DATA_PURGE_ATTEMPTS_TOTAL.labels(result="scheduled").inc()
-        record_audit(
-            db,
-            actor=current_user,
-            action="user.self_delete",
-            target_type="user",
-            target_id=current_user.id,
-            details={
-                "scheduled_for": (
-                    result.deletion_scheduled_for.isoformat()
-                    if result.deletion_scheduled_for
-                    else None
-                )
-            },
-            ip_address=_client_ip(request),
-        )
-        db.commit()
+        try:
+            record_audit(
+                db,
+                actor=current_user,
+                action="user.self_delete",
+                target_type="user",
+                target_id=current_user.id,
+                details={
+                    "scheduled_for": (
+                        result.deletion_scheduled_for.isoformat()
+                        if result.deletion_scheduled_for
+                        else None
+                    )
+                },
+                ip_address=_client_ip(request),
+            )
+            db.commit()
+        except SQLAlchemyError as exc:
+            db.rollback()
+            raise _db_unavailable("purge_audit", current_user.id, exc) from exc
         logger.info(
             "user_data_purge_scheduled user_id=%s scheduled_for=%s",
             current_user.id,
@@ -164,9 +190,13 @@ def create_history(
         code=payload.code,
         result_json=payload.result_json,
     )
-    db.add(record)
-    db.commit()
-    db.refresh(record)
+    try:
+        db.add(record)
+        db.commit()
+        db.refresh(record)
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise _db_unavailable("create_history", current_user.id, exc) from exc
 
     USER_DATA_HISTORY_OPERATIONS_TOTAL.labels(
         operation="create", result="success"
@@ -192,11 +222,15 @@ def delete_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    record = db.execute(
-        select(QueryHistory).where(
-            QueryHistory.id == history_id, QueryHistory.user_id == current_user.id
-        )
-    ).scalar_one_or_none()
+    try:
+        record = db.execute(
+            select(QueryHistory).where(
+                QueryHistory.id == history_id, QueryHistory.user_id == current_user.id
+            )
+        ).scalar_one_or_none()
+    except SQLAlchemyError as exc:
+        raise _db_unavailable("delete_history", current_user.id, exc) from exc
+
     if record is None:
         USER_DATA_HISTORY_OPERATIONS_TOTAL.labels(
             operation="delete", result="not_found"
@@ -205,8 +239,12 @@ def delete_history(
             status_code=status.HTTP_404_NOT_FOUND, detail="History record not found"
         )
 
-    db.delete(record)
-    db.commit()
+    try:
+        db.delete(record)
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise _db_unavailable("delete_history", current_user.id, exc) from exc
 
     USER_DATA_HISTORY_OPERATIONS_TOTAL.labels(
         operation="delete", result="success"
@@ -272,9 +310,13 @@ def create_favorite(
         code=payload.code,
         result_json=payload.result_json,
     )
-    db.add(record)
-    db.commit()
-    db.refresh(record)
+    try:
+        db.add(record)
+        db.commit()
+        db.refresh(record)
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise _db_unavailable("create_favorite", current_user.id, exc) from exc
 
     USER_DATA_FAVORITE_OPERATIONS_TOTAL.labels(
         operation="create", result="success"
@@ -301,11 +343,16 @@ def delete_favorite(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    record = db.execute(
-        select(FavoriteResult).where(
-            FavoriteResult.id == favorite_id, FavoriteResult.user_id == current_user.id
-        )
-    ).scalar_one_or_none()
+    try:
+        record = db.execute(
+            select(FavoriteResult).where(
+                FavoriteResult.id == favorite_id,
+                FavoriteResult.user_id == current_user.id,
+            )
+        ).scalar_one_or_none()
+    except SQLAlchemyError as exc:
+        raise _db_unavailable("delete_favorite", current_user.id, exc) from exc
+
     if record is None:
         USER_DATA_FAVORITE_OPERATIONS_TOTAL.labels(
             operation="delete", result="not_found"
@@ -314,8 +361,12 @@ def delete_favorite(
             status_code=status.HTTP_404_NOT_FOUND, detail="Favorite not found"
         )
 
-    db.delete(record)
-    db.commit()
+    try:
+        db.delete(record)
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise _db_unavailable("delete_favorite", current_user.id, exc) from exc
 
     USER_DATA_FAVORITE_OPERATIONS_TOTAL.labels(
         operation="delete", result="success"
