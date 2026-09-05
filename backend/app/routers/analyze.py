@@ -23,6 +23,11 @@ from ..services.code_assistant import (
     run_explanation,
     run_suggestions,
 )
+from ..services.duplicate_detector import (
+    _DEFAULT_THRESHOLD,
+    detect_duplicates,
+    extract_blocks,
+)
 from ..services.llm_analysis import llm_analysis_client
 
 router = APIRouter()
@@ -371,6 +376,27 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
 
     overall_score = round(sum(scores) / len(scores))
 
+    # Cross-file duplicate detection across all analysed files
+    all_blocks = []
+    for item in results:
+        lang = item["language"]
+        fname = item["filename"]
+        code_text = item["analysis"]["debugging"]["code"]
+        all_blocks.extend(extract_blocks(code_text, lang, fname))
+
+    cross_file_pairs = detect_duplicates(all_blocks, threshold=_DEFAULT_THRESHOLD)
+    cross_file_duplicates = [
+        {
+            "type": "DuplicateCode",
+            "block_id": p.block_id,
+            "similarity": p.similarity,
+            "locations": p.locations,
+            "snippet": p.snippet,
+            "suggestion": p.suggestion,
+        }
+        for p in cross_file_pairs
+    ]
+
     elapsed_ms = (time.perf_counter() - t0) * 1000
 
     summary = (
@@ -390,4 +416,5 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
         "files": results,
         "skipped_files": skipped_files,
         "analysis_time_ms": round(elapsed_ms, 2),
+        "cross_file_duplicates": cross_file_duplicates,
     }

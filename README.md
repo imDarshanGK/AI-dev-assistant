@@ -74,6 +74,7 @@ No account required for the core analysis. No API key needed. Works fully offlin
 
 | **5 Languages with Dedicated Bug Checks** | Python, JavaScript, TypeScript, Java, and C++ have dedicated bug-pattern checks today |
 | **Project / ZIP Analysis** | `POST /analyze/zip/` scans up to 20 source files in an uploaded archive and returns one aggregated project score plus a per-file breakdown |
+| **Duplicate Code Detection** | Detects repeated functions/blocks, reports similarity %, exact line ranges, and refactoring tips (both single-file and cross-file ZIP) |
 | **Streaming Analysis (SSE)** | `GET/POST /analyze/stream` streams explanation → debugging → suggestions as they complete, instead of waiting for the full response |
 | **Live Collaboration (WebSocket)** | `WS /ws/{session_id}` — multiple users join a session, see each other's presence (name + colour), live code sync, and shared inline comments |
 | **AI Chat Assistant** | Ask follow-up questions about your code at `/chat` - uses your configured LLM if enabled, otherwise a built-in rule-based fallback |
@@ -872,7 +873,7 @@ Browse all open issues: [github.com/imDarshanGK/AI-dev-assistant/issues](https:/
 - [ ] Bug-detection patterns for Swift and Kotlin
 - [ ] Inline editor annotations (highlight buggy lines directly in the code editor)
 - [ ] Per-function complexity breakdown
-- [ ] Duplicate / copy-paste code detector
+- [x] Duplicate / copy-paste code detector
 - [ ] Quality-score trend chart from history
 - [ ] Persistent (not just in-memory) collaboration rooms
 - [ ] `qyverix` CLI / pre-commit hook for local + CI use without a server

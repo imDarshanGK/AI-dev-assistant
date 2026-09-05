@@ -12,6 +12,7 @@ import time
 from dataclasses import dataclass, field
 
 from .ast_analyzer import analyze as ast_analyze
+from .duplicate_detector import run_duplicate_detection
 from .llm_analysis import LLMAnalysisError, llm_analysis_client
 
 logger = logging.getLogger("ai_assistant.api")
@@ -1478,6 +1479,8 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
 
     elapsed_ms = (time.perf_counter() - t0) * 1000
 
+    duplicate_detection = run_duplicate_detection(code, language)
+
     return {
         "provider": "rule-based",
         "model": "qyverix-engine-v3",
@@ -1487,6 +1490,7 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         "analysis_time_ms": round(elapsed_ms, 2),
         "mode": "rule-based",
         "optimized_version": None,
+        "duplicate_detection": duplicate_detection,
     }
 
 
