@@ -94,7 +94,7 @@ No account required for the core analysis. No API key needed. Works fully offlin
 | **Observability** | `/healthz/live`, `/healthz/ready`, and Prometheus-format `/metrics` - see [Observability](#observability) below |
 | **Swagger Docs** | Interactive API docs at `/docs` |
 | **Gzip Compression** | Automatic response compression |
-| **VS Code Extension** | In-editor analysis via a TypeScript extension (`v0.1.0`) that talks to the same API - see [`vscode-extension/`](vscode-extension/) |
+| **VS Code Extension** | In-editor analysis via a TypeScript extension (`v0.1.0`) with consistent API failure messages and bounded request timeouts - see [`vscode-extension/`](vscode-extension/) |
 
 ### Languages and patterns
 

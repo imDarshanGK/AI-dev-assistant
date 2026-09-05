@@ -69,51 +69,99 @@ let diagnosticCollection: vscode.DiagnosticCollection;
 // HTTP helper
 // ---------------------------------------------------------------------------
 
+type ApiFailureCode = 'configuration' | 'connection' | 'timeout' | 'http' | 'invalid_response';
+
+/** Only locally defined messages may cross the API-to-UI error boundary. */
+class ApiRequestError extends Error {
+  constructor(readonly code: ApiFailureCode, readonly statusCode?: number) {
+    const messages: Record<ApiFailureCode, string> = {
+      configuration: 'Check the QyverixAI API URL and request timeout in Settings.',
+      connection: 'Could not connect to the QyverixAI API. Check your connection and API URL.',
+      timeout: 'The QyverixAI request timed out. Try again or increase the timeout in Settings.',
+      http: `The QyverixAI API returned HTTP ${statusCode}. Please try again later.`,
+      invalid_response: 'The QyverixAI API returned an invalid response. Please try again.',
+    };
+    super(messages[code]);
+    this.name = 'ApiRequestError';
+  }
+}
+
+/** Keep response bodies, transport details, and unexpected exceptions out of UI/logs. */
+function safeApiErrorMessage(error: unknown): string {
+  const failure = error instanceof ApiRequestError ? error : new ApiRequestError('invalid_response');
+  console.warn(`[QyverixAI] API failure: ${failure.code}${failure.statusCode ? ` (HTTP ${failure.statusCode})` : ''}`);
+  return failure.message;
+}
+
 function postToApi<T>(endpoint: string, body: object, timeoutS: number): Promise<T> {
   const cfg = vscode.workspace.getConfiguration('qyverixai');
   const baseUrl = cfg.get<string>('apiUrl', 'https://qyverixai.onrender.com').replace(/\/+$/, '');
-  const url = `${baseUrl}${endpoint}`;
 
   return new Promise<T>((resolve, reject) => {
-    const isHttps = url.startsWith('https');
-    const mod = isHttps ? require('https') : require('http');
+    let parsed: URL;
+    try {
+      parsed = new URL(`${baseUrl}${endpoint}`);
+      if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password ||
+          !Number.isFinite(timeoutS) || timeoutS <= 0 || timeoutS * 1000 > 2_147_483_647) {
+        throw new Error('Invalid configuration');
+      }
+    } catch {
+      reject(new ApiRequestError('configuration'));
+      return;
+    }
 
+    const mod: typeof import('http') = parsed.protocol === 'https:' ? require('https') : require('http');
     const payload = JSON.stringify(body);
-    const parsed = new URL(url);
+    let settled = false;
+    let deadline: ReturnType<typeof setTimeout> | undefined;
+    const fail = (error: ApiRequestError) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(deadline);
+      reject(error);
+    };
 
-    const opts = {
-      hostname: parsed.hostname,
-      port: parsed.port || (isHttps ? 443 : 80),
-      path: parsed.pathname,
+    const req = mod.request(parsed, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload),
       },
-      timeout: timeoutS * 1000,
-    };
-
-    const req = mod.request(opts, (res: any) => {
+    }, res => {
+      // Do not collect or expose upstream error bodies, including provider/DB errors.
+      if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+        fail(new ApiRequestError('http', res.statusCode));
+        res.destroy();
+        return;
+      }
       let data = '';
-      res.on('data', (chunk: string) => (data += chunk));
+      res.setEncoding('utf8');
+      res.on('data', (chunk: string) => { data += chunk; });
+      res.on('error', () => fail(new ApiRequestError('connection')));
+      res.on('aborted', () => fail(new ApiRequestError('connection')));
       res.on('end', () => {
-        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-          try {
-            resolve(JSON.parse(data) as T);
-          } catch {
-            reject(new Error(`Invalid JSON response: ${data.slice(0, 200)}`));
+        if (settled) return;
+        try {
+          const result: unknown = JSON.parse(data);
+          if (result === null || typeof result !== 'object' || Array.isArray(result)) {
+            throw new Error('Expected an API response object');
           }
-        } else {
-          reject(new Error(`API error ${res.statusCode}: ${data.slice(0, 500)}`));
+          settled = true;
+          clearTimeout(deadline);
+          resolve(result as T);
+        } catch {
+          fail(new ApiRequestError('invalid_response'));
         }
       });
     });
 
-    req.on('error', (err: Error) => reject(new Error(`Request failed: ${err.message}`)));
-    req.on('timeout', () => { req.destroy(); reject(new Error('Request timed out')); });
-
-    req.write(payload);
-    req.end();
+    req.on('error', () => fail(new ApiRequestError('connection')));
+    // A wall-clock deadline also bounds stalled/trickling response bodies.
+    deadline = setTimeout(() => {
+      fail(new ApiRequestError('timeout'));
+      req.destroy();
+    }, timeoutS * 1000);
+    req.end(payload);
   });
 }
 
@@ -392,9 +440,10 @@ async function handleAnalyze(): Promise<void> {
     vscode.window.showInformationMessage(
       `QyverixAI: ${res.debugging.error_count} errors, ${res.debugging.warning_count} warnings — grade ${res.suggestions.grade}`,
     );
-  } catch (err: any) {
-    panel.webview.html = errorHtml(err.message);
-    vscode.window.showErrorMessage(`QyverixAI analysis failed: ${err.message}`);
+  } catch (err: unknown) {
+    const message = safeApiErrorMessage(err);
+    panel.webview.html = errorHtml(message);
+    vscode.window.showErrorMessage(`QyverixAI analysis failed: ${message}`);
   }
 }
 
@@ -429,9 +478,10 @@ async function handleDebug(): Promise<void> {
         `QyverixAI: ${res.error_count} errors, ${res.warning_count} warnings found`,
       );
     }
-  } catch (err: any) {
-    panel.webview.html = errorHtml(err.message);
-    vscode.window.showErrorMessage(`QyverixAI debug failed: ${err.message}`);
+  } catch (err: unknown) {
+    const message = safeApiErrorMessage(err);
+    panel.webview.html = errorHtml(message);
+    vscode.window.showErrorMessage(`QyverixAI debug failed: ${message}`);
   }
 }
 
@@ -457,9 +507,10 @@ async function handleExplain(): Promise<void> {
   try {
     const res = await postToApi<ExplanationResponse>('/explanation/', { code, language: lang }, timeout);
     panel.webview.html = renderExplainHtml(res);
-  } catch (err: any) {
-    panel.webview.html = errorHtml(err.message);
-    vscode.window.showErrorMessage(`QyverixAI explanation failed: ${err.message}`);
+  } catch (err: unknown) {
+    const message = safeApiErrorMessage(err);
+    panel.webview.html = errorHtml(message);
+    vscode.window.showErrorMessage(`QyverixAI explanation failed: ${message}`);
   }
 }
 
@@ -486,9 +537,10 @@ async function handleSuggest(): Promise<void> {
     const res = await postToApi<SuggestionsResponse>('/suggestions/', { code, language: lang }, timeout);
     panel.webview.html = renderSuggestHtml(res);
     vscode.window.showInformationMessage(`QyverixAI: grade ${res.grade} (${res.overall_score}/100)`);
-  } catch (err: any) {
-    panel.webview.html = errorHtml(err.message);
-    vscode.window.showErrorMessage(`QyverixAI suggestions failed: ${err.message}`);
+  } catch (err: unknown) {
+    const message = safeApiErrorMessage(err);
+    panel.webview.html = errorHtml(message);
+    vscode.window.showErrorMessage(`QyverixAI suggestions failed: ${message}`);
   }
 }
 
