@@ -83,6 +83,15 @@ class Issue(BaseModel):
         description="A few lines of surrounding context to help locate the issue.",
         example="def divide(a, b):\n    return a / b  # issue here",
     )
+    fixed_code: str | None = Field(
+        default=None,
+        description="Suggested corrected version of the offending code snippet.",
+        example="    if b == 0:\n        return None\n    return a / b",
+    )
+    diff: list[dict] | None = Field(
+        default=None,
+        description="Line-level diff between original snippet and fixed code.",
+    )
 
 
 class DebuggingResponse(BaseModel):

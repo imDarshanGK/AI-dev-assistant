@@ -503,6 +503,68 @@ def test_debug_issue_has_required_fields():
         assert "suggestion" in issue
         assert "severity" in issue
         assert issue["severity"] in ("error", "warning", "info")
+        assert "fixed_code" in issue
+        assert "diff" in issue
+
+
+def test_debug_fixable_pattern_returns_fixed_code_and_diff():
+    code = "try:\n    pass\nexcept:\n    pass"
+    r = client.post("/debugging/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["clean"] is False
+    issues = d["issues"]
+    bare_except_issue = next((i for i in issues if i["type"] == "Bare Except"), None)
+    assert bare_except_issue is not None
+    assert bare_except_issue["fixed_code"] is not None
+    assert "except Exception as e:" in bare_except_issue["fixed_code"]
+    assert bare_except_issue["diff"] is not None
+    assert isinstance(bare_except_issue["diff"], list)
+    assert len(bare_except_issue["diff"]) > 0
+    diff_types = [item["type"] for item in bare_except_issue["diff"]]
+    assert "removed" in diff_types or "added" in diff_types
+
+
+def test_debug_unfixable_pattern_returns_null_fixed_code():
+    code = "exec('print(123)')"
+    r = client.post("/debugging/", json={"code": code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    exec_issue = next((i for i in d["issues"] if i["type"] == "Exec Usage"), None)
+    assert exec_issue is not None
+    assert exec_issue["fixed_code"] is None
+    assert exec_issue["diff"] is None
+
+
+def test_debug_multiple_issues_return_independent_fixes():
+    code = "var x = 1;\nif (x == None) {\n    exec('bad');\n}"
+    r = client.post("/debugging/", json={"code": code, "language": "javascript"})
+    assert r.status_code == 200
+    d = r.json()
+    issues = d["issues"]
+    assert len(issues) >= 2
+
+    # Each issue must have its own independent fixed_code and diff entries
+    for issue in issues:
+        assert "type" in issue
+        assert "fixed_code" in issue
+        assert "diff" in issue
+        if issue["fixed_code"] is not None:
+            assert isinstance(issue["diff"], list)
+            assert len(issue["diff"]) > 0
+            assert any(
+                entry["type"] in ("added", "removed", "equal")
+                for entry in issue["diff"]
+            )
+
+
+def test_debug_fix_preview_does_not_mutate_original_code():
+    orig_code = "try:\n    pass\nexcept:\n    pass"
+    r = client.post("/debugging/", json={"code": orig_code, "language": "python"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["code"] == orig_code
+    assert d["issues"][0]["fixed_code"] != orig_code
 
 
 def test_js_ts_security_patterns():

@@ -50,7 +50,7 @@ QyverixAI is a code analysis workspace. Paste any code - or drop a whole project
 | | What you get |
 |---|---|
 | **Explain** | Language detection, plain-English summary, complexity estimate, function and class inventory |
-| **Debug** | 45+ pattern checks across 5 languages (plus AST-based deep analysis for Python), with exact line numbers, code snippets, and fix suggestions |
+| **Debug** | 45+ pattern checks across 5 languages (plus AST-based deep analysis for Python), with exact line numbers, code snippets, concrete fix suggestions, and before/after diff previews |
 | **Improve** | Documentation gaps, error handling, testing, type safety - plus a 0-100 quality score, letter grade A–F, and a before/after diff view |
 | **Project Mode** | Upload a `.zip`, get one aggregated score across every file inside it |
 | **Ask AI** | Chat about your specific code - answered by an LLM when configured, or a rule-based fallback when not |
@@ -71,7 +71,7 @@ No account required for the core analysis. No API key needed. Works fully offlin
 | Feature | Detail |
 |---|---|
 | **40+ Bug Patterns** | ZeroDivisionError, bare except, hardcoded secrets, eval/exec, memory leaks, XSS, NullPointerException, unsafe `unwrap()`, and more |
-
+| **AI Suggested Fix Preview** | Automatically generates corrected code snippets (`fixed_code`) and color-coded line diffs (`diff`) for fixable issues with copy buttons, leaving original code unmodified |
 | **5 Languages with Dedicated Bug Checks** | Python, JavaScript, TypeScript, Java, and C++ have dedicated bug-pattern checks today |
 | **Project / ZIP Analysis** | `POST /analyze/zip/` scans up to 20 source files in an uploaded archive and returns one aggregated project score plus a per-file breakdown |
 | **Streaming Analysis (SSE)** | `GET/POST /analyze/stream` streams explanation → debugging → suggestions as they complete, instead of waiting for the full response |
@@ -259,7 +259,7 @@ Returns a plain-English breakdown of the code.
 
 ### `POST /debugging/`
 
-Returns detected issues with line numbers, code snippets, and fix suggestions. For Python, this also includes AST-based findings (unused imports, unused arguments, dead code).
+Returns detected issues with line numbers, code snippets, fix suggestions, and **AI Suggested Fix Previews** (`fixed_code` and line-level `diff` data for supported fixable patterns). For Python, this also includes AST-based findings (unused imports, unused arguments, dead code).
 
 ```json
 {
@@ -270,7 +270,13 @@ Returns detected issues with line numbers, code snippets, and fix suggestions. F
       "description": "Potential division by zero - divisor may be 0 at runtime.",
       "suggestion": "Guard the divisor: if b == 0: return None",
       "severity": "error",
-      "code_snippet": "result = a / b"
+      "code_snippet": "result = a / b",
+      "fixed_code": "if b == 0:\n    return None\nresult = a / b",
+      "diff": [
+        { "type": "added", "line": "if b == 0:", "prefix": "+ " },
+        { "type": "added", "line": "    return None", "prefix": "+ " },
+        { "type": "equal", "line": "result = a / b", "prefix": "  " }
+      ]
     }
   ],
   "summary": "Found 1 issue: 1 error, 0 warnings, 0 info.",

@@ -5,6 +5,13 @@ All notable changes to QyverixAI are documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added AI Suggested Fix Preview: automatic generation of scoped, corrected code
+  snippets (`fixed_code`) and structured before/after line-level diff previews
+  (`diff`) for fixable issues across Python, JavaScript, TypeScript, Java, C++,
+  PHP, and Rust in `POST /debugging/` and `POST /analyze/`.
+- Added interactive, independently collapsible before/after diff preview panels
+  in `frontend/index.html` for each detected issue with one-click copy, leaving
+  the user's source code untouched (preview-only).
 - Added hybrid rule+LLM analysis to `POST /analyze/`: LLM enrichment
   (explanation insight, suggestions, `optimized_version`) layered on top of
   deterministic rule-based debugging, with graceful `degraded` fallback on LLM
@@ -32,8 +39,6 @@ All notable changes to QyverixAI are documented in this file.
 - Tightened the `Missing __init__` regex (`[^:]*` → `[^:\n]*`) so the class
   header stays on a single line and classes that do define `__init__` are not
   flagged once multi-line matching is enabled.
-
-### Fixed
 - Improved database service error handling: safer idempotent schema migrations,
   soft-fail invalid FTS search queries to an empty result, and structured
   logging before re-raising unexpected SQLite failures.
@@ -44,7 +49,8 @@ All notable changes to QyverixAI are documented in this file.
   server-side denylist until they expire.
 - Audit-log entries redact sensitive fields (passwords, tokens, secrets, API
   keys) before they are persisted.
-- Prevent resource exhaustion by adding size constraints (max_length=200) and truncation rules on search query parameter q in GET /history/search.
+- Prevent resource exhaustion by adding size constraints (`max_length=200`) and
+  truncation rules on search query parameter `q` in `GET /history/search`.
 
 ## [3.0.0] - 2026-06-06
 
