@@ -25,6 +25,8 @@ All notable changes to QyverixAI are documented in this file.
   parse failures.
 
 ### Fixed
+- VS Code commands now show consistent API failure messages without exposing
+  response bodies or transport internals, and reject interrupted or timed-out requests.
 - Multi-line `BUG_PATTERNS` (`String Concatenation in Loop`, `Missing __init__`,
   `Callback Hell`) now fire correctly. `run_bug_detection` previously matched
   each regex against a single line, which silently killed patterns that span

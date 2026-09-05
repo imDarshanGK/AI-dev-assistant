@@ -52,6 +52,7 @@ This extension contributes the following settings:
 cd vscode-extension
 npm install
 npm run compile
+npm test
 ```
 
 The compile step emits `extension.js`, which matches the package entrypoint declared in `package.json`.
@@ -156,3 +157,20 @@ code --install-extension qyverixai-vscode-*.vsix
 ## License
 
 MIT
+
+## API failure handling
+
+All four API commands use the same request boundary. Connection failures,
+request deadlines, HTTP failures, and invalid responses produce stable messages
+in both notifications and WebViews. Raw response bodies, configured credentials,
+and transport exception details are never included in those messages or logs.
+The debug console records only the failure category and HTTP status when present.
+
+The timeout is a positive, finite number of seconds and bounds the complete
+request, including a stalled or trickling response. API URLs must use HTTP or
+HTTPS and must not include embedded credentials.
+
+`npm test` compiles the extension and exercises its registered commands against
+a local HTTP server with a small VS Code API stub. It covers failures and a
+successful UTF-8 response without calling the hosted API or requiring VS Code.
+The extension CI workflow runs these tests for changes to this directory.
