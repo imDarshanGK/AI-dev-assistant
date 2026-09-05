@@ -150,6 +150,24 @@ def test_admin_cannot_delete_self():
     assert r.status_code == 400
 
 
+def test_role_update_for_unknown_user_is_404():
+    admin = _signup("admin5@example.com")
+    _make_admin(admin["user_id"])
+    r = client.put(
+        "/admin/users/999999/role",
+        json={"is_admin": True},
+        headers=_auth(admin["access_token"]),
+    )
+    assert r.status_code == 404
+
+
+def test_delete_unknown_user_is_404():
+    admin = _signup("admin6@example.com")
+    _make_admin(admin["user_id"])
+    r = client.delete("/admin/users/999999", headers=_auth(admin["access_token"]))
+    assert r.status_code == 404
+
+
 def test_audit_entries_are_append_only():
     """Deleting the acting user must not cascade-remove their audit rows."""
     admin = _signup("admin4@example.com")

@@ -24,6 +24,7 @@ from ..services.code_assistant import (
     run_suggestions,
 )
 from ..services.llm_analysis import llm_analysis_client
+from ..services.vulnerability_db import correlate_vulnerabilities
 
 router = APIRouter()
 
@@ -209,6 +210,11 @@ async def analyze(req: CodeRequest, response: Response):
 
     payload = await hybrid_analysis(req.code, req.language)
 
+    deps = payload.get("suggestions", {}).get("dependencies", [])
+    payload["vulnerabilities"] = (
+        await asyncio.to_thread(correlate_vulnerabilities, deps) if deps else []
+    )
+
     cache.set(namespace, cache_input, payload)
 
     response.headers["X-Cache"] = "MISS"
@@ -358,6 +364,7 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                     "language": language,
                     "size_bytes": len(raw),
                     "analysis": analysis,
+                    "_deps": analysis.get("suggestions", {}).get("dependencies", []),
                 }
             )
 
@@ -366,6 +373,22 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
             status_code=400,
             detail="ZIP file does not contain readable source files",
         )
+
+    # Correlate once for the union of dependencies across the whole archive,
+    # instead of once per file, to avoid redundant NVD calls.
+    all_deps = sorted({dep for item in results for dep in item["_deps"]})
+    all_vulns = (
+        await asyncio.to_thread(correlate_vulnerabilities, all_deps) if all_deps else []
+    )
+    vulns_by_package: dict[str, list[dict]] = {}
+    for vuln in all_vulns:
+        vulns_by_package.setdefault(vuln["package"], []).append(vuln)
+
+    for item in results:
+        file_deps = item.pop("_deps")
+        item["analysis"]["vulnerabilities"] = [
+            vuln for dep in file_deps for vuln in vulns_by_package.get(dep, [])
+        ]
 
     scores = [item["analysis"]["suggestions"]["overall_score"] for item in results]
 

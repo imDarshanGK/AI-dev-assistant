@@ -32,6 +32,15 @@ def _client_ip(request: Request) -> str | None:
     return request.client.host if request.client else None
 
 
+def _get_user_or_404(db: Session, user_id: int) -> User:
+    user = db.get(User, user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    return user
+
+
 def _to_record(entry: AuditLog) -> AuditLogRecord:
     return AuditLogRecord(
         id=entry.id,
@@ -84,17 +93,16 @@ def update_user_role(
     db: Session = Depends(get_db),
 ):
     """Grant or revoke a user's admin role, recording the change in the audit log."""
-    user = db.get(User, user_id)
-    if user is None:
+    try:
+        user = _get_user_or_404(db, user_id)
+    except HTTPException:
         ADMIN_ROLE_UPDATE_ATTEMPTS_TOTAL.labels(result="not_found").inc()
         logger.warning(
             "admin_role_update_failed admin_id=%s target_user_id=%s reason=not_found",
             admin.id,
             user_id,
         )
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise
 
     previous = user.is_admin
     user.is_admin = payload.is_admin
@@ -143,17 +151,16 @@ def delete_user(
             detail="Admins cannot delete their own account",
         )
 
-    user = db.get(User, user_id)
-    if user is None:
+    try:
+        user = _get_user_or_404(db, user_id)
+    except HTTPException:
         ADMIN_USER_DELETE_ATTEMPTS_TOTAL.labels(result="not_found").inc()
         logger.warning(
             "admin_user_delete_failed admin_id=%s target_user_id=%s reason=not_found",
             admin.id,
             user_id,
         )
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise
 
     email = user.email
     db.delete(user)
