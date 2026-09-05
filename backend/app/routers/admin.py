@@ -24,6 +24,15 @@ def _client_ip(request: Request) -> str | None:
     return request.client.host if request.client else None
 
 
+def _get_user_or_404(db: Session, user_id: int) -> User:
+    user = db.get(User, user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    return user
+
+
 def _to_record(entry: AuditLog) -> AuditLogRecord:
     return AuditLogRecord(
         id=entry.id,
@@ -67,11 +76,7 @@ def update_user_role(
     db: Session = Depends(get_db),
 ):
     """Grant or revoke a user's admin role, recording the change in the audit log."""
-    user = db.get(User, user_id)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+    user = _get_user_or_404(db, user_id)
 
     previous = user.is_admin
     user.is_admin = payload.is_admin
@@ -104,11 +109,7 @@ def delete_user(
             detail="Admins cannot delete their own account",
         )
 
-    user = db.get(User, user_id)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+    user = _get_user_or_404(db, user_id)
 
     email = user.email
     db.delete(user)
