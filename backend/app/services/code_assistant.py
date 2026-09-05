@@ -941,6 +941,121 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     return found
 
 
+# ── Dependency Extractor ───────────────────────────────────────────────────────
+# Keyed by the same title-cased language names `detect_language` returns.
+_DEP_PATTERNS: dict[str, str] = {
+    "Python": r"^\s*(?:import|from)\s+([\w]+)",
+    "JavaScript": (
+        r'require\s*\(\s*["\']([^"\'./][^"\']*)["\']'
+        r'|(?:import|export)\s+[^"\']*\s+from\s+["\']([^"\'./][^"\']*)["\']'
+        r'|import\s+["\']([^"\'./][^"\']*)["\']'
+    ),
+    "TypeScript": (
+        r'(?:import|export)\s+[^"\']*\s+from\s+["\']([^"\'./][^"\']*)["\']'
+        r'|import\s+["\']([^"\'./][^"\']*)["\']'
+    ),
+    "Java": r"import\s+([\w]+)\.",
+    "PHP": r'require(?:_once)?\s*\(\s*["\']([^"\'./][^"\']*)["\']',
+    "Rust": r"extern\s+crate\s+([\w]+)|use\s+([\w]+)::",
+}
+
+_STDLIB_BY_LANG: dict[str, set[str]] = {
+    "Python": {
+        "os",
+        "sys",
+        "re",
+        "json",
+        "time",
+        "math",
+        "abc",
+        "io",
+        "logging",
+        "pathlib",
+        "typing",
+        "collections",
+        "itertools",
+        "functools",
+        "hashlib",
+        "threading",
+        "asyncio",
+        "dataclasses",
+        "unittest",
+        "contextlib",
+        "copy",
+        "enum",
+        "warnings",
+    },
+    "JavaScript": {
+        "fs",
+        "path",
+        "http",
+        "https",
+        "url",
+        "crypto",
+        "events",
+        "os",
+        "util",
+        "stream",
+        "buffer",
+        "child_process",
+        "net",
+    },
+    "TypeScript": {
+        "fs",
+        "path",
+        "http",
+        "https",
+        "url",
+        "crypto",
+        "events",
+        "os",
+        "util",
+        "stream",
+        "buffer",
+        "child_process",
+        "net",
+    },
+    "Java": {"java", "javax", "sun"},
+    "PHP": set(),
+    "Rust": {"std", "core", "alloc"},
+}
+
+
+def _npm_package_name(specifier: str) -> str:
+    """Reduce a module specifier to its installable package name.
+
+    `dotenv/config` -> `dotenv`; `@scope/pkg/sub` -> `@scope/pkg`.
+    """
+    parts = specifier.split("/")
+    if specifier.startswith("@") and len(parts) >= 2:
+        return "/".join(parts[:2])
+    return parts[0]
+
+
+def _extract_dependencies(code: str, language: str) -> list[str]:
+    """Extract third-party dependency names from import/require statements.
+
+    Returns a sorted, de-duplicated list so downstream vulnerability
+    correlation and API responses stay deterministic.
+    """
+    pattern = _DEP_PATTERNS.get(language)
+    if not pattern:
+        return []
+
+    stdlib = _STDLIB_BY_LANG.get(language, set())
+    deps: set[str] = set()
+    for match in re.finditer(pattern, code, re.MULTILINE):
+        raw = next((g for g in match.groups() if g), None)
+        if not raw:
+            continue
+        name = (
+            _npm_package_name(raw) if language in ("JavaScript", "TypeScript") else raw
+        )
+        if name and name not in stdlib:
+            deps.add(name)
+    return sorted(deps)
+
+
 # ── Suggestion Engine ──────────────────────────────────────────────────────────
 def run_suggestions(code: str, language: str) -> dict:
     """Generate improvement suggestions for the provided source code.
@@ -1203,6 +1318,7 @@ def run_suggestions(code: str, language: str) -> dict:
         "overall_score": score,
         "grade": grade,
         "next_step": next_step,
+        "dependencies": _extract_dependencies(code, language),
     }
 
 
