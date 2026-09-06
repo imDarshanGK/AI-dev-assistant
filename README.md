@@ -685,6 +685,8 @@ docker compose down -v
 
 QyverixAI exposes operational endpoints designed for container orchestration and Prometheus scraping.
 
+Every HTTP response includes an `X-Request-ID` UUID. The same value appears in the `request_started` and `request_finished` log records so operators can correlate a response with its request lifecycle.
+
 ### Health probes
 
 | Endpoint | Purpose | Behaviour |

@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .database import Base, engine
 from .logging_config import configure_logging
+from .middleware import request_id_and_logging_middleware
 from .observability import initialise_app_info, prometheus_metrics_middleware
 from .routers import admin, analyze, auth, chat, collaboration, debugging, explanation
 from .routers import health as health_router
@@ -211,6 +212,9 @@ async def add_cache_header(request: Request, call_next):
     if request.url.path == "/analyze/" and request.method == "POST":
         response.headers.setdefault("X-Cache", "MISS")
     return response
+
+
+app.middleware("http")(request_id_and_logging_middleware)
 
 
 # ── Routers ───────────────────────────────────────────────────────────────────
