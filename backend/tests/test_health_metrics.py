@@ -84,7 +84,9 @@ def test_readiness_records_health_check_metrics_and_logs_on_failure(caplog):
     assert any("readiness check failed" in message for message in caplog.messages)
 
     metrics_body = client.get("/metrics").text
-    assert 'qyverixai_health_check_total{check="database",result="fail"}' in metrics_body
+    assert (
+        'qyverixai_health_check_total{check="database",result="fail"}' in metrics_body
+    )
     assert "qyverixai_health_check_duration_seconds" in metrics_body
 
 

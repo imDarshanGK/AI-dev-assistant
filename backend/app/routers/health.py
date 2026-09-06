@@ -67,18 +67,26 @@ def _check_database(timeout_seconds: float = 2.0) -> tuple[bool, str | None, flo
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         elapsed_ms = (time.perf_counter() - start) * 1000.0
-        HEALTH_CHECK_DURATION_SECONDS.labels(check="database").observe(elapsed_ms / 1000.0)
+        HEALTH_CHECK_DURATION_SECONDS.labels(check="database").observe(
+            elapsed_ms / 1000.0
+        )
         HEALTH_CHECK_TOTAL.labels(check="database", result="ok").inc()
         return True, None, elapsed_ms
     except Exception as exc:  # noqa: BLE001 — we genuinely want every failure mode.
         elapsed_ms = (time.perf_counter() - start) * 1000.0
         error = f"{type(exc).__name__}: {exc}"
-        HEALTH_CHECK_DURATION_SECONDS.labels(check="database").observe(elapsed_ms / 1000.0)
+        HEALTH_CHECK_DURATION_SECONDS.labels(check="database").observe(
+            elapsed_ms / 1000.0
+        )
         HEALTH_CHECK_TOTAL.labels(check="database", result="fail").inc()
         # Failures only — this keeps the signal low-noise under normal
         # operation while still giving log-based alerting something to
         # correlate against the 503 readiness response.
-        logger.warning("readiness check failed: check=database error=%s elapsed_ms=%.2f", error, elapsed_ms)
+        logger.warning(
+            "readiness check failed: check=database error=%s elapsed_ms=%.2f",
+            error,
+            elapsed_ms,
+        )
         return False, error, elapsed_ms
 
 
