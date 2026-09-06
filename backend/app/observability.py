@@ -176,6 +176,20 @@ USER_DATA_FAVORITE_OPERATIONS_TOTAL = Counter(
 )
 
 
+HEALTH_CHECK_TOTAL = Counter(
+    "qyverixai_health_check_total",
+    "Total number of readiness dependency checks run, labelled by check name and result.",
+    labelnames=("check", "result"),
+)
+
+HEALTH_CHECK_DURATION_SECONDS = Histogram(
+    "qyverixai_health_check_duration_seconds",
+    "Latency of individual readiness dependency checks in seconds, labelled by check name.",
+    labelnames=("check",),
+    buckets=_LATENCY_BUCKETS_SECONDS,
+)
+
+
 def initialise_app_info(version: str, ai_provider: str) -> None:
     """Set the app_info gauge once at startup so dashboards can display it."""
     APP_INFO.labels(version=version, ai_provider=ai_provider).set(1)

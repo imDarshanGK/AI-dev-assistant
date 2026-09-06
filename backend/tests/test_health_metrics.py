@@ -70,6 +70,35 @@ def test_readiness_returns_503_when_db_check_fails():
     assert "connection refused" in body["checks"]["database"]["error"]
 
 
+# ── Readiness — observability ────────────────────────────────────────────────
+def test_readiness_records_health_check_metrics_and_logs_on_failure(caplog):
+    def _broken_check(timeout_seconds: float = 2.0):
+        return False, "OperationalError: connection refused", 1.23
+
+    with patch.object(health, "engine") as mock_engine:
+        mock_engine.connect.side_effect = RuntimeError("connection refused")
+        with caplog.at_level("WARNING", logger="app.routers.health"):
+            r = client.get("/healthz/ready")
+
+    assert r.status_code == 503
+    assert any("readiness check failed" in message for message in caplog.messages)
+
+    metrics_body = client.get("/metrics").text
+    assert 'qyverixai_health_check_total{check="database",result="fail"}' in metrics_body
+    assert "qyverixai_health_check_duration_seconds" in metrics_body
+
+
+def test_readiness_records_health_check_success_metric_without_logging(caplog):
+    with caplog.at_level("WARNING", logger="app.routers.health"):
+        r = client.get("/healthz/ready")
+
+    assert r.status_code == 200
+    assert not any("readiness check failed" in message for message in caplog.messages)
+
+    metrics_body = client.get("/metrics").text
+    assert 'qyverixai_health_check_total{check="database",result="ok"}' in metrics_body
+
+
 # ── /metrics — basic exposition format ───────────────────────────────────────
 def test_metrics_endpoint_returns_prometheus_format():
     # Generate some traffic so counters are non-zero.
