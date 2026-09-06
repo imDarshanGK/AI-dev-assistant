@@ -237,6 +237,39 @@ app.include_router(metrics_router.router)
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
+_API_ENDPOINTS: list[str] = [
+    "/auth/signup",
+    "/auth/login",
+    "/auth/me",
+    "/explanation/",
+    "/debugging/",
+    "/suggestions/",
+    "/analyze/",
+    "/subscribe/",
+    "/share/",
+    "/auth/",
+    "/chat/",
+    "/user/",
+    "/analyze/zip/",
+    "/history/",
+    "/collaboration/ws/{session_id}",
+]
+
+
+def _service_status_response(message: str) -> HealthResponse:
+    """Build the shared status payload used by both `/` and `/health`.
+
+    The two endpoints are identical except for the human-readable message —
+    kept as separate routes for backward compatibility with existing callers.
+    """
+    return HealthResponse(
+        status="ok",
+        version="3.0.0",
+        message=message,
+        endpoints=_API_ENDPOINTS,
+    )
+
+
 @app.get(
     "/",
     response_model=HealthResponse,
@@ -245,28 +278,7 @@ app.include_router(metrics_router.router)
     description="Returns the current API version, status, and a list of all available endpoint paths.",
 )
 async def root():
-    return {
-        "status": "ok",
-        "version": "3.0.0",
-        "message": "QyverixAI API is running.",
-        "endpoints": [
-            "/auth/signup",
-            "/auth/login",
-            "/auth/me",
-            "/explanation/",
-            "/debugging/",
-            "/suggestions/",
-            "/analyze/",
-            "/subscribe/",
-            "/share/",
-            "/auth/",
-            "/chat/",
-            "/user/",
-            "/analyze/zip/",
-            "/history/",
-            "/collaboration/ws/{session_id}",
-        ],
-    }
+    return _service_status_response("QyverixAI API is running.")
 
 
 @app.get(
@@ -280,28 +292,7 @@ async def root():
     ),
 )
 async def health_check():
-    return {
-        "status": "ok",
-        "version": "3.0.0",
-        "message": "QyverixAI is healthy",
-        "endpoints": [
-            "/auth/signup",
-            "/auth/login",
-            "/auth/me",
-            "/explanation/",
-            "/debugging/",
-            "/suggestions/",
-            "/analyze/",
-            "/subscribe/",
-            "/share/",
-            "/auth/",
-            "/chat/",
-            "/user/",
-            "/analyze/zip/",
-            "/history/",
-            "/collaboration/ws/{session_id}",
-        ],
-    }
+    return _service_status_response("QyverixAI is healthy")
 
 
 @app.get(
