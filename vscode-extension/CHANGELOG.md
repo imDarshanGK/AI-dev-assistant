@@ -9,3 +9,4 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 
 ### Added
 - Initial setup for documentation tracking.
+- New command palette actions: `QyverixAI: Suggest Improvements`, `QyverixAI: Clear Diagnostics`, and `QyverixAI: Open Settings`.

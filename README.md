@@ -17,7 +17,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![GSSoC 2026](https://img.shields.io/badge/GSSoC-2026-FF6B35?logoColor=white)](https://gssoc.girlscript.tech)
+[![Open Source](https://img.shields.io/badge/Open%20Source-Project-4A9DFF?logo=github&logoColor=white)](https://github.com/imDarshanGK/AI-dev-assistant)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-supported-4169E1?logo=postgresql&logoColor=white)](docker-compose.yml)
 [![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev)
@@ -37,7 +37,7 @@ Read the release history and notable changes in the project changelog: **[docs/C
 
 <br/>
 
-> **GSSoC 2026 Contributors** -- Welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, then grab a [good first issue](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue) to get started.
+> **Open source contributors** -- Welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, then explore an issue or propose a small improvement.
 
 </div>
 
@@ -116,22 +116,43 @@ No account required for the core analysis. No API key needed. Works fully offlin
 
 ### Prerequisites
 
-- Python 3.11 or 3.12
-- pip
-- A modern browser (Chrome, Firefox, Edge, Safari)
+- **Python**: 3.11 or 3.12
+- **Package Manager**: `pip` and `npm`
+- **Node.js**: v18 or above (for frontend)
+- **Browser**: A modern browser (Chrome, Firefox, Edge, Safari)
+- **Database (Optional)** : PostgreSQL (if running database features)
 
-### 1 - Clone
+
+### Step-by-Step Local Setup
+
+
+### 1 - Clone the Repository
 
 ```bash
-git clone https://github.com/imDarshanGK/AI-dev-assistant.git
+git clone [https://github.com/imDarshanGK/AI-dev-assistant.git](https://github.com/imDarshanGK/AI-dev-assistant.git)
 cd AI-dev-assistant
 ```
+
+# Copy example environment files
+cp backend/.env.example backend/.env
 
 ### 2 - Run the backend
 
 ```bash
+# Navigate to backend directory
 cd backend
+
+#(Optional) Create and activate a virtual environment
+python -m venv venv
+#On Windows:
+#venv\Scripts\activate
+#On Linux/macOS:
+#source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Start the FastAPI server
 uvicorn app.main:app --reload
 ```
 ### Environment Setup
@@ -166,6 +187,20 @@ The app can still run without external AI providers when `LLM_ENABLED=false`. Ac
 | Logout | http://localhost:8000/auth/logout |
 
 The full endpoint list - including project ZIP analysis, AI chat, and live collaboration - is in [API Reference](#api-reference) below.
+
+
+### Run the Frontend
+
+```bash
+# Navigate to frontend directory from the root
+
+cd ../frontend
+
+# Install dependencies
+npm install
+
+# Start the frontend dev server
+npm run dev
 
 ### 3 - Open the frontend
 
@@ -769,7 +804,7 @@ Copy `.env.example` to `.env` and fill in values as needed.
 
 ## Contributing
 
-QyverixAI is a **GSSoC 2026** open source project. Contributors of all levels are welcome.
+QyverixAI is an open source project for developers who want faster code understanding, debugging, and quality improvements.
 
 ```bash
 # 1. Fork the repo on GitHub
@@ -788,7 +823,7 @@ pytest -v   # all tests must pass
 
 Read the full workflow, code standards, and pattern guide in [CONTRIBUTING.md](CONTRIBUTING.md). Architecture overview lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (note: it predates several features in this README and could use an update too - also a good first issue).
 
-### Good first issues for GSSoC contributors
+### Good first issues for contributors
 
 | Task | Label |
 |---|---|
@@ -861,6 +896,20 @@ MIT © [Darshan G K](https://github.com/imDarshanGK)
 
 <br/>
 
-Built for the open source community &nbsp;·&nbsp; GSSoC 2026
+Built for the open source community
+
+
+### Validation Check 
+
+- **Backend API:** Open http://localhost:8000/docs in your browser to confirm the working of backend(server) of the application.
+- **Frontend API:** Open http://localhost:3000 (or the ports outputted in your terminal) to verify that the interface is running.
+
+
+###Common Pitfalls
+- **Virtual Environment Inaactive:** If dependencies fail to install or `uvicorn` is not working then make sure there is a proper virtual environment set up
+
+-**Missing `.env` File:** If the backend throws configuration or database errors make sure that `.env` is imported from `.env.example`.
+
+-**Port Conflicts:** Ensure ports 8000 and 3000 are free to use.
 
 </div>
