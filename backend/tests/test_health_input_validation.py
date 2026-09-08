@@ -56,7 +56,7 @@ def test_sanitize_db_error_does_not_leak_full_dsn_credentials():
     # error at: ...)" hint. Only a short, single-line summary should survive.
     exc = RuntimeError(
         "connection to server failed: FATAL: password authentication failed "
-        "for user \"app\"\n(Background on this error at: https://example.invalid/e3q8)"
+        'for user "app"\n(Background on this error at: https://example.invalid/e3q8)'
     )
     result = health._sanitize_db_error(exc)
     assert "\n" not in result
