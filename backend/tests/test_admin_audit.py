@@ -168,6 +168,52 @@ def test_delete_unknown_user_is_404():
     assert r.status_code == 404
 
 
+def test_role_update_rejects_non_positive_user_id():
+    admin = _signup("admin7@example.com")
+    _make_admin(admin["user_id"])
+    r = client.put(
+        "/admin/users/0/role",
+        json={"is_admin": True},
+        headers=_auth(admin["access_token"]),
+    )
+    assert r.status_code == 422
+
+    r = client.put(
+        "/admin/users/-1/role",
+        json={"is_admin": True},
+        headers=_auth(admin["access_token"]),
+    )
+    assert r.status_code == 422
+
+
+def test_delete_user_rejects_non_positive_user_id():
+    admin = _signup("admin8@example.com")
+    _make_admin(admin["user_id"])
+    r = client.delete("/admin/users/0", headers=_auth(admin["access_token"]))
+    assert r.status_code == 422
+
+    r = client.delete("/admin/users/-5", headers=_auth(admin["access_token"]))
+    assert r.status_code == 422
+
+
+def test_audit_logs_rejects_invalid_filters():
+    admin = _signup("admin9@example.com")
+    _make_admin(admin["user_id"])
+
+    # actor_id must be a positive integer.
+    r = client.get("/admin/audit-logs?actor_id=0", headers=_auth(admin["access_token"]))
+    assert r.status_code == 422
+
+    # action must be non-empty and within the max length.
+    r = client.get("/admin/audit-logs?action=", headers=_auth(admin["access_token"]))
+    assert r.status_code == 422
+
+    r = client.get(
+        f"/admin/audit-logs?action={'a' * 101}", headers=_auth(admin["access_token"])
+    )
+    assert r.status_code == 422
+
+
 def test_audit_entries_are_append_only():
     """Deleting the acting user must not cascade-remove their audit rows."""
     admin = _signup("admin4@example.com")
