@@ -8,7 +8,7 @@ trail of who did what and when.
 import json
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -70,8 +70,12 @@ def _to_record(entry: AuditLog) -> AuditLogRecord:
 
 @router.get("/audit-logs", response_model=list[AuditLogRecord])
 def list_audit_logs(
-    action: str | None = Query(None, description="Filter by exact action name."),
-    actor_id: int | None = Query(None, description="Filter by acting admin's id."),
+    action: str | None = Query(
+        None, min_length=1, max_length=100, description="Filter by exact action name."
+    ),
+    actor_id: int | None = Query(
+        None, ge=1, description="Filter by acting admin's id."
+    ),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     admin: User = Depends(require_admin),
@@ -93,9 +97,9 @@ def list_audit_logs(
 
 @router.put("/users/{user_id}/role", response_model=MessageResponse)
 def update_user_role(
-    user_id: int,
     payload: RoleUpdateRequest,
     request: Request,
+    user_id: int = Path(..., ge=1),
     admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
@@ -125,8 +129,8 @@ def update_user_role(
 
 @router.delete("/users/{user_id}", response_model=MessageResponse)
 def delete_user(
-    user_id: int,
     request: Request,
+    user_id: int = Path(..., ge=1),
     admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
