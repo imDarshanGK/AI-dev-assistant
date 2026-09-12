@@ -48,6 +48,7 @@ COMPONENT_LOGGER_MAP: dict[str, str] = {
     "file_validator": "app.utils.file_validator",
     "user_data": "app.routers.user_data",
     "main": "app.main",
+    "health": "app.routers.health",
 }
 
 _VALID_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
