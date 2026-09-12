@@ -30,55 +30,59 @@ class AppCache:
     def backend(self) -> str:
         return self._backend
 
-    def _make_key(self, namespace: str, code: str) -> str:
-        digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
-        return f"ai-assistant:v2:{namespace}:{digest}"
-
-    def get(self, namespace: str, code: str) -> dict | None:
+    def _make_key(self, namespace: str, key: str):
+        return self._get_valid_key(namespace, key)
+    
+    def _get_valid_key(self, namespace: str, key: str):
         if not settings.cache_enabled:
             return None
+        digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+        return f"ai-assistant:v2:{namespace}:{digest}"
 
-        key = self._make_key(namespace, code)
+    def get(self, namespace: str, key: str):
+        cache_key = self._get_valid_key(namespace, key)
+        if not cache_key:
+            return None
+
         if self._redis_client is not None:
             try:
-                raw = self._redis_client.get(key)
-                if not raw:
-                    return None
-                return json.loads(raw)
+                raw = self._redis_client.get(cache_key)
+                if raw:
+                    return json.loads(raw)
             except Exception as exc:
-                logger.warning("redis_get_failed key=%s detail=%s", key, str(exc))
+                logger.warning("redis_get_failed key=%s detail=%s", cache_key, str(exc))
 
         with self._memory_lock:
-            record = self._memory_store.get(key)
+            record = self._memory_store.get(cache_key)
             if not record:
                 return None
 
             expires_at, payload = record
             if expires_at < time.time():
-                self._memory_store.pop(key, None)
+                self._memory_store.pop(cache_key, None)
                 return None
 
-            self._memory_store.move_to_end(key)
+            self._memory_store.move_to_end(cache_key)
             return payload
 
-    def set(self, namespace: str, code: str, payload: dict) -> None:
-        if not settings.cache_enabled:
+    def set(self, namespace: str, key: str, payload: dict) -> None:
+        cache_key = self._get_valid_key(namespace, key)
+        if not cache_key:
             return
 
-        key = self._make_key(namespace, code)
         if self._redis_client is not None:
             try:
                 self._redis_client.setex(
-                    key, settings.cache_ttl_seconds, json.dumps(payload)
+                    cache_key, settings.cache_ttl_seconds, json.dumps(payload)
                 )
                 return
             except Exception as exc:
-                logger.warning("redis_set_failed key=%s detail=%s", key, str(exc))
+                logger.warning("redis_set_failed key=%s detail=%s", cache_key, str(exc))
 
         expires_at = time.time() + settings.cache_ttl_seconds
         with self._memory_lock:
-            self._memory_store[key] = (expires_at, payload)
-            self._memory_store.move_to_end(key)
+            self._memory_store[cache_key] = (expires_at, payload)
+            self._memory_store.move_to_end(cache_key)
 
             while len(self._memory_store) > settings.cache_max_entries:
                 self._memory_store.popitem(last=False)
@@ -89,3 +93,4 @@ class AppCache:
 
 
 cache = AppCache()
+__all__ = ["AppCache", "cache"]
