@@ -542,7 +542,25 @@ function renderResult(data, mode) {
           </div>`).join('')}
         </div>
       </div>`;
-      text += cards.map(c => `[${c.category}] ${c.description}`).join('\n');
+      text += cards.map(c => `[${c.category}] ${c.description}`).join('\n') + '\n\n';
+    }
+    if (data.duplicate_detection && data.duplicate_detection.has_duplicates) {
+      const dups = data.duplicate_detection.duplicates || [];
+      text += `=== DUPLICATE CODE (${dups.length}) ===\n`;
+      html += `<div class="result-section">
+        <h4>Duplicate Code Detected (${dups.length})</h4>
+        <div class="result-text">
+          ${dups.map(d => `<div style="margin-bottom:12px;padding:12px;background:var(--bg-2);border-radius:6px;border:1px solid var(--border)">
+            <span class="result-tag tag-error">Similarity: ${d.similarity}%</span>
+            <div style="margin-top:6px;font-size:13px;color:var(--text-2)">
+              ${d.locations.map(loc => `<div>• <strong>${escHtml(loc.file || '<inline>')}</strong> [Lines ${loc.start_line}–${loc.end_line}] (function: <code>${escHtml(loc.function || 'anonymous')}</code>)</div>`).join('')}
+            </div>
+            ${d.suggestion ? `<p style="margin-top:6px;color:var(--accent-green)">Tip: ${escHtml(d.suggestion)}</p>` : ''}
+            ${d.snippet ? `<pre style="margin-top:6px;font-size:12px;color:var(--text-3);overflow-x:auto"><code>${escHtml(d.snippet)}</code></pre>` : ''}
+          </div>`).join('')}
+        </div>
+      </div>`;
+      text += dups.map(d => `[Duplicate ${d.similarity}%] ${d.locations.map(l => `${l.file}:${l.start_line}-${l.end_line}`).join(', ')}\nTip: ${d.suggestion}`).join('\n');
     }
   } else if (mode === 'explanation') {
     html += `<div class="result-section">
