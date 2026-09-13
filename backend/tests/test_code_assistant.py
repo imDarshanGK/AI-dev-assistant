@@ -7,12 +7,12 @@ import sys
 
 from app.services.code_assistant import (
     chat_fallback_reply,
+    debug_code,
     detect_language,
+    full_analysis,
     run_bug_detection,
     run_explanation,
-    debug_code,
     run_suggestions,
-    full_analysis,
 )
 
 CURRENT_DIR = os.path.dirname(__file__)
