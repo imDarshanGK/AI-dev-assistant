@@ -743,3 +743,94 @@ def test_get_stream_with_language_hint():
 def test_get_stream_empty_code_rejected():
     r = client.get("/analyze/stream", params={"code": "   "})
     assert r.status_code in (400, 422)
+
+def test_suggestions_missing_code():
+    r = client.post("/suggestions/", json={})
+
+    assert r.status_code == 422
+
+def test_suggestions_empty_code():
+    r = client.post("/suggestions/", json={"code": "   "})
+    assert r.status_code == 422
+
+def test_suggestions_too_long():
+    r = client.post("/suggestions/", json={"code": "a"*50_001})
+    assert r.status_code == 422
+
+def test_suggestions_get_not_allowed():
+    r = client.get("/suggestions/")
+    assert r.status_code == 405
+
+def test_suggestions_response_structure():
+    r = client.post("/suggestions/", json={"code": PYTHON_BUGGY})
+
+    assert r.status_code == 200
+
+    data = r.json()
+
+    assert "suggestions" in data
+    assert "overall_score" in data
+    assert "grade" in data
+    assert "next_step" in data
+
+def test_suggestions_item_structure():
+    r = client.post("/suggestions/", json={"code": PYTHON_BUGGY})
+
+    assert r.status_code == 200
+
+    data = r.json()
+
+    for suggestion in data["suggestions"]:
+        assert "category" in suggestion
+        assert "description" in suggestion
+        assert "line_number" in suggestion
+        assert "line_range" in suggestion
+        assert "code_context" in suggestion
+        assert "example" in suggestion
+        assert "priority" in suggestion
+
+def test_suggestions_response_types():
+    r = client.post("/suggestions/", json={"code": PYTHON_BUGGY})
+
+    assert r.status_code == 200
+
+    data = r.json()
+
+    assert isinstance(data["suggestions"], list)
+    assert isinstance(data["overall_score"], int)
+    assert isinstance(data["grade"], str)
+    assert isinstance(data["next_step"], str)
+    
+def test_suggestions_score_grade_consistency():
+    r = client.post("/suggestions/", json = {"code": PYTHON_BUGGY})
+
+    data = r.json()
+
+    score = data["overall_score"]
+    grade = data["grade"]
+
+    if score >= 90:
+        assert grade == "A"
+    elif score >= 75:
+        assert grade == "B"
+    elif score >= 60:
+        assert grade == "C"
+    elif score >= 40:
+        assert grade == "D"
+    else:
+        assert grade == "F"
+
+def test_suggestions_auto_detects_python():
+    code = """
+import requests
+
+response = requests.get("https://example.com")
+"""
+
+    r = client.post("/suggestions/", json={"code": code})
+
+    assert r.status_code == 200
+
+    categories = [s["category"] for s in r.json()["suggestions"]]
+
+    assert "Error Handling" in categories
