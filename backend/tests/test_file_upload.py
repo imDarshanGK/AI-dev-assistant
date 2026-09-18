@@ -149,3 +149,66 @@ def test_large_file():
     )
 
     assert response.status_code == 413
+
+
+# ========================================================
+# TEST UPLOAD INFO ENDPOINT
+# =========================================================
+
+
+def test_upload_info():
+    response = client.get("/upload/")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "max_file_size_MB" in data
+    assert "blocked_extensions" in data
+    assert "allowed_extensions" in data
+    assert "allowed_mime_types" in data
+
+
+# ========================================================
+# TEST SUCCESSFUL UPLOAD RESPONSE
+# =========================================================
+
+
+def test_successful_upload_response():
+    filename = "test.txt"
+    content = b"hello world"
+    mime_type = "text/plain"
+
+    response = client.post(
+        "/upload/validate",
+        files={"file": (filename, BytesIO(content), mime_type)},
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["content_type"] == mime_type
+    assert "size" in data
+
+
+# ========================================================
+# TEST MAXIMUM FILE SIZE ALLOWED
+# =========================================================
+
+
+def test_max_file_size_allowed():
+    large_content = b"a" * (5 * 1024 * 1024)
+
+    response = client.post(
+        "/upload/validate",
+        files={
+            "file": (
+                "large.txt",
+                BytesIO(large_content),
+                "text/plain",
+            )
+        },
+    )
+
+    assert response.status_code == 200
