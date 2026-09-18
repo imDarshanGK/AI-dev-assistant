@@ -3058,7 +3058,7 @@ cursor:pointer;
   <option value="java">Java</option>
   <option value="javascript">JavaScript</option>
   <option value="typescript">TypeScript</option>
-  <option value="cpp">C++</option>
+  <option value="c++">C++</option>
 </select>
 
 <span style="color:var(--text3);">Issues:</span>
@@ -4045,7 +4045,9 @@ cursor:pointer;
       }
 
       document.querySelectorAll('.lang-tab').forEach(t => {
-        t.addEventListener('click', () => setLanguage(t.dataset.lang));
+        t.addEventListener('click', () =>{
+          console.log("Clicked language:", t.dataset.lang);
+        setLanguage(t.dataset.lang));
       });
 
       /* ═══════════════════════════════════════════════════════════════
@@ -5060,12 +5062,21 @@ cursor:pointer;
       async function fetchHistory() {
         const apiBase = getApiBase();
         try {
-          const res = await fetch(`${apiBase}/history/?limit=${historyLimit}&offset=${historyOffset}&sort_by=${historySortBy}&order=${historyOrder}`);
+          const endpoint = historySearchTerm
+            ? `${apiBase}/history/search?q=${encodeURIComponent(historySearchTerm)}&limit=100`
+            : `${apiBase}/history/?limit=${historyLimit}&offset=${historyOffset}&sort_by=${historySortBy}&order=${historyOrder}`;
+
+          const res = await fetch(endpoint);
           if (res.ok) {
             const data = await res.json();
 
-            history = data.items;
-            historyTotal = data.meta.total;
+            if (historySearchTerm) {
+              history = Array.isArray(data) ? data : [];
+              historyTotal = history.length;
+            } else {
+              history = data.items;
+              historyTotal = data.meta.total;
+            }
 
             renderHistory();
             renderAnalytics();
@@ -5170,11 +5181,15 @@ cursor:pointer;
 
   if (historySearchTerm) {
   filteredHistory = history.filter(h => {
-    const preview = (h.code_preview || h.preview || "").toLowerCase();
-    const lang = (h.language || h.lang || "").toLowerCase();
+    const preview = (h.code_preview || h.preview || '').toLowerCase();
+    const code = (h.code || '').toLowerCase();
+    const lang = (h.language || h.lang || '').toLowerCase();
+    const timestamp = (h.timestamp || h.ts || '').toLowerCase();
 
     return preview.includes(historySearchTerm) ||
-           lang.includes(historySearchTerm);
+           code.includes(historySearchTerm) ||
+           lang.includes(historySearchTerm) ||
+           timestamp.includes(historySearchTerm);
   });
 }
 
