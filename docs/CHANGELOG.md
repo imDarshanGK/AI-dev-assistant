@@ -5,6 +5,10 @@ All notable changes to QyverixAI are documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added multi-language Duplicate Code Detection (`duplicate_detector.py`) to
+  identify repeated functions and copy-pasted blocks across single files and
+  multi-file project ZIP uploads, reporting similarity percentage, exact line
+  ranges, affected files, snippets, and refactoring tips.
 - Added hybrid rule+LLM analysis to `POST /analyze/`: LLM enrichment
   (explanation insight, suggestions, `optimized_version`) layered on top of
   deterministic rule-based debugging, with graceful `degraded` fallback on LLM

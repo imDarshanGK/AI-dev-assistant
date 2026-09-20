@@ -53,8 +53,13 @@ def _make_admin(user_id: int) -> None:
     db = TestingSessionLocal()
     try:
         user = db.get(User, user_id)
+        if user is None:
+            raise ValueError(f"User {user_id} not found")
         user.is_admin = True
         db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 
