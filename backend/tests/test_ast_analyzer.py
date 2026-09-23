@@ -270,3 +270,40 @@ def test_deep_nesting_exact_boundary():
     )
     issues = analyze(code)
     assert not any(i["type"] == "Deep Nesting" for i in issues)
+
+
+def test_too_many_returns_triggered():
+    code = (
+        "def f():\n"
+        "    if True: return 1\n"
+        "    if True: return 2\n"
+        "    if True: return 3\n"
+        "    return 4\n"
+    )
+    issues = analyze(code)
+    assert any(i["type"] == "Too Many Returns" for i in issues)
+
+
+def test_deep_nesting():
+    code = (
+        "def f():\n"
+        "    while True:\n"
+        "        for i in range(10):\n"
+        "            for j in range(5):\n"
+        "                if True:\n"
+        "                    return 1\n"
+    )
+    issues = analyze(code)
+    assert any(i["type"] == "Deep Nesting" for i in issues)
+
+
+def test_used_argument_not_flagged():
+    code = "def f(x):\n    return x"
+    issues = analyze(code)
+    assert not any(i["type"] == "Unused Argument" for i in issues)
+
+
+def test_used_import_not_flagged():
+    code = "import math\nx = math.sqrt(16)\n"
+    issues = analyze(code)
+    assert not any(i["type"] == "Unused Import" for i in issues)
