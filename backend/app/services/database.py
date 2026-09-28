@@ -219,33 +219,41 @@ async def get_entries(
 async def search_entries(q: str, limit: int = 20) -> list[dict]:
     await _ensure_history_db_ready()
     with record_db_metric("search_entries"):
-        q = q[:200]
+        q = q[:200].strip()
+
+        if not q:
+            return []
+
         try:
             async with aiosqlite.connect(DB_PATH) as db:
                 db.row_factory = aiosqlite.Row
+
+                search_term = f"%{q}%"
+
                 cursor = await db.execute(
                     """
-                    SELECT h.id, h.code_hash, h.language, h.score,
-                           h.issue_count, h.timestamp, h.code_preview
-                    FROM history h
-                    WHERE h.id IN (
-                        SELECT rowid FROM fts_history WHERE fts_history MATCH ?
-                    )
-                    ORDER BY h.timestamp DESC
+                    SELECT id, code_hash, language, score,
+                           issue_count, timestamp, code_preview
+                    FROM history
+                    WHERE code_preview LIKE ? COLLATE NOCASE
+                       OR code LIKE ? COLLATE NOCASE
+                       OR language LIKE ? COLLATE NOCASE
+                       OR timestamp LIKE ? COLLATE NOCASE
+                    ORDER BY timestamp DESC
                     LIMIT ?
                     """,
-                    (q, limit),
+                    (
+                        search_term,
+                        search_term,
+                        search_term,
+                        search_term,
+                        limit,
+                    ),
                 )
+
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
-        except (aiosqlite.Error, sqlite3.Error) as exc:
-            # Invalid FTS MATCH syntax should not 500 the history search API.
-            logger.warning(
-                "search_entries_failed query=%r detail=%s",
-                q,
-                str(exc),
-            )
-            return []
+
         except Exception as exc:
             _log_db_failure("search_entries", exc)
             raise
