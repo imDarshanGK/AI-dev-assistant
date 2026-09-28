@@ -186,6 +186,24 @@ def test_explanation_python():
     assert isinstance(d["line_count"], int)
 
 
+def test_explanation_handles_unexpected_error(monkeypatch):
+    def fake_run_explanation(code, language):
+        raise RuntimeError("unexpected failure")
+
+    monkeypatch.setattr(
+        "app.routers.explanation.run_explanation",
+        fake_run_explanation,
+    )
+
+    r = client.post(
+        "/explanation/",
+        json={"code": PYTHON_CLEAN, "language": "python"},
+    )
+
+    assert r.status_code == 500
+    assert r.json()["detail"] == "Failed to generate code explanation."
+
+
 def test_explanation_no_language_hint():
     r = client.post("/explanation/", json={"code": JS_CODE})
     assert r.status_code == 200
