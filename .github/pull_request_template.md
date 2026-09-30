@@ -20,9 +20,8 @@ Fixes #
 - [ ] I have not introduced duplicate issues or features
 - [ ] My PR title follows the format: `feat/fix/docs/test: short description`
 - [ ] I have added tests for new features (Level 2 and 3 issues)
-- [ ] I have updated `docs/CHANGELOG.md` for user-facing changes or fixes
 - [ ] No hardcoded secrets or API keys in my code
-- [ ] This PR is linked to a GSSoC 2026 issue
+- [ ] This PR is linked to a relevant issue or clearly states the change being made
 
 ## Screenshots (if frontend change)
 <!-- Add before/after screenshots -->

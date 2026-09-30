@@ -101,6 +101,18 @@ def test_signup_login_and_me_happy_path(client):
     }
 
 
+def test_login_short_password_not_rejected_by_schema(client):
+    response = client.post(
+        "/auth/login",
+        json={
+            "email": "user@example.com",
+            "password": "short",
+        },
+    )
+
+    assert response.status_code != 422
+
+
 def test_signup_duplicate_email_returns_409(client):
     payload = {"email": "dup@example.com", "password": "StrongPass123!"}
     first_response = client.post("/auth/signup", json=payload)

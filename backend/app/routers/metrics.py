@@ -16,7 +16,6 @@ from fastapi import APIRouter, HTTPException, Request, Response, status
 
 from ..observability import metrics_auth_token, metrics_enabled, render_metrics
 
-
 router = APIRouter()
 
 
@@ -26,7 +25,9 @@ router = APIRouter()
 )
 async def metrics(request: Request) -> Response:
     if not metrics_enabled():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="metrics disabled")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="metrics disabled"
+        )
 
     required_token = metrics_auth_token()
     if required_token:

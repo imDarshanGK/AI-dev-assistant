@@ -6,11 +6,15 @@ Covers 40+ patterns across Python, JavaScript, TypeScript, Java, C++, PHP and Ru
 from __future__ import annotations
 
 import ast
+import logging
 import re
 import time
 from dataclasses import dataclass, field
 
 from .ast_analyzer import analyze as ast_analyze
+from .llm_analysis import LLMAnalysisError, llm_analysis_client
+
+logger = logging.getLogger("ai_assistant.api")
 
 # ── Language Detection ─────────────────────────────────────────────────────────
 LANG_SIGNATURES: dict[str, list[str]] = {
@@ -382,7 +386,7 @@ BUG_PATTERNS: list[BugPattern] = [
     ),
     BugPattern(
         "Missing __init__",
-        r"class\s+\w+[^:]*:\n(?!\s+def __init__)",
+        r"class\s+\w+[^:\n]*:\n(?!\s+def __init__)",
         "Class defined without `__init__` — may cause AttributeError on attribute access.",
         "Add `def __init__(self):` to initialize instance state.",
         "info",
@@ -820,6 +824,18 @@ BUG_PATTERNS: list[BugPattern] = [
 ]
 
 
+def _is_multiline_pattern(pattern: str) -> bool:
+    """Return True if a regex pattern is intended to match across multiple lines.
+
+    Such patterns contain constructs (a literal ``\\n``, or a character class
+    such as ``[\\s\\S]`` / ``[\\d\\D]`` / ``[\\w\\W]``) that can only match when
+    the regex is run against the full, un-split source code. The per-line scan
+    in :func:`run_bug_detection` strips newlines, so these patterns would
+    otherwise never fire and remain dead code.
+    """
+    return any(token in pattern for token in (r"\n", r"[\s\S]", r"[\d\D]", r"[\w\W]"))
+
+
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
 
@@ -853,6 +869,36 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
     for bp in BUG_PATTERNS:
         if language not in bp.languages and "All" not in bp.languages:
+            continue
+
+        # Multi-line patterns rely on constructs (literal "\n", "[\s\S]", ...)
+        # that span more than one line, so they cannot match when the regex is
+        # applied to a single line. Run them against the full source instead.
+        if _is_multiline_pattern(bp.pattern):
+            for match in re.finditer(bp.pattern, code, re.MULTILINE | re.IGNORECASE):
+                line_no = code[: match.start()].count("\n") + 1
+                key = f"{bp.name}:{line_no}"
+                if key in seen:
+                    continue
+                seen.add(key)
+                snippet = (
+                    lines[line_no - 1].strip()[:120]
+                    if 0 <= line_no - 1 < len(lines)
+                    else ""
+                )
+                found.append(
+                    {
+                        "type": bp.name,
+                        "line": line_no,
+                        "description": bp.description,
+                        "suggestion": bp.suggestion,
+                        "severity": bp.severity,
+                        "code_snippet": snippet,
+                        "code_context": format_code_snippet(
+                            code, [line_no], context_lines=2
+                        ),
+                    }
+                )
             continue
 
         for i, line in enumerate(lines, start=1):
@@ -895,6 +941,121 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     return found
 
 
+# ── Dependency Extractor ───────────────────────────────────────────────────────
+# Keyed by the same title-cased language names `detect_language` returns.
+_DEP_PATTERNS: dict[str, str] = {
+    "Python": r"^\s*(?:import|from)\s+([\w]+)",
+    "JavaScript": (
+        r'require\s*\(\s*["\']([^"\'./][^"\']*)["\']'
+        r'|(?:import|export)\s+[^"\']*\s+from\s+["\']([^"\'./][^"\']*)["\']'
+        r'|import\s+["\']([^"\'./][^"\']*)["\']'
+    ),
+    "TypeScript": (
+        r'(?:import|export)\s+[^"\']*\s+from\s+["\']([^"\'./][^"\']*)["\']'
+        r'|import\s+["\']([^"\'./][^"\']*)["\']'
+    ),
+    "Java": r"import\s+([\w]+)\.",
+    "PHP": r'require(?:_once)?\s*\(\s*["\']([^"\'./][^"\']*)["\']',
+    "Rust": r"extern\s+crate\s+([\w]+)|use\s+([\w]+)::",
+}
+
+_STDLIB_BY_LANG: dict[str, set[str]] = {
+    "Python": {
+        "os",
+        "sys",
+        "re",
+        "json",
+        "time",
+        "math",
+        "abc",
+        "io",
+        "logging",
+        "pathlib",
+        "typing",
+        "collections",
+        "itertools",
+        "functools",
+        "hashlib",
+        "threading",
+        "asyncio",
+        "dataclasses",
+        "unittest",
+        "contextlib",
+        "copy",
+        "enum",
+        "warnings",
+    },
+    "JavaScript": {
+        "fs",
+        "path",
+        "http",
+        "https",
+        "url",
+        "crypto",
+        "events",
+        "os",
+        "util",
+        "stream",
+        "buffer",
+        "child_process",
+        "net",
+    },
+    "TypeScript": {
+        "fs",
+        "path",
+        "http",
+        "https",
+        "url",
+        "crypto",
+        "events",
+        "os",
+        "util",
+        "stream",
+        "buffer",
+        "child_process",
+        "net",
+    },
+    "Java": {"java", "javax", "sun"},
+    "PHP": set(),
+    "Rust": {"std", "core", "alloc"},
+}
+
+
+def _npm_package_name(specifier: str) -> str:
+    """Reduce a module specifier to its installable package name.
+
+    `dotenv/config` -> `dotenv`; `@scope/pkg/sub` -> `@scope/pkg`.
+    """
+    parts = specifier.split("/")
+    if specifier.startswith("@") and len(parts) >= 2:
+        return "/".join(parts[:2])
+    return parts[0]
+
+
+def _extract_dependencies(code: str, language: str) -> list[str]:
+    """Extract third-party dependency names from import/require statements.
+
+    Returns a sorted, de-duplicated list so downstream vulnerability
+    correlation and API responses stay deterministic.
+    """
+    pattern = _DEP_PATTERNS.get(language)
+    if not pattern:
+        return []
+
+    stdlib = _STDLIB_BY_LANG.get(language, set())
+    deps: set[str] = set()
+    for match in re.finditer(pattern, code, re.MULTILINE):
+        raw = next((g for g in match.groups() if g), None)
+        if not raw:
+            continue
+        name = (
+            _npm_package_name(raw) if language in ("JavaScript", "TypeScript") else raw
+        )
+        if name and name not in stdlib:
+            deps.add(name)
+    return sorted(deps)
+
+
 # ── Suggestion Engine ──────────────────────────────────────────────────────────
 def run_suggestions(code: str, language: str) -> dict:
     """Generate improvement suggestions for the provided source code.
@@ -906,7 +1067,6 @@ def run_suggestions(code: str, language: str) -> dict:
     Returns:
         Suggestion results including score, grade, and recommendations.
     """
-    """Enhanced suggestion engine with line number tracking."""
     from .line_utils import (
         find_function_lines,
         find_lines_matching_pattern,
@@ -917,6 +1077,16 @@ def run_suggestions(code: str, language: str) -> dict:
     suggestions: list[dict] = []
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
+
+    # Cache commonly used regex checks
+    has_try = bool(re.search(r"\btry\b", code))
+    has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
+    has_tests = bool(
+        re.search(
+            r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]",
+            code,
+        )
+    )
 
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 1: Documentation Quality
@@ -992,7 +1162,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 4: Error Handling
     # ─────────────────────────────────────────────────────────────
-    if language == "Python" and not re.search(r"\btry\b", code):
+    if language == "Python" and not has_try:
         risky_patterns = [
             r"requests\.(get|post|put|delete)",
             r"open\s*\(",
@@ -1051,7 +1221,7 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     # SUGGESTION 6: Tests
     # ─────────────────────────────────────────────────────────────
-    if not re.search(r"\btest_\w+|\bdef test|\bunittest\b|\bpytest\b|#\[test\]", code):
+    if not has_tests:
         suggestions.append(
             {
                 "category": "Testing",
@@ -1069,7 +1239,6 @@ def run_suggestions(code: str, language: str) -> dict:
     # ─────────────────────────────────────────────────────────────
     if language == "Python":
         print_lines = find_lines_matching_pattern(code, r"\bprint\s*\(")
-        has_logging = bool(re.search(r"\blogging\b|\blogger\b", code))
 
         if print_lines and not has_logging:
             sample_print = print_lines[:3]
@@ -1149,6 +1318,7 @@ def run_suggestions(code: str, language: str) -> dict:
         "overall_score": score,
         "grade": grade,
         "next_step": next_step,
+        "dependencies": _extract_dependencies(code, language),
     }
 
 
@@ -1431,4 +1601,133 @@ def full_analysis(code: str, language_hint: str | None = None) -> dict:
         "debugging": debugging,
         "suggestions": sugg,
         "analysis_time_ms": round(elapsed_ms, 2),
+        "mode": "rule-based",
+        "optimized_version": None,
     }
+
+
+def _merge_explanation(rule_explanation: dict, llm_explanation: dict | None) -> dict:
+    """Layer LLM insight onto the rule-based explanation without breaking schema."""
+    merged = dict(rule_explanation)
+    if not isinstance(llm_explanation, dict):
+        return merged
+
+    key_points = list(merged.get("key_points") or [])
+    llm_summary = llm_explanation.get("summary")
+    if isinstance(llm_summary, str) and llm_summary.strip():
+        insight = f"LLM insight: {llm_summary.strip()}"
+        if insight not in key_points:
+            key_points.append(insight)
+
+    llm_points = llm_explanation.get("key_points") or []
+    if isinstance(llm_points, list):
+        for point in llm_points:
+            if isinstance(point, str) and point.strip() and point not in key_points:
+                key_points.append(point.strip())
+
+    beginner_tip = llm_explanation.get("beginner_tip")
+    if isinstance(beginner_tip, str) and beginner_tip.strip():
+        tip = f"Beginner tip: {beginner_tip.strip()}"
+        if tip not in key_points:
+            key_points.append(tip)
+
+    merged["key_points"] = key_points
+    return merged
+
+
+def _merge_suggestions(rule_suggestions: dict, llm_suggestions: dict | None) -> dict:
+    """Append LLM suggestions onto the rule-based suggestions list."""
+    merged = dict(rule_suggestions)
+    suggestions = list(merged.get("suggestions") or [])
+    if not isinstance(llm_suggestions, dict):
+        return merged
+
+    llm_items = llm_suggestions.get("suggestions") or []
+    if isinstance(llm_items, list):
+        for item in llm_items:
+            if not isinstance(item, dict):
+                continue
+            title = item.get("title") or "AI Suggestion"
+            reason = item.get("reason") or title
+            after = item.get("after")
+            before = item.get("before")
+            example = after if isinstance(after, str) and after.strip() else None
+            if example is None and isinstance(before, str) and before.strip():
+                example = before
+            suggestions.append(
+                {
+                    "category": "AI Suggestion",
+                    "description": f"{title}: {reason}" if title != reason else reason,
+                    "line_number": None,
+                    "line_range": None,
+                    "code_context": before if isinstance(before, str) else None,
+                    "example": example,
+                    "priority": "medium",
+                }
+            )
+
+    next_steps = llm_suggestions.get("next_steps") or []
+    if isinstance(next_steps, list) and next_steps:
+        first = next((s for s in next_steps if isinstance(s, str) and s.strip()), None)
+        if first and not merged.get("next_step"):
+            merged["next_step"] = first.strip()
+        elif first:
+            # Prefer keeping the rule next_step; surface LLM next steps as a suggestion.
+            suggestions.append(
+                {
+                    "category": "AI Suggestion",
+                    "description": f"Next step: {first.strip()}",
+                    "line_number": None,
+                    "line_range": None,
+                    "code_context": None,
+                    "example": None,
+                    "priority": "low",
+                }
+            )
+
+    merged["suggestions"] = suggestions
+    return merged
+
+
+async def hybrid_analysis(code: str, language_hint: str | None = None) -> dict:
+    """Run rule-based analysis, optionally enriching with structured LLM output.
+
+    Always keeps deterministic debugging issues from the rule engine. When the
+    LLM is enabled and succeeds, explanation/suggestions are enriched and an
+    optimized_version may be attached. On any LLM failure the request degrades
+    to rule-only results with mode=\"degraded\" (never raises to the caller).
+    """
+    base = full_analysis(code, language_hint)
+
+    if not llm_analysis_client.enabled:
+        base["mode"] = "rule-based"
+        return base
+
+    try:
+        llm_result = await llm_analysis_client.analyze_code_structured(
+            code, base["explanation"]["language"]
+        )
+    except LLMAnalysisError as exc:
+        logger.warning("hybrid_analysis_degraded detail=%s", str(exc))
+        base["mode"] = "degraded"
+        return base
+    except Exception as exc:  # noqa: BLE001 — never crash /analyze on LLM errors
+        logger.warning("hybrid_analysis_unexpected_error detail=%s", str(exc))
+        base["mode"] = "degraded"
+        return base
+
+    # Keep rule-based debugging.issues; enrich explanation/suggestions only.
+    base["provider"] = llm_analysis_client.provider_name
+    base["model"] = llm_analysis_client.model
+    base["mode"] = "hybrid"
+    base["explanation"] = _merge_explanation(
+        base["explanation"], llm_result.get("explanation")
+    )
+    base["suggestions"] = _merge_suggestions(
+        base["suggestions"], llm_result.get("suggestions")
+    )
+    optimized = llm_result.get("optimized_version")
+    base["optimized_version"] = (
+        optimized if isinstance(optimized, str) and optimized.strip() else None
+    )
+    return base

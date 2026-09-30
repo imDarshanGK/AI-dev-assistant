@@ -1,8 +1,26 @@
 # Contributing to QyverixAI
 
-Thank you for wanting to contribute! QyverixAI is a GSSoC 2026 project and welcomes all levels of contributors — from first-timers to veterans.
+Thank you for wanting to contribute! QyverixAI is an open source project and welcomes contributors of all levels — from first-timers to veterans.
 
 ---
+
+# Contributing
+
+Thank you for your interest in contributing!
+
+### Looking for your first contribution?
+
+Check our **Good First Issues** and **Help Wanted** labels to find beginner-friendly tasks.
+
+Remember to:
+
+- Comment before starting work
+- Create a dedicated branch
+- Keep your PR focused on one issue
+
+## Development Setup
+
+...
 
 ## Quick Start
 
@@ -259,7 +277,7 @@ git push -u origin feat/123-add-health-endpoint
 ## Getting Help
 
 - Open an issue with the `question` label
-- Join the GSSoC 2026 community channels
+- Join the project discussion channels and share updates in your pull request
 - Tag `@imDarshanGK` in your issue or PR
 
 ---

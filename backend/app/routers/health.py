@@ -49,6 +49,28 @@ async def liveness() -> LivenessResponse:
 
 
 # ── Readiness ─────────────────────────────────────────────────────────────────
+# Readiness is typically scraped by an unauthenticated Kubernetes probe, so the
+# raw exception text from a failed check must never reach the response body
+# unbounded: driver errors can embed a full DSN (credentials included), a
+# multi-line traceback, or arbitrarily large messages. Cap what we surface.
+_MAX_DB_ERROR_LENGTH = 200
+
+
+def _sanitize_db_error(exc: Exception) -> str:
+    """Reduce an arbitrary DB exception to a short, single-line summary.
+
+    Only the exception type and the first line of its message are kept, and
+    the result is capped to ``_MAX_DB_ERROR_LENGTH`` characters, so neither a
+    multi-line traceback nor an oversized/credential-bearing message can leak
+    into the readiness payload.
+    """
+    message = str(exc).strip().splitlines()[0] if str(exc).strip() else "no detail"
+    summary = f"{type(exc).__name__}: {message}"
+    if len(summary) > _MAX_DB_ERROR_LENGTH:
+        summary = summary[: _MAX_DB_ERROR_LENGTH - 1] + "…"
+    return summary
+
+
 def _check_database(timeout_seconds: float = 2.0) -> tuple[bool, str | None, float]:
     """Run a trivial SELECT 1 against the configured database.
 
@@ -66,7 +88,7 @@ def _check_database(timeout_seconds: float = 2.0) -> tuple[bool, str | None, flo
     except Exception as exc:  # noqa: BLE001 — we genuinely want every failure mode.
         return (
             False,
-            f"{type(exc).__name__}: {exc}",
+            _sanitize_db_error(exc),
             (time.perf_counter() - start) * 1000.0,
         )
 

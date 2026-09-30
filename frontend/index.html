@@ -33,7 +33,7 @@
       --border2: rgba(255, 255, 255, 0.12);
       --text: #e8eaf0;
       --text2: #8892a4;
-      --text3: #4a5568;
+      --text3: #94a3b8;
       --accent: #5b9cf6;
       --accent2: #7c3aed;
       --green: #22d47b;
@@ -58,7 +58,11 @@
       --border2: rgba(0, 0, 0, 0.13);
       --text: #111827;
       --text2: #4b5563;
-      --text3: #9ca3af;
+      --text3: #5f6b7a;
+      --accent: #1d4ed8;
+      --green: #166534;
+      --yellow: #92400e;
+      --red: #991b1b;
       --shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
       --shadow2: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
@@ -777,6 +781,16 @@
       color: var(--text3)
     }
 
+    .shortcut-hint {
+      align-self: center;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text3);
+      background: rgba(255,255,255,0.03);
+      white-space: nowrap;
+    }
+
     /* ── Mode Selector ── */
     .mode-row {
       display: flex;
@@ -831,6 +845,37 @@
     /* ── Analyze Button ── */
     .analyze-row {
       padding: 14px 18px
+    }
+
+    .shortcut-hints {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 10px;
+      color: var(--text3);
+      font-size: 0.7rem;
+    }
+
+    .shortcut-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .shortcut-hint kbd {
+      padding: 2px 6px;
+      border: 1px solid var(--border2);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      background: var(--bg3);
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.67rem;
+      line-height: 1.35;
+      box-shadow: var(--shadow2);
     }
 
     .btn-analyze {
@@ -1142,6 +1187,31 @@ details.issue-card[open] {
       font-size: 0.72rem;
       color: var(--text3);
       font-family: var(--font-mono);
+    }
+
+    .complexity-chip {
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: help;
+      white-space: nowrap;
+    }
+
+    .complexity-chip.complexity-easy {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+
+    .complexity-chip.complexity-medium {
+      background: rgba(245, 200, 66, 0.15);
+      color: var(--yellow);
+    }
+
+    .complexity-chip.complexity-hard {
+      background: rgba(242, 87, 87, 0.15);
+      color: var(--red);
     }
 
     .issue-type {
@@ -1786,6 +1856,68 @@ details.issue-card[open] {
       }
     }
 
+    .analytics-panel{
+      margin-bottom:16px;
+    }
+
+    .analytics-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:16px;
+    padding:16px;
+    }
+
+    .analytics-card{
+    background:transparent;
+    border:none;
+    padding:8px 0;
+    }
+
+    .analytics-card span{
+    display:block;
+    font-size:.72rem;
+    font-weight:600;
+    margin-bottom:2px;
+    color:var(--text3);
+    }
+
+    .analytics-value{
+    margin:0;
+    font-family:var(--font-ui);
+    font-size:1rem;
+    font-weight:600;
+    line-height:1.2;
+    color:var(--text);
+    }
+
+    .analytics-summary{
+    padding:14px 18px;
+    font-family:var(--font-disp);
+    font-size:.82rem;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--text2);
+
+    display:flex;
+    align-items:center;
+    }
+
+    .analytics-summary::-webkit-details-marker{
+        display:none;
+    }
+
+    .analytics-summary::after{
+        content:"▼";
+        margin-left:auto;
+        font-size:.8rem;
+        opacity:.7;
+    }
+
+    details:not([open]) .analytics-summary::after{
+        content:"▶";
+    }
+
     .history-list,
     .fav-list {
       padding: 16px;
@@ -1814,6 +1946,18 @@ details.issue-card[open] {
     }
     
 /* Delete button */
+    /* Wraps the load-entry controls so the whole row stays one keyboard/AT
+       target without nesting a <button> inside the sibling delete <button>. */
+    .item-load-btn {
+      all: unset;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;
+    }
+
     .delete-btn {
       border: none;
       outline: none;
@@ -2134,7 +2278,63 @@ details.issue-card[open] {
 .stat-chip.error-chip .stat-chip-num{color:var(--red)}
 .stat-chip.warn-chip .stat-chip-num{color:var(--yellow)}
 .stat-chip.info-chip .stat-chip-num{color:var(--accent)}
+.issue-summary-card {
+  margin-bottom: 1.5rem;
+}
 
+.summary-card {
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  background: var(--card-bg, #1e2327);
+  border: 1px solid var(--border-color, #333);
+}
+
+.summary-header {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.summary-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 90px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.stat-error .stat-value { color: #ef4444; }
+.stat-warning .stat-value { color: #f59e0b; }
+.stat-info .stat-value { color: #3b82f6; }
+
+.summary-success {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.summary-icon { font-size: 1.5rem; }
+.summary-title { font-weight: 600; }
+.summary-subtitle { font-size: 0.85rem; opacity: 0.8; }
+
+@media (max-width: 480px) {
+  .summary-stats { gap: 0.75rem; }
+  .stat-item { min-width: 70px; }
+}  
 /* responsive */
 @media(max-width:600px){
   .hero h1{font-size:2.2rem}
@@ -2661,34 +2861,40 @@ details.issue-card[open] {
             <div class="drop-overlay-sub">.py &nbsp;·&nbsp; .js &nbsp;·&nbsp; .ts &nbsp;·&nbsp; .java &nbsp;·&nbsp; .cpp &nbsp;·&nbsp; .zip</div>
           </div>
           <div class="line-numbers" id="lineNumbers">1</div>
-          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" style="width:100%"></textarea>
+          <textarea id="codeEditor" placeholder="# Paste your code here or click 'Try Sample Code' above…" aria-label="Code editor" aria-keyshortcuts="/ Escape" style="width:100%"></textarea>
         </div>
 
         <div class="editor-footer">
           <div id="charCount">0 chars · 0 lines</div>
           <div style="display:flex;gap:8px">
-            <div class="mode-row" role="tablist" aria-label="Mode selector">
-              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" data-i18n="mode_full">Full</button>
-              <button class="mode-btn" data-mode="explain" aria-pressed="false" data-i18n="tab_explain">Explain</button>
-              <button class="mode-btn" data-mode="debug" aria-pressed="false" data-i18n="mode_debug">Debug</button>
-              <button class="mode-btn" data-mode="suggest" aria-pressed="false" data-i18n="tab_improve">Improve</button>
+            <div class="mode-row" role="group" aria-label="Mode selector">
+              <button class="mode-btn active" data-mode="analyze" aria-pressed="true" aria-keyshortcuts="Control+Alt+1" data-i18n="mode_full">Full</button>
+              <button class="mode-btn" data-mode="explain" aria-pressed="false" aria-keyshortcuts="Control+Alt+2" data-i18n="tab_explain">Explain</button>
+              <button class="mode-btn" data-mode="debug" aria-pressed="false" aria-keyshortcuts="Control+Alt+3" data-i18n="mode_debug">Debug</button>
+              <button class="mode-btn" data-mode="suggest" aria-pressed="false" aria-keyshortcuts="Control+Alt+4" data-i18n="tab_improve">Improve</button>
             </div>
+            <span class="shortcut-hint" title="Use Control Alt 1 through 4 to switch analysis modes">Ctrl+Alt+1-4 modes</span>
           </div>
         </div>
 
         <div class="analyze-row">
-          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code">
+          <button class="btn-analyze" id="analyzeBtn" title="Analyze Code" aria-label="Analyze Code" aria-keyshortcuts="Control+Enter Meta+Enter">
             <span class="spinner" id="spinner"></span>
             <span class="btn-text" data-i18n="btn_analyze_code">Analyze</span>
           </button>
+          <div class="shortcut-hints" role="note" aria-label="Keyboard shortcuts" data-i18n-aria-label="shortcuts_label">
+            <span class="shortcut-hint"><kbd>/</kbd><span data-i18n="shortcut_focus">Focus editor</span></span>
+            <span class="shortcut-hint"><kbd>Ctrl/⌘ + Enter</kbd><span data-i18n="shortcut_analyze">Analyze</span></span>
+            <span class="shortcut-hint"><kbd>Esc</kbd><span data-i18n="shortcut_leave">Leave editor</span></span>
+          </div>
         </div>
 
         <!-- Result action buttons (hidden until results) -->
         <div id="resultActions" class="result-actions" style="display:none">
-          <button class="icon-btn" id="favBtn" title="Save to favorites">★</button>
-          <button class="icon-btn" id="downloadBtn" title="Download results">⬇</button>
-          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF">📄</button>
-          <button class="icon-btn" id="export-md-btn" title="Export as Markdown">📝</button>
+          <button class="icon-btn" id="favBtn" title="Save to favorites" aria-label="Save to favorites">★</button>
+          <button class="icon-btn" id="downloadBtn" title="Download results" aria-label="Download analysis results">⬇</button>
+          <button class="icon-btn" id="export-pdf-btn" title="Export as PDF"  aria-label="Export analysis results as PDF">📄</button>
+          <button class="icon-btn" id="export-md-btn" title="Export as Markdown" aria-label="Export analysis results as Markdown">📝</button>
         </div>
 
       </div>
@@ -2699,7 +2905,7 @@ details.issue-card[open] {
           <div class="panel-title" data-i18n="results_title">Analysis Results</div>
           <div class="panel-actions"></div>
         </div>
-
+<div id="issue-summary-card" style="display:none; margin:14px 18px 0;"></div>
         <div class="result-tabs" role="tablist" aria-label="Result Tabs" style="margin-bottom:12px">
           <button class="result-tab active" id="tab-explain" data-rtab="explain" role="tab" aria-selected="true" aria-controls="pane-explain">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
@@ -2774,6 +2980,42 @@ details.issue-card[open] {
       </div>
     </div>
 
+    <!-- ── ANALYTICS DASHBOARD ───────────────────────────────────── -->
+
+    <details class="panel analytics-panel">
+
+      <summary class="panel-header analytics-summary">
+          <span class="panel-title">
+              Analytics Dashboard
+          </span>
+      </summary>
+
+      <div class="analytics-grid">
+
+          <div class="analytics-card">
+              <span>Total Analyses</span>
+              <p id="analyticsTotal" class="analytics-value">0</p>
+          </div>
+
+          <div class="analytics-card">
+              <span>Top Language</span>
+              <p id="analyticsLanguage" class="analytics-value">-</p>
+          </div>
+
+          <div class="analytics-card">
+              <span>Average Score</span>
+              <p id="analyticsScore" class="analytics-value">0</p>
+          </div>
+
+          <div class="analytics-card">
+              <span>Total Issues</span>
+              <p id="analyticsIssues" class="analytics-value">0</p>
+          </div>
+
+      </div>
+
+    </details>
+
     <!-- ── HISTORY & FAVORITES ────────────────────────────────────── -->
     <div class="bottom-grid">
       <div class="panel">
@@ -2784,14 +3026,68 @@ details.issue-card[open] {
           <button class="btn-clear" id="downloadCsvBtn" aria-label="Download history as CSV">Download CSV</button>
         </div>
         <div class="history-controls-row" style="display:flex; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 0.72rem; align-items:center; flex-wrap:wrap;">
+           <input
+      type="text"
+      id="historySearchInput"
+      placeholder="Search history..."
+      style="
+        background:var(--bg);
+        border:1px solid var(--border);
+        color:var(--text);
+        border-radius:4px;
+        padding:4px 8px;
+        font-size:0.72rem;
+        min-width:220px;
+      "
+    >
+        <span style="color:var(--text3);">Language:</span>
+
+<select id="historyLanguageFilter"
+aria-label="Filter history by language"
+style="
+background:var(--bg);
+border:1px solid var(--border);
+color:var(--text);
+border-radius:4px;
+padding:2px 6px;
+font-size:0.72rem;
+cursor:pointer;
+">
+  <option value="">All</option>
+  <option value="python">Python</option>
+  <option value="java">Java</option>
+  <option value="javascript">JavaScript</option>
+  <option value="typescript">TypeScript</option>
+  <option value="c++">C++</option>
+</select>
+
+<span style="color:var(--text3);">Issues:</span>
+
+<select id="historyIssueFilter"
+aria-label="Filter history by issue count"
+style="
+background:var(--bg);
+border:1px solid var(--border);
+color:var(--text);
+border-radius:4px;
+padding:2px 6px;
+font-size:0.72rem;
+cursor:pointer;
+">
+  <option value="">Any</option>
+  <option value="0">0 Issues</option>
+  <option value="1-5">1-5 Issues</option>
+  <option value="5+">5+ Issues</option>
+</select>
+
           <span style="color:var(--text3);" data-i18n="history_sort_label">Sort:</span>
-          <select id="historySortSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+          <select id="historySortSelect" aria-label="Sort history by" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
             <option value="timestamp" data-i18n="history_sort_date">Date</option>
             <option value="score" data-i18n="history_sort_score">Quality Score</option>
             <option value="issue_count" data-i18n="history_sort_bugs">Bugs Scanned</option>
           </select>
           <span style="color:var(--text3); margin-left: 8px;" data-i18n="history_order_label">Order:</span>
-          <select id="historyOrderSelect" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
+          <select id="historyOrderSelect" aria-label="Sort order" style="background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:4px; padding:2px 6px; font-size:0.72rem; cursor:pointer;">
             <option value="desc" data-i18n="history_order_desc">Desc</option>
             <option value="asc" data-i18n="history_order_asc">Asc</option>
           </select>
@@ -2837,7 +3133,7 @@ details.issue-card[open] {
           <form id="digestForm" style="display:flex;gap:6px;">
             <input type="email" id="digestEmail" placeholder="your@email.com" required
                    style="flex:1;min-width:180px;padding:7px 10px;font-size:0.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
-            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
+            <button type="submit" id="digestBtn" style="padding:7px 14px;font-size:0.8rem;font-weight:600;background:#1d4ed8;color:#fff;border:none;border-radius:6px;cursor:pointer;">Subscribe</button>
           </form>
           <p style="margin:6px 0 0;font-size:0.7rem;color:var(--muted);">Get a Sunday email with your weekly analysis stats.</p>
         </div>
@@ -2847,6 +3143,7 @@ details.issue-card[open] {
     <!-- ── TOAST CONTAINER ─────────────────────────────────────────── -->
     <div id="toastContainer"></div>
 
+    <script src="security-utils.js"></script>
     <script>
       /* ═══════════════════════════════════════════════════════════════
          STATE & TRANSLATIONS
@@ -2896,6 +3193,10 @@ details.issue-card[open] {
           btn_ping: "Ping",
           btn_analyze_code: "Analyze Code",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "Keyboard shortcuts",
+          shortcut_focus: "Focus editor",
+          shortcut_analyze: "Analyze",
+          shortcut_leave: "Leave editor",
           results_title: "Analysis Results",
           tab_explain: "Explain",
           tab_debug: "Debug",
@@ -3000,6 +3301,10 @@ details.issue-card[open] {
           btn_ping: "பிங்",
           btn_analyze_code: "குறியீட்டை பகுப்பாய்",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "விசைப்பலகை குறுக்குவழிகள்",
+          shortcut_focus: "தொகுப்பானில் கவனம்",
+          shortcut_analyze: "பகுப்பாய்வு",
+          shortcut_leave: "தொகுப்பானிலிருந்து விலகு",
           results_title: "பகுப்பாய்வு முடிவுகள்",
           tab_explain: "விளக்கு",
           tab_debug: "பிழைத்திருத்து",
@@ -3104,6 +3409,10 @@ details.issue-card[open] {
           btn_ping: "पिंग",
           btn_analyze_code: "कोड का विश्लेषण करें",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "कीबोर्ड शॉर्टकट",
+          shortcut_focus: "एडिटर पर फ़ोकस",
+          shortcut_analyze: "विश्लेषण",
+          shortcut_leave: "एडिटर से बाहर",
           results_title: "विश्लेषण के परिणाम",
           tab_explain: "समझाएं",
           tab_debug: "डीबग",
@@ -3208,6 +3517,10 @@ details.issue-card[open] {
           btn_ping: "Ping",
           btn_analyze_code: "Analyser le code",
           desktop_hint: "(Ctrl+Enter)",
+          shortcuts_label: "Raccourcis clavier",
+          shortcut_focus: "Activer l’éditeur",
+          shortcut_analyze: "Analyser",
+          shortcut_leave: "Quitter l’éditeur",
           results_title: "Résultats de l'analyse",
           tab_explain: "Expliquer",
           tab_debug: "Déboguer",
@@ -3272,7 +3585,11 @@ details.issue-card[open] {
 
       const MAX_HISTORY = 50;
       let history = JSON.parse(localStorage.getItem('qyx_history') || '[]');
+      let analyticsHistory = [];
       let favorites = JSON.parse(localStorage.getItem('qyx_favorites') || '[]');
+      let historySearchTerm = "";
+      let historyLanguageFilter = "";
+      let historyIssueFilter = "";
       let currentResult = null;
       let selectedLang = 'python';
       const LOCAL_API_BASE = 'http://localhost:8000';
@@ -3298,6 +3615,18 @@ details.issue-card[open] {
       const resultActions = document.getElementById('resultActions');
       const engineInfo = document.getElementById('engineInfo');
       const timeInfo = document.getElementById('timeInfo');
+
+      const resultActionLabels = {
+        favBtn: 'Save current analysis to favorites',
+        downloadBtn: 'Download analysis results',
+        'export-pdf-btn': 'Export analysis as PDF',
+        'export-md-btn': 'Export analysis as Markdown'
+      };
+
+      Object.entries(resultActionLabels).forEach(([id, label]) => {
+        const button = document.getElementById(id);
+        if (button) button.setAttribute('aria-label', label);
+      });
 
       /* ═══════════════════════════════════════════════════════════════
          THEME
@@ -3716,22 +4045,45 @@ details.issue-card[open] {
       }
 
       document.querySelectorAll('.lang-tab').forEach(t => {
-        t.addEventListener('click', () => setLanguage(t.dataset.lang));
+        t.addEventListener('click', () =>{
+          console.log("Clicked language:", t.dataset.lang);
+        setLanguage(t.dataset.lang));
       });
 
       /* ═══════════════════════════════════════════════════════════════
          MODE BUTTONS
       ═══════════════════════════════════════════════════════════════ */
-      document.querySelectorAll('.mode-btn').forEach(b => {
-        b.addEventListener('click', () => {
-          selectedMode = b.dataset.mode;
-          document.querySelectorAll('.mode-btn').forEach(x => {
-            x.classList.remove('active');
-            x.setAttribute('aria-pressed', 'false');
-          });
-          b.classList.add('active');
-          b.setAttribute('aria-pressed', 'true');
+      function setMode(mode) {
+        const button = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+        if (!button) return;
+
+        selectedMode = mode;
+        document.querySelectorAll('.mode-btn').forEach(x => {
+          x.classList.remove('active');
+          x.setAttribute('aria-pressed', 'false');
         });
+        button.classList.add('active');
+        button.setAttribute('aria-pressed', 'true');
+      }
+
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.addEventListener('click', () => setMode(b.dataset.mode));
+      });
+
+      document.addEventListener('keydown', e => {
+        if (!(e.ctrlKey || e.metaKey) || !e.altKey) return;
+
+        const shortcutModes = {
+          '1': 'analyze',
+          '2': 'explain',
+          '3': 'debug',
+          '4': 'suggest'
+        };
+        const mode = shortcutModes[e.key];
+        if (!mode) return;
+
+        e.preventDefault();
+        setMode(mode);
       });
 
       /* ═══════════════════════════════════════════════════════════════
@@ -3811,6 +4163,28 @@ details.issue-card[open] {
       ═══════════════════════════════════════════════════════════════ */
       analyzeBtn.addEventListener('click', doAnalyze);
 
+      window.QyverixSecurity.bindKeyboardShortcuts(document, [
+        {
+          key: 'Enter',
+          mod: true,
+          allowInEditable: true,
+          when: (event) =>
+            !analyzeBtn.disabled &&
+            (event.target === editor || !window.QyverixSecurity.isEditableShortcutTarget(event.target)),
+          handler: doAnalyze,
+        },
+        {
+          key: '/',
+          handler: () => editor.focus(),
+        },
+        {
+          key: 'Escape',
+          allowInEditable: true,
+          when: () => document.activeElement === editor,
+          handler: () => editor.blur(),
+        },
+      ]);
+
       async function doAnalyze() {
         const code = editor.value.trim();
         if (!selectedZipFile && !code) { toast(getTranslation('toast_please_paste'), 'error'); return; }
@@ -3848,7 +4222,7 @@ details.issue-card[open] {
             const data = await res.json();
             currentResult = data;
             renderZipResults(data);
-            addToHistory(`ZIP: ${selectedZipFile.name}`, data);
+            await addToHistory(`ZIP: ${selectedZipFile.name}`, data);
             apiDot?.classList.add('connected');
             if (apiStatusText) apiStatusText.textContent = 'Connected';
             document.getElementById('engineBar').style.display = 'flex';
@@ -3888,7 +4262,7 @@ details.issue-card[open] {
 
           currentResult = result;
           renderResults(result, code);
-          addToHistory(code, result);
+          await addToHistory(code, result);
           apiDot?.classList.add('connected');
           if (apiStatusText) apiStatusText.textContent = getTranslation('api_status_connected');
           document.getElementById('engineBar').style.display = 'flex';
@@ -3916,7 +4290,10 @@ details.issue-card[open] {
           return;
         }
         if (result.explanation) renderExplain(result.explanation);
-        if (result.debugging) renderDebug(result.debugging);
+       if (result.debugging) {
+  renderDebug(result.debugging);
+  renderIssueSummaryCard(result.debugging);
+}
         if (result.suggestions) renderSuggest(result.suggestions);
 
         // Auto-switch to relevant tab
@@ -3925,6 +4302,54 @@ details.issue-card[open] {
         document.querySelector(`[data-rtab="${targetTab}"]`).click();
       }
 
+      function renderIssueSummaryCard(debugging) {
+  const card = document.getElementById('issue-summary-card');
+  if (!card || !debugging) return;
+
+  const total = debugging.issues ? debugging.issues.length : 0;
+  const errors = debugging.error_count || 0;
+  const warnings = debugging.warning_count || 0;
+  const info = debugging.info_count || 0;
+
+  card.style.display = 'block';
+
+  if (total === 0) {
+    card.innerHTML = `
+      <div class="summary-card summary-success">
+        <span class="summary-icon">✅</span>
+        <div>
+          <div class="summary-title">Great Job!</div>
+          <div class="summary-subtitle">No issues detected.</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  card.innerHTML = `
+    <div class="summary-card">
+      <div class="summary-header">🐞 Analysis Summary</div>
+      <div class="summary-stats">
+        <div class="stat-item">
+          <span class="stat-label">Total Issues</span>
+          <span class="stat-value">${total}</span>
+        </div>
+        <div class="stat-item stat-error">
+          <span class="stat-label">❌ Errors</span>
+          <span class="stat-value">${errors}</span>
+        </div>
+        <div class="stat-item stat-warning">
+          <span class="stat-label">⚠️ Warnings</span>
+          <span class="stat-value">${warnings}</span>
+        </div>
+        <div class="stat-item stat-info">
+          <span class="stat-label">ℹ️ Info</span>
+          <span class="stat-value">${info}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
       function renderZipResults(project) {
         ['emptyExplain', 'emptyDebug', 'emptySuggest'].forEach(id => {
           document.getElementById(id).style.display = 'none';
@@ -4058,7 +4483,7 @@ details.issue-card[open] {
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${getTranslation('meta_lines').replace('{count}', exp.line_count)}</div>
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${getTranslation('meta_functions').replace('{count}', exp.function_count)}</div>
       ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + getTranslation('meta_classes').replace('{count}', exp.class_count) + '</div>' : ''}
-      <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> ${exp.line_count} lines</div>
+      
       <div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> ${exp.function_count} fn${exp.function_count !== 1 ? 's' : ''}</div>
       ${exp.class_count > 0 ? '<div class="meta-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> ' + exp.class_count + ' class' + (exp.class_count !== 1 ? 'es' : '') + '</div>' : ''}
       ${exp.cyclomatic_complexity != null ? `<div class="meta-chip risk-${(exp.complexity_risk || 'Simple').replace(/\s+/g, '-')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> M=${exp.cyclomatic_complexity} &middot; ${exp.complexity_risk}</div>` : ''}
@@ -4067,6 +4492,51 @@ details.issue-card[open] {
       ${exp.key_points.map((p, i) => `<li style="animation-delay:${i * 0.05}s">${renderMarkdown(p)}</li>`).join('')}
     </ul>
   `;
+      }
+
+      // ── Issue Complexity Badge ──
+      // Pure frontend heuristic: scores an issue using fields already present on the
+      // issue object (severity, description length, suggestion presence, keywords)
+      // and maps it to Easy / Medium / Hard. No backend involvement required.
+      const COMPLEXITY_KEYWORDS = {
+        hard: ['race condition', 'deadlock', 'memory leak', 'security', 'vulnerability', 'concurrency', 'thread', 'async', 'architecture', 'refactor', 'sql injection', 'recursion', 'algorithm'],
+        medium: ['null', 'undefined', 'exception', 'error handling', 'type', 'performance', 'validation', 'edge case', 'logic'],
+      };
+
+      function scoreIssueComplexity(issue) {
+        let score = 0;
+        const desc = (issue.description || '').toLowerCase();
+        const type = (issue.type || '').toLowerCase();
+        const text = `${desc} ${type}`;
+
+        if (issue.severity === 'error') score += 3;
+        else if (issue.severity === 'warning') score += 2;
+        else if (issue.severity === 'info') score += 1;
+
+        const len = desc.length;
+        if (len > 160) score += 3;
+        else if (len > 80) score += 2;
+        else if (len > 0) score += 1;
+
+        if (COMPLEXITY_KEYWORDS.hard.some(k => text.includes(k))) score += 3;
+        else if (COMPLEXITY_KEYWORDS.medium.some(k => text.includes(k))) score += 1;
+
+        if (!issue.suggestion) score += 1;
+
+        return score;
+      }
+
+      function getIssueComplexity(issue) {
+        const score = scoreIssueComplexity(issue);
+        if (score >= 7) return { level: 'hard', label: 'Hard', emoji: '🔴', score };
+        if (score >= 4) return { level: 'medium', label: 'Medium', emoji: '🟡', score };
+        return { level: 'easy', label: 'Easy', emoji: '🟢', score };
+      }
+
+      function renderComplexityBadge(issue) {
+        const c = getIssueComplexity(issue);
+        const tooltip = `Estimated complexity: ${c.label} (score ${c.score}/11) — based on severity, description length, keywords, and whether a fix suggestion is provided.`;
+        return `<span class="complexity-chip complexity-${c.level}" title="${escHtml(tooltip)}">${c.emoji} ${c.label}</span>`;
       }
 
       function renderDebug(dbg) {
@@ -4109,6 +4579,7 @@ details.issue-card[open] {
 
     <summary class="collapsible-summary">
       <span>${issue.type}</span>
+      ${renderComplexityBadge(issue)}
       ${issue.line
         ? `<span class="issue-line">Line ${issue.line}</span>`
         : ''}
@@ -4464,6 +4935,68 @@ details.issue-card[open] {
         engineInfo.textContent = '';
         timeInfo.textContent = '';
         currentResult = null;
+        document.getElementById('issue-summary-card').style.display = 'none';
+      }
+
+      function renderAnalytics() {
+        const entries = analyticsHistory.length ? analyticsHistory : history;
+        const total = entries.length;
+
+        document.getElementById('analyticsTotal').textContent = total;
+
+        if (!total) {
+          document.getElementById('analyticsLanguage').textContent = '-';
+          document.getElementById('analyticsScore').textContent = '0';
+          document.getElementById('analyticsIssues').textContent = '0';
+          return;
+        }
+
+        const languageCounts = {};
+        let totalScore = 0;
+        let totalIssues = 0;
+        let scoreCount = 0;
+        let issueCount = 0;
+
+        entries.forEach(entry => {
+
+        const lang = entry.lang || entry.language || "Unknown";
+        languageCounts[lang] = (languageCounts[lang] || 0) + 1;
+
+        const score =
+            entry.score ??
+            entry.result?.suggestions?.overall_score ??
+            entry.result?.suggestions?.quality_score ??
+            entry.result?.overall_project_score ??
+            entry.result?.quality_score;
+
+        if (typeof score === "number") {
+            totalScore += score;
+            scoreCount++;
+        }
+
+        const issues =
+            entry.issue_count ??
+            entry.result?.debugging?.issues?.length ??
+            0;
+
+        totalIssues += issues;
+        issueCount++;
+      });
+
+        const topLanguage =
+          Object.entries(languageCounts)
+            .sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+
+        document.getElementById("analyticsLanguage").textContent =
+          topLanguage === "-"
+              ? "-"
+              : topLanguage.charAt(0).toUpperCase() + topLanguage.slice(1);
+
+        document.getElementById('analyticsScore').textContent =
+          scoreCount ? (totalScore / scoreCount).toFixed(1) : '0';
+
+        document.getElementById('analyticsIssues').textContent =
+          issueCount ? (totalIssues / issueCount).toFixed(1) : '0';
       }
 
       /* ═══════════════════════════════════════════════════════════════
@@ -4518,29 +5051,68 @@ details.issue-card[open] {
           });
           historyOffset = 0;
           await fetchHistory();
+          await fetchAnalyticsHistory();
         } catch (err) {
           loadLocalHistory();
+          renderHistory();
+          renderAnalytics();
         }
       }
 
       async function fetchHistory() {
         const apiBase = getApiBase();
         try {
-          const res = await fetch(`${apiBase}/history/?limit=${historyLimit}&offset=${historyOffset}&sort_by=${historySortBy}&order=${historyOrder}`);
+          const endpoint = historySearchTerm
+            ? `${apiBase}/history/search?q=${encodeURIComponent(historySearchTerm)}&limit=100`
+            : `${apiBase}/history/?limit=${historyLimit}&offset=${historyOffset}&sort_by=${historySortBy}&order=${historyOrder}`;
+
+          const res = await fetch(endpoint);
           if (res.ok) {
             const data = await res.json();
-            history = data.items;
-            historyTotal = data.meta.total;
+
+            if (historySearchTerm) {
+              history = Array.isArray(data) ? data : [];
+              historyTotal = history.length;
+            } else {
+              history = data.items;
+              historyTotal = data.meta.total;
+            }
+
             renderHistory();
+            renderAnalytics();
             updatePaginationUI();
+
             return;
-          }
+        }
         } catch (err) {
           // Fallback to local storage on fetch error
         }
         loadLocalHistory();
+        renderHistory();
+        renderAnalytics();
       }
 
+      async function fetchAnalyticsHistory() {
+        const apiBase = getApiBase();
+
+        try {
+            const res = await fetch(
+                `${apiBase}/history/?limit=100&offset=0&sort_by=timestamp&order=desc`
+            );
+
+            if (!res.ok) return;
+
+            const data = await res.json();
+
+            analyticsHistory = data.items;
+
+            renderAnalytics();
+
+        } catch (err) {
+            analyticsHistory = JSON.parse(localStorage.getItem("qyx_history") || "[]");
+            renderAnalytics();
+        }
+    }
       async function confirmDeleteHistory(id) {
 
         if(!confirm("Delete this history entry?")) return;
@@ -4597,19 +5169,62 @@ details.issue-card[open] {
         history = localHistory.slice(historyOffset, historyOffset + historyLimit);
         
         renderHistory();
+        renderAnalytics();
         updatePaginationUI();
       }
 
       function renderHistory() {
         const listContainer = document.getElementById('historyList');
         if (!listContainer) return;
+         
+        let filteredHistory = history;
 
-        if (!history || !history.length) {
+  if (historySearchTerm) {
+  filteredHistory = history.filter(h => {
+    const preview = (h.code_preview || h.preview || '').toLowerCase();
+    const code = (h.code || '').toLowerCase();
+    const lang = (h.language || h.lang || '').toLowerCase();
+    const timestamp = (h.timestamp || h.ts || '').toLowerCase();
+
+    return preview.includes(historySearchTerm) ||
+           code.includes(historySearchTerm) ||
+           lang.includes(historySearchTerm) ||
+           timestamp.includes(historySearchTerm);
+  });
+}
+
+if (historyLanguageFilter) {
+  filteredHistory = filteredHistory.filter(h =>
+    (h.language || h.lang || '')
+      .toLowerCase() === historyLanguageFilter
+  );
+}
+
+if (historyIssueFilter === "0") {
+  filteredHistory = filteredHistory.filter(
+    h => (h.issue_count || 0) === 0
+  );
+}
+
+else if (historyIssueFilter === "1-5") {
+  filteredHistory = filteredHistory.filter(h => {
+    const count = h.issue_count || 0;
+    return count >= 1 && count <= 5;
+  });
+}
+
+else if (historyIssueFilter === "5+") {
+  filteredHistory = filteredHistory.filter(h => {
+    const count = h.issue_count || 0;
+    return count > 5;
+  });
+}
+        if (!filteredHistory || !filteredHistory.length) {
           listContainer.innerHTML = `<div class="list-empty" data-i18n="empty_history">${getTranslation('empty_history')}</div>`;
           return;
         }
 
-        listContainer.innerHTML = history.map(h => {
+        listContainer.innerHTML = filteredHistory.map(h => {
           const lang = h.language || h.lang || '?';
           const preview = h.code_preview || h.preview || '';
           
@@ -4656,14 +5271,16 @@ details.issue-card[open] {
             .replace('{time}', displayTime);
 
           return `
-            <div class="history-item" onclick="loadEntry('${h.id}')" tabindex="0" role="button" aria-label="${label}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadEntry('${h.id}'); }">
-              <span class="history-lang">${lang}</span>
-              <span class="history-thumb">${escHtml(preview)}…</span>
-              <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
-                ${scoreHtml}
-                ${issuesHtml}
-              </div>
-              <span class="history-meta">${displayTime}</span>
+            <div class="history-item">
+              <button type="button" class="item-load-btn" onclick="loadEntry('${h.id}')" aria-label="${label}">
+                <span class="history-lang">${lang}</span>
+                <span class="history-thumb">${escHtml(preview)}…</span>
+                <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
+                  ${scoreHtml}
+                  ${issuesHtml}
+                </div>
+                <span class="history-meta">${displayTime}</span>
+              </button>
               <button
               class="delete-btn"
               onclick="event.stopPropagation(); confirmDeleteHistory('${h.id}')"
@@ -4729,6 +5346,25 @@ details.issue-card[open] {
         historyOffset = 0;
         fetchHistory();
       });
+      document.getElementById('historySearchInput')?.addEventListener('input', (e) => {
+  historySearchTerm = e.target.value.toLowerCase().trim();
+  historyOffset = 0;
+  fetchHistory();
+});
+
+document.getElementById('historyLanguageFilter')
+?.addEventListener('change', (e) => {
+  historyLanguageFilter = e.target.value;
+  historyOffset = 0;
+  renderHistory();
+});
+
+document.getElementById('historyIssueFilter')
+?.addEventListener('change', (e) => {
+  historyIssueFilter = e.target.value;
+  historyOffset = 0;
+  renderHistory();
+});
 
       document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm(getTranslation('confirm_clear_history'))) return;
@@ -4739,8 +5375,11 @@ details.issue-card[open] {
         } catch (err) {}
 
         localStorage.removeItem('qyx_history');
+        renderHistory();
+        renderAnalytics();
         historyOffset = 0;
         await fetchHistory();
+        await fetchAnalyticsHistory();
         toast(getTranslation('toast_history_cleared'), 'info');
       });
 
@@ -4913,14 +5552,16 @@ details.issue-card[open] {
             .replace('{time}', displayTime);
 
           return `
-            <div class="fav-item" onclick="loadFav('${f.id}')" tabindex="0" role="button" aria-label="${label}" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); loadFav('${f.id}'); }">
-              <span class="history-lang">${f.lang || '?'}</span>
-              <span class="history-thumb">${escHtml(f.preview)}…</span>
-              <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
-                ${scoreHtml}
-                ${issuesHtml}
-              </div>
-              <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+            <div class="fav-item">
+              <button type="button" class="item-load-btn" onclick="loadFav('${f.id}')" aria-label="${label}">
+                <span class="history-lang">${f.lang || '?'}</span>
+                <span class="history-thumb">${escHtml(f.preview)}…</span>
+                <div class="history-stats" style="display:flex; gap:6px; align-items:center; margin-right:8px; flex-shrink:0;">
+                  ${scoreHtml}
+                  ${issuesHtml}
+                </div>
+                <span class="history-meta" style="opacity:0.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+              </button>
               <button class="delete-btn" onclick="event.stopPropagation(); confirmDeleteFavorite('${f.id}')"
               title="Delete favorite" aria-label="Delete favorite">
               <svg 
@@ -4981,10 +5622,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
         const text = buildReport(currentResult, editor.value);
         const blob = new Blob([text], { type: 'text/plain' });
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        a.href = url;
         a.download = `qyverixai-report-${Date.now()}.txt`;
         a.click();
-        URL.revokeObjectURL(a.href);
+        // Delay Blob URL revocation to allow browser download stream initialization
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 1000);
         toast(getTranslation('toast_report_downloaded'), 'success');
       });
 
@@ -4999,10 +5644,14 @@ document.getElementById('clearFavsBtn').addEventListener('click', () => {
             
             const blob = new Blob([mdText], { type: 'text/markdown' });
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
+            a.href = url;
             a.download = `qyverixai-report-${Date.now()}.md`;
             a.click();
-            URL.revokeObjectURL(a.href);
+            // Delay Blob URL revocation to allow browser download stream initialization
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 1000);
             
             if (typeof toast === 'function') toast('Downloaded as Markdown', 'success');
         } catch (error) {
@@ -5253,8 +5902,12 @@ int main() {
       setAppLanguage(appLang);
       syncApiStatusText();
 
+      loadTheme();
       fetchHistory();
       renderFavorites();
+      renderAnalytics();
+      fetchAnalyticsHistory();
+      updateEditor();
 
       // Save API URL
       if (apiUrlInput) {
@@ -5369,8 +6022,8 @@ int main() {
         <span>Session</span>
       </div>
       <div class="collab-panel-top">
-        <input id="collabName" placeholder="Your name" value="Your name" />
-        <input id="collabSession" placeholder="Session ID e.g. review-676" />
+        <input id="collabName" placeholder="Your name" value="Your name"  aria-label="Your name"/>
+        <input id="collabSession" placeholder="Session ID e.g. review-676" aria-label="Session ID"/>
         <button id="collabJoinBtn" type="button">Join Live</button>
         <button id="collabLeaveBtn" type="button" disabled>Leave</button>
       </div>
@@ -5390,8 +6043,8 @@ int main() {
         <span>Review comments</span>
       </div>
       <div class="collab-comment-row">
-        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1" />
-        <input id="collabCommentText" placeholder="Add a live review comment..." />
+        <input id="collabLine" class="collab-line-input" type="number" min="1" value="1"  aria-label="Comment line number"/>
+        <input id="collabCommentText" placeholder="Add a live review comment..." aria-label="Review comment"/>
         <button id="collabCommentBtn" type="button" disabled>Comment</button>
       </div>
       <div id="collabComments" class="collab-comments"></div>

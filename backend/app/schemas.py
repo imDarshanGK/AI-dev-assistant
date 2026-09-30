@@ -242,6 +242,34 @@ class SuggestionsResponse(BaseModel):
         description="A single prioritised action the developer should take next.",
         example="Good work. Address the medium-priority items next.",
     )
+    dependencies: list[str] = Field(
+        default_factory=list,
+        description="Third-party package names detected from import/require statements.",
+        example=["requests", "flask"],
+    )
+
+
+# ── Vulnerabilities ───────────────────────────────────────────────────────────
+class Vulnerability(BaseModel):
+    """A known CVE correlated against a detected dependency."""
+
+    package: str = Field(
+        ...,
+        description="Dependency name this vulnerability was found for.",
+        example="flask",
+    )
+    cve_id: str = Field(..., description="CVE identifier.", example="CVE-2023-1234")
+    description: str = Field(
+        default="", description="Human-readable description of the vulnerability."
+    )
+    severity: str = Field(
+        default="UNKNOWN",
+        description="CVSS base severity, e.g. LOW, MEDIUM, HIGH, CRITICAL, or UNKNOWN.",
+        example="HIGH",
+    )
+    published: str = Field(
+        default="", description="Date the CVE was published, as reported by NVD."
+    )
 
 
 # ── Full Analysis ─────────────────────────────────────────────────────────────
@@ -274,6 +302,20 @@ class AnalyzeResponse(BaseModel):
         default=None,
         description="Total time taken to run all three analyses, in milliseconds.",
         example=1.84,
+    )
+    mode: str = Field(
+        default="rule-based",
+        description="Analysis mode: `rule-based`, `hybrid`, or `degraded`.",
+        example="hybrid",
+    )
+    optimized_version: str | None = Field(
+        default=None,
+        description="LLM-suggested optimized rewrite of the code, when mode is `hybrid`.",
+        example=None,
+    )
+    vulnerabilities: list[Vulnerability] = Field(
+        default_factory=list,
+        description="Known CVEs correlated against the detected dependencies.",
     )
 
 
@@ -381,7 +423,6 @@ class LoginRequest(BaseModel):
     )
     password: str = Field(
         ...,
-        min_length=8,
         max_length=128,
         description="The account password.",
         example="supersecret123",

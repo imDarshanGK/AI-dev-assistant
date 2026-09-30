@@ -39,7 +39,6 @@ from app import models as _models  # noqa: E402, F401  – registers all ORM mod
 from app.database import Base  # noqa: E402
 from app.models import (  # noqa: E402
     DigestSubscription,
-    FavoriteResult,
     QueryHistory,
     SharedSnippet,
     User,

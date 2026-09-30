@@ -105,6 +105,9 @@ class SharedSnippet(Base):
     __tablename__ = "shares"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), index=True, nullable=True
+    )
     token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"), nullable=True, index=True

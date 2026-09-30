@@ -12,11 +12,12 @@
 <br/>
 
 [![CI](https://github.com/imDarshanGK/AI-dev-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/imDarshanGK/AI-dev-assistant/actions)
+[![codecov](https://codecov.io/gh/imDarshanGK/AI-dev-assistant/graph/badge.svg)](https://codecov.io/gh/imDarshanGK/AI-dev-assistant)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![GSSoC 2026](https://img.shields.io/badge/GSSoC-2026-FF6B35?logoColor=white)](https://gssoc.girlscript.tech)
+[![Open Source](https://img.shields.io/badge/Open%20Source-Project-4A9DFF?logo=github&logoColor=white)](https://github.com/imDarshanGK/AI-dev-assistant)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-supported-4169E1?logo=postgresql&logoColor=white)](docker-compose.yml)
 [![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev)
@@ -36,7 +37,7 @@ Read the release history and notable changes in the project changelog: **[docs/C
 
 <br/>
 
-> **GSSoC 2026 Contributors** -- Welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, then grab a [good first issue](https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue) to get started.
+> **Open source contributors** -- Welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, then explore an issue or propose a small improvement.
 
 </div>
 
@@ -71,7 +72,7 @@ No account required for the core analysis. No API key needed. Works fully offlin
 |---|---|
 | **40+ Bug Patterns** | ZeroDivisionError, bare except, hardcoded secrets, eval/exec, memory leaks, XSS, NullPointerException, unsafe `unwrap()`, and more |
 
-| **5 Languages Detected** | Python, JavaScript, TypeScript, Java, C++ - the first 5 have dedicated bug-pattern checks today |
+| **5 Languages with Dedicated Bug Checks** | Python, JavaScript, TypeScript, Java, and C++ have dedicated bug-pattern checks today |
 | **Project / ZIP Analysis** | `POST /analyze/zip/` scans up to 20 source files in an uploaded archive and returns one aggregated project score plus a per-file breakdown |
 | **Streaming Analysis (SSE)** | `GET/POST /analyze/stream` streams explanation → debugging → suggestions as they complete, instead of waiting for the full response |
 | **Live Collaboration (WebSocket)** | `WS /ws/{session_id}` — multiple users join a session, see each other's presence (name + colour), live code sync, and shared inline comments |
@@ -114,22 +115,43 @@ No account required for the core analysis. No API key needed. Works fully offlin
 
 ### Prerequisites
 
-- Python 3.11 or 3.12
-- pip
-- A modern browser (Chrome, Firefox, Edge, Safari)
+- **Python**: 3.11 or 3.12
+- **Package Manager**: `pip` and `npm`
+- **Node.js**: v18 or above (for frontend)
+- **Browser**: A modern browser (Chrome, Firefox, Edge, Safari)
+- **Database (Optional)** : PostgreSQL (if running database features)
 
-### 1 - Clone
+
+### Step-by-Step Local Setup
+
+
+### 1 - Clone the Repository
 
 ```bash
-git clone https://github.com/imDarshanGK/AI-dev-assistant.git
+git clone [https://github.com/imDarshanGK/AI-dev-assistant.git](https://github.com/imDarshanGK/AI-dev-assistant.git)
 cd AI-dev-assistant
 ```
+
+# Copy example environment files
+cp backend/.env.example backend/.env
 
 ### 2 - Run the backend
 
 ```bash
+# Navigate to backend directory
 cd backend
+
+#(Optional) Create and activate a virtual environment
+python -m venv venv
+#On Windows:
+#venv\Scripts\activate
+#On Linux/macOS:
+#source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Start the FastAPI server
 uvicorn app.main:app --reload
 ```
 ### Environment Setup
@@ -165,6 +187,20 @@ The app can still run without external AI providers when `LLM_ENABLED=false`. Ac
 
 The full endpoint list - including project ZIP analysis, AI chat, and live collaboration - is in [API Reference](#api-reference) below.
 
+
+### Run the Frontend
+
+```bash
+# Navigate to frontend directory from the root
+
+cd ../frontend
+
+# Install dependencies
+npm install
+
+# Start the frontend dev server
+npm run dev
+
 ### 3 - Open the frontend
 
 ```bash
@@ -174,7 +210,9 @@ open frontend/index.html
 
 Set the API URL field to `http://localhost:8000`, click **Ping** to confirm the green Connected status, then paste any code and click **Analyze Code**.
 
-> `frontend/index.html` is the single self-contained file actually served — it does not load `frontend/script.js` or `frontend/style.css`. Those two files (plus `security-utils.js`) hold the same logic in separately testable modules and exist primarily so `frontend/tests/` can run focused security/XSS regression tests against them without parsing the full page.
+Keyboard shortcuts: press `Ctrl+Enter` (`Cmd+Enter` on macOS) to analyze, `/` to focus the code editor, and `Escape` to leave the editor.
+
+> `frontend/index.html` is the page actually served. It loads `frontend/security-utils.js` for shared security and keyboard helpers, while its remaining styles and application logic are inline. `frontend/script.js` and `frontend/style.css` are retained as separately testable/reference modules.
 
 ---
 
@@ -210,7 +248,13 @@ Returns a plain-English breakdown of the code.
   "class_count": 0
 }
 ```
+#### Edge Cases
 
+- If `language` is omitted, the service automatically detects the programming language from the submitted code.
+- If the language cannot be confidently identified, the response falls back to `"Unknown"` while still generating an explanation.
+- Code without functions or classes still receives a plain-English summary and basic code statistics.
+- Recursive functions may be identified and reflected in the generated key points.
+- The reported complexity is an estimated difficulty level based on the analyzed code structure and should not be interpreted as a runtime performance measurement.
 ---
 
 ### `POST /debugging/`
@@ -236,12 +280,18 @@ Returns detected issues with line numbers, code snippets, and fix suggestions. F
   "info_count": 0
 }
 ```
+#### AST Analyzer Edge Cases
 
+- If the submitted Python code contains a syntax error, the analyzer returns a syntax error issue instead of crashing.
+- Code with no detectable AST issues is treated as clean and returns no AST-based findings.
+- Wildcard imports (`from module import *`) are excluded from unused import detection.
+- Parameters named `self`, `cls`, or prefixed with `_` are ignored during unused argument detection.
+- Deep nesting warnings are generated only when the nesting depth exceeds three levels.
 ---
 
 ### `POST /suggestions/`
 
-Returns improvement suggestion cards with a quality score. Each suggestion with an `example` renders as a before/after diff in the frontend.
+Returns improvement suggestions with a quality score and letter grade.
 
 ```json
 {
@@ -314,6 +364,14 @@ Real-time collaboration room. Connect with `?name=YourName`; the server assigns 
 Client → server message types: `ping`, `code_update`, `cursor_update`, `comment_added`.
 Server → client message types: `session_state`, `presence_update`, `pong`, plus broadcasts of the above as other users act. The room is held in memory and is deleted automatically once every participant disconnects - there is no persistence between sessions today.
 
+#### Presence Sync Edge Cases
+
+- A `presence_update` event is broadcast whenever a participant joins or leaves the collaboration session.
+- Newly connected participants receive the current session state, including the active participants already in the room.
+- Presence information exists only while the collaboration room is active and is not persisted between sessions.
+- When the last participant disconnects, the collaboration room is automatically removed from memory.
+
+
 ---
 
 ### `POST /chat` and `POST /chat/message`
@@ -337,6 +395,14 @@ Ask a follow-up question about a piece of code. `POST /chat` returns a simple `{
 When `LLM_ENABLED=true` and the configured provider responds successfully, `mode` becomes `"live-llm"` instead.
 
 ---
+
+#### Error Tracking Service Edge Cases
+
+- If `SENTRY_DSN` is missing, empty, or contains an invalid value, error tracking is skipped and the application continues running normally.
+- Only DSNs beginning with `https://` or `http://` are accepted. Invalid DSNs are rejected and a warning is logged.
+- `SENTRY_TRACES_SAMPLE_RATE` values outside the valid `0.0–1.0` range are automatically clamped to the nearest valid value before initialization.
+- If the `sentry_sdk` package is unavailable or initialization fails for any reason, the failure is logged as a warning and the application continues without error tracking.
+- Initialization failures never prevent the application from starting or handling requests normally.
 
 ### `POST /share/` and `GET /share/{token}`
 
@@ -378,7 +444,16 @@ curl -F "file=@app.py" http://localhost:8000/upload/validate
 
 ### `POST /subscribe/` and `POST /subscribe/unsubscribe`
 
-Subscribe an email to the weekly digest, or unsubscribe (also available as `GET /subscribe/unsubscribe?token=...` for one-click email unsubscribe links). Full flow documented in [docs/SUBSCRIPTION_GUIDE.md](docs/SUBSCRIPTION_GUIDE.md).
+Subscribe an email to the weekly digest, or unsubscribe (also available as `GET /subscribe/unsubscribe?...`). Full flow documented in [docs/SUBSCRIPTION_GUIDE.md](docs/SUBSCRIPTION_GUIDE.md).
+
+#### Scheduler Service Edge Cases
+
+- If the digest feature is disabled, the scheduled weekly job is skipped.
+- If there are no active subscribers, the scheduler exits without sending emails.
+- Subscribers with no available digest data are skipped without affecting other deliveries.
+- If a digest email fails to send, the failure is logged and processing continues for the remaining subscribers.
+- Duplicate scheduler jobs are prevented if the weekly digest job has already been registered.
+
 
 ---
 
@@ -521,6 +596,32 @@ All of this runs automatically via GitHub Actions - see [CI workflows](#tech-sta
 ## Docker Compose - Full Local Dev Environment
 
 Run the complete stack (backend + frontend + PostgreSQL) with a single command.
+
+## 🌱 Good First Issues
+
+New to AI Dev Assistant? Start here!
+
+We maintain a collection of beginner-friendly issues that are ideal for first-time contributors. These issues usually require minimal project familiarity and are a great way to get started.
+
+### Find beginner-friendly issues
+
+- ⭐ Good First Issues:
+  https://github.com/imDarshanGK/AI-dev-assistant/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
+
+- 🛠️ Help Wanted:
+  https://github.com/imDarshanGK/AI-dev-assistant/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
+
+### How to claim an issue
+
+1. Browse the available issues.
+2. Read the issue description carefully.
+3. Comment on the issue to express your interest.
+4. Wait for a maintainer to assign or acknowledge your request (if required).
+5. Fork the repository and create a new branch.
+6. Make your changes and test them.
+7. Submit a Pull Request referencing the issue number.
+
+> **Note:** This list is updated periodically. If you don't find a suitable issue, check the Issues page for newly opened tasks.
 
 ### Prerequisites
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed
@@ -702,7 +803,7 @@ Copy `.env.example` to `.env` and fill in values as needed.
 
 ## Contributing
 
-QyverixAI is a **GSSoC 2026** open source project. Contributors of all levels are welcome.
+QyverixAI is an open source project for developers who want faster code understanding, debugging, and quality improvements.
 
 ```bash
 # 1. Fork the repo on GitHub
@@ -721,7 +822,7 @@ pytest -v   # all tests must pass
 
 Read the full workflow, code standards, and pattern guide in [CONTRIBUTING.md](CONTRIBUTING.md). Architecture overview lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (note: it predates several features in this README and could use an update too - also a good first issue).
 
-### Good first issues for GSSoC contributors
+### Good first issues for contributors
 
 | Task | Label |
 |---|---|
@@ -794,6 +895,20 @@ MIT © [Darshan G K](https://github.com/imDarshanGK)
 
 <br/>
 
-Built for the open source community &nbsp;·&nbsp; GSSoC 2026
+Built for the open source community
+
+
+### Validation Check 
+
+- **Backend API:** Open http://localhost:8000/docs in your browser to confirm the working of backend(server) of the application.
+- **Frontend API:** Open http://localhost:3000 (or the ports outputted in your terminal) to verify that the interface is running.
+
+
+###Common Pitfalls
+- **Virtual Environment Inaactive:** If dependencies fail to install or `uvicorn` is not working then make sure there is a proper virtual environment set up
+
+-**Missing `.env` File:** If the backend throws configuration or database errors make sure that `.env` is imported from `.env.example`.
+
+-**Port Conflicts:** Ensure ports 8000 and 3000 are free to use.
 
 </div>
