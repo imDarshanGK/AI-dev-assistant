@@ -307,3 +307,15 @@ def test_used_import_not_flagged():
     code = "import math\nx = math.sqrt(16)\n"
     issues = analyze(code)
     assert not any(i["type"] == "Unused Import" for i in issues)
+
+
+def test_future_import_not_flagged_as_unused():
+    code = "from __future__ import annotations\n\nx = 1\n"
+    issues = analyze(code)
+    assert not any(i["type"] == "Unused Import" for i in issues)
+
+
+def test_unused_import_still_flagged_next_to_future_import():
+    code = "from __future__ import annotations\nimport os\n"
+    issues = [i for i in analyze(code) if i["type"] == "Unused Import"]
+    assert [i["line"] for i in issues] == [2]
