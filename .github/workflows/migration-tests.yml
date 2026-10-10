@@ -1,0 +1,45 @@
+﻿name: Migration Tests
+
+on:
+  push:
+    branches: ["feat/db-migration-scripts"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  migration-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install alembic sqlalchemy
+
+      - name: Run upgrade
+        run: |
+          cd backend
+          alembic upgrade head
+        env:
+          DATABASE_URL: sqlite:///./test.db
+
+      - name: Run downgrade
+        run: |
+          cd backend
+          alembic downgrade base
+        env:
+          DATABASE_URL: sqlite:///./test.db
+
+      - name: Run upgrade again
+        run: |
+          cd backend
+          alembic upgrade head
+        env:
+          DATABASE_URL: sqlite:///./test.db
