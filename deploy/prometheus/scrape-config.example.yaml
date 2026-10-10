@@ -17,3 +17,39 @@ scrape_configs:
     # authorization:
     #   type: Bearer
     #   credentials: "REPLACE_WITH_METRICS_AUTH_TOKEN"
+
+# ============================================
+# ALERTING CONFIGURATION
+# ============================================
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+      timeout: 10s
+
+# Alert rules files
+rule_files:
+  - "alerts.yml"
+
+# Example: Custom alert rule for high error rate
+# Copy this to alerts.yml file
+#
+# groups:
+# - name: qyverixai_alerts
+#   interval: 30s
+#   rules:
+#   - alert: High5xxErrorRate
+#     expr: |
+#       (
+#         sum(rate(qyverixai_http_requests_total{status_code=~"5.."}[5m]))
+#         /
+#         sum(rate(qyverixai_http_requests_total[5m]))
+#       ) > 0.05
+#     for: 2m
+#     labels:
+#       severity: critical
+#     annotations:
+#       summary: "High 5xx error rate"
+#       description: "Error rate is {{ $value | humanizePercentage }}"

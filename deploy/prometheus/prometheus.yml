@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: production
+    service: qyverixai
+
+# Load alert rules
+rule_files:
+  - "alerts.yml"
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+      timeout: 10s
+
+# Scrape configurations
+scrape_configs:
+  - job_name: 'qyverixai'
+    static_configs:
+      - targets: ['host.docker.internal:8000']  # Docker on Windows/Mac
+        # For Linux: ['172.17.0.1:8000'] or use 'localhost:8000' if not in Docker
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    
+    # Keep cardinality bounded by replacing dynamic share IDs
+    metric_relabel_configs:
+      - source_labels: [endpoint]
+        regex: '/share/[^/]+'
+        replacement: '/share/{id}'
+        action: replace
+        target_label: endpoint
