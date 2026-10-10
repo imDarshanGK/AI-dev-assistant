@@ -17,6 +17,7 @@ class Base(DeclarativeBase):
 
 from . import models  # noqa: E402,F401  # Register ORM models before creating tables.
 
+Base.metadata.create_all(bind=engine)
 
 def get_db():
     db = SessionLocal()
