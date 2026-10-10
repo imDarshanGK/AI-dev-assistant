@@ -1,7 +1,107 @@
-**/__pycache__/
-**/*.pyc
-**/.pytest_cache/
-.git/
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+.Python
+env/
+venv/
+.venv/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Test and coverage
+.tox/
+.nox/
+.pytest_cache/
+.coverage
+coverage.xml
+nosetests.xml
+coverage/
+htmlcov/
+
+# Distribution / packaging
+pip-wheel-metadata/
+wheelhouse/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Environment variables
 .env
+.env.*
+
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# Git
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor temporary files
+*~
+*.swp
+*.swo
+
+# Documentation (optional; prevents docs from being included in images)
+*.md
+
+# Misc
+.cache/
+*.sqlite3
+*.db
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Environment files (secrets)
+.env
+.env.*
+.env.local
+
+# Git
+.git/
+.gitignore
+
+# Frontend dependencies
+node_modules/
+frontend/node_modules/
+
+# Documentation
+*.md
+
+# IDE files
+.vscode/
+.idea/
+
+# Virtual environments
 .venv/
 venv/
