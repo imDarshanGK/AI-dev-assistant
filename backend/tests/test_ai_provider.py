@@ -298,6 +298,24 @@ class TestCallLlmErrors:
         finally:
             patcher.stop()
         assert result is None
+        
+    @pytest.mark.asyncio
+    async def test_retries_once_on_429_rate_limit(self, enabled_env):
+        mod = _reload_module({
+            **enabled_env,
+            "LLM_MAX_RETRIES": "1",
+            "LLM_RETRY_BACKOFF": "0",
+        })
+
+        patcher, mock_client = _patch_httpx(_make_error_response(429))
+
+        try:
+            result = await mod.call_llm("sys", "usr")
+        finally:
+            patcher.stop()
+
+        assert result is None
+        assert mock_client.post.call_count == 2
 
     @pytest.mark.asyncio
     async def test_returns_none_on_timeout(self, enabled_env):
