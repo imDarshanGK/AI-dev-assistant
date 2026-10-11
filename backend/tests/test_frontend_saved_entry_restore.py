@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 FRONTEND_HTML = (
     Path(__file__).resolve().parents[2] / "frontend" / "index.html"
 ).read_text(encoding="utf-8")

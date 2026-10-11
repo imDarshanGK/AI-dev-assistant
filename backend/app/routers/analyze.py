@@ -1,4 +1,5 @@
 """Full analysis router - POST /analyze/, /analyze/stream/, GET /analyze/stream, and /analyze/zip/."""
+
 from __future__ import annotations
 
 import asyncio
@@ -11,15 +12,19 @@ from pathlib import PurePosixPath
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 
+from ..sanitize import sanitize_code_input, sanitize_language_hint
 from ..schemas import AnalyzeResponse, CodeRequest, ZipAnalyzeResponse
 from ..services.cache import cache
 from ..services.code_assistant import (
     detect_language,
     full_analysis,
+    hybrid_analysis,
     run_bug_detection,
     run_explanation,
     run_suggestions,
 )
+from ..services.llm_analysis import llm_analysis_client
+from ..services.vulnerability_db import correlate_vulnerabilities
 
 router = APIRouter()
 
@@ -68,7 +73,9 @@ SOURCE_EXTENSIONS = {
 
 
 async def _stream_analysis(code: str, language_hint: str | None):
-    """Async generator that yields SSE chunks for each analysis section."""
+    code = sanitize_code_input(code)
+    language_hint = sanitize_language_hint(language_hint)
+
     t0 = time.perf_counter()
     language = detect_language(code, language_hint)
 
@@ -137,11 +144,7 @@ def _safe_zip_name(name: str) -> str:
 def _is_safe_member(name: str) -> bool:
     path = PurePosixPath(name.replace("\\", "/"))
     has_drive = bool(path.parts and path.parts[0].endswith(":"))
-    return (
-        not path.is_absolute()
-        and ".." not in path.parts
-        and not has_drive
-    )
+    return not path.is_absolute() and ".." not in path.parts and not has_drive
 
 
 def _is_ignored_member(name: str) -> bool:
@@ -173,11 +176,15 @@ async def analyze_stream(req: CodeRequest):
     response_class=StreamingResponse,
 )
 async def analyze_stream_get(
-    code: str = Query(..., min_length=1, max_length=50000, description="Source code to analyze"),
+    code: str = Query(
+        ..., min_length=1, max_length=50000, description="Source code to analyze"
+    ),
     language: str | None = Query(None, description="Optional language hint"),
 ):
     if not code.strip():
-        raise HTTPException(status_code=400, detail="code must not be empty or whitespace")
+        raise HTTPException(
+            status_code=400, detail="code must not be empty or whitespace"
+        )
     return StreamingResponse(
         _stream_analysis(code.strip(), language),
         media_type="text/event-stream",
@@ -192,15 +199,23 @@ async def analyze_stream_get(
 )
 async def analyze(req: CodeRequest, response: Response):
     cache_input = f"{req.language or 'auto'}\n{req.code}"
-    cached_payload = cache.get("analyze:v1", cache_input)
+    # Separate cache namespaces so hybrid and rule-only results never collide.
+    mode_key = "hybrid" if llm_analysis_client.enabled else "rule-based"
+    namespace = f"analyze:v2:{mode_key}"
+    cached_payload = cache.get(namespace, cache_input)
 
     if cached_payload is not None:
         response.headers["X-Cache"] = "HIT"
         return cached_payload
 
-    payload = full_analysis(req.code, req.language)
+    payload = await hybrid_analysis(req.code, req.language)
 
-    cache.set("analyze:v1", cache_input, payload)
+    deps = payload.get("suggestions", {}).get("dependencies", [])
+    payload["vulnerabilities"] = (
+        await asyncio.to_thread(correlate_vulnerabilities, deps) if deps else []
+    )
+
+    cache.set(namespace, cache_input, payload)
 
     response.headers["X-Cache"] = "MISS"
     return payload
@@ -264,12 +279,10 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
     results: list[dict] = []
     skipped_files: list[str] = []
     total_size = 0
+    MAX_PER_FILE_BYTES = 2 * 1024 * 1024  # 2MB per file
 
     with archive:
-        members = [
-            info for info in archive.infolist()
-            if not info.is_dir()
-        ]
+        members = [info for info in archive.infolist() if not info.is_dir()]
 
         if not members:
             raise HTTPException(
@@ -305,14 +318,22 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                 )
                 continue
 
-            if total_size + info.file_size > MAX_ZIP_TOTAL_BYTES:
+            raw = archive.read(info)
+            decompressed_size = len(raw)
+
+            if decompressed_size > MAX_PER_FILE_BYTES:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"File '{safe_name}' exceeds 2MB limit after decompression",
+                )
+
+            if total_size + decompressed_size > MAX_ZIP_TOTAL_BYTES:
                 raise HTTPException(
                     status_code=400,
                     detail="ZIP source files exceed the 5MB total limit",
                 )
 
-            raw = archive.read(info)
-            total_size += len(raw)
+            total_size += decompressed_size
 
             try:
                 code = raw.decode("utf-8")
@@ -343,6 +364,7 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                     "language": language,
                     "size_bytes": len(raw),
                     "analysis": analysis,
+                    "_deps": analysis.get("suggestions", {}).get("dependencies", []),
                 }
             )
 
@@ -352,10 +374,23 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
             detail="ZIP file does not contain readable source files",
         )
 
-    scores = [
-        item["analysis"]["suggestions"]["overall_score"]
-        for item in results
-    ]
+    # Correlate once for the union of dependencies across the whole archive,
+    # instead of once per file, to avoid redundant NVD calls.
+    all_deps = sorted({dep for item in results for dep in item["_deps"]})
+    all_vulns = (
+        await asyncio.to_thread(correlate_vulnerabilities, all_deps) if all_deps else []
+    )
+    vulns_by_package: dict[str, list[dict]] = {}
+    for vuln in all_vulns:
+        vulns_by_package.setdefault(vuln["package"], []).append(vuln)
+
+    for item in results:
+        file_deps = item.pop("_deps")
+        item["analysis"]["vulnerabilities"] = [
+            vuln for dep in file_deps for vuln in vulns_by_package.get(dep, [])
+        ]
+
+    scores = [item["analysis"]["suggestions"]["overall_score"] for item in results]
 
     overall_score = round(sum(scores) / len(scores))
 

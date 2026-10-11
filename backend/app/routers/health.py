@@ -28,8 +28,8 @@ from fastapi import APIRouter, Response, status
 from sqlalchemy import text
 
 from ..database import engine
+from ..logging_config import get_effective_levels
 from ..schemas import LivenessResponse, ReadinessResponse
-
 
 router = APIRouter(prefix="/healthz", tags=["System"])
 
@@ -49,6 +49,28 @@ async def liveness() -> LivenessResponse:
 
 
 # ── Readiness ─────────────────────────────────────────────────────────────────
+# Readiness is typically scraped by an unauthenticated Kubernetes probe, so the
+# raw exception text from a failed check must never reach the response body
+# unbounded: driver errors can embed a full DSN (credentials included), a
+# multi-line traceback, or arbitrarily large messages. Cap what we surface.
+_MAX_DB_ERROR_LENGTH = 200
+
+
+def _sanitize_db_error(exc: Exception) -> str:
+    """Reduce an arbitrary DB exception to a short, single-line summary.
+
+    Only the exception type and the first line of its message are kept, and
+    the result is capped to ``_MAX_DB_ERROR_LENGTH`` characters, so neither a
+    multi-line traceback nor an oversized/credential-bearing message can leak
+    into the readiness payload.
+    """
+    message = str(exc).strip().splitlines()[0] if str(exc).strip() else "no detail"
+    summary = f"{type(exc).__name__}: {message}"
+    if len(summary) > _MAX_DB_ERROR_LENGTH:
+        summary = summary[: _MAX_DB_ERROR_LENGTH - 1] + "…"
+    return summary
+
+
 def _check_database(timeout_seconds: float = 2.0) -> tuple[bool, str | None, float]:
     """Run a trivial SELECT 1 against the configured database.
 
@@ -64,7 +86,11 @@ def _check_database(timeout_seconds: float = 2.0) -> tuple[bool, str | None, flo
             conn.execute(text("SELECT 1"))
         return True, None, (time.perf_counter() - start) * 1000.0
     except Exception as exc:  # noqa: BLE001 — we genuinely want every failure mode.
-        return False, f"{type(exc).__name__}: {exc}", (time.perf_counter() - start) * 1000.0
+        return (
+            False,
+            _sanitize_db_error(exc),
+            (time.perf_counter() - start) * 1000.0,
+        )
 
 
 @router.get(
@@ -102,3 +128,21 @@ async def readiness(response: Response) -> ReadinessResponse:
         status="ok" if overall_ok else "degraded",
         checks=checks,
     )
+
+
+# ── Logging diagnostics ───────────────────────────────────────────────────────
+@router.get(
+    "/log-levels",
+    summary="Effective logging levels per component",
+    description=(
+        "Returns the currently active log level for each known backend "
+        "component. Useful to confirm LOG_LEVEL / LOG_LEVEL_<COMPONENT> "
+        "environment variables took effect after a deploy or restart. "
+        "Logging levels are read at process startup — changing the level "
+        "for a running process requires a restart, since Python's logging "
+        "module is configured once via dictConfig in this app."
+    ),
+    include_in_schema=False,
+)
+async def log_levels() -> dict[str, str]:
+    return get_effective_levels()

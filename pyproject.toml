@@ -1,0 +1,15 @@
+[tool.black] 
+line-length = 88 
+target-version = ["py312"] 
+ 
+[tool.isort] 
+profile = "black" 
+line_length = 88 
+
+[tool.pyright]
+extraPaths = ["backend"]
+
+[tool.pytest.ini_options]
+pythonpath = ["backend"]
+
+

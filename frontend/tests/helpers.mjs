@@ -95,3 +95,29 @@ export function assertEscapedPayload(html, payload) {
     throw new Error('Raw <script> found in HTML — payload must be escaped');
   }
 }
+
+export function simulateAnalysisPanelHtml(SEC, apiResult) {
+  const exp = apiResult.explanation;
+  const dbg = apiResult.debugging;
+  let html = '';
+  
+  if(exp) {
+    html += `<div class="explain-summary">${SEC.escHtml(exp.summary)}</div>`;
+    html += `<div class="meta-chip complexity-${SEC.safeCssToken(exp.complexity, 'unknown')}">`;
+    html +=  `${SEC.escHtml(exp.complexity)}</div>`;
+    html += '<ul>';
+
+    for (const point of exp.key_points || []) {
+      html += `<li>${SEC.renderMarkdown(point)}</li>`;
+    }
+
+    html += '</ul>';
+}
+
+if(dbg) {
+    for (const issue of dbg.issues || []) {
+      html += SEC.buildIssueCardHtml(issue);
+    }
+  }
+  return html;
+}

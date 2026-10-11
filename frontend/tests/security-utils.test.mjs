@@ -152,6 +152,119 @@ describe('buildStoredListItemHtml', () => {
   }
 });
 
+describe('keyboard shortcuts', () => {
+  function createKeyboardTarget() {
+    const listeners = new Map();
+    return {
+      addEventListener(type, listener) {
+        listeners.set(type, listener);
+      },
+      removeEventListener(type, listener) {
+        if (listeners.get(type) === listener) listeners.delete(type);
+      },
+      dispatch(event) {
+        listeners.get('keydown')?.(event);
+      },
+      hasKeydownListener() {
+        return listeners.has('keydown');
+      },
+    };
+  }
+
+  function keyboardEvent(overrides = {}) {
+    return {
+      key: '',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      defaultPrevented: false,
+      repeat: false,
+      isComposing: false,
+      target: { tagName: 'DIV' },
+      preventDefault() {
+        this.defaultPrevented = true;
+      },
+      stopPropagation() {},
+      ...overrides,
+    };
+  }
+
+  it('matches Ctrl/Cmd shortcuts without matching extra modifiers', () => {
+    assert.equal(
+      SEC.matchesKeyboardShortcut(keyboardEvent({ key: 'Enter', ctrlKey: true }), {
+        key: 'Enter',
+        mod: true,
+      }),
+      true,
+    );
+    assert.equal(
+      SEC.matchesKeyboardShortcut(keyboardEvent({ key: 'Enter', metaKey: true }), {
+        key: 'enter',
+        mod: true,
+      }),
+      true,
+    );
+    assert.equal(
+      SEC.matchesKeyboardShortcut(keyboardEvent({ key: 'Enter', ctrlKey: true, shiftKey: true }), {
+        key: 'Enter',
+        mod: true,
+      }),
+      false,
+    );
+  });
+
+  it('ignores plain shortcuts in editable controls', () => {
+    const target = createKeyboardTarget();
+    let calls = 0;
+    SEC.bindKeyboardShortcuts(target, [{ key: '/', handler: () => calls++ }]);
+
+    target.dispatch(keyboardEvent({ key: '/', target: { tagName: 'TEXTAREA' } }));
+    target.dispatch(keyboardEvent({ key: '/', target: { tagName: 'DIV' } }));
+
+    assert.equal(calls, 1);
+  });
+
+  it('supports editable-field shortcuts and listener cleanup', () => {
+    const target = createKeyboardTarget();
+    let calls = 0;
+    const unbind = SEC.bindKeyboardShortcuts(target, [
+      {
+        key: 'Enter',
+        mod: true,
+        allowInEditable: true,
+        handler: () => calls++,
+      },
+    ]);
+    const event = keyboardEvent({
+      key: 'Enter',
+      ctrlKey: true,
+      target: { tagName: 'TEXTAREA' },
+    });
+
+    target.dispatch(event);
+    assert.equal(calls, 1);
+    assert.equal(event.defaultPrevented, true);
+
+    unbind();
+    assert.equal(target.hasKeydownListener(), false);
+    target.dispatch(keyboardEvent({ key: 'Enter', ctrlKey: true }));
+    assert.equal(calls, 1);
+  });
+
+  it('ignores repeated, composing, and previously handled events', () => {
+    const target = createKeyboardTarget();
+    let calls = 0;
+    SEC.bindKeyboardShortcuts(target, [{ key: '/', handler: () => calls++ }]);
+
+    target.dispatch(keyboardEvent({ key: '/', repeat: true }));
+    target.dispatch(keyboardEvent({ key: '/', isComposing: true }));
+    target.dispatch(keyboardEvent({ key: '/', defaultPrevented: true }));
+
+    assert.equal(calls, 0);
+  });
+});
+
 describe('buildIssueCardHtml / buildSuggestCardHtml', () => {
   it('escapes issue fields and safe severity class', () => {
     const html = SEC.buildIssueCardHtml({
