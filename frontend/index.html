@@ -1973,12 +1973,12 @@ details.issue-card[open] {
       justify-content: center;
       transition: all var(--transition);
     }
-    .delete-btn:focus,
-    .delete-btn:focus-visible {
+    .delete-btn:focus:not(:focus-visible) {
       outline: none;
       box-shadow: none;
     }
-    .delete-btn:hover { color: #ef4444; background: rgba(239, 68, 68, 0.12);
+    .delete-btn:hover,
+    .delete-btn:focus-visible { color: #ef4444; background: rgba(239, 68, 68, 0.12);
     }
     .delete-btn svg { width: 16px; height: 16px;
     }
@@ -2651,6 +2651,52 @@ details.issue-card[open] {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INTERACTIVE STATES (shared hover / focus / disabled / loading)
+═══════════════════════════════════════════════════════════════ */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button:disabled:hover,
+[aria-disabled="true"]:hover {
+  transform: none;
+}
+
+[aria-busy="true"],
+[aria-busy="true"]:disabled {
+  cursor: progress;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Keep the loading spinner moving so busy controls still read as busy */
+  .spinner {
+    animation-duration: 1.4s !important;
+    animation-iteration-count: infinite !important;
+  }
 }
 
 </style>
@@ -4200,6 +4246,7 @@ cursor:pointer;
 
         // Loading state
         analyzeBtn.classList.add('loading');
+        analyzeBtn.setAttribute('aria-busy', 'true');
         analyzeBtn.disabled = true;
         showShimmers();
 
@@ -4277,6 +4324,7 @@ cursor:pointer;
           resetResults();
         } finally {
           analyzeBtn.classList.remove('loading');
+          analyzeBtn.removeAttribute('aria-busy');
           analyzeBtn.disabled = false;
         }
       }
@@ -5926,6 +5974,7 @@ int main() {
         const email = document.getElementById('digestEmail').value.trim();
         const btn = document.getElementById('digestBtn');
         btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
         btn.textContent = 'Subscribing…';
         const base = getApiBase();
         try {
@@ -5945,6 +5994,7 @@ int main() {
           toast('Could not reach the server.', 'error');
         } finally {
           btn.disabled = false;
+          btn.removeAttribute('aria-busy');
           btn.textContent = 'Subscribe';
         }
       });

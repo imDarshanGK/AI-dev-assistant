@@ -406,6 +406,7 @@ async function runAnalysis() {
 
   runBtn.disabled = true;
   runBtn.classList.add('loading');
+  runBtn.setAttribute('aria-busy', 'true');
   runLabel.textContent = '⟳ Analyzing...';
   showLoading();
 
@@ -437,6 +438,7 @@ async function runAnalysis() {
     isAnalyzing = false;
     runBtn.disabled = false;
     runBtn.classList.remove('loading');
+    runBtn.removeAttribute('aria-busy');
     runLabel.textContent = '▶ Analyze Code';
   }
 }
@@ -691,6 +693,7 @@ if (digestForm) {
     // Show loading state
     digestBtn.textContent = 'Subscribing...';
     digestBtn.disabled = true;
+    digestBtn.setAttribute('aria-busy', 'true');
 
     // Simulate subscription (replace with real API call when backend is ready)
     setTimeout(() => {
