@@ -587,6 +587,50 @@ body {
 .footer-right a { color: var(--text-3); text-decoration: none; transition: color var(--transition); }
 .footer-right a:hover { color: var(--text-2); }
 
+/* ── Interactive States (shared hover / focus / disabled / loading) ── */
+.lang-select:hover,
+.api-input:hover { border-color: var(--border-2); }
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 1px;
+  border-color: var(--accent-blue);
+}
+/* Keep the borderless editor's ring inside the panel so overflow can't clip it */
+.code-editor:focus-visible { outline-offset: -2px; }
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button:disabled:hover,
+[aria-disabled="true"]:hover {
+  opacity: 0.4;
+  transform: none;
+}
+
+[aria-busy="true"],
+[aria-busy="true"]:disabled {
+  cursor: progress;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
