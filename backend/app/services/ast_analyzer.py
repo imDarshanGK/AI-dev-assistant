@@ -268,6 +268,8 @@ def detect_unused_imports(tree, code):
                 bound = alias.asname or alias.name.split(".")[0]
                 imports.append((bound, alias.lineno))
         elif isinstance(node, ast.ImportFrom):
+            if node.module == "__future__":
+                continue
             for alias in node.names:
                 if alias.name == "*":
                     continue
