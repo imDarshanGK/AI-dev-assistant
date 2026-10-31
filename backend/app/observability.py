@@ -175,6 +175,12 @@ USER_DATA_FAVORITE_OPERATIONS_TOTAL = Counter(
     labelnames=("operation", "result"),
 )
 
+LLM_PROVIDER_RETRIES_TOTAL = Counter(
+    "qyverixai_llm_provider_retries_total",
+    "Total number of LLM provider call retries, labelled by provider and failure type.",
+    labelnames=("provider", "failure_type"),
+)
+
 
 def initialise_app_info(version: str, ai_provider: str) -> None:
     """Set the app_info gauge once at startup so dashboards can display it."""
