@@ -60,6 +60,9 @@ Each message sent over the socket must be a **JSON object** (`{}`). JSON arrays 
   - *Behavior:* Has no entry in the handler table returned by `_event_handlers()`, so `handle_message()` does not dispatch it. The server responds with: `{"type": "error", "detail": "Unsupported collaboration message type: <type>"}`. The connection is kept open. A missing `type`, or one that is not a string (for example a list), gets the same response.
   - *Client guidance:* Only send types listed in the [Message Types](#message-types) table above.
 
+- **Text frame that is not valid JSON, or a binary frame**
+  - *Behavior:* The server responds with `{"type": "error", "detail": "message must be valid JSON"}` and keeps the connection open. Only JSON text frames are supported.
+
 - **Non-dict payload (e.g. a JSON array or string)**
   - *Behavior:* The route's `while True` loop checks `if isinstance(data, dict)`. If not, the server responds with: `{"type": "error", "detail": "message payload must be a JSON object"}`. The connection is kept open.
 
@@ -90,8 +93,15 @@ Each message sent over the socket must be a **JSON object** (`{}`). JSON arrays 
   - *Client guidance:* On receiving `sync_required`, the client must discard its pending local change and re-apply it on top of the received state.
 
 - **Broadcast to a client that has already disconnected (stale socket)**
-  - *Behavior:* `broadcast()` catches `RuntimeError` when `socket.send_json()` fails on a dead connection. The stale `client_id` is batched into `stale_clients` and `disconnect()` is called for each one *after* the broadcast loop completes. This prevents mid-loop mutation of the sockets dictionary.
+  - *Behavior:* `broadcast()` catches any exception raised by `socket.send_json()` on a dead connection (`RuntimeError`, `OSError`, a websocket close error, ...), not just `RuntimeError`. The stale `client_id` is batched into `stale_clients`, a warning with the session id and client id is logged, and `disconnect()` is called for each one *after* the broadcast loop completes. This prevents mid-loop mutation of the sockets dictionary, and one dead peer never stops delivery to the others.
   - *Lifecycle:* A message that arrives from a client that is no longer in the room (for example one that `broadcast()` already dropped) is ignored, and it does not recreate the removed room. In the route, `disconnect()` always runs in a `finally` block, so an unexpected error in the receive loop cannot leave a dead socket registered. If sending the initial `session_state` fails, the half-joined client is removed again.
+
+- **Reconnecting with the same name while the old socket is dead**
+  - *Behavior:* Every connection gets a new `clientId`, and names are not unique, so a reconnect is never merged with an earlier entry. If the old tab died without a close frame, its entry stays in the presence list until a send to it fails. The join broadcast does that send, so the dead entry is dropped right away and the new client joins normally. While both sockets are still alive they are listed as two users.
+  - *Client guidance:* After a reconnect, rely on the new `session_state` (code, version, comments, users). A `code_update` carrying an older `version` than the room gets `sync_required` as usual.
+
+- **Handler raises an unexpected exception**
+  - *Behavior:* The route logs the exception (with session id and client id) and replies `{"type": "error", "detail": "internal error while handling message"}`. The text of the exception is never sent to the client and the connection stays open. If that reply cannot be sent either, the socket is closed with code 1011 and the client is released.
 
 - **Cursor update for a `client_id` not in `room.users`**
   - *Behavior:* `handle_message()` ignores messages from clients that are not registered in the room, and `_handle_cursor_update()` still checks `if user is None: return`. The update is silently ignored and not broadcast.
@@ -122,7 +132,9 @@ All error messages from the server share the same structure:
 
 | Trigger | `detail` value |
 |---|---|
+| Text frame is not valid JSON, or a binary frame | `"message must be valid JSON"` |
 | Non-dict JSON payload | `"message payload must be a JSON object"` |
+| Unexpected failure while handling a message | `"internal error while handling message"` |
 | Unrecognised message type | `"Unsupported collaboration message type: {type}"` |
 | `code` is missing | `"code is required"` |
 | `code` is not a string | `"code must be a string"` |

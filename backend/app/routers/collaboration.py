@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import math
 import uuid
 from collections.abc import Awaitable, Callable
@@ -13,11 +14,15 @@ from typing import Any
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 router = APIRouter()
+logger = logging.getLogger("app.routers.collaboration")
 
 MAX_CODE_CHARS = 50_000
 MAX_COMMENT_CHARS = 1_000
 MAX_LANGUAGE_CHARS = 32
 MAX_CURSOR_VALUE = 1_000_000
+
+INVALID_JSON_DETAIL = "message must be valid JSON"
+INTERNAL_ERROR_DETAIL = "internal error while handling message"
 
 COLORS = [
     "#5b9cf6",
@@ -272,7 +277,16 @@ class CollaborationManager:
 
             try:
                 await socket.send_json(message)
-            except RuntimeError:
+            except Exception as exc:
+                # A dead peer can fail with RuntimeError, OSError, a websocket
+                # close error, etc. Whatever it is, drop that client and keep
+                # delivering to the rest.
+                logger.warning(
+                    "dropping dead collaboration socket session=%s client=%s (%s)",
+                    session_id,
+                    client_id,
+                    type(exc).__name__,
+                )
                 stale_clients.append(client_id)
 
         for client_id in stale_clients:
@@ -440,6 +454,23 @@ class CollaborationManager:
 manager = CollaborationManager()
 
 
+async def _reply_error(websocket: WebSocket, detail: str) -> bool:
+    """Send an error message to this socket; return False if it is gone.
+
+    When the send fails the socket is closed (best effort) so the caller can
+    just leave its receive loop.
+    """
+    try:
+        await websocket.send_json({"type": "error", "detail": detail})
+    except Exception:
+        try:
+            await websocket.close(code=1011)
+        except Exception:
+            pass
+        return False
+    return True
+
+
 @router.websocket("/ws/{session_id}")
 async def collaboration_websocket(
     websocket: WebSocket,
@@ -450,13 +481,36 @@ async def collaboration_websocket(
 
     try:
         while True:
-            data = await websocket.receive_json()
-            if isinstance(data, dict):
+            try:
+                data = await websocket.receive_json()
+            except (ValueError, KeyError):
+                # ValueError: the text frame is not valid JSON. KeyError: a
+                # binary frame, which has no "text" to decode.
+                if not await _reply_error(websocket, INVALID_JSON_DETAIL):
+                    break
+                continue
+
+            if not isinstance(data, dict):
+                if not await _reply_error(
+                    websocket, "message payload must be a JSON object"
+                ):
+                    break
+                continue
+
+            try:
                 await manager.handle_message(session_id, client_id, data)
-            else:
-                await websocket.send_json(
-                    {"type": "error", "detail": "message payload must be a JSON object"}
+            except WebSocketDisconnect:
+                raise
+            except Exception:
+                # Keep the details in the server log only; the client gets a
+                # fixed message so no internals leak.
+                logger.exception(
+                    "collaboration handler failed session=%s client=%s",
+                    session_id,
+                    client_id,
                 )
+                if not await _reply_error(websocket, INTERNAL_ERROR_DETAIL):
+                    break
     except WebSocketDisconnect:
         pass
     finally:
