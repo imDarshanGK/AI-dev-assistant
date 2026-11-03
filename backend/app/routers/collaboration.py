@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import math
 import uuid
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
@@ -116,6 +117,23 @@ MESSAGE_VALIDATORS = {
 
 
 @dataclass
+class _Delivery:
+    """What a handler wants sent once the room lock is released.
+
+    By default the payload is broadcast to everyone in the room. ``only_to``
+    sends it to a single client instead, ``exclude`` skips one client.
+    """
+
+    payload: dict[str, Any]
+    only_to: str | None = None
+    exclude: str | None = None
+
+
+# Handlers take (session_id, client_id, validated message data).
+EventHandler = Callable[[str, str, dict[str, Any]], Awaitable[None]]
+
+
+@dataclass
 class CollaborationRoom:
     code: str = ""
     language: str | None = None
@@ -141,6 +159,17 @@ class CollaborationManager:
     def _users_payload(self, room: CollaborationRoom) -> list[dict[str, Any]]:
         return list(room.users.values())
 
+    async def _send_to(
+        self,
+        room: CollaborationRoom,
+        client_id: str,
+        message: dict[str, Any],
+    ) -> None:
+        """Send a message to one client if it is still connected."""
+        socket = room.sockets.get(client_id)
+        if socket is not None:
+            await socket.send_json(message)
+
     async def _send_error(
         self,
         room: CollaborationRoom,
@@ -148,14 +177,7 @@ class CollaborationManager:
         detail: str,
     ) -> None:
         """Send an error message to a collaboration client if connected."""
-        socket = room.sockets.get(client_id)
-        if socket is not None:
-            await socket.send_json(
-                {
-                    "type": "error",
-                    "detail": detail,
-                }
-            )
+        await self._send_to(room, client_id, {"type": "error", "detail": detail})
 
     def _state_payload(
         self,
@@ -256,6 +278,19 @@ class CollaborationManager:
         for client_id in stale_clients:
             await self.disconnect(session_id, client_id)
 
+    def _event_handlers(self) -> dict[str, EventHandler]:
+        """Map each client message type to its handler.
+
+        Looked up on every message (not cached in ``__init__``) so a handler
+        replaced on the instance, for example in a test, is picked up.
+        """
+        return {
+            "ping": self._handle_ping,
+            "code_update": self._handle_code_update,
+            "cursor_update": self._handle_cursor_update,
+            "comment_added": self._handle_comment_added,
+        }
+
     async def handle_message(
         self,
         session_id: str,
@@ -269,17 +304,20 @@ class CollaborationManager:
 
         message_type = data.get("type")
 
-        if message_type == "ping":
-            socket = room.sockets.get(client_id)
-            if socket is not None:
-                await socket.send_json({"type": "pong"})
-            return
-
-        validator = (
-            MESSAGE_VALIDATORS.get(message_type)
+        handler = (
+            self._event_handlers().get(message_type)
             if isinstance(message_type, str)
             else None
         )
+        if handler is None:
+            await self._send_error(
+                room,
+                client_id,
+                f"Unsupported collaboration message type: {message_type}",
+            )
+            return
+
+        validator = MESSAGE_VALIDATORS.get(message_type)
         if validator is not None:
             try:
                 data = validator(data)
@@ -287,23 +325,41 @@ class CollaborationManager:
                 await self._send_error(room, client_id, str(exc))
                 return
 
-        if message_type == "code_update":
-            await self._handle_code_update(session_id, client_id, data)
+        await handler(session_id, client_id, data)
+
+    async def _apply_event(
+        self,
+        session_id: str,
+        apply: Callable[[CollaborationRoom], _Delivery | None],
+    ) -> None:
+        """Run ``apply`` on the room under its lock, then deliver the result.
+
+        ``apply`` changes the room state and returns what to send, or None to
+        send nothing. The delivery happens after the lock is released.
+        """
+        room = self._get_room(session_id)
+
+        async with room.lock:
+            delivery = apply(room)
+
+        if delivery is None:
             return
 
-        if message_type == "cursor_update":
-            await self._handle_cursor_update(session_id, client_id, data)
+        if delivery.only_to is not None:
+            await self._send_to(room, delivery.only_to, delivery.payload)
             return
 
-        if message_type == "comment_added":
-            await self._handle_comment_added(session_id, client_id, data)
-            return
+        await self.broadcast(session_id, delivery.payload, exclude=delivery.exclude)
 
-        await self._send_error(
-            room,
-            client_id,
-            f"Unsupported collaboration message type: {message_type}",
-        )
+    async def _handle_ping(
+        self,
+        session_id: str,
+        client_id: str,
+        data: dict[str, Any],
+    ) -> None:
+        room = self.rooms.get(session_id)
+        if room is not None:
+            await self._send_to(room, client_id, {"type": "pong"})
 
     async def _handle_code_update(
         self,
@@ -311,35 +367,28 @@ class CollaborationManager:
         client_id: str,
         data: dict[str, Any],
     ) -> None:
-        room = self._get_room(session_id)
-        code = data["code"]
-        language = data["language"]
-        incoming_version = data["version"]
-
-        async with room.lock:
-            if incoming_version < room.version:
+        def apply(room: CollaborationRoom) -> _Delivery:
+            if data["version"] < room.version:
+                # The client edited an older version: send it the current state.
                 state = self._state_payload(session_id, room, client_id)
                 state["type"] = "sync_required"
-                latest_socket = room.sockets.get(client_id)
-            else:
-                room.version += 1
-                room.code = code
-                room.language = language if language is not None else room.language
-                payload = {
+                return _Delivery(state, only_to=client_id)
+
+            room.version += 1
+            room.code = data["code"]
+            if data["language"] is not None:
+                room.language = data["language"]
+            return _Delivery(
+                {
                     "type": "code_update",
                     "code": room.code,
                     "language": room.language,
                     "version": room.version,
                     "senderId": client_id,
                 }
-                latest_socket = None
-                state = payload
+            )
 
-        if latest_socket is not None:
-            await latest_socket.send_json(state)
-            return
-
-        await self.broadcast(session_id, state)
+        await self._apply_event(session_id, apply)
 
     async def _handle_cursor_update(
         self,
@@ -347,20 +396,17 @@ class CollaborationManager:
         client_id: str,
         data: dict[str, Any],
     ) -> None:
-        room = self._get_room(session_id)
-        cursor = data["cursor"]
-
-        async with room.lock:
+        def apply(room: CollaborationRoom) -> _Delivery | None:
             user = room.users.get(client_id)
             if user is None:
-                return
-            user["cursor"] = cursor
-            payload = {
-                "type": "cursor_update",
-                "user": user,
-            }
+                return None
+            user["cursor"] = data["cursor"]
+            return _Delivery(
+                {"type": "cursor_update", "user": user},
+                exclude=client_id,
+            )
 
-        await self.broadcast(session_id, payload, exclude=client_id)
+        await self._apply_event(session_id, apply)
 
     async def _handle_comment_added(
         self,
@@ -368,29 +414,27 @@ class CollaborationManager:
         client_id: str,
         data: dict[str, Any],
     ) -> None:
-        room = self._get_room(session_id)
-        text = data["text"]
-        line = data["line"]
-
-        async with room.lock:
+        def apply(room: CollaborationRoom) -> _Delivery:
             user = room.users.get(client_id, {})
             comment = {
                 "id": uuid.uuid4().hex[:12],
-                "line": line,
-                "text": text,
+                "line": data["line"],
+                "text": data["text"],
                 "authorId": client_id,
                 "author": user.get("name", "Anonymous"),
                 "color": user.get("color", COLORS[0]),
                 "createdAt": datetime.now(timezone.utc).isoformat(),
             }
             room.comments.append(comment)
-            payload = {
-                "type": "comment_added",
-                "comment": comment,
-                "comments": room.comments,
-            }
+            return _Delivery(
+                {
+                    "type": "comment_added",
+                    "comment": comment,
+                    "comments": room.comments,
+                }
+            )
 
-        await self.broadcast(session_id, payload)
+        await self._apply_event(session_id, apply)
 
 
 manager = CollaborationManager()

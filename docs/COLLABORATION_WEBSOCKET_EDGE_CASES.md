@@ -57,7 +57,7 @@ Each message sent over the socket must be a **JSON object** (`{}`). JSON arrays 
 ### Message & Protocol Edge Cases
 
 - **Unknown `type` field sent**
-  - *Behavior:* Falls through all `if message_type ==` branches in `handle_message()`. The server responds with: `{"type": "error", "detail": "Unsupported collaboration message type: <type>"}`. The connection is kept open. A missing `type`, or one that is not a string (for example a list), gets the same response.
+  - *Behavior:* Has no entry in the handler table returned by `_event_handlers()`, so `handle_message()` does not dispatch it. The server responds with: `{"type": "error", "detail": "Unsupported collaboration message type: <type>"}`. The connection is kept open. A missing `type`, or one that is not a string (for example a list), gets the same response.
   - *Client guidance:* Only send types listed in the [Message Types](#message-types) table above.
 
 - **Non-dict payload (e.g. a JSON array or string)**
