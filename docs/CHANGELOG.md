@@ -25,6 +25,12 @@ All notable changes to QyverixAI are documented in this file.
   parse failures.
 
 ### Fixed
+- Collaboration websocket no longer drops the connection on an invalid JSON or
+  binary frame or when a message handler raises: the client gets a fixed
+  `error` message instead (no exception text) and the details go to the server
+  log. `broadcast` now drops a dead socket on any send failure, not only
+  `RuntimeError`, and logs the session and client id, so a reconnect over a
+  half-open old tab no longer fails.
 - Multi-line `BUG_PATTERNS` (`String Concatenation in Loop`, `Missing __init__`,
   `Callback Hell`) now fire correctly. `run_bug_detection` previously matched
   each regex against a single line, which silently killed patterns that span
