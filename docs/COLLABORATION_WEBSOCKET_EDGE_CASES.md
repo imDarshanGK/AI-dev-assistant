@@ -57,7 +57,7 @@ Each message sent over the socket must be a **JSON object** (`{}`). JSON arrays 
 ### Message & Protocol Edge Cases
 
 - **Unknown `type` field sent**
-  - *Behavior:* Falls through all `if message_type ==` branches in `handle_message()`. The server responds with: `{"type": "error", "detail": "Unsupported collaboration message type: <type>"}`. The connection is kept open.
+  - *Behavior:* Falls through all `if message_type ==` branches in `handle_message()`. The server responds with: `{"type": "error", "detail": "Unsupported collaboration message type: <type>"}`. The connection is kept open. A missing `type`, or one that is not a string (for example a list), gets the same response.
   - *Client guidance:* Only send types listed in the [Message Types](#message-types) table above.
 
 - **Non-dict payload (e.g. a JSON array or string)**
@@ -66,18 +66,20 @@ Each message sent over the socket must be a **JSON object** (`{}`). JSON arrays 
 - **Code field is exactly at the character limit vs. one over**
   - *Behavior:* `MAX_CODE_CHARS = 50_000`. A payload with exactly 50,000 characters is accepted. A payload with 50,001 characters is rejected with: `{"type": "error", "detail": "code exceeds 50000 characters"}`.
 
-- **Code field is not a string**
-  - *Behavior:* If the `code` value in a `code_update` is not a `str` (e.g. a number or array), the server responds with: `{"type": "error", "detail": "code must be a string"}`.
+- **Code field is missing or not a string**
+  - *Behavior:* `code` is required in a `code_update`. If it is missing the server responds with `{"type": "error", "detail": "code is required"}`; if it is not a `str` (e.g. a number or array) the response is `{"type": "error", "detail": "code must be a string"}`. An empty string is valid.
+
+- **Bad `version` or `language` on a code update**
+  - *Behavior:* `version` is optional (defaults to `0`) but must be a non-negative integer, otherwise the server responds with `"version must be an integer"` or `"version must not be negative"`. `language` is optional but must be a string of at most `MAX_LANGUAGE_CHARS = 32` characters. The room is not touched and the connection is kept open.
 
 - **Empty comment text (after stripping whitespace)**
-  - *Behavior:* `text = str(data.get("text", "")).strip()`. If the result is an empty string, the server responds with: `{"type": "error", "detail": "comment text is required"}`. Whitespace-only comments are also rejected.
+  - *Behavior:* The text is stripped. If it is missing, `null` or empty after stripping, the server responds with: `{"type": "error", "detail": "comment text is required"}`. Whitespace-only comments are also rejected. A text value that is not a string gets `"comment text must be a string"`.
 
 - **Comment text exactly at the character limit vs. one over**
   - *Behavior:* `MAX_COMMENT_CHARS = 1_000`. A comment of exactly 1,000 characters is accepted. A comment of 1,001 characters is rejected with: `{"type": "error", "detail": "comment exceeds 1000 characters"}`.
 
 - **Cursor update with a non-dict cursor value**
-  - *Behavior:* `_handle_cursor_update()` checks `if not isinstance(raw_cursor, dict): return`. The update is **silently dropped** — no error is sent back to the client.
-  - *Note:* This silent failure can mask client-side bugs. Monitor for missing cursor broadcasts as a symptom.
+  - *Behavior:* The `cursor` field must be an object. Otherwise the server responds with `{"type": "error", "detail": "cursor must be an object"}` and nothing is broadcast. A cursor field (`line`, `column`, `selectionStart`, `selectionEnd`) that is not a number gets `"cursor.<field> must be an integer"`, and one with an absolute value above `MAX_CURSOR_VALUE = 1_000_000` gets `"cursor.<field> is out of range"`. The same rules apply to the `line` of a comment.
 
 ---
 
@@ -89,9 +91,10 @@ Each message sent over the socket must be a **JSON object** (`{}`). JSON arrays 
 
 - **Broadcast to a client that has already disconnected (stale socket)**
   - *Behavior:* `broadcast()` catches `RuntimeError` when `socket.send_json()` fails on a dead connection. The stale `client_id` is batched into `stale_clients` and `disconnect()` is called for each one *after* the broadcast loop completes. This prevents mid-loop mutation of the sockets dictionary.
+  - *Lifecycle:* A message that arrives from a client that is no longer in the room (for example one that `broadcast()` already dropped) is ignored, and it does not recreate the removed room. In the route, `disconnect()` always runs in a `finally` block, so an unexpected error in the receive loop cannot leave a dead socket registered. If sending the initial `session_state` fails, the half-joined client is removed again.
 
 - **Cursor update for a `client_id` not in `room.users`**
-  - *Behavior:* `_handle_cursor_update()` checks `if user is None: return` after looking up the client in `room.users`. The update is silently ignored and not broadcast.
+  - *Behavior:* `handle_message()` ignores messages from clients that are not registered in the room, and `_handle_cursor_update()` still checks `if user is None: return`. The update is silently ignored and not broadcast.
 
 ---
 
@@ -105,7 +108,7 @@ Each message sent over the socket must be a **JSON object** (`{}`). JSON arrays 
   - *Behavior:* Coordinates are sanitised on arrival:
     - `line` and `column` → `max(1, int(value))` — clamped to a minimum of 1
     - `selectionStart` and `selectionEnd` → `max(0, int(value))` — clamped to a minimum of 0
-  - Negative or zero inputs are silently clamped; no error is returned to the sender.
+  - Negative or zero numeric inputs are silently clamped; no error is returned to the sender. Non-numeric values are rejected, see above.
 
 ---
 
@@ -121,9 +124,18 @@ All error messages from the server share the same structure:
 |---|---|
 | Non-dict JSON payload | `"message payload must be a JSON object"` |
 | Unrecognised message type | `"Unsupported collaboration message type: {type}"` |
+| `code` is missing | `"code is required"` |
 | `code` is not a string | `"code must be a string"` |
 | `code` exceeds limit | `"code exceeds 50000 characters"` |
+| `version` is not an integer | `"version must be an integer"` |
+| `version` is negative | `"version must not be negative"` |
+| `language` is not a string | `"language must be a string"` |
+| `language` exceeds limit | `"language exceeds 32 characters"` |
+| `cursor` is not an object | `"cursor must be an object"` |
+| Cursor field or comment `line` is not a number | `"cursor.<field> must be an integer"` / `"line must be an integer"` |
+| Cursor field or comment `line` is huge | `"cursor.<field> is out of range"` / `"line is out of range"` |
 | Comment text is empty | `"comment text is required"` |
+| Comment text is not a string | `"comment text must be a string"` |
 | Comment exceeds limit | `"comment exceeds 1000 characters"` |
 
 ---
@@ -135,5 +147,4 @@ All error messages from the server share the same structure:
 | **No state persistence** | All room state lives in process memory. A server restart or last-user-disconnect wipes all code and comments with no recovery path. |
 | **No authentication** | Any client that knows a `session_id` can join. There is no token or permission check on the WebSocket handshake. |
 | **No `session_id` validation** | The session identifier has no length or character-set constraints at the route level. |
-| **Silent cursor failures** | Invalid cursor payloads fail silently, which can disguise client-side bugs. |
 | **Single-process only** | The `CollaborationManager` is an in-process dictionary. Running multiple server workers (e.g. with Gunicorn) will produce isolated rooms per worker, breaking multi-user sync. |

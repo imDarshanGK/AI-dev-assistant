@@ -14,6 +14,8 @@ from urllib.parse import urlparse
 
 import httpx
 
+from ..observability import LLM_PROVIDER_RETRIES_TOTAL, metrics_enabled
+
 logger = logging.getLogger("ai_provider")
 
 LLM_ENABLED = os.getenv("LLM_ENABLED", "false").lower() == "true"
@@ -61,6 +63,7 @@ async def call_llm(system: str, user: str) -> str | None:
 
     for attempt in range(LLM_MAX_RETRIES + 1):
         start_time = time.time()
+        failure_type = "unexpected_error"
         try:
             async with httpx.AsyncClient(timeout=LLM_TIMEOUT) as client:
                 r = await client.post(
@@ -85,13 +88,14 @@ async def call_llm(system: str, user: str) -> str | None:
             latency_ms = int((time.time() - start_time) * 1000)
             status_code = e.response.status_code
             if status_code == 429 or status_code >= 500:
+                failure_type = "http_error"
                 logger.warning(
                     f"LLM provider error ({status_code})",
                     extra={
                         "provider": provider_name,
                         "attempt": attempt + 1,
                         "latency_ms": latency_ms,
-                        "failure_type": "http_error",
+                        "failure_type": failure_type,
                     },
                 )
             else:
@@ -138,6 +142,10 @@ async def call_llm(system: str, user: str) -> str | None:
             return None
 
         if attempt < LLM_MAX_RETRIES:
+            if metrics_enabled():
+                LLM_PROVIDER_RETRIES_TOTAL.labels(
+                    provider=provider_name, failure_type=failure_type
+                ).inc()
             sleep_time = LLM_RETRY_BACKOFF * (2**attempt)
             await asyncio.sleep(sleep_time)
 

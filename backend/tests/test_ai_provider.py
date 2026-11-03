@@ -358,3 +358,141 @@ class TestCallLlmErrors:
         finally:
             patcher.stop()
         assert result is None
+
+
+# ── Retry metric ──────────────────────────────────────────────────────────────
+def _retry_count(provider: str, failure_type: str) -> float:
+    from prometheus_client import REGISTRY
+
+    return (
+        REGISTRY.get_sample_value(
+            "qyverixai_llm_provider_retries_total",
+            {"provider": provider, "failure_type": failure_type},
+        )
+        or 0.0
+    )
+
+
+def _patch_client_sequence(outcomes: list):
+    """Patch httpx.AsyncClient so successive post() calls yield `outcomes`.
+
+    Each item is either a response object or an exception to raise.
+    """
+    mock_client = AsyncMock()
+    mock_client.post = AsyncMock(side_effect=outcomes)
+    patcher = patch("app.services.ai_provider.httpx.AsyncClient")
+    mock_cls = patcher.start()
+    mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+    return patcher, mock_client
+
+
+class TestCallLlmRetryMetric:
+
+    @pytest.mark.asyncio
+    async def test_failure_then_success_counts_one_retry(self, enabled_env):
+        mod = _reload_module({**enabled_env, "LLM_RETRY_BACKOFF": "0"})
+        before = _retry_count("openai", "http_error")
+        patcher, client = _patch_client_sequence(
+            [_make_error_response(503), _make_llm_response("ok")]
+        )
+        try:
+            result = await mod.call_llm("sys", "usr")
+        finally:
+            patcher.stop()
+        assert result == "ok"
+        assert client.post.await_count == 2
+        assert _retry_count("openai", "http_error") == before + 1
+
+    @pytest.mark.asyncio
+    async def test_success_on_first_attempt_counts_nothing(self, enabled_env):
+        mod = _reload_module({**enabled_env, "LLM_RETRY_BACKOFF": "0"})
+        before = _retry_count("openai", "http_error")
+        patcher, _ = _patch_httpx(_make_llm_response("ok"))
+        try:
+            await mod.call_llm("sys", "usr")
+        finally:
+            patcher.stop()
+        assert _retry_count("openai", "http_error") == before
+
+    @pytest.mark.asyncio
+    async def test_labels_use_provider_and_failure_type(self, groq_env):
+        mod = _reload_module({**groq_env, "LLM_RETRY_BACKOFF": "0"})
+        before_timeout = _retry_count("groq", "timeout")
+        before_conn = _retry_count("groq", "connection_error")
+        patcher, _ = _patch_client_sequence(
+            [
+                httpx.TimeoutException("timed out"),
+                httpx.ConnectError("refused"),
+                _make_llm_response("ok"),
+            ]
+        )
+        try:
+            result = await mod.call_llm("sys", "usr")
+        finally:
+            patcher.stop()
+        assert result == "ok"
+        assert _retry_count("groq", "timeout") == before_timeout + 1
+        assert _retry_count("groq", "connection_error") == before_conn + 1
+
+    @pytest.mark.asyncio
+    async def test_exhausted_retries_count_only_actual_retries(self, enabled_env):
+        mod = _reload_module(
+            {**enabled_env, "LLM_RETRY_BACKOFF": "0", "LLM_MAX_RETRIES": "2"}
+        )
+        before = _retry_count("openai", "http_error")
+        patcher, client = _patch_client_sequence([_make_error_response(500)] * 3)
+        try:
+            result = await mod.call_llm("sys", "usr")
+        finally:
+            patcher.stop()
+        assert result is None
+        # 3 attempts = 2 retries; the final failure is not a retry.
+        assert client.post.await_count == 3
+        assert _retry_count("openai", "http_error") == before + 2
+
+    @pytest.mark.asyncio
+    async def test_non_retryable_client_error_counts_nothing(self, enabled_env):
+        mod = _reload_module({**enabled_env, "LLM_RETRY_BACKOFF": "0"})
+        before = _retry_count("openai", "http_error")
+        patcher, client = _patch_client_sequence([_make_error_response(401)])
+        try:
+            result = await mod.call_llm("sys", "usr")
+        finally:
+            patcher.stop()
+        assert result is None
+        assert client.post.await_count == 1
+        assert _retry_count("openai", "http_error") == before
+
+    @pytest.mark.asyncio
+    async def test_metrics_disabled_skips_counter(self, enabled_env, monkeypatch):
+        mod = _reload_module({**enabled_env, "LLM_RETRY_BACKOFF": "0"})
+        monkeypatch.setenv("METRICS_ENABLED", "false")
+        before = _retry_count("openai", "http_error")
+        patcher, _ = _patch_client_sequence(
+            [_make_error_response(500), _make_llm_response("ok")]
+        )
+        try:
+            await mod.call_llm("sys", "usr")
+        finally:
+            patcher.stop()
+        assert _retry_count("openai", "http_error") == before
+
+    @pytest.mark.asyncio
+    async def test_retry_series_exposed_on_metrics_endpoint(self, enabled_env):
+        from app.main import app
+        from fastapi.testclient import TestClient
+
+        mod = _reload_module({**enabled_env, "LLM_RETRY_BACKOFF": "0"})
+        patcher, _ = _patch_client_sequence(
+            [_make_error_response(502), _make_llm_response("ok")]
+        )
+        try:
+            await mod.call_llm("sys", "usr")
+        finally:
+            patcher.stop()
+        body = TestClient(app).get("/metrics").text
+        assert (
+            'qyverixai_llm_provider_retries_total{failure_type="http_error",'
+            'provider="openai"}' in body
+        )

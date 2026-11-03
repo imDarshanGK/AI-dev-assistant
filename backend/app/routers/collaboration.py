@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -14,6 +15,8 @@ router = APIRouter()
 
 MAX_CODE_CHARS = 50_000
 MAX_COMMENT_CHARS = 1_000
+MAX_LANGUAGE_CHARS = 32
+MAX_CURSOR_VALUE = 1_000_000
 
 COLORS = [
     "#5b9cf6",
@@ -23,6 +26,93 @@ COLORS = [
     "#f5923e",
     "#f25757",
 ]
+
+
+class MessageValidationError(ValueError):
+    """Raised when a client message has missing or malformed fields."""
+
+
+def _as_int(value: Any, field_name: str) -> int:
+    """Return value as an int, rejecting bools, NaN/inf and non-numbers."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise MessageValidationError(f"{field_name} must be an integer")
+    if isinstance(value, float) and not math.isfinite(value):
+        raise MessageValidationError(f"{field_name} must be an integer")
+    number = int(value)
+    if abs(number) > MAX_CURSOR_VALUE:
+        raise MessageValidationError(f"{field_name} is out of range")
+    return number
+
+
+def _validate_code_update(data: dict[str, Any]) -> dict[str, Any]:
+    if "code" not in data:
+        raise MessageValidationError("code is required")
+
+    code = data["code"]
+    if not isinstance(code, str):
+        raise MessageValidationError("code must be a string")
+    if len(code) > MAX_CODE_CHARS:
+        raise MessageValidationError(f"code exceeds {MAX_CODE_CHARS} characters")
+
+    language = data.get("language")
+    if language is not None:
+        if not isinstance(language, str):
+            raise MessageValidationError("language must be a string")
+        if len(language) > MAX_LANGUAGE_CHARS:
+            raise MessageValidationError(
+                f"language exceeds {MAX_LANGUAGE_CHARS} characters"
+            )
+
+    version = _as_int(data.get("version", 0), "version")
+    if version < 0:
+        raise MessageValidationError("version must not be negative")
+
+    return {"code": code, "language": language, "version": version}
+
+
+def _validate_cursor_update(data: dict[str, Any]) -> dict[str, Any]:
+    raw_cursor = data.get("cursor")
+    if not isinstance(raw_cursor, dict):
+        raise MessageValidationError("cursor must be an object")
+
+    return {
+        "cursor": {
+            "line": max(1, _as_int(raw_cursor.get("line", 1), "cursor.line")),
+            "column": max(1, _as_int(raw_cursor.get("column", 1), "cursor.column")),
+            "selectionStart": max(
+                0,
+                _as_int(raw_cursor.get("selectionStart", 0), "cursor.selectionStart"),
+            ),
+            "selectionEnd": max(
+                0,
+                _as_int(raw_cursor.get("selectionEnd", 0), "cursor.selectionEnd"),
+            ),
+        }
+    }
+
+
+def _validate_comment_added(data: dict[str, Any]) -> dict[str, Any]:
+    raw_text = data.get("text")
+    if raw_text is not None and not isinstance(raw_text, str):
+        raise MessageValidationError("comment text must be a string")
+
+    text = (raw_text or "").strip()
+    if not text:
+        raise MessageValidationError("comment text is required")
+    if len(text) > MAX_COMMENT_CHARS:
+        raise MessageValidationError(f"comment exceeds {MAX_COMMENT_CHARS} characters")
+
+    line = max(1, _as_int(data.get("line", 1), "line"))
+
+    return {"text": text, "line": line}
+
+
+# Message types that carry fields and need validating before dispatch.
+MESSAGE_VALIDATORS = {
+    "code_update": _validate_code_update,
+    "cursor_update": _validate_cursor_update,
+    "comment_added": _validate_comment_added,
+}
 
 
 @dataclass
@@ -117,8 +207,13 @@ class CollaborationManager:
             }
             state = self._state_payload(session_id, room, client_id)
 
-        await websocket.send_json(state)
-        await self._broadcast_presence(session_id, room)
+        try:
+            await websocket.send_json(state)
+            await self._broadcast_presence(session_id, room)
+        except BaseException:
+            # The join did not finish, so do not leave a half-joined client behind.
+            await self.disconnect(session_id, client_id)
+            raise
         return client_id
 
     async def disconnect(self, session_id: str, client_id: str) -> None:
@@ -167,7 +262,11 @@ class CollaborationManager:
         client_id: str,
         data: dict[str, Any],
     ) -> None:
-        room = self._get_room(session_id)
+        room = self.rooms.get(session_id)
+        if room is None or client_id not in room.sockets:
+            # The client already left (or was dropped); do not bring the room back.
+            return
+
         message_type = data.get("type")
 
         if message_type == "ping":
@@ -175,6 +274,18 @@ class CollaborationManager:
             if socket is not None:
                 await socket.send_json({"type": "pong"})
             return
+
+        validator = (
+            MESSAGE_VALIDATORS.get(message_type)
+            if isinstance(message_type, str)
+            else None
+        )
+        if validator is not None:
+            try:
+                data = validator(data)
+            except MessageValidationError as exc:
+                await self._send_error(room, client_id, str(exc))
+                return
 
         if message_type == "code_update":
             await self._handle_code_update(session_id, client_id, data)
@@ -201,21 +312,9 @@ class CollaborationManager:
         data: dict[str, Any],
     ) -> None:
         room = self._get_room(session_id)
-        code = data.get("code", "")
-        language = data.get("language")
-        incoming_version = int(data.get("version", 0))
-
-        if not isinstance(code, str):
-            await self._send_error(room, client_id, "code must be a string")
-            return
-
-        if len(code) > MAX_CODE_CHARS:
-            await self._send_error(
-                room,
-                client_id,
-                f"code exceeds {MAX_CODE_CHARS} characters",
-            )
-            return
+        code = data["code"]
+        language = data["language"]
+        incoming_version = data["version"]
 
         async with room.lock:
             if incoming_version < room.version:
@@ -225,7 +324,7 @@ class CollaborationManager:
             else:
                 room.version += 1
                 room.code = code
-                room.language = language if isinstance(language, str) else room.language
+                room.language = language if language is not None else room.language
                 payload = {
                     "type": "code_update",
                     "code": room.code,
@@ -249,17 +348,7 @@ class CollaborationManager:
         data: dict[str, Any],
     ) -> None:
         room = self._get_room(session_id)
-        raw_cursor = data.get("cursor")
-
-        if not isinstance(raw_cursor, dict):
-            return
-
-        cursor = {
-            "line": max(1, int(raw_cursor.get("line", 1))),
-            "column": max(1, int(raw_cursor.get("column", 1))),
-            "selectionStart": max(0, int(raw_cursor.get("selectionStart", 0))),
-            "selectionEnd": max(0, int(raw_cursor.get("selectionEnd", 0))),
-        }
+        cursor = data["cursor"]
 
         async with room.lock:
             user = room.users.get(client_id)
@@ -280,20 +369,8 @@ class CollaborationManager:
         data: dict[str, Any],
     ) -> None:
         room = self._get_room(session_id)
-        text = str(data.get("text", "")).strip()
-        line = max(1, int(data.get("line", 1)))
-
-        if not text:
-            await self._send_error(room, client_id, "comment text is required")
-            return
-
-        if len(text) > MAX_COMMENT_CHARS:
-            await self._send_error(
-                room,
-                client_id,
-                f"comment exceeds {MAX_COMMENT_CHARS} characters",
-            )
-            return
+        text = data["text"]
+        line = data["line"]
 
         async with room.lock:
             user = room.users.get(client_id, {})
@@ -337,4 +414,8 @@ async def collaboration_websocket(
                     {"type": "error", "detail": "message payload must be a JSON object"}
                 )
     except WebSocketDisconnect:
+        pass
+    finally:
+        # Always release the client, whatever ended the loop, so a crashed
+        # handler cannot leave a dead socket (and its room) behind.
         await manager.disconnect(session_id, client_id)
