@@ -1,4 +1,4 @@
-"""APScheduler integration — weekly Sunday digest dispatch."""
+"""APScheduler integration - weekly Sunday digest dispatch."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ def _send_weekly_digests() -> None:
     start = time.time()
 
     if not settings.digest_enabled:
-        log.info("Digest disabled — skipping weekly run")
+        log.info("Digest disabled - skipping weekly run")
         DIGEST_JOBS_TOTAL.labels(result="skipped").inc()
         return
 
@@ -48,10 +48,25 @@ def _send_weekly_digests() -> None:
 
         sent = 0
         for sub in subs:
+            # --- OUR NEW SECURITY GUARD (INPUT VALIDATION) ---
+            if not sub.email or "@" not in str(sub.email):
+                log.warning(
+                    "Validation Error: Invalid email input '%s'. Skipping!", sub.email
+                )
+                continue
+
+            if not sub.unsubscribe_token:
+                log.warning(
+                    "Validation Error: Missing token for '%s'. Skipping!", sub.email
+                )
+                continue
+            # -------------------------------------------------
+
             stats = compute_subscriber_stats(db, sub.email)
             if not stats:
                 log.debug("No stats for %s, skipping", sub.email)
                 continue
+
             ok = send_digest(stats, sub.unsubscribe_token)
             if ok:
                 sub.last_sent_at = datetime.now(UTC)

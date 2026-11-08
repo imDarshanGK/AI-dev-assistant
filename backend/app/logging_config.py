@@ -46,6 +46,7 @@ COMPONENT_LOGGER_MAP: dict[str, str] = {
     "error_tracking": "ai_assistant.api",
     "upload": "app.routers.upload_file",
     "file_validator": "app.utils.file_validator",
+    "user_data": "app.routers.user_data",
     "main": "app.main",
 }
 
@@ -75,6 +76,44 @@ def _collect_component_overrides() -> dict[str, str]:
         level = _normalise_level(raw_value, settings.log_level)
         overrides[logger_name] = level
     return overrides
+
+
+def _log_record_factory_with_message(
+    name: str,
+    level: int,
+    fn: str,
+    lno: int,
+    msg: object,
+    args: object,
+    exc_info: object,
+    func: str | None = None,
+    extra: dict[str, object] | None = None,
+    sinfo: str | None = None,
+) -> logging.LogRecord:
+    """Build a LogRecord that always has a populated ``message`` field."""
+    record = logging.LogRecord(
+        name=name,
+        level=level,
+        pathname=fn,
+        lineno=lno,
+        msg=msg,
+        args=args,
+        exc_info=exc_info,
+        func=func,
+        sinfo=sinfo,
+    )
+    if extra:
+        for key, value in extra.items():
+            if key in {"message", "asctime"} or hasattr(record, key):
+                continue
+            setattr(record, key, value)
+    record.message = record.getMessage()
+    return record
+
+
+def _ensure_log_record_message() -> None:
+    """Ensure every LogRecord has a usable ``.message`` value for caplog and logging output."""
+    logging.setLogRecordFactory(_log_record_factory_with_message)
 
 
 class _JsonFormatter(logging.Formatter):
@@ -113,6 +152,7 @@ def configure_logging() -> None:
     the previous logging configuration via dictConfig's incremental=False
     default, avoiding duplicate handlers.
     """
+    _ensure_log_record_message()
     default_level = _normalise_level(settings.log_level, "INFO")
     overrides = _collect_component_overrides()
 

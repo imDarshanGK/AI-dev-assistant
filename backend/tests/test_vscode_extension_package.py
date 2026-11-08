@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 EXTENSION_DIR = ROOT / "vscode-extension"
 

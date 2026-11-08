@@ -139,3 +139,36 @@ def test_digest_last_run_timestamp_is_set():
 
     after = observability.DIGEST_LAST_RUN_TIMESTAMP._value.get()
     assert after >= before
+
+
+def test_digest_skips_invalid_subscribers():
+    db = TEST_SESSION_LOCAL()
+
+    sub1 = DigestSubscription(
+        email="bad-email-without-at-sign",
+        is_active=True,
+        unsubscribe_token="token123",
+    )
+
+    sub2 = DigestSubscription(
+        email="good@example.com",
+        is_active=True,
+        unsubscribe_token="",
+    )
+
+    db.add(sub1)
+    db.add(sub2)
+    db.commit()
+
+    # Check how many emails have been sent before we run the test
+    before_sent = _counter_value(observability.DIGEST_EMAILS_SENT_TOTAL)
+
+    with patch("app.services.scheduler.settings") as mock_settings:
+        mock_settings.digest_enabled = True
+        with patch("app.services.scheduler.SessionLocal", return_value=db):
+            _send_weekly_digests()
+
+    after_sent = _counter_value(observability.DIGEST_EMAILS_SENT_TOTAL)
+
+    assert after_sent == before_sent
+    db.close()

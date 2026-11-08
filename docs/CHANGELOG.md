@@ -5,6 +5,10 @@ All notable changes to QyverixAI are documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added hybrid rule+LLM analysis to `POST /analyze/`: LLM enrichment
+  (explanation insight, suggestions, `optimized_version`) layered on top of
+  deterministic rule-based debugging, with graceful `degraded` fallback on LLM
+  failure and mode-aware caching.
 - Added regression tests for the LLM analysis service (`llm_analysis.py`).
 - Added a dedicated changelog page in `docs/CHANGELOG.md`.
 - Added changelog guidance for contributors and PR authors.
@@ -21,6 +25,12 @@ All notable changes to QyverixAI are documented in this file.
   parse failures.
 
 ### Fixed
+- Collaboration websocket no longer drops the connection on an invalid JSON or
+  binary frame or when a message handler raises: the client gets a fixed
+  `error` message instead (no exception text) and the details go to the server
+  log. `broadcast` now drops a dead socket on any send failure, not only
+  `RuntimeError`, and logs the session and client id, so a reconnect over a
+  half-open old tab no longer fails.
 - Multi-line `BUG_PATTERNS` (`String Concatenation in Loop`, `Missing __init__`,
   `Callback Hell`) now fire correctly. `run_bug_detection` previously matched
   each regex against a single line, which silently killed patterns that span
@@ -49,7 +59,7 @@ All notable changes to QyverixAI are documented in this file.
 - Code analysis features for explain, debug, and improve workflows.
 - Frontend and backend integration with local history, share links, and file upload support.
 - API endpoints for explanation, debugging, suggestions, analysis, and share.
-- Documentation and contribution guidance for GSSoC 2026 contributors.
+- Documentation and contribution guidance for open source contributors.
 
 ### Fixed
 - N/A
