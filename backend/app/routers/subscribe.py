@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from  ..models import DigestSubscription
+from ..models import DigestSubscription
 from ..observability import (
     SUBSCRIBE_ATTEMPTS_TOTAL,
     UNSUBSCRIBE_GET_ATTEMPTS_TOTAL,
@@ -18,7 +18,9 @@ from ..services.email_service import _generate_token
 router = APIRouter(tags=["subscribe"])
 
 
-def _process_unsubscribe(db: Session, email: str, token: str, attempt_counter) -> str | None:
+def _process_unsubscribe(
+    db: Session, email: str, token: str, attempt_counter
+) -> str | None:
     """Helper function to handle the shared database logic for unsubscribing."""
     clean_email = email.strip().lower()
 
@@ -43,6 +45,7 @@ def _process_unsubscribe(db: Session, email: str, token: str, attempt_counter) -
     db.commit()
     attempt_counter.labels(result="success").inc()
     return None
+
 
 @router.post("/", response_model=SubscribeResponse)
 def subscribe(body: SubscribeRequest, db: Session = Depends(get_db)):
@@ -82,20 +85,26 @@ def subscribe(body: SubscribeRequest, db: Session = Depends(get_db)):
         email=email,
     )
 
+
 @router.post("/unsubscribe")
 def unsubscribe(body: UnsubscribeRequest, db: Session = Depends(get_db)):
     """Unsubscribe an email address from the weekly digest."""
-    error = _process_unsubscribe(db, body.email, body.token, UNSUBSCRIBE_POST_ATTEMPTS_TOTAL)
+    error = _process_unsubscribe(
+        db, body.email, body.token, UNSUBSCRIBE_POST_ATTEMPTS_TOTAL
+    )
 
     if error == "not_found":
-        raise HTTPException(status_code=404, detail="Subscription not found or already inactive.")
+        raise HTTPException(
+            status_code=404, detail="Subscription not found or already inactive."
+        )
     if error == "invalid_token":
         raise HTTPException(status_code=403, detail="Invalid unsubscribe token.")
 
     return {
         "message": "You've been unsubscribed from the weekly digest.",
-        "email": body.email.strip().lower()
+        "email": body.email.strip().lower(),
     }
+
 
 @router.get("/unsubscribe")
 def unsubscribe_via_get(
@@ -112,4 +121,3 @@ def unsubscribe_via_get(
         return {"message": "Invalid unsubscribe link."}
 
     return {"message": "You've been unsubscribed from the weekly digest."}
-
