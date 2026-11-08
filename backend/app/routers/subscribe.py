@@ -17,7 +17,8 @@ from ..services.email_service import _generate_token
 
 router = APIRouter(tags=["subscribe"])
 
-def _process_unsubscribe(db: Session, email: str, token: str, attempt_counter) -> str | None: 
+
+def _process_unsubscribe(db: Session, email: str, token: str, attempt_counter) -> str | None:
     """Helper function to handle the shared database logic for unsubscribing."""
     clean_email = email.strip().lower()
 
