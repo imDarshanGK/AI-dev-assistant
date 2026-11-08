@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import session
+from sqlalchemy.orm import Session
 
 from ..database import get_db
 from  ..models import DigestSubscription
@@ -17,7 +17,7 @@ from ..services.email_service import _generate_token
 
 router = APIRouter(tags=["subscribe"])
 
-def _process_unsubscribe(db: session, email: str, token: str, attempt_counter) -> str | None: 
+def _process_unsubscribe(db: Session, email: str, token: str, attempt_counter) -> str | None: 
     """Helper function to handle the shared database logic for unsubscribing."""
     clean_email = email.strip().lower()
 
