@@ -9,9 +9,11 @@ import ast
 import logging
 import re
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 
 from .ast_analyzer import analyze as ast_analyze
+from .line_utils import format_code_snippet
 from .llm_analysis import LLMAnalysisError, llm_analysis_client
 
 logger = logging.getLogger("ai_assistant.api")
@@ -285,6 +287,7 @@ class BugPattern:
             "Rust",
         ]
     )
+    detector: str | None = None
 
 
 BUG_PATTERNS: list[BugPattern] = [
@@ -431,10 +434,11 @@ BUG_PATTERNS: list[BugPattern] = [
         "Wrap async code inside try/catch blocks.",
         "info",
         ["JavaScript", "TypeScript"],
+        detector="await_without_try_catch",
     ),
     BugPattern(
         "Unsafe Window Location Assignment",
-        r"window\.location\s*=",
+        r"window\.location\s*=(?!=)",
         "Direct window.location assignment may allow open redirects.",
         "Validate URLs before redirecting users.",
         "warning",
@@ -442,7 +446,7 @@ BUG_PATTERNS: list[BugPattern] = [
     ),
     BugPattern(
         "Prototype Pollution Risk",
-        r'__proto__|\["__proto__"\]',
+        r"""\.__proto__\s*=(?!=)|__proto__\s*["']?\s*\]\s*=(?!=)""",
         "Prototype pollution vulnerability risk detected.",
         "Avoid modifying __proto__; use Object.create(null).",
         "error",
@@ -836,6 +840,132 @@ def _is_multiline_pattern(pattern: str) -> bool:
     return any(token in pattern for token in (r"\n", r"[\s\S]", r"[\d\D]", r"[\w\W]"))
 
 
+def _iter_js_tokens(code: str) -> Iterator[tuple[str, str, int]]:
+    """Yield ``(kind, value, position)`` tokens for JavaScript/TypeScript source.
+
+    Only identifiers and braces are emitted; everything else is punctuation the
+    detectors do not need. Comments, quoted strings and template literals are
+    skipped entirely so brace matching and ``await`` lookup never see code-like
+    text inside them.
+    """
+    i = 0
+    length = len(code)
+    while i < length:
+        ch = code[i]
+
+        if ch.isspace():
+            i += 1
+            continue
+
+        if ch == "/" and code.startswith("//", i):
+            newline = code.find("\n", i + 2)
+            i = length if newline == -1 else newline + 1
+            continue
+
+        if ch == "/" and code.startswith("/*", i):
+            end = code.find("*/", i + 2)
+            i = length if end == -1 else end + 2
+            continue
+
+        if ch in ("'", '"', "`"):
+            i += 1
+            while i < length:
+                if code[i] == "\\":
+                    i += 2
+                    continue
+                if code[i] == ch:
+                    i += 1
+                    break
+                i += 1
+            continue
+
+        if ch.isalpha() or ch in "_$":
+            start = i
+            i += 1
+            while i < length and (code[i].isalnum() or code[i] in "_$"):
+                i += 1
+            yield ("ident", code[start:i], start)
+            continue
+
+        if ch in "{}":
+            yield ("brace", ch, i)
+            i += 1
+            continue
+
+        i += 1
+
+
+def _matching_brace(tokens: list[tuple[str, str, int]], open_index: int) -> int | None:
+    """Return the index of the ``}`` matching the ``{`` at ``open_index``."""
+    depth = 0
+    for index in range(open_index, len(tokens)):
+        kind, value, _ = tokens[index]
+        if kind != "brace":
+            continue
+        if value == "{":
+            depth += 1
+        else:
+            depth -= 1
+            if depth == 0:
+                return index
+    return None
+
+
+def _await_lines_outside_try(code: str) -> list[int]:
+    """Return line numbers of ``await`` uses not covered by a ``try``/``catch``.
+
+    A ``try`` body only counts as handled when it is immediately followed by a
+    ``catch`` clause; a lone ``finally`` still lets the rejection escape. ``await``
+    occurrences inside a ``catch`` block are outside every try-body span and are
+    reported, matching the conservative intent of the rule.
+    """
+    tokens = list(_iter_js_tokens(code))
+    handled_spans: list[tuple[int, int]] = []
+
+    for index, (kind, value, _) in enumerate(tokens):
+        if kind != "ident" or value != "try":
+            continue
+        if index + 1 >= len(tokens):
+            continue
+        open_kind, open_value, _ = tokens[index + 1]
+        if open_kind != "brace" or open_value != "{":
+            continue
+        close_index = _matching_brace(tokens, index + 1)
+        if close_index is None or close_index + 1 >= len(tokens):
+            continue
+        next_kind, next_value, _ = tokens[close_index + 1]
+        if next_kind == "ident" and next_value == "catch":
+            handled_spans.append((tokens[index + 1][2], tokens[close_index][2]))
+
+    flagged: list[int] = []
+    for kind, value, position in tokens:
+        if kind != "ident" or value != "await":
+            continue
+        if any(start <= position <= end for start, end in handled_spans):
+            continue
+        line_no = code.count("\n", 0, position) + 1
+        if line_no not in flagged:
+            flagged.append(line_no)
+    return flagged
+
+
+_BUG_DETECTORS = {"await_without_try_catch": _await_lines_outside_try}
+
+
+def _build_issue(bp: BugPattern, line_no: int, lines: list[str], code: str) -> dict:
+    """Shape a detected issue exactly like the regex-based branches."""
+    snippet = lines[line_no - 1].strip()[:120] if 0 <= line_no - 1 < len(lines) else ""
+    return {
+        "type": bp.name,
+        "line": line_no,
+        "description": bp.description,
+        "suggestion": bp.suggestion,
+        "severity": bp.severity,
+        "code_snippet": snippet,
+        "code_context": format_code_snippet(code, [line_no], context_lines=2),
+    }
+
+
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
 
@@ -847,7 +977,6 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
         A list of detected issues with metadata and suggestions.
     """
     from .ast_analyzer import analyze_python_ast
-    from .line_utils import format_code_snippet
 
     lines = code.splitlines()
     found: list[dict] = []
@@ -871,6 +1000,19 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
         if language not in bp.languages and "All" not in bp.languages:
             continue
 
+        # Some rules need lexical context that a regex cannot express, so they
+        # dispatch to a dedicated detector that reports the offending lines.
+        if bp.detector:
+            detector = _BUG_DETECTORS.get(bp.detector)
+            if detector is not None:
+                for line_no in detector(code):
+                    key = f"{bp.name}:{line_no}"
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    found.append(_build_issue(bp, line_no, lines, code))
+                continue
+
         # Multi-line patterns rely on constructs (literal "\n", "[\s\S]", ...)
         # that span more than one line, so they cannot match when the regex is
         # applied to a single line. Run them against the full source instead.
@@ -881,24 +1023,7 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                 if key in seen:
                     continue
                 seen.add(key)
-                snippet = (
-                    lines[line_no - 1].strip()[:120]
-                    if 0 <= line_no - 1 < len(lines)
-                    else ""
-                )
-                found.append(
-                    {
-                        "type": bp.name,
-                        "line": line_no,
-                        "description": bp.description,
-                        "suggestion": bp.suggestion,
-                        "severity": bp.severity,
-                        "code_snippet": snippet,
-                        "code_context": format_code_snippet(
-                            code, [line_no], context_lines=2
-                        ),
-                    }
-                )
+                found.append(_build_issue(bp, line_no, lines, code))
             continue
 
         for i, line in enumerate(lines, start=1):
