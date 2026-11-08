@@ -32,8 +32,8 @@ def _process_unsubscribe(db: Session, email: str, token: str, attempt_counter) -
     )
 
     if not sub:
-        attempt_counter.labels(result="not found").inc()
-        return "not found"
+        attempt_counter.labels(result="not_found").inc()
+        return "not_found"
 
     if sub.unsubscribe_token != token:
         attempt_counter.labels(result="invalid_token").inc()
