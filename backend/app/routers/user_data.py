@@ -217,11 +217,13 @@ def create_history(
 
 
 @router.delete(
-    "/history/{history_id}", 
+    "/history/{history_id}",
     responses={
-        404: {"description": "History record not found or does not belong to the user."},
-        503: {"description": "Database unavailable while trying to delete."}
-    }
+        404: {
+            "description": "History record not found or does not belong to the user."
+        },
+        503: {"description": "Database unavailable while trying to delete."},
+    },
 )
 def delete_history(
     history_id: int = Path(..., ge=1),
@@ -230,7 +232,7 @@ def delete_history(
 ):
     """
     Delete a specific history record.
-    
+
     **Edge Cases Handled:**
     - If the history_id does not exist, returns a 404 Not Found.
     - If the database is unreachable, returns a 503 Service Unavailable.
