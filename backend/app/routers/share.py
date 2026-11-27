@@ -6,9 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import AuditLog, SharedSnippet, User
+from ..models import SharedSnippet, User
 from ..schemas import ShareCreateRequest, ShareRecord
 from ..security import get_current_user
+from ..services.audit import record_audit
 
 router = APIRouter(prefix="/share", tags=["Share"])
 
@@ -169,16 +170,16 @@ def delete_share(
             detail="Not authorized to delete this share",
         )
 
-    # Record deletion in audit log
-    audit_log = AuditLog(
-        actor_id=current_user.id,
-        actor_email=current_user.email,
+    # The share token is left out: `details` must be a JSON object for the
+    # audit-log API, and audit entries never store tokens.
+    record_audit(
+        db,
+        actor=current_user,
         action="delete_share",
         target_type="SharedSnippet",
-        target_id=str(record.id),
-        details=f"Deleted shared snippet with token: {token}",
+        target_id=record.id,
+        details={"owner_id": record.user_id},
     )
-    db.add(audit_log)
 
     db.delete(record)
     db.commit()
