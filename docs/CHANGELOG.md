@@ -38,6 +38,14 @@ All notable changes to QyverixAI are documented in this file.
 - Tightened the `Missing __init__` regex (`[^:]*` → `[^:\n]*`) so the class
   header stays on a single line and classes that do define `__init__` are not
   flagged once multi-line matching is enabled.
+- Cross-origin browsers now see rate-limit responses. The rate limiter ran
+  outside the CORS middleware, so its `429` had no
+  `Access-Control-Allow-Origin` header and the frontend reported a network
+  failure instead of "Rate limit exceeded"; each preflight `OPTIONS` request
+  also used up one unit of quota, halving the limit for browser clients. CORS
+  is now the outermost middleware, and `Retry-After`, `X-RateLimit-*`,
+  `X-Process-Time-Ms`, `X-Cache` and `X-QyverixAI-Version` are listed in
+  `Access-Control-Expose-Headers` so scripts can read them.
 
 ### Fixed
 - Improved database service error handling: safer idempotent schema migrations,

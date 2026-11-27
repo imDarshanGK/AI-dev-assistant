@@ -32,6 +32,17 @@ RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
 RATE_LIMIT_WINDOW_SECONDS = 60
 _request_counts: dict[str, list[float]] = defaultdict(list)
 
+# Response headers a browser on another origin may read. Without this list
+# `fetch` only exposes the CORS-safelisted headers and hides the rest.
+EXPOSED_RESPONSE_HEADERS = [
+    "Retry-After",
+    "X-Cache",
+    "X-Process-Time-Ms",
+    "X-QyverixAI-Version",
+    "X-RateLimit-Limit",
+    "X-RateLimit-Remaining",
+]
+
 
 def check_rate_limit(ip: str) -> int:
     """Record a request and return the remaining requests in the current window."""
@@ -159,13 +170,6 @@ Obtain a token via `POST /auth/login` and pass it as `Authorization: Bearer <tok
 
 # ── Middleware ────────────────────────────────────────────────────────────────
 app.add_middleware(GZipMiddleware, minimum_size=1000)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 app.middleware("http")(prometheus_metrics_middleware)
 
@@ -211,6 +215,19 @@ async def add_cache_header(request: Request, call_next):
     if request.url.path == "/analyze/" and request.method == "POST":
         response.headers.setdefault("X-Cache", "MISS")
     return response
+
+
+# Added last so it is the outermost middleware. Responses produced by the
+# middleware above (the 429 from the rate limiter) then carry CORS headers, and
+# preflight requests are answered here without using up rate-limit quota.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=EXPOSED_RESPONSE_HEADERS,
+)
 
 
 # ── Routers ───────────────────────────────────────────────────────────────────
