@@ -19,10 +19,13 @@ from ..observability import (
     DIGEST_LAST_RUN_TIMESTAMP,
 )
 from .email_service import compute_subscriber_stats, send_digest
+from .user_deletion import erase_expired_user_data
 
 log = logging.getLogger(__name__)
 scheduler = BackgroundScheduler(daemon=True)
 JOB_ID = "weekly_digest"
+ERASE_JOB_ID = "erase_expired_accounts"
+ERASE_INTERVAL_HOURS = 1
 
 
 def _send_weekly_digests() -> None:
@@ -88,8 +91,32 @@ def _send_weekly_digests() -> None:
         db.close()
 
 
+def _erase_expired_accounts() -> None:
+    """Erase accounts whose data-purge retention period has ended.
+
+    `POST /user/data-purge` only marks the account as pending deletion and
+    promises erasure after the retention period; this job keeps that promise.
+    """
+    db = SessionLocal()
+    try:
+        result = erase_expired_user_data(db)
+        if result.users_erased:
+            log.info(
+                "Erased %d account(s) after the retention period: "
+                "%d history, %d favorite and %d share record(s)",
+                result.users_erased,
+                result.history_deleted,
+                result.favorites_deleted,
+                result.shares_deleted,
+            )
+    except Exception:
+        log.exception("Error in account erasure job")
+    finally:
+        db.close()
+
+
 def start_scheduler() -> None:
-    """Start the background scheduler with the weekly digest job."""
+    """Start the background scheduler with the digest and account erasure jobs."""
     if scheduler.get_job(JOB_ID):
         return
 
@@ -101,6 +128,13 @@ def start_scheduler() -> None:
         hour=8,
         minute=0,
         id=JOB_ID,
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        _erase_expired_accounts,
+        trigger="interval",
+        hours=ERASE_INTERVAL_HOURS,
+        id=ERASE_JOB_ID,
         replace_existing=True,
     )
     scheduler.start()

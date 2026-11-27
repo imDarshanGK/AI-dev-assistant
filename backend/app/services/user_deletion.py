@@ -10,7 +10,13 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from ..config import settings
-from ..models import FavoriteResult, QueryHistory, User, UserDataPurgeAudit
+from ..models import (
+    FavoriteResult,
+    QueryHistory,
+    SharedSnippet,
+    User,
+    UserDataPurgeAudit,
+)
 
 CONFIRMATION_PHRASE = "DELETE MY DATA"
 DATA_PURGE_RETENTION_DAYS = 30
@@ -49,6 +55,7 @@ class UserDataFinalEraseResult:
     history_deleted: int
     favorites_deleted: int
     audits_updated: int
+    shares_deleted: int = 0
 
 
 def _audit_hash(value: str) -> str:
@@ -60,12 +67,24 @@ def _audit_hash(value: str) -> str:
 
 
 def _count_user_records(
-    db: Session, model: type[QueryHistory] | type[FavoriteResult], user_id: int
+    db: Session,
+    model: type[QueryHistory] | type[FavoriteResult] | type[SharedSnippet],
+    user_id: int,
 ) -> int:
     count = db.scalar(
         select(func.count()).select_from(model).where(model.user_id == user_id)
     )
     return int(count or 0)
+
+
+def delete_user_shares(db: Session, user_id: int) -> None:
+    """Delete the share links a user created.
+
+    A share holds a copy of the user's code and is readable by anyone with the
+    link, and its ``user_id`` foreign key has no cascade, so it has to go
+    before the account row does. The caller commits.
+    """
+    db.execute(delete(SharedSnippet).where(SharedSnippet.user_id == user_id))
 
 
 def preview_user_data_purge(db: Session, user: User) -> UserDataPurgePreview:
@@ -157,6 +176,7 @@ def erase_expired_user_data(
     history_deleted = 0
     favorites_deleted = 0
     audits_updated = 0
+    shares_deleted = 0
 
     try:
         for user in users:
@@ -164,9 +184,11 @@ def erase_expired_user_data(
 
             user_history_count = _count_user_records(db, QueryHistory, user.id)
             user_favorite_count = _count_user_records(db, FavoriteResult, user.id)
+            shares_deleted += _count_user_records(db, SharedSnippet, user.id)
 
             db.execute(delete(QueryHistory).where(QueryHistory.user_id == user.id))
             db.execute(delete(FavoriteResult).where(FavoriteResult.user_id == user.id))
+            delete_user_shares(db, user.id)
 
             audit_record = (
                 db.execute(
@@ -201,4 +223,5 @@ def erase_expired_user_data(
         history_deleted=history_deleted,
         favorites_deleted=favorites_deleted,
         audits_updated=audits_updated,
+        shares_deleted=shares_deleted,
     )

@@ -38,6 +38,13 @@ All notable changes to QyverixAI are documented in this file.
 - Tightened the `Missing __init__` regex (`[^:]*` → `[^:\n]*`) so the class
   header stays on a single line and classes that do define `__init__` are not
   flagged once multi-line matching is enabled.
+- Accounts scheduled for deletion are now actually erased. `POST
+  /user/data-purge` marks the account as pending deletion and promises erasure
+  after 30 days, but nothing ever called `erase_expired_user_data`; the
+  scheduler now runs it every hour. The user's share links are deleted with
+  the account, both by that job and by `DELETE /admin/users/{id}`: they used
+  to stay publicly readable, and on a database that enforces foreign keys
+  (PostgreSQL) the leftover rows made the deletion fail.
 
 ### Fixed
 - Improved database service error handling: safer idempotent schema migrations,

@@ -42,7 +42,17 @@ If the confirmation phrase matches, the application deletes:
 * the authenticated user's favorite records
 * the authenticated user's account row
 
+* the share links the authenticated user created
+
 The endpoint does not delete records belonging to any other user.
+
+### Retention period
+
+The request does not erase anything immediately. The account is marked as
+pending deletion, its tokens stop working and it cannot log in again. The
+records are erased 30 days after the request by a background job that runs
+every hour while the server is up (`erase_expired_accounts` in
+`backend/app/services/scheduler.py`).
 
 ## Audit trail
 
