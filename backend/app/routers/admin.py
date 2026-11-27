@@ -18,6 +18,7 @@ from ..models import AuditLog, User
 from ..schemas import AuditLogRecord, MessageResponse, RoleUpdateRequest
 from ..security import require_admin
 from ..services.audit import record_audit
+from ..services.user_deletion import delete_user_shares
 
 logger = logging.getLogger("app.routers.admin")
 
@@ -145,6 +146,7 @@ def delete_user(
 
     email = user.email
     try:
+        delete_user_shares(db, user_id)
         db.delete(user)
         record_audit(
             db,
