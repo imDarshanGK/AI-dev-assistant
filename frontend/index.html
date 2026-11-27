@@ -3757,7 +3757,14 @@ cursor:pointer;
       function getApiBase() {
         const configuredBase = ((apiUrlInput && apiUrlInput.value) || localStorage.getItem('qyx_apiUrl') || '').trim();
         if (configuredBase) return configuredBase.replace(/\/$/, '');
-        return window.location.protocol === 'file:' ? REMOTE_API_BASE : LOCAL_API_BASE;
+        return getDefaultApiBase(window.location);
+      }
+
+      function getDefaultApiBase(location) {
+        if (location.protocol === 'file:') return REMOTE_API_BASE;
+        // The backend serves this page at /app, so its API is on the same origin.
+        if (/^\/app(\/|$)/.test(location.pathname)) return location.origin;
+        return LOCAL_API_BASE;
       }
 
       function getApiFallbackBase(base) {

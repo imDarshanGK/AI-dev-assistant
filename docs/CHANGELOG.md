@@ -38,6 +38,11 @@ All notable changes to QyverixAI are documented in this file.
 - Tightened the `Missing __init__` regex (`[^:]*` → `[^:\n]*`) so the class
   header stays on a single line and classes that do define `__init__` are not
   flagged once multi-line matching is enabled.
+- The web app now calls the API of the server that serves it. When no API URL
+  was saved, the page used `http://localhost:8000` unless it was opened from
+  disk, so the hosted app (and any self-hosted one) first sent its requests to
+  the visitor's own machine and only switched to the hosted API after that
+  failed. A page served from `/app` now defaults to its own origin.
 
 ### Fixed
 - Improved database service error handling: safer idempotent schema migrations,
