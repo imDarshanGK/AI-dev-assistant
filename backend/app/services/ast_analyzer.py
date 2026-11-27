@@ -97,14 +97,28 @@ def _issue(
     }
 
 
-class PythonASTAnalyzer(ast.NodeVisitor):
+class PythonASTAnalyzer:
     def __init__(self) -> None:
         self.issues: list[dict] = []
+
+    def visit(self, tree: ast.AST) -> None:
+        """Run the ``visit_*`` handlers over every node, in source order.
+
+        The walk uses an explicit stack. ``ast.NodeVisitor`` recurses once per
+        nesting level, and a long chain such as ``a + b + c + ...`` nests one
+        level per operator, which is enough to exceed the recursion limit.
+        """
+        pending = [tree]
+        while pending:
+            node = pending.pop()
+            handler = getattr(self, f"visit_{type(node).__name__}", None)
+            if handler is not None:
+                handler(node)
+            pending.extend(reversed(list(ast.iter_child_nodes(node))))
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self._check_mutable_defaults(node)
         self._check_unreachable_code(node)
-        self.generic_visit(node)
 
     visit_AsyncFunctionDef = visit_FunctionDef
 
@@ -119,7 +133,6 @@ class PythonASTAnalyzer(ast.NodeVisitor):
                     node.lineno,
                 )
             )
-        self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:
         if isinstance(node.func, ast.Name) and node.func.id in ("eval", "exec"):
@@ -134,7 +147,6 @@ class PythonASTAnalyzer(ast.NodeVisitor):
                     node.lineno,
                 )
             )
-        self.generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign) -> None:
         for target in node.targets:
@@ -148,7 +160,6 @@ class PythonASTAnalyzer(ast.NodeVisitor):
                         node.lineno,
                     )
                 )
-        self.generic_visit(node)
 
     def _check_mutable_defaults(self, node: ast.FunctionDef) -> None:
         defaults = node.args.defaults + node.args.kw_defaults
@@ -205,6 +216,10 @@ def analyze_python_ast(code: str) -> list[dict]:
                 exc.lineno or 1,
             )
         ]
+    except (RecursionError, MemoryError, ValueError):
+        # The parser gave up on input it cannot represent (for example
+        # thousands of chained unary operators); there is no tree to analyze.
+        return []
 
     analyzer = PythonASTAnalyzer()
     analyzer.visit(tree)
@@ -335,19 +350,22 @@ def detect_unused_arguments(tree, code):
 
 
 def _count_returns_shallow(stmts):
-    """Count returns without descending into nested functions."""
+    """Count returns without descending into nested functions.
+
+    Only AST nodes are followed. Some node fields hold plain values instead
+    (the names of a ``global`` statement, the ``None`` key of a ``**mapping``
+    in a dict display), and those have no fields to walk.
+    """
     count = 0
-    for node in stmts:
+    pending = list(stmts)
+    while pending:
+        node = pending.pop()
         if isinstance(node, ast.Return):
             count += 1
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue  # don't descend into nested functions
         else:
-            for field, value in ast.iter_fields(node):
-                if isinstance(value, list):
-                    count += _count_returns_shallow(value)
-                elif isinstance(value, ast.AST):
-                    count += _count_returns_shallow([value])
+            pending.extend(ast.iter_child_nodes(node))
     return count
 
 
@@ -379,23 +397,27 @@ def detect_deep_nesting(tree, code):
     issues = []
     nesting_types = (ast.If, ast.For, ast.While, ast.With, ast.Try)
 
-    def walk(node, depth):
-        for child in ast.iter_child_nodes(node):
-            d = depth + 1 if isinstance(child, nesting_types) else depth
-            if isinstance(child, nesting_types) and d > 3:
+    # (node, depth) pairs, visited in source order without recursion so a long
+    # expression chain cannot exhaust the stack.
+    pending = [(tree, 0)]
+    while pending:
+        node, depth = pending.pop()
+        if isinstance(node, nesting_types):
+            depth += 1
+            if depth > 3:
                 issues.append(
                     _make_issue(
                         "Deep Nesting",
-                        child.lineno,
-                        f"Nesting depth {d} exceeds the recommended maximum of 3.",
+                        node.lineno,
+                        f"Nesting depth {depth} exceeds the recommended maximum of 3.",
                         "Extract nested logic into separate functions.",
                         "warning",
-                        _get_snippet(code, child.lineno),
+                        _get_snippet(code, node.lineno),
                     )
                 )
-            walk(child, d)
-
-    walk(tree, 0)
+        pending.extend(
+            (child, depth) for child in reversed(list(ast.iter_child_nodes(node)))
+        )
     return issues
 
 

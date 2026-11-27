@@ -38,6 +38,13 @@ All notable changes to QyverixAI are documented in this file.
 - Tightened the `Missing __init__` regex (`[^:]*` → `[^:\n]*`) so the class
   header stays on a single line and classes that do define `__init__` are not
   flagged once multi-line matching is enabled.
+- `/debugging/` and `/analyze/` no longer answer 500 for ordinary Python. Any
+  function containing `global` / `nonlocal`, a `{**mapping}` dict display, a
+  keyword-only lambda or a `match` statement crashed the AST analyzer with
+  `AttributeError: ... has no attribute '_fields'`, and a long expression chain
+  (`a + b + c + ...`) crashed it with `RecursionError`. The analyzers now walk
+  the tree iteratively and only follow AST nodes, and an analyzer failure is
+  logged while the regex findings are still returned.
 
 ### Fixed
 - Improved database service error handling: safer idempotent schema migrations,

@@ -966,6 +966,22 @@ def _build_issue(bp: BugPattern, line_no: int, lines: list[str], code: str) -> d
     }
 
 
+def _run_python_analyzer(analyzer, code: str) -> list[dict]:
+    """Run an AST analyzer, returning no findings if it cannot handle the code.
+
+    The AST pass adds to the regex rules. Source the parser rejects or gives up
+    on is expected input. Anything else is a bug in the analyzer: it is logged,
+    and the request still returns the regex findings instead of a 500.
+    """
+    try:
+        return analyzer(code)
+    except (SyntaxError, RecursionError, MemoryError, ValueError):
+        return []
+    except Exception:
+        logger.exception("python_ast_analysis_failed analyzer=%s", analyzer.__name__)
+        return []
+
+
 def run_bug_detection(code: str, language: str) -> list[dict]:
     """Run rule-based bug detection for the provided source code.
 
@@ -983,7 +999,7 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
     seen: set[str] = set()
 
     if language == "Python":
-        for issue in analyze_python_ast(code):
+        for issue in _run_python_analyzer(analyze_python_ast, code):
             key = f"{issue['type']}:{issue['line']}"
             if key not in seen:
                 seen.add(key)
@@ -1054,14 +1070,11 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
                 )
 
     if language == "Python":
-        try:
-            for issue in ast_analyze(code):
-                key = f"{issue['type']}:{issue['line']}"
-                if key not in seen:
-                    seen.add(key)
-                    found.append(issue)
-        except SyntaxError:
-            pass
+        for issue in _run_python_analyzer(ast_analyze, code):
+            key = f"{issue['type']}:{issue['line']}"
+            if key not in seen:
+                seen.add(key)
+                found.append(issue)
 
     return found
 
