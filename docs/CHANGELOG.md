@@ -38,6 +38,13 @@ All notable changes to QyverixAI are documented in this file.
 - Tightened the `Missing __init__` regex (`[^:]*` → `[^:\n]*`) so the class
   header stays on a single line and classes that do define `__init__` are not
   flagged once multi-line matching is enabled.
+- `POST /analyze/zip/` no longer decompresses a member before checking its
+  size. The 2 MB per-file and 5 MB total limits were applied after the whole
+  member had been expanded in memory, so a 60 KB archive could make the server
+  allocate 40 MB and a 10 MB one several gigabytes. The limits are now checked
+  against the declared size first and the read is capped. Password-protected,
+  corrupt and unsupported-compression members are listed in `skipped_files`
+  instead of failing the request with a 500.
 
 ### Fixed
 - Improved database service error handling: safer idempotent schema migrations,

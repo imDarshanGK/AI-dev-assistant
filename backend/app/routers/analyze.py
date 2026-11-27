@@ -6,6 +6,7 @@ import asyncio
 import json
 import time
 import zipfile
+import zlib
 from io import BytesIO
 from pathlib import PurePosixPath
 
@@ -35,7 +36,23 @@ _SSE_HEADERS = {
 
 MAX_ZIP_FILES = 20
 MAX_ZIP_TOTAL_BYTES = 5 * 1024 * 1024
+MAX_PER_FILE_BYTES = 2 * 1024 * 1024
 MAX_SKIPPED_FILES = 20
+
+# Bit 0 of a member's general purpose flags marks it as encrypted.
+_ZIP_ENCRYPTED_FLAG = 0x1
+
+# What `zipfile` raises for a member it cannot decompress: a bad CRC or
+# truncated data, a compression method this build does not support, or
+# corrupt compressed data.
+_UNREADABLE_MEMBER_ERRORS = (
+    zipfile.BadZipFile,
+    NotImplementedError,
+    RuntimeError,
+    EOFError,
+    OSError,
+    zlib.error,
+)
 
 IGNORED_DIRS = {
     ".git",
@@ -155,6 +172,16 @@ def _is_ignored_member(name: str) -> bool:
 def _add_skipped(skipped_files: list[str], reason: str) -> None:
     if len(skipped_files) < MAX_SKIPPED_FILES:
         skipped_files.append(reason)
+
+
+def _read_member(archive: zipfile.ZipFile, info: zipfile.ZipInfo, limit: int) -> bytes:
+    """Decompress at most ``limit + 1`` bytes of an archive member.
+
+    One byte over the limit is enough for the caller to tell that the member
+    is too large without holding all of it in memory.
+    """
+    with archive.open(info) as member:
+        return member.read(limit + 1)
 
 
 @router.post(
@@ -279,7 +306,6 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
     results: list[dict] = []
     skipped_files: list[str] = []
     total_size = 0
-    MAX_PER_FILE_BYTES = 2 * 1024 * 1024  # 2MB per file
 
     with archive:
         members = [info for info in archive.infolist() if not info.is_dir()]
@@ -318,19 +344,43 @@ async def analyze_zip(request: Request, file: UploadFile = File(...)):
                 )
                 continue
 
-            raw = archive.read(info)
+            # The size limits are applied to the size the archive declares, and
+            # the read is capped as well, so an oversized member is rejected
+            # before it is decompressed into memory.
+            if info.file_size > MAX_PER_FILE_BYTES:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"File '{safe_name}' exceeds 2MB limit after decompression",
+                )
+
+            if total_size + info.file_size > MAX_ZIP_TOTAL_BYTES:
+                raise HTTPException(
+                    status_code=400,
+                    detail="ZIP source files exceed the 5MB total limit",
+                )
+
+            if info.flag_bits & _ZIP_ENCRYPTED_FLAG:
+                _add_skipped(
+                    skipped_files,
+                    f"{safe_name} (password protected)",
+                )
+                continue
+
+            try:
+                raw = _read_member(archive, info, MAX_PER_FILE_BYTES)
+            except _UNREADABLE_MEMBER_ERRORS:
+                _add_skipped(
+                    skipped_files,
+                    f"{safe_name} (could not be read)",
+                )
+                continue
+
             decompressed_size = len(raw)
 
             if decompressed_size > MAX_PER_FILE_BYTES:
                 raise HTTPException(
                     status_code=400,
                     detail=f"File '{safe_name}' exceeds 2MB limit after decompression",
-                )
-
-            if total_size + decompressed_size > MAX_ZIP_TOTAL_BYTES:
-                raise HTTPException(
-                    status_code=400,
-                    detail="ZIP source files exceed the 5MB total limit",
                 )
 
             total_size += decompressed_size
