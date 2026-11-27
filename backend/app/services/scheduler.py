@@ -62,7 +62,14 @@ def _send_weekly_digests() -> None:
                 continue
             # -------------------------------------------------
 
-            stats = compute_subscriber_stats(db, sub.email)
+            # One subscriber's data must not stop the digest for the others.
+            try:
+                stats = compute_subscriber_stats(db, sub.email)
+            except Exception:
+                log.exception("Could not build the digest for %s", sub.email)
+                DIGEST_EMAILS_FAILED_TOTAL.inc()
+                continue
+
             if not stats:
                 log.debug("No stats for %s, skipping", sub.email)
                 continue

@@ -38,6 +38,14 @@ All notable changes to QyverixAI are documented in this file.
 - Tightened the `Missing __init__` regex (`[^:]*` → `[^:\n]*`) so the class
   header stays on a single line and classes that do define `__init__` are not
   flagged once multi-line matching is enabled.
+- Weekly digest: a stored history record whose result is not shaped like a
+  full analysis (a list, `null` sections from a single-mode run, a non-numeric
+  score) no longer raises and ends the job for every subscriber; such records
+  are read tolerantly and a failure for one subscriber is logged while the
+  rest are still sent. Values taken from stored results are HTML-escaped in
+  the email, the "Open QyverixAI" link follows `DIGEST_BASE_URL` instead of
+  always pointing at the hosted demo, and `SMTP_PORT=465` now connects with
+  implicit TLS instead of hanging until the timeout.
 
 ### Fixed
 - Improved database service error handling: safer idempotent schema migrations,

@@ -9,6 +9,7 @@ import time
 from datetime import UTC, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from html import escape
 from typing import cast
 from urllib.parse import urlencode
 
@@ -36,20 +37,63 @@ def _build_unsubscribe_url(email: str, token: str) -> str:
     return f"{base}/subscribe/unsubscribe?{query}"
 
 
+def _load_result(result_json: str | None) -> dict:
+    """Parse a stored analysis result.
+
+    `POST /user/history` accepts any valid JSON, so a record may hold a list, a
+    string or `null`. Anything that is not a JSON object counts as empty.
+    """
+    try:
+        data = json.loads(result_json or "")
+    except (ValueError, TypeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _section(data: dict, key: str) -> dict:
+    """Return one part of a result (`explanation`, `debugging`, `suggestions`).
+
+    A full analysis nests each part under its own key. A record saved from a
+    single endpoint is that part itself, and a single-mode run stores `null`
+    for the parts it did not produce, so the record is used as a fallback.
+    """
+    value = data.get(key)
+    return value if isinstance(value, dict) else data
+
+
+def _result_language(data: dict) -> str | None:
+    language = _section(data, "explanation").get("language") or data.get("language")
+    return language if isinstance(language, str) and language.strip() else None
+
+
+def _result_score(data: dict) -> int | None:
+    score = _section(data, "suggestions").get("overall_score")
+    if isinstance(score, bool) or not isinstance(score, (int, float)):
+        return None
+    return int(score)
+
+
+def _result_issues(data: dict) -> list[dict]:
+    issues = _section(data, "debugging").get("issues")
+    if not isinstance(issues, list):
+        return []
+    return [issue for issue in issues if isinstance(issue, dict)]
+
+
 def _parse_score(result_json: str) -> int | None:
     """Extract overall_score from an analysis result JSON."""
-    try:
-        data = json.loads(result_json)
-        return data.get("suggestions", {}).get("overall_score")
-    except (json.JSONDecodeError, TypeError, AttributeError):
-        return None
+    return _result_score(_load_result(result_json))
 
 
 def _most_common_bug(issues: list[dict]) -> str | None:
     """Return the most frequent bug type from a list of debug issues."""
     from collections import Counter
 
-    types = [i.get("type", "Unknown") for i in issues if i.get("type")]
+    types = [
+        issue["type"]
+        for issue in issues
+        if isinstance(issue.get("type"), str) and issue["type"]
+    ]
     if not types:
         return None
     return Counter(types).most_common(1)[0][0]
@@ -102,24 +146,17 @@ def compute_subscriber_stats(db: Session, email: str) -> dict | None:
     all_issues: list[dict] = []
 
     for h in this_week:
-        try:
-            data = json.loads(cast(str, h.result_json))
-        except json.JSONDecodeError:
-            continue
+        data = _load_result(cast(str, h.result_json))
 
-        # Language from explanation
-        lang = data.get("explanation", {}).get("language") or data.get("language")
+        lang = _result_language(data)
         if lang:
             languages.add(lang)
 
-        # Score from suggestions
-        score = data.get("suggestions", {}).get("overall_score")
+        score = _result_score(data)
         if score is not None:
-            scores.append(int(score))
+            scores.append(score)
 
-        # Issues from debugging
-        issues = data.get("debugging", {}).get("issues", [])
-        all_issues.extend(issues)
+        all_issues.extend(_result_issues(data))
 
     avg_score = round(sum(scores) / len(scores), 1) if scores else None
 
@@ -160,8 +197,18 @@ def compute_subscriber_stats(db: Session, email: str) -> dict | None:
 # ── Email template ────────────────────────────────────────────────────────────
 
 
+def _app_url() -> str:
+    """Link to the web app of this deployment, from `DIGEST_BASE_URL`."""
+    return f"{settings.digest_base_url.rstrip('/')}/app"
+
+
 def _build_html(stats: dict, unsubscribe_url: str) -> str:
-    """Render the weekly digest HTML email."""
+    """Render the weekly digest HTML email.
+
+    Languages and bug names come from results the user stored, so every value
+    is escaped before it is placed in the markup.
+    """
+    languages = escape(", ".join(stats["languages"]))
     score_line = ""
     if stats["avg_score"] is not None:
         emoji = {"up": "📈", "down": "📉", "stable": "➡️"}.get(stats["trend"], "➡️")
@@ -180,7 +227,7 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
         bug_line = f"""
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;"><strong>Most Common Bug</strong></td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{stats['top_bug']}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{escape(stats['top_bug'])}</td>
         </tr>"""
 
     return f"""<!DOCTYPE html>
@@ -192,7 +239,7 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
   <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
     <tr><td style="background:#1a1a2e;padding:24px 32px;text-align:center;">
       <h1 style="margin:0;color:#f0a030;font-size:1.4rem;">QyverixAI Weekly Digest</h1>
-      <p style="margin:4px 0 0;color:#aaa;font-size:0.85rem;">{stats['week_start']} – {stats['week_end']}</p>
+      <p style="margin:4px 0 0;color:#aaa;font-size:0.85rem;">{escape(stats['week_start'])} – {escape(stats['week_end'])}</p>
     </td></tr>
     <tr><td style="padding:24px 32px;">
       <p style="margin:0 0 16px;color:#333;font-size:0.95rem;">Here&#39;s your weekly code analysis summary.</p>
@@ -203,7 +250,7 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
         </tr>
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;"><strong>Languages</strong></td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{', '.join(stats['languages'])}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e0dcd4;text-align:right;">{languages}</td>
         </tr>
         {score_line}
         <tr>
@@ -214,11 +261,11 @@ def _build_html(stats: dict, unsubscribe_url: str) -> str:
       </table>
     </td></tr>
     <tr><td style="padding:0 32px 24px;text-align:center;">
-      <a href="{stats.get('base_url', 'https://qyverixai.onrender.com')}/app" style="display:inline-block;padding:10px 24px;background:#f0a030;color:#1a1a2e;text-decoration:none;border-radius:6px;font-weight:bold;font-size:0.9rem;">Open QyverixAI</a>
+      <a href="{escape(_app_url())}" style="display:inline-block;padding:10px 24px;background:#f0a030;color:#1a1a2e;text-decoration:none;border-radius:6px;font-weight:bold;font-size:0.9rem;">Open QyverixAI</a>
     </td></tr>
     <tr><td style="padding:16px 32px;background:#faf8f5;font-size:0.75rem;color:#888;text-align:center;">
-      <p style="margin:0;">This email was sent to {stats['email']} because you subscribed to the QyverixAI weekly digest.</p>
-      <p style="margin:4px 0 0;"><a href="{unsubscribe_url}" style="color:#888;text-decoration:underline;">Unsubscribe</a></p>
+      <p style="margin:0;">This email was sent to {escape(stats['email'])} because you subscribed to the QyverixAI weekly digest.</p>
+      <p style="margin:4px 0 0;"><a href="{escape(unsubscribe_url)}" style="color:#888;text-decoration:underline;">Unsubscribe</a></p>
     </td></tr>
   </table>
 </td></tr></table>
@@ -242,7 +289,7 @@ def _build_text(stats: dict, unsubscribe_url: str) -> str:
         f"{score}\n"
         f"Issues Found: {stats['total_issues']}\n"
         f"{bug}\n\n"
-        f"Open QyverixAI: {stats.get('base_url', 'https://qyverixai.onrender.com')}/app\n\n"
+        f"Open QyverixAI: {_app_url()}\n\n"
         f"Unsubscribe: {unsubscribe_url}"
     )
 
@@ -272,7 +319,10 @@ def send_digest(stats: dict, unsubscribe_token: str) -> bool:
 
     start_time = time.perf_counter()
     try:
-        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30) as server:
+        # Port 465 expects TLS from the first byte; a plain connection to it
+        # hangs until the timeout.
+        connect = smtplib.SMTP_SSL if settings.smtp_port == 465 else smtplib.SMTP
+        with connect(settings.smtp_host, settings.smtp_port, timeout=30) as server:
             if settings.smtp_port == 587:
                 server.starttls()
             if settings.smtp_user:
