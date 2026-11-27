@@ -38,6 +38,13 @@ All notable changes to QyverixAI are documented in this file.
 - Tightened the `Missing __init__` regex (`[^:]*` → `[^:\n]*`) so the class
   header stays on a single line and classes that do define `__init__` are not
   flagged once multi-line matching is enabled.
+- `Semicolon After Loop` and `Malformed For-Loop` no longer report well-formed
+  loops in C++, Java, JavaScript and TypeScript. A loop header containing a call
+  (`for (auto it = v.begin(); it != v.end(); ++it)`), a `for...of` / `for...in`
+  over a call result, and the `while (...);` that ends a `do` loop were all
+  flagged as errors. Both rules now match the header's parentheses instead of
+  using a regex, which also covers headers split over several lines and ignores
+  loops inside comments and strings.
 
 ### Fixed
 - Improved database service error handling: safer idempotent schema migrations,

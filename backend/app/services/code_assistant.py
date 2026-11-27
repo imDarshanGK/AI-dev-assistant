@@ -630,6 +630,7 @@ BUG_PATTERNS: list[BugPattern] = [
         "Remove the semicolon so the loop executes the intended block.",
         "error",
         ["C++", "Java", "JavaScript", "TypeScript"],
+        detector="semicolon_after_loop",
     ),
     BugPattern(
         "Type Mismatch: String to Int",
@@ -734,6 +735,7 @@ BUG_PATTERNS: list[BugPattern] = [
         "Ensure you have two semicolons separating the initialization, condition, and increment statements.",
         "error",
         ["C++", "Java", "JavaScript", "TypeScript"],
+        detector="malformed_for_loop",
     ),
     # ── PHP ──
     BugPattern(
@@ -840,13 +842,17 @@ def _is_multiline_pattern(pattern: str) -> bool:
     return any(token in pattern for token in (r"\n", r"[\s\S]", r"[\d\D]", r"[\w\W]"))
 
 
-def _iter_js_tokens(code: str) -> Iterator[tuple[str, str, int]]:
+def _iter_js_tokens(code: str, punctuation: str = "") -> Iterator[tuple[str, str, int]]:
     """Yield ``(kind, value, position)`` tokens for JavaScript/TypeScript source.
 
-    Only identifiers and braces are emitted; everything else is punctuation the
-    detectors do not need. Comments, quoted strings and template literals are
-    skipped entirely so brace matching and ``await`` lookup never see code-like
-    text inside them.
+    Only identifiers and braces are emitted by default; everything else is
+    punctuation most detectors do not need. A detector that does need some of it
+    passes those characters in ``punctuation`` and receives them as ``punct``
+    tokens. Comments, quoted strings and template literals are skipped entirely
+    so brace matching and keyword lookup never see code-like text inside them.
+
+    The comment and string syntax is shared with Java and C++, so the loop
+    detectors use this tokenizer for those languages as well.
     """
     i = 0
     length = len(code)
@@ -887,10 +893,25 @@ def _iter_js_tokens(code: str) -> Iterator[tuple[str, str, int]]:
             yield ("ident", code[start:i], start)
             continue
 
+        if ch.isdigit():
+            # Consume the literal whole so a C++ digit separator (`1'000`) is
+            # not mistaken for the start of a character literal.
+            i += 1
+            while i < length and (
+                code[i].isalnum()
+                or code[i] == "_"
+                or (code[i] == "'" and code[i + 1 : i + 2].isalnum())
+            ):
+                i += 1
+            continue
+
         if ch in "{}":
             yield ("brace", ch, i)
             i += 1
             continue
+
+        if ch in punctuation:
+            yield ("punct", ch, i)
 
         i += 1
 
@@ -949,7 +970,162 @@ def _await_lines_outside_try(code: str) -> list[int]:
     return flagged
 
 
-_BUG_DETECTORS = {"await_without_try_catch": _await_lines_outside_try}
+@dataclass
+class _BracketGroup:
+    """What sits directly inside one bracket pair, nested pairs excluded."""
+
+    semicolons: int = 0
+    iterates_collection: bool = False
+    close_index: int | None = None
+
+
+@dataclass
+class _LoopHeader:
+    """A ``for``/``while`` header whose parentheses were matched."""
+
+    keyword: str
+    line: int
+    semicolons: int
+    iterates_collection: bool
+    closes_do_while: bool
+    followed_by_semicolon: bool
+
+
+def _token_is(
+    tokens: list[tuple[str, str, int]], index: int, kind: str, value: str
+) -> bool:
+    return index < len(tokens) and tokens[index][:2] == (kind, value)
+
+
+def _match_brackets(
+    code: str, tokens: list[tuple[str, str, int]]
+) -> dict[int, _BracketGroup]:
+    """Map the token index of each closed opening bracket to its group.
+
+    A single pass keeps this linear however deeply the brackets nest.
+    """
+    closed: dict[int, _BracketGroup] = {}
+    open_groups: list[tuple[int, _BracketGroup]] = []
+
+    for index, (kind, value, position) in enumerate(tokens):
+        if kind == "ident":
+            # `for (x of xs)` / `for (key in obj)`
+            if open_groups and value in ("of", "in"):
+                open_groups[-1][1].iterates_collection = True
+        elif value in "([{":
+            open_groups.append((index, _BracketGroup()))
+        elif value in ")]}":
+            if open_groups:
+                open_index, group = open_groups.pop()
+                group.close_index = index
+                closed[open_index] = group
+        elif not open_groups:
+            continue
+        elif value == ";":
+            open_groups[-1][1].semicolons += 1
+        elif value == ":":
+            # `for (T item : items)`, but not the `::` scope operator.
+            beside_colon = (
+                code[position - 1 : position] == ":"
+                or code[position + 1 : position + 2] == ":"
+            )
+            if not beside_colon:
+                open_groups[-1][1].iterates_collection = True
+    return closed
+
+
+def _find_loop_headers(code: str) -> list[_LoopHeader]:
+    """Return every ``for``/``while`` header in C-style source.
+
+    Parentheses, brackets and braces are matched, so calls, subscripts and
+    lambdas inside a header neither end it early nor contribute separators.
+    Headers whose closing parenthesis is missing are skipped.
+    """
+    tokens = list(_iter_js_tokens(code, punctuation="()[];:"))
+    groups = _match_brackets(code, tokens)
+    headers: list[_LoopHeader] = []
+    brace_depth = 0
+    # Brace depths at which a `do` is still waiting for its closing `while`.
+    open_do_depths: list[int] = []
+
+    for index, (kind, value, position) in enumerate(tokens):
+        if kind == "brace":
+            brace_depth += 1 if value == "{" else -1
+            continue
+        if kind != "ident" or value not in ("do", "for", "while"):
+            continue
+        if position > 0 and code[position - 1] == ".":
+            continue
+        if value == "do":
+            open_do_depths.append(brace_depth)
+            continue
+
+        closes_do_while = False
+        if value == "while" and open_do_depths and open_do_depths[-1] == brace_depth:
+            open_do_depths.pop()
+            closes_do_while = True
+
+        open_index = index + 1
+        if value == "for" and _token_is(tokens, open_index, "ident", "await"):
+            open_index += 1
+        if not _token_is(tokens, open_index, "punct", "("):
+            continue
+        group = groups.get(open_index)
+        if group is None or group.close_index is None:
+            continue
+
+        headers.append(
+            _LoopHeader(
+                keyword=value,
+                line=code.count("\n", 0, position) + 1,
+                semicolons=group.semicolons,
+                iterates_collection=group.iterates_collection,
+                closes_do_while=closes_do_while,
+                followed_by_semicolon=_token_is(
+                    tokens, group.close_index + 1, "punct", ";"
+                ),
+            )
+        )
+    return headers
+
+
+def _unique_lines(lines: Iterator[int]) -> list[int]:
+    return list(dict.fromkeys(lines))
+
+
+def _semicolon_after_loop_lines(code: str) -> list[int]:
+    """Return lines of loops whose header is directly followed by ``;``.
+
+    The ``while (...)`` that ends a ``do`` loop needs its semicolon and is not
+    reported.
+    """
+    return _unique_lines(
+        header.line
+        for header in _find_loop_headers(code)
+        if header.followed_by_semicolon and not header.closes_do_while
+    )
+
+
+def _malformed_for_loop_lines(code: str) -> list[int]:
+    """Return lines of ``for`` loops without exactly two header semicolons.
+
+    Loops that iterate a collection (``of``, ``in`` or ``:``) have no
+    semicolons by design and are not reported.
+    """
+    return _unique_lines(
+        header.line
+        for header in _find_loop_headers(code)
+        if header.keyword == "for"
+        and header.semicolons != 2
+        and not header.iterates_collection
+    )
+
+
+_BUG_DETECTORS = {
+    "await_without_try_catch": _await_lines_outside_try,
+    "semicolon_after_loop": _semicolon_after_loop_lines,
+    "malformed_for_loop": _malformed_for_loop_lines,
+}
 
 
 def _build_issue(bp: BugPattern, line_no: int, lines: list[str], code: str) -> dict:
