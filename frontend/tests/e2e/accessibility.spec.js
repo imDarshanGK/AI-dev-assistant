@@ -33,6 +33,8 @@ test.describe('accessibility', () => {
 
     for (const tabId of ['tab-debug', 'tab-suggest']) {
       await page.locator(`#${tabId}`).click();
+      // The newly shown pane fades in (`paneIn`); scan once it is fully opaque.
+      await waitForEntranceAnimations(page);
 
       const results = await new AxeBuilder({ page }).withTags(A11Y_TAGS).analyze();
 
