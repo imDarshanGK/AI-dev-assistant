@@ -54,6 +54,22 @@ def _get_user_or_404(db: Session, user_id: int, actor_id: int) -> User:
     return user
 
 
+def _parse_details(raw: str | None) -> dict | None:
+    """Decode an entry's stored ``details``.
+
+    Entries written through ``record_audit`` hold a JSON object. Rows written
+    before share deletions used it hold a plain sentence, and one such row must
+    not make the whole listing fail, so anything else is returned as a message.
+    """
+    if not raw:
+        return None
+    try:
+        parsed = json.loads(raw)
+    except ValueError:
+        return {"message": raw}
+    return parsed if isinstance(parsed, dict) else {"message": raw}
+
+
 def _to_record(entry: AuditLog) -> AuditLogRecord:
     return AuditLogRecord(
         id=entry.id,
@@ -62,7 +78,7 @@ def _to_record(entry: AuditLog) -> AuditLogRecord:
         action=entry.action,
         target_type=entry.target_type,
         target_id=entry.target_id,
-        details=json.loads(entry.details) if entry.details else None,
+        details=_parse_details(entry.details),
         ip_address=entry.ip_address,
         created_at=entry.created_at.isoformat(),
     )

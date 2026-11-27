@@ -235,3 +235,64 @@ def test_audit_entries_are_append_only():
         assert count >= 1
     finally:
         db.close()
+
+
+# ── Share deletions in the audit log ───────────────────────────────────────────
+
+
+def test_deleted_share_is_listed_in_audit_log():
+    admin = _signup("share-admin@example.com")
+    _make_admin(admin["user_id"])
+    headers = _auth(admin["access_token"])
+
+    r = client.post(
+        "/share/",
+        json={"code": "print('hi')", "result": {"score": 90}, "action": "analyze"},
+        headers=headers,
+    )
+    assert r.status_code == 200, r.text
+    token = r.json()["id"]
+
+    assert client.delete(f"/share/{token}", headers=headers).status_code == 204
+
+    r = client.get("/admin/audit-logs?action=delete_share", headers=headers)
+    assert r.status_code == 200, r.text
+    entry = r.json()[0]
+    assert entry["actor_email"] == "share-admin@example.com"
+    assert entry["target_type"] == "SharedSnippet"
+    assert entry["details"] == {"owner_id": admin["user_id"]}
+    assert token not in r.text
+
+
+@pytest.mark.parametrize(
+    ("name", "stored"),
+    [
+        ("sentence", "Deleted shared snippet with token: abc123"),
+        ("list", "[1, 2]"),
+        ("string", '"just a string"'),
+    ],
+)
+def test_entry_with_non_object_details_does_not_break_listing(name, stored):
+    admin = _signup(f"legacy-{name}@example.com")
+    _make_admin(admin["user_id"])
+
+    db = TestingSessionLocal()
+    try:
+        db.add(
+            AuditLog(
+                actor_id=admin["user_id"],
+                actor_email="legacy@example.com",
+                action="legacy_action",
+                details=stored,
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    r = client.get(
+        f"/admin/audit-logs?actor_id={admin['user_id']}",
+        headers=_auth(admin["access_token"]),
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()[0]["details"] == {"message": stored}

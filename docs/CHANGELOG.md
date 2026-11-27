@@ -38,6 +38,12 @@ All notable changes to QyverixAI are documented in this file.
 - Tightened the `Missing __init__` regex (`[^:]*` → `[^:\n]*`) so the class
   header stays on a single line and classes that do define `__init__` are not
   flagged once multi-line matching is enabled.
+- `GET /admin/audit-logs` no longer answers 500 once a share has been deleted.
+  `DELETE /share/{token}` stored a plain sentence (including the share token)
+  in the audit entry's `details`, which the listing then failed to parse as
+  JSON. Share deletions are now recorded through `record_audit` like every
+  other audited action, and the listing returns existing non-JSON `details` as
+  `{"message": ...}` instead of failing.
 
 ### Fixed
 - Improved database service error handling: safer idempotent schema migrations,
